@@ -11,9 +11,29 @@
             <link rel="stylesheet" type="text/css" href="{% static 'dashboard/bootstrap.min.css.map' %}">
             <link rel="stylesheet" type="text/css" href="{% static 'dashboard/style.css' %}">
             
-                 <link rel="stylesheet" type="text/css" href="{% static 'dashboard/now-ui-dashboard.css' %}">
+            <link rel="stylesheet" type="text/css" href="{% static 'dashboard/now-ui-dashboard.css' %}">
             <link rel="stylesheet" type="text/css" href="{% static 'dashboard/now-ui-dashboard.css.map' %}">
             <link rel="stylesheet" type="text/css" href="{% static 'dashboard/now-ui-dashboard.min.css' %}">
+
+        <!-- Bootstrap -->
+        <link href="{% static 'linkToDashboard/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link href="{% static 'linkToDashboard/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+        <!-- NProgress -->
+        <link href="{% static 'linkToDashboard/vendors/nprogress/nprogress.css' %}" rel="stylesheet">
+        <!-- iCheck -->
+        <link href="{% static 'linkToDashboard/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
+      
+        <!-- bootstrap-progressbar -->
+        <link href="{% static 'linkToDashboard/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
+        <!-- JQVMap -->
+        <link href="{% static 'linkToDashboard/vendors/jqvmap/dist/jqvmap.min.css'%}" rel="stylesheet"/>
+        <!-- bootstrap-daterangepicker -->
+        <link href="{% static 'linkToDashboard/vendors/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
+
+        <!-- Custom Theme Style -->
+        <link href="{% static 'linkToDashboard/build/css/custom.min.css' %}" rel="stylesheet">
+  
             
 
 
@@ -65,7 +85,7 @@
         {% block content %}{% endblock %}
 
         <!--Footer-->
-        <footer class="bg-dark ">
+        <footer class="container-fluid bg-dark ">
           <div>  logos 
              <ul class="nav justify-content-center">
                 <li class="nav-item">
