@@ -21,9 +21,6 @@
         <!--animated counter-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/vquery/5.0.1/v.min.js" integrity="sha512-JTaEfpc0EjojckV4ObScEHC2yHkDKUXEC5xO4Yb8upLDUR/2clSQKloqw6Ocp66a7dW689eKo0b/KC9C+T6osg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-
-        
-
         <style>
           *{
             padding:0;
@@ -32,66 +29,82 @@
           .content {
             display: flex;
             justify-content: left;
-            align-items: center;
+            align-items: left;
             background: white;
             height: auto;
           }
-          
           .value {
             font-size: 2em;
             display: block;
             font-weight: bold;
             color: dark-gray;
           }
-        </style> 
+          a{
+            text-decoration: none;
+            font-size: x-large;
+          }
+        </style>
         <!--end animated counter-->
        
     </head>
     <body style="background-color: white!important;">
-        <!--Navbar-->
-        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: rgb(238, 241, 236);" role="navigation" >
-            <div class="container-fluid">
-              <a class="navbar-brand me-auto" href="#">
-                <img src="{% static 'images/relecov_minus.png' %}" class="rounded-start img-thumbnail" alt="logo ECDC-relecov" style="width: 45%">
-              </a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="collapse navbar-collapse" id="navbarSupportedContent" style="margin-left: 26%;width: 85%;">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0" >
-                  <li class="nav-item">
-                    <a class="nav-link active me-5" aria-current="page" href="#" style="color: #505E48!important;font-size:large">Home</a>
-                  </li>
-                  <li class="nav-item ">
-                    <a class="nav-link me-5" href="#" style="color: #505E48!important;font-size:large">About us</a>
-                  </li>
-                  <li class="nav-item me-5">
-                    <a class="nav-link" href="#" style="color: #505E48!important;font-size:large">Variants</a>
-                  </li> 
-                  <li class="nav-item me-5">
-                    <a class="nav-link" href="#" style="color: #505E48!important;font-size:large"> Methods</a>
-                  </li>
-                  <!--link users-->
-                  <!--<li class="nav-item dropdown me-5">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      Users
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                      <li><a class="dropdown-item" href="#">Sign in</a></li>
-                      <li><a class="dropdown-item" href="#">Log in</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item" href="#">another action?</a></li>
-                    </ul>
-                  </li>-->
-                  <!--end link users-->
-                  <button type="button" class="btn me-5" style="margin-left: 1em;margin-top: 0em;margin-bottom: 8px;height: auto; background-color: rgb(135, 163, 85);color: white;" >Intranet</button>
-                </ul>
-              </div>
-            </div>
-          </nav>
-          <!--end Navbar-->
+      <!--navbar with hover-->  
+      <div class="" style="background-color: rgb(238, 241, 236);">
+        
+        
+        <hr>
+        <ul class="menu" data-animation="diagonal">
+          <li style="margin-right: 20%"> 
+            <a class="navbar-brand" href="#">
+              <img src="{% static 'images/relecov_minus.png' %}" class="rounded-start img-thumbnail" alt="logo ECDC-relecov" style="width: 30%">
+            </a>
+          </li>  
           
-          <!--Banner-->
+          <li class="mt-5 ms-5" >  
+            <a href="#0">
+              About
+              <span class="border border-top"></span>
+              <span class="border border-right"></span>
+              <span class="border border-bottom"></span>
+              <span class="border border-left"></span>
+            </a>
+          </li>
+          <li class="mt-5 ms-5">
+            <a href="#0">
+              Projects
+              <span class="border border-top"></span>
+              <span class="border border-right"></span>
+              <span class="border border-bottom"></span>
+              <span class="border border-left"></span>
+            </a>
+          </li>
+          <li class="mt-5 ms-5">
+            <a href="#0">
+              Clients
+              <span class="border border-top"></span>
+              <span class="border border-right"></span>
+              <span class="border border-bottom"></span>
+              <span class="border border-left"></span>
+            </a>
+          </li>
+          <li class="mt-5 ms-5">
+            <a href="#0">
+              Contact
+              <span class="border border-top"></span>
+              <span class="border border-right"></span>
+              <span class="border border-bottom"></span>
+              <span class="border border-left"></span>
+            </a>
+          </li>
+          <li class="mt-5 ms-5">
+            <button type="button" class="btn me-5" style="margin-left: 1em;margin-top: 0em;margin-bottom: 8px;height: auto; background-color: rgb(135, 163, 85);color: white;" >Intranet</button>
+          </li>
+        </ul>
+        <hr>
+      </div>
+      <!--end navbar with hover-->
+        
+      <!--Banner-->
           <div class="card bg-dark text-white">
             <img src="{% static 'images/virus.jpg' %}" class="card-img" alt="banner relecov-platform" style="height: 20em;opacity: 0.3;">
             <div class="card-img-overlay">
@@ -100,7 +113,7 @@
             </div>
           </div>
 
-          <!--end Banner-->
+      <!--end Banner-->
 
         {% block content %}{% endblock %}
 
@@ -122,8 +135,8 @@
               <div class="container-fluid">
                 <div class="row">
                   <div class="card bg-light mt-5">
-                    <a class="nav-link active d-block" aria-current="page" href="http://relecov.isciiides.es/">wordpress.isciiides.es</a>
-                    <a class="nav-link d-block" aria-current="page" href="https://www.isciii.es/Paginas/Inicio.aspx">isciii.es</a>
+                    <a class="nav-link active d-block" aria-current="page" href="http://relecov.isciiides.es/" style="font-size: large;"> wordpress.isciiides.es</a>
+                    <a class="nav-link d-block" aria-current="page" href="https://www.isciii.es/Paginas/Inicio.aspx" style="font-size: large;">isciii.es</a>
                   </div>
                 </div>
               </div>
@@ -131,9 +144,9 @@
 
             <div class="container-fluid mt-5">
               <div class="row" style="margin-left: 15%;">
-                <div class="card" style="width: 21%;background-color: rgb(238, 241, 236);">
+                <div class="" style="width: 21%;">
                   <div class="card-body">
-                    <h5 class="card-title">relecov-platform</h5>
+                    <h5 class="card-title fs-5">relecov-platform</h5>
                     <h6 class="card-subtitle mb-2 text-muted" style="font-size: small;">lorem ipsum quaescitae indorum</h6>
                       <p style="font-size: small;">Powered by 
                         <img src="{% static 'images/django_logo.png' %}" class="card-img-top" alt="icono Django" style="width:16%;">
@@ -154,44 +167,44 @@
                 <!--end card logos and link to wordpress.isciiides.es-->
             
                 <!--card column 1-->
-                <div class="card ms-5" style="width: 18%;background-color: rgb(238, 241, 236);">
+                <div class="ms-5" style="width: 18%;">
                   <div class="card-body">
-                    <h5 class="card-title">Qué hacemos</h5>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Servicios</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Áreas De Investigación</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Internacional</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Innovación</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Memorias Anuales</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Lo Más Consultado</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Financiación Y Acreditación</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Plan Estratégico 2021-2025</a></h6>
+                    <h5 class="card-title fs-5">Qué hacemos</h5>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Servicios</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Áreas De Investigación</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Internacional</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Innovación</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Memorias Anuales</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Lo Más Consultado</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Financiación Y Acreditación</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Plan Estratégico 2021-2025</a></h6>
                   </div>
                 </div>
                 <!--end card column 1-->
 
                 <!--card column 2-->
-                <div class="card ms-5" style="width: 15%;background-color: rgb(238, 241, 236);">
+                <div class="ms-5" style="width: 15%;">
                   <div class="card-body">
-                    <h5 class="card-title">Quiénes somos</h5>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Misión Y Visión</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Estructura</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Centros Propios</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Otros Centros</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Institutos De Investigación Sanitaria</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Contacto</a></h6>
+                    <h5 class="card-title fs-5">Quiénes somos</h5>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Misión Y Visión</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Estructura</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Centros Propios</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Otros Centros</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Institutos De Investigación Sanitaria</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Contacto</a></h6>
                   </div>
                 </div>
                 <!--end card column 2-->
 
                 <!--card column 3-->
-                <div class="card ms-5" style="width: 17%;background-color: rgb(238, 241, 236);">
+                <div class="ms-5" style="width: 17%;">
                   <div class="card-body">
-                    <h5 class="card-title">Información General</h5>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Divulgación Y Cultura Científica</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Portal De Transparencia</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Redes Sociales</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Contacto Y Localización</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link">Política De Privacidad</a></h6>
+                    <h5 class="card-title fs-5">Información General</h5>
+                    <h6 class="card-subtitle mb-2 "><a href="#" class="card-link fs-6" style="color: #777676!important;">Divulgación Y Cultura Científica</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Portal De Transparencia</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Redes Sociales</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Contacto Y Localización</a></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"><a href="#" class="card-link fs-6" style="color: #777676!important;">Política De Privacidad</a></h6>
                   </div>
                 </div>
                 <!--end card column 3-->
@@ -223,6 +236,7 @@
               }
              animate();
           });
-        </script>       
+        </script>    
+        
     </body>
 </html>
