@@ -18,10 +18,6 @@ def index(request):
     context = {}
     return render(request, 'relecov_core/index.html', context)
 
-def dashboard(request):
-    context = {}
-    return render(request, 'relecov_core/methodology.html', context)
-    
 def variants(request):
     context = {}
     return render(request, 'relecov_core/variants.html', context)
@@ -80,5 +76,5 @@ def readTest(request):
     print("caller_list: " + str(caller_list))
     #print("lineage_list: " + lineage_list)
     #print("gene_list: " + gene_list)
-    
-    return render(request, 'relecov_core/documentation.html', {"reader":lineage_list}) 
+
+    return render(request, 'relecov_core/documentation.html', {"reader":lineage_list})
