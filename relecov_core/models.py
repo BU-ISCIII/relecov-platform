@@ -9,23 +9,9 @@ class Caller(models.Model):
     class Meta:
         db_table = "Caller"
         
-        
-        
-class Prueba():
-    var = 1
-    dict = {"apple":"red", "onion":"white", }
-
-"""
-class Laboratory(models.Model):
-    name = models.CharField(max_length=70)
-    location =models.Charfield(max_length= 120)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
-    class Meta:
-        db_table = "Laboratory"
-    
+          
 class Filter(models.Model):
-    result = models.Charfield(max_length=70)
+    name = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
     class Meta:
@@ -33,11 +19,11 @@ class Filter(models.Model):
     
 class Effect(models.Model):
     type_of_effect = models.CharField(max_length=80)
-    comments = models.Charfield(max_length=140)
+    comments = models.CharField(max_length=140)         #blob??????
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
     class Meta:
-        db_table = "Caller"
+        db_table = "Effect"
 
 class Lineage(models.Model):
     scientific_name = models.CharField(max_length=100)
@@ -46,36 +32,44 @@ class Lineage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
     class Meta:
-        db_table = "Caller"
+        db_table = "Lineage"
 
 class Gene(models.Model):
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
+    
     class Meta:
-        db_table = "Caller"
+        db_table = "Gene"
 
-class Chrom(models.Model):
+class Chromosome(models.Model):
     name_ref = models.CharField(max_length=110)
     rna_structure = models.CharField(max_length=140)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
+    
     class Meta:
-        db_table = "Caller"
+        db_table = "Chromosome"
 
 class Sample(models.Model):
-    fk_lab = models.OneToOneField(
-                    Laboratory,
-                    on_delete=models.CASCADE)
     reference = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
+    
     class Meta:
-        db_table = "Caller"
+        db_table = "Sample"
 
-class SampleResult(models.Model):
+class variants(models.Model):
     pos = models.CharField(max_length=7)
     ref = models.CharField(max_length=12)
-    ALT = models.CharField(max_length=5)
-    DP = models.CharField(max_length=7)
-"""
+    alt = models.CharField(max_length=10)
+    dp = models.CharField(max_length=10)
+    alt_dp = models.CharField(max_length=5)
+    ref_dp = models.CharField(max_length=10)
+    af = models.CharField(max_length=6)
+    hgvs_c = models.CharField(max_length=40)
+    hgvs_p = models.CharField(max_length=40)
+    hgvs_p_1_letter = models.CharField(max_length=40)
+    
+    class Meta:
+        db_table = "Variants"

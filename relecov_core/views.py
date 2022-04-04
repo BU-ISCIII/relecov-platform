@@ -1,26 +1,15 @@
-import csv
-import os
-from django.conf import settings
-#from msilib.schema import File
-#from msilib.schema import File
-#
-
-from django.core.files import File
-#from django.core.files.base import ContentFile
-from django.http import HttpResponse
+from multiprocessing import context
+from relecov_core.models import Caller
 from django.shortcuts import render
 
-from relecov_platform.settings import BASE_DIR
-
-
-# Create your views here.
 def index(request):
     context = {}
     return render(request, 'relecov_core/index.html', context)
-
+"""
 def dashboard(request):
     context = {}
     return render(request, 'relecov_core/methodology.html', context)
+"""
     
 def variants(request):
     context = {}
@@ -31,9 +20,34 @@ def documentation(request):
     return render(request, 'relecov_core/documentation.html', context)
 
 def readTest(request):
-    i = 0
+    data_array = []#one field per position
+    variant_dict = {}
+    variant_list = []
+    
+    with open("relecov_core/docs/variants1.csv") as fh:
+        lines = fh.readlines()
+    for line in lines[1:]:
+        data_array = line.split(",")
+        variant_dict["pos"] =data_array[2]
+        variant_dict["ref"] =data_array[3]
+        variant_dict["alt"] =data_array[4]
+        variant_dict["dp"] =data_array[6]
+        variant_dict["ref_dp"] =data_array[7]
+        variant_dict["alt_dp"] =data_array[8]
+        variant_dict["af"] =data_array[9]
+        #fields => SAMPLE, CHROM, POS, REF, ALT, FILTER, DP,  REF_DP, ALT_DP, AF, GENE, EFFECT, HGVS_C, HGVS_P, HGVS_P1LETTER, CALLER, LINEAGE
+        variant_list.append(variant_dict)
+    
+    context = {"variants":variant_list,}   
+    print("variant_list: " + str(variant_list))
+    
+    return render(request, 'relecov_core/documentation.html', context)  
+
+    """
+    def readTest(request):
+        line_counter = False
     header_line = ""
-    data_lines_list = []
+    data_array = []#one field per position
     effect_list = []
     variant_list = []
     filter_list = []
@@ -42,43 +56,52 @@ def readTest(request):
     caller_list = []
     lineage_list = []
     gene_list = []
-    data_array = []
-
+    
     with open("relecov_core/docs/variants1.csv") as f:
 
         for linea in f:
-            if i == 0:
-                #Header, field name
-                header_line = linea
+            if  not line_counter:
+                header_line = linea #Header (field name)
                 print("header: " + linea)
-                i += 1
+                line_counter = True
             else:
-                #rest of lines
-                data_lines_list.append(linea)
-
-        print("*******************DATA******************************************")
-        for data_line in data_lines_list:
-            data_array.append(data_line.split(","))
-
-        for data in data_array:
-            #fields => POS, REF, ALT, DP, REF_DP, ALT_DP, AF
-            variant_list.append(data[2] + "," + data[3] + "," + data[4] + "," + data[6] + "," + data[7] + "," + data[8]
-                                + "," + data[9])
-            effect_list.append(data[12] + "," + data[13] + "," + data[14])
-            chromosome_list.append(data[1])
-            sample_list.append(data[0])
-            filter_list.append(data[5])
-            caller_list.append(data[15])
-            lineage_list.append(data[16])
-            gene_list.append(data[10])
-
+                #data_lines_list.append(linea)#rest of lines (data)
+                data_array = linea.split(",")
+                #fields => SAMPLE, CHROM, POS, REF, ALT, FILTER, DP,  REF_DP, ALT_DP, AF, GENE, EFFECT, HGVS_C, HGVS_P, HGVS_P1LETTER, CALLER, LINEAGE
+                variant_list.append(data_array[2] + "," + data_array[3] + "," + data_array[4] + "," + data_array[6] + "," + data_array[7] + "," + data_array[8]
+                                    + "," + data_array[9])
+                effect_list.append(data_array[11] + "," + data_array[12] + "," + data_array[13] + "," + data_array[14])
+                chromosome_list.append(data_array[1])
+                sample_list.append(data_array[0])
+                filter_list.append(data_array[5])
+                caller_list.append(data_array[15])
+                lineage_list.append(data_array[16])
+                gene_list.append(data_array[10])
+            
+            for caller in caller_list:
+                callers = Caller(name=caller, version="2.0")
+                callers.save()
+            
+    context = {
+        "variants":variant_list, 
+        "chromosome":chromosome_list,
+        "effect":effect_list,
+        "sample":sample_list,
+        "filter":filter_list,
+        "caller":caller_list,
+        "lineage":lineage_list,
+        "gene":gene_list,
+        "header":header_line,
+        }   
     #print("variant_list: " + str(variant_list))
     #print("effect_list: " + str(effect_list))
     #print("chromosome_list: " + str(chromosome_list))
     #print("sample_list: " + str(sample_list))
     #print("filter_list: " + str(filter_list))
-    print("caller_list: " + str(caller_list))
+    #print("caller_list: " + str(caller_list))
     #print("lineage_list: " + lineage_list)
     #print("gene_list: " + gene_list)
     
-    return render(request, 'relecov_core/documentation.html', {"reader":lineage_list}) 
+    return render(request, 'relecov_core/documentation.html', context=context)  
+    """
+    
