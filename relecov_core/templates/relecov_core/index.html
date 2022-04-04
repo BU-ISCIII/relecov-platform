@@ -5,7 +5,14 @@
 {% block content %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'dashboard/style.css' %}">
-
+<style media="screen">
+/* set a max-width for horizontal fluid layout and make it centered */
+.container-fluid {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1600px;
+}
+</style>
 <!--cards-->
 <div class="container-fluid">
   <!--1º row Counters-->
@@ -13,7 +20,7 @@
     <!--First Card-->
     <div class="card mb-2 mx-5" style="max-width: 20%;">
       <div class="row g-0">
-       
+
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Samples received</h5>
@@ -25,14 +32,14 @@
           </div>
         </div>
       </div>
-      
+
     </div>
     <!--end First -->
 
     <!--Second Card-->
     <div class="card mb-2 me-5" style="max-width: 20%;">
       <div class="row g-0">
-       
+
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Samples processed</h5>
@@ -44,14 +51,14 @@
           </div>
         </div>
       </div>
-      
+
     </div>
     <!--end Second -->
 
     <!--Third Card-->
     <div class="card mb-2 me-5" style="max-width: 20%;">
       <div class="row g-0">
-       
+
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Uploads to ENA</h5>
@@ -63,14 +70,14 @@
           </div>
         </div>
       </div>
-      
+
     </div>
     <!--end Third -->
 
     <!--Fourth Card-->
     <div class="card mb-2 me-5" style="max-width: 20%;">
       <div class="row g-0">
-       
+
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Uploads to GISAID</h5>
@@ -82,10 +89,10 @@
           </div>
         </div>
       </div>
-      
+
     </div>
     <!--end Fourth -->
-  
+
   <!--end 1º row Counters-->
 </div>
   <!--2º row Links-->
@@ -97,7 +104,7 @@
           <div class="card-body">
             <h5 class="card-title">Methodology</h5>
             <p class="card-text">Ut pharetra metus sit amet dui ornare commodo ut sed est.</p>
-            <a href="{% url 'dashboard' %}" class="btn" style="background-color: rgb(135, 163, 85);">Go to dashboard</a>
+            <a href="dashboard/" class="btn" style="background-color: rgb(135, 163, 85);">Go to dashboard</a>
             <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
           </div>
         </div>
@@ -106,9 +113,9 @@
         </div>
       </div>
     </div>
-    
+
     <!--end First Link-->
-    
+
     <!--Second Card Link-->
     <div class="card mb-3 me-5" style="max-width: 28%;">
       <div class="row g-0">
