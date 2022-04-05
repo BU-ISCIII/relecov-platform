@@ -1,17 +1,17 @@
 from multiprocessing import context
-from relecov_core.models import Caller
+from relecov_core.models import *
 from django.shortcuts import render
 
 def index(request):
     context = {}
-    return render(request, 'relecov_core/index.html', context)
+    return render(request, "relecov_core/index.html", context)
 def variants(request):
     context = {}
-    return render(request, 'relecov_core/variants.html', context)
+    return render(request, "relecov_core/variants.html", context)
 
 def documentation(request):
     context = {}
-    return render(request, 'relecov_core/documentation.html', context)
+    return render(request, "relecov_core/documentation.html", context)
 
 def readTest(request):
     data_array = []#one field per position
@@ -32,6 +32,8 @@ def readTest(request):
     gene_dict = {}
     gene_list = []
     
+    #fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4), FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10), EFFECT(11), HGVS_C(12), 
+    #   HGVS_P(13), HGVS_P1LETTER(14), CALLER(15), LINEAGE(16)
     with open("relecov_core/docs/variants1.csv") as fh:
         lines = fh.readlines()
     for line in lines[1:]:
@@ -44,85 +46,126 @@ def readTest(request):
         variant_dict["ref_dp"] =data_array[7]
         variant_dict["alt_dp"] =data_array[8]
         variant_dict["af"] =data_array[9]
-        #fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4), FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10), EFFECT(11), HGVS_C(12), HGVS_P(13), HGVS_P1LETTER(14), CALLER(15), LINEAGE(16)
-        variant_list.append(variant_dict)
+        variant_dict_copy = variant_dict.copy()
+        
+        variant_list.append(variant_dict_copy)
         #effect _dict
         effect_dict["effect"] = data_array[11]
         effect_dict["hgvs_c"] = data_array[12]
         effect_dict["hgvs_p"] = data_array[13]
         effect_dict["hgvs_p_1_letter"] = data_array[14]
-        effect_list.append(effect_dict)
+        effect_dict_copy = effect_dict.copy()
+        effect_list.append(effect_dict_copy)
         #filter
         filter_dict["filter"] = data_array[5]
-        filter_list.append(filter_dict)
+        filter_dict_copy = filter_dict.copy()
+        filter_list.append(filter_dict_copy)
         #chromosome
         chromosome_dict["chromosome"] = data_array[1]
-        chromosome_list.append(chromosome_dict)
+        chromosome_dict_copy = chromosome_dict.copy()
+        chromosome_list.append(chromosome_dict_copy)
         #sample
         sample_dict["sample"] = data_array[0]
-        sample_list.append(sample_dict)
+        sample_dict_copy = sample_dict.copy()
+        sample_list.append(sample_dict_copy)
         #caller
         caller_dict["caller"] = data_array[15]
-        caller_list.append(caller_dict)
+        caller_dict_copy = caller_dict.copy()
+        caller_list.append(caller_dict_copy)
         #lineage
         lineage_dict["lineage"] = data_array[16]
-        lineage_list.append(lineage_dict)
+        lineage_dict_copy = lineage_dict.copy()
+        lineage_list.append(lineage_dict_copy)
         #gene
         gene_dict["gene"] = data_array[10]
-        gene_list.append(gene_dict)
-        
+        gene_dict_copy = gene_dict.copy()
+        gene_list.append(gene_dict_copy)
+      
     #insert into mySQL database
-    """
     for caller in caller_list:
-                callers = Caller(name=caller)
-                callers.save()
-    """
-    context = {"variants":variant_list,}   
-    print("variant_list: " + str(variant_list))
+        callers = Caller(caller=caller["caller"])
+        callers.save()
     
-    return render(request, 'relecov_core/documentation.html', context)  
-
-    """
-    def readTest(request):
-        line_counter = False
-    header_line = ""
-    data_array = []#one field per position
-    effect_list = []
-    variant_list = []
-    filter_list = []
-    chromosome_list = []
-    sample_list = []
-    caller_list = []
-    lineage_list = []
-    gene_list = []
+    for variant in variant_list:
+        variants = Variant(
+            pos=variant["pos"],
+            ref=variant["ref"],
+            alt = variant["alt"],
+            dp = variant["dp"],
+            ref_dp = variant["ref_dp"],
+            alt_dp = variant["alt_dp"],
+            af = variant["af"],
+            )
+        variants.save()
     
-    with open("relecov_core/docs/variants1.csv") as f:
+    for effect in effect_list:
+        effects = Effect(
+            effect = effect["effect"],
+            hgvs_c = effect["hgvs_c"],
+            hgvs_p = effect["hgvs_p"],
+            hgvs_p_1_letter = effect["hgvs_p_1_letter"],
+        )
+        effects.save()
 
-        for linea in f:
-            if  not line_counter:
-                header_line = linea #Header (field name)
-                print("header: " + linea)
-                line_counter = True
-            else:
-                #data_lines_list.append(linea)#rest of lines (data)
-                data_array = linea.split(",")
-                #fields => SAMPLE, CHROM, POS, REF, ALT, FILTER, DP,  REF_DP, ALT_DP, AF, GENE, EFFECT, HGVS_C, HGVS_P, HGVS_P1LETTER, CALLER, LINEAGE
-                variant_list.append(data_array[2] + "," + data_array[3] + "," + data_array[4] + "," + data_array[6] + "," + data_array[7] + "," + data_array[8]
-                                    + "," + data_array[9])
-                effect_list.append(data_array[11] + "," + data_array[12] + "," + data_array[13] + "," + data_array[14])
-                chromosome_list.append(data_array[1])
-                sample_list.append(data_array[0])
-                filter_list.append(data_array[5])
-                caller_list.append(data_array[15])
-                lineage_list.append(data_array[16])
-                gene_list.append(data_array[10])
-            
-            for caller in caller_list:
-                callers = Caller(name=caller, version="2.0")
-                callers.save()
-            
+    for filter in filter_list:
+        filters = Filter(
+            filter = filter["filter"]
+        )
+        filters.save()
+        
+    for chrom in chromosome_list:
+        chroms = Chromosome(
+            chromosome = chrom["chromosome"]
+        )
+        chroms.save()
+        
+    for samp in sample_list:
+        samples = Sample(
+            sample = samp["sample"]
+        )
+        samples.save()
+        
+    for lineag in lineage_list:
+        lineages = Lineage(
+            lineage = lineag["lineage"]
+        )
+        lineages.save()
+        
+    for gen in gene_list:
+        genes = Gene(
+            gene = gen["gene"]
+        )
+        genes.save()
+    
+    """
+    #Delete all register into tables 
+    variants = Variant.objects.all()
+    variants.delete()
+    
+    effects = Effect.objects.all()
+    effects.delete()
+    
+    filters = Filter.objects.all()
+    filters.delete()
+    
+    chromosomes = Chromosome.objects.all()
+    chromosomes.delete()
+    
+    samples = Sample.objects.all()
+    samples.delete()
+    
+    callers = Caller.objects.all()
+    callers.delete()
+    
+    lineages = Lineage.objects.all()
+    lineages.delete()
+    
+    genes = Gene.objects.all()
+    genes.delete()
+    """
+    #Context    
     context = {
-        "variants":variant_list, 
+        "variant":variant_list, 
         "chromosome":chromosome_list,
         "effect":effect_list,
         "sample":sample_list,
@@ -130,17 +173,7 @@ def readTest(request):
         "caller":caller_list,
         "lineage":lineage_list,
         "gene":gene_list,
-        "header":header_line,
-        }   
-    #print("variant_list: " + str(variant_list))
-    #print("effect_list: " + str(effect_list))
-    #print("chromosome_list: " + str(chromosome_list))
-    #print("sample_list: " + str(sample_list))
-    #print("filter_list: " + str(filter_list))
-    #print("caller_list: " + str(caller_list))
-    #print("lineage_list: " + lineage_list)
-    #print("gene_list: " + gene_list)
+        }      
     
-    return render(request, 'relecov_core/documentation.html', context=context)  
-    """
-    
+    return render(request, "relecov_core/documentation.html", context)  
+
