@@ -54,19 +54,19 @@ def readTest(request):
         #lineage_list.append(lineage_dict_copy)
         #print(lineage_list)
         
-    week=['1', '2', '3', '4', '5', '6', '7', '8',]
-    fig = go.Figure(go.Bar(x=week, y=[2,5,9,12,16,9,4,2], name='B.1.177'))
-    fig.add_trace(go.Bar(x=week, y=[1, 4, 9, 16, 8,5,2,1], name='BA.1.1'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 1, 2, 6, 9, 7, 4], name='BA.1'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 3, 7, 9, 10, 5], name='AY.43'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 2, 5, 8, 9, 4], name='AY.44'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 1, 4, 9, 5, 1], name='AY.4'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 0, 3, 6, 4, 2], name='AY.124'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 0, 1, 4, 16, 10], name='AY.113'))
-    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 0, 0, 4, 11, 16], name='AY.102.2'))
+    week=["1", "2", "3", "4", "5", "6", "7", "8",]
+    fig = go.Figure(go.Bar(x=week, y=[2,5,9,12,16,9,4,2], name="B.1.177"))
+    fig.add_trace(go.Bar(x=week, y=[1, 4, 9, 16, 8,5,2,1], name="BA.1.1"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 1, 2, 6, 9, 7, 4], name="BA.1"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 3, 7, 9, 10, 5], name="AY.43"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 2, 5, 8, 9, 4], name="AY.44"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 1, 4, 9, 5, 1], name="AY.4"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 0, 3, 6, 4, 2], name="AY.124"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 0, 1, 4, 16, 10], name="AY.113"))
+    fig.add_trace(go.Bar(x=week, y=[0, 0, 0, 0, 0, 4, 11, 16], name="AY.102.2"))
     
-    fig.update_layout(barmode='stack')
-    #fig.update_xaxes(showgrid = True,ticks = "outside")#, categoryorder='array', categoryarray= ['1', '2', '3', '4', '5', '6', '7', '8',]
+    fig.update_layout(barmode="stack")
+    #fig.update_xaxes(showgrid = True,ticks = "outside")#, categoryorder="array", categoryarray= ["1", "2", "3", "4", "5", "6", "7", "8",]
     fig.show()
     """
     #Context    
@@ -84,53 +84,53 @@ def readTest(request):
     return render(request, "relecov_core/documentation.html", context)  
 
 def plotly_ex(request):
-    app = DjangoDash('SimpleExample')   # replaces dash.Dash
+    app = DjangoDash("SimpleExample")   # replaces dash.Dash
     
     colors = {
-    'background': '#111111',
-    'text': '#7FDBFF'
+    "background": "#111111",
+    "text": "#7FDBFF"
     }
 
 # assume you have a "long-form" data frame
 # see https://plotly.com/python/px-arguments/ for more options
     df = pd.DataFrame({
-        "Week": ['1', '2', '3', '4', '5', '6', '7', '8',],
+        "Week": ["1", "2", "3", "4", "5", "6", "7", "8",],
         #"Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
         "Sequences": [1, 4, 9, 16, 8,5,2,1],
         #"Amount": [4, 1, 2, 2, 4, 5],
-        "Variant": ['B.1.177', 'BA.1.1', 'BA.1', 'AY.43', 'AY.44', 'AY.4', 'AY.124', 'AY.113']
+        "Variant": ["B.1.177", "BA.1.1", "BA.1", "AY.43", "AY.44", "AY.4", "AY.124", "AY.113"]
         #"City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
     })
 
     fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="group")
 
     fig.update_layout(
-        plot_bgcolor=colors['background'],
-        paper_bgcolor=colors['background'],
-        font_color=colors['text']
+        plot_bgcolor=colors["background"],
+        paper_bgcolor=colors["background"],
+        font_color=colors["text"]
     )
 
-    app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
+    app.layout = html.Div(style={"backgroundColor": colors["background"]}, children=[
         html.H1(
-            children='Hello Dash',
+            children="Hello Dash",
             style={
-                'textAlign': 'center',
-                'color': colors['text']
+                "textAlign": "center",
+                "color": colors["text"]
             }
         ),
 
-        html.Div(children='Dash: A web application framework for your data.', style={
-            'textAlign': 'center',
-            'color': colors['text']
+        html.Div(children="Dash: A web application framework for your data.", style={
+            "textAlign": "center",
+            "color": colors["text"]
         }),
 
         dcc.Graph(
-            id='example-graph-2',
+            id="example-graph-2",
             figure=fig
         )
     ])
 
-    if __name__ == '__main__':
+    if __name__ == "__main__":
             app.run_server(debug=True)
     return render(request, "relecov_core/documentation.html", {})
 
