@@ -28,6 +28,7 @@ class Effect(models.Model):
 
 class Lineage(models.Model):
     lineage = models.CharField(max_length=100)
+    week = models.CharField(max_length=4)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     class Meta:
