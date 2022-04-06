@@ -130,7 +130,5 @@ def plotly_ex(request):
         )
     ])
 
-    if __name__ == "__main__":
-            app.run_server(debug=True)
     return render(request, "relecov_core/documentation.html", {})
 
