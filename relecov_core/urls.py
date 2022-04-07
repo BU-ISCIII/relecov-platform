@@ -23,7 +23,6 @@ urlpatterns = [
     path("variants", views.variants, name="variants"),
     path("documentation", views.documentation, name="documentation"),
     path("test_read/", views.readTest, name="test_read"),
-    path("plotly_ex/", views.plotly_ex, name="plotly_ex"),
     path("plotly_ex2/", views.plotly_ex2, name="plotly_ex2"),
 ]
 if settings.DEBUG:

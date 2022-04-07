@@ -77,53 +77,7 @@ def readTest(request):
     """
     return render(request, "relecov_core/documentation.html", context)  
 
-#plotly dash example 1
-def plotly_ex(request):
-    app = DjangoDash("SimpleExample")   # replaces dash.Dash
-    
-    colors = {
-    "background": "#111111",
-    "text": "#7FDBFF"
-    }
 
-# assume you have a "long-form" data frame
-# see https://plotly.com/python/px-arguments/ for more options
-    df = pd.DataFrame({
-        "Week": ["1", "2", "3", "4", "5", "6", "7", "8",],
-        "Sequences": [1, 4, 9, 16, 8,5,2,1],
-        "Variant": ["B.1.177", "BA.1.1", "BA.1", "AY.43", "AY.44", "AY.4", "AY.124", "AY.113"]
-        
-    })
-
-    fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="group")
-
-    fig.update_layout(
-        plot_bgcolor=colors["background"],
-        paper_bgcolor=colors["background"],
-        font_color=colors["text"]
-    )
-
-    app.layout = html.Div(style={"backgroundColor": colors["background"]}, children=[
-        html.H1(
-            children="Hello Dash",
-            style={
-                "textAlign": "center",
-                "color": colors["text"]
-            }
-        ),
-
-        html.Div(children="Dash: A web application framework for your data.", style={
-            "textAlign": "center",
-            "color": colors["text"]
-        }),
-
-        dcc.Graph(
-            id="example-graph-2",
-            figure=fig
-        )
-    ])
-
-    return render(request, "relecov_core/documentation.html", {})
 
 #plotly dash example 2
 def plotly_ex2(request):
@@ -179,7 +133,7 @@ def plotly_ex2(request):
         }),
 
         dcc.Graph(
-            id="example-graph-2",
+            #id="example-graph-2",
             figure=fig
         )
     ])
