@@ -2,23 +2,17 @@ from distutils.log import debug
 from multiprocessing import context
 from relecov_core.models import *
 from django.shortcuts import render
-
 from relecov_core.utils.feed_db import clear_all_tables
+from relecov_core.utils.random_data import generate_random_sequences, generate_weeks
 #IMPORT FROM UTILS
-from .utils import *
-#import dash
-#import dash
+from relecov_core.utils import *
+#plotly dash
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
-"""
-from dash import Dash, html, dcc
-import plotly.express as px
-import pandas as pd
-"""
 
 
 def index(request):
@@ -83,6 +77,7 @@ def readTest(request):
     """
     return render(request, "relecov_core/documentation.html", context)  
 
+#plotly dash example 1
 def plotly_ex(request):
     app = DjangoDash("SimpleExample")   # replaces dash.Dash
     
@@ -95,14 +90,73 @@ def plotly_ex(request):
 # see https://plotly.com/python/px-arguments/ for more options
     df = pd.DataFrame({
         "Week": ["1", "2", "3", "4", "5", "6", "7", "8",],
-        #"Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
         "Sequences": [1, 4, 9, 16, 8,5,2,1],
-        #"Amount": [4, 1, 2, 2, 4, 5],
         "Variant": ["B.1.177", "BA.1.1", "BA.1", "AY.43", "AY.44", "AY.4", "AY.124", "AY.113"]
-        #"City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
+        
     })
 
     fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="group")
+
+    fig.update_layout(
+        plot_bgcolor=colors["background"],
+        paper_bgcolor=colors["background"],
+        font_color=colors["text"]
+    )
+
+    app.layout = html.Div(style={"backgroundColor": colors["background"]}, children=[
+        html.H1(
+            children="Hello Dash",
+            style={
+                "textAlign": "center",
+                "color": colors["text"]
+            }
+        ),
+
+        html.Div(children="Dash: A web application framework for your data.", style={
+            "textAlign": "center",
+            "color": colors["text"]
+        }),
+
+        dcc.Graph(
+            id="example-graph-2",
+            figure=fig
+        )
+    ])
+
+    return render(request, "relecov_core/documentation.html", {})
+
+#plotly dash example 2
+def plotly_ex2(request):
+    data_array = []
+    lineage_list = []
+    #import random
+    sequences_list = generate_random_sequences()
+    weeks_list = generate_weeks()
+
+    with open("relecov_core/docs/variants1.csv") as fh:
+        lines = fh.readlines()
+
+    for line in lines[1:]:
+        data_array = line.split(",")
+        # lineage
+        lineage_list.append(data_array[16])
+    
+    
+    app = DjangoDash("SimpleExample2")   # replaces dash.Dash
+    
+    colors = {
+    "background": "#111111",
+    "text": "#7FDBFF"
+    }
+    # assume you have a "long-form" data frame, see https://plotly.com/python/px-arguments/ for more options
+    df = pd.DataFrame({
+        "Week": weeks_list,
+        "Sequences": sequences_list,
+        "Variant": lineage_list
+        
+    })
+
+    fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack")
 
     fig.update_layout(
         plot_bgcolor=colors["background"],

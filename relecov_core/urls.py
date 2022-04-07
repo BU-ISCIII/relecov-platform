@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.urls import path
 from django.conf import settings
-from . import views
+from relecov_core import views
 from django.conf.urls.static import static
 
 urlpatterns = [
@@ -24,6 +24,7 @@ urlpatterns = [
     path("documentation", views.documentation, name="documentation"),
     path("test_read/", views.readTest, name="test_read"),
     path("plotly_ex/", views.plotly_ex, name="plotly_ex"),
+    path("plotly_ex2/", views.plotly_ex2, name="plotly_ex2"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
