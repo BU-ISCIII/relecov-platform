@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class CallerManager(models.Model):
+class CallerManager(models.Manager):
     def create_new_caller(self, data):
         new_caller = self.create(name=data["name"], version=data['version'])
         return new_caller
