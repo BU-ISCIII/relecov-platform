@@ -1,19 +1,31 @@
 from django.db import models
 
 
+class CallerManager(models.Model):
+    def create_new_caller(self, data):
+        new_caller = self.create(name=data["name"], version=data['version'])
+        return new_caller
+
+
 class Caller(models.Model):
     name = models.CharField(max_length=60)
     version = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
+
     class Meta:
         db_table = "Caller"
-        
-        
-        
+
+    def __str__(self):
+        return "%s" % (self.name)
+
+    objects = CallerManager()
+
+
 class Prueba():
     var = 1
-    dict = {"apple":"red", "onion":"white", }
+    dict = {"apple": "red", "onion": "white", }
+
 
 """
 class Laboratory(models.Model):
@@ -23,14 +35,14 @@ class Laboratory(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
     class Meta:
         db_table = "Laboratory"
-    
+
 class Filter(models.Model):
     result = models.Charfield(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
     class Meta:
         db_table = "Filter"
-    
+
 class Effect(models.Model):
     type_of_effect = models.CharField(max_length=80)
     comments = models.Charfield(max_length=140)
