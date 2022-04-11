@@ -47,6 +47,7 @@ class EffectManager(models.Manager):
         new_effect = self.create(effect=data["effect"], hgvs_c=data["hgvs_c"], hgvs_p=data["hgvs_p"], hgvs_p_1_letter=data["hgvs_p_1_letter"])
         return new_effect
     
+    
 class Effect(models.Model):
     effect = models.CharField(max_length=80)
     hgvs_c = models.CharField(max_length=60)
@@ -140,7 +141,7 @@ class Chromosome(models.Model):
 #Sample Table         
 class SampleManager(models.Manager):
     def create_new_sample(self, data):
-        new_sample = self.create(chromosome=data["sample"])
+        new_sample = self.create(sample=data["sample"])
         return new_sample
 
 
@@ -174,6 +175,7 @@ class VariantManager(models.Manager):
     
     
 class Variant(models.Model): #include Foreign Keys
+    """
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
     effect = models.ForeignKey(Effect, on_delete=models.CASCADE)
@@ -181,7 +183,7 @@ class Variant(models.Model): #include Foreign Keys
     filter = models.ForeignKey(Filter, on_delete=models.CASCADE)
     lineage = models.ForeignKey(Lineage, on_delete=models.CASCADE)
     chromosome = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
-    
+    """
     pos = models.CharField(max_length=7)
     ref = models.CharField(max_length=60)
     alt = models.CharField(max_length=10)

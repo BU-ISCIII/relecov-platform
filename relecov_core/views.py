@@ -8,8 +8,6 @@ from relecov_core.utils.parse_files import *
 
 # IMPORT FROM UTILS
 from relecov_core.utils import *
-#IMPORT FROM MANAGER
-from relecov_core.utils.manager import *
 
 # plotly dash
 import dash_core_components as dcc
@@ -43,7 +41,7 @@ def plotly_ex(request):
     variant_data = parse_csv_into_list_of_dicts("relecov_core/docs/variantLuisTableCSV.csv")
     print(type(variant_data))
     print(type(variant_data[0]))
-    for variant in variant_data:
+        
         
     
     #for i in range(len(var)):
@@ -56,7 +54,7 @@ def plotly_ex(request):
     
     
     
-        """
+    """
         app = DjangoDash("SimpleExample2")  # replaces dash.Dash
 
         colors = {"background": "#111111", "text": "#7FDBFF"}
@@ -90,6 +88,6 @@ def plotly_ex(request):
                 ),
             ],
         )
-        """
+    """
     return render(request, "relecov_core/documentation.html", {})
 
