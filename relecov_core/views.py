@@ -1,11 +1,10 @@
 from distutils.log import debug
-from multiprocessing import Manager, context
+from multiprocessing import context, Manager
 from relecov_core.models import *
 from django.shortcuts import render
 from relecov_core.utils.feed_db import *
 from relecov_core.utils.random_data import generate_random_sequences, generate_weeks
 from relecov_core.utils.parse_files import *
-from relecov_core.utils.manager import Manager_db
 
 # IMPORT FROM UTILS
 from relecov_core.utils import *
@@ -39,27 +38,23 @@ def plotly_ex(request):
     #sequences_list = generate_random_sequences()
     #weeks_list = generate_weeks()
 
-    #manager = Manager_db("Variant",{})
-    #manager.clear_all_tables()
-    #manager.insert_into_table()
-
+    variant_data = parse_csv_into_list_of_dicts("relecov_core/docs/variantLuisTableCSV.csv")
+    print(type(variant_data))
+    print(type(variant_data[0]))
+        
+        
     
-    var = parse_csv_into_list_of_dicts("relecov_core/docs/variantLuisTableCSV.csv")
-    #print(type(var))
-    #print(type(var[0]))
-    #print(var[0]["variant_dict"])
-    #print(var[1]["variant_dict"])
-    #print(var[2]["variant_dict"])
-    
-    for i in range(len(var)):
-        #insert_into_variant_table(var[i]["variant_dict"])
+    #for i in range(len(var)):
+    #    insert_into_variant_table(var[i]["variant_dict"])
+        
+        
+        
         #print(var[i]["variant_dict"])
-        #print(var[0])
-       
     
     
     
-        """
+    
+    """
         app = DjangoDash("SimpleExample2")  # replaces dash.Dash
 
         colors = {"background": "#111111", "text": "#7FDBFF"}
@@ -93,5 +88,6 @@ def plotly_ex(request):
                 ),
             ],
         )
-        """
+    """
     return render(request, "relecov_core/documentation.html", {})
+
