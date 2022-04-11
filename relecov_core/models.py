@@ -1,6 +1,31 @@
 from django.db import models
 
+class CallerManager(models.Manager):
+    def create_new_caller(self, data):
+        new_caller = self.create(name=data["name"], version=data['version'])
+        return new_caller
 
+
+class Caller(models.Model):
+    name = models.CharField(max_length=60)
+    version = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=('created at'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=('updated at'))
+
+    class Meta:
+        db_table = "Caller"
+
+    def __str__(self):
+        return "%s" % (self.name)
+
+    objects = CallerManager()
+
+
+class Prueba():
+    var = 1
+    dict = {"apple": "red", "onion": "white", }
+
+"""
 class Caller(models.Model):
     caller = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
@@ -71,3 +96,4 @@ class Variant(models.Model): #include Foreign Keys
     class Meta:
         db_table = "Variant"
         #commet random
+"""
