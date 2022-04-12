@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class RelecovDashboardConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'relecov_dashboard'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "relecov_dashboard"
