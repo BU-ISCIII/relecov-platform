@@ -197,9 +197,6 @@ class Variant(models.Model): #include Foreign Keys
     class Meta:
         db_table = "Variant"
 
-    #def __str__(self):
-    #    return "%s" % (self.variant)
-    
     def get_pos(self):
         return "%s" % (self.pos)
     
@@ -487,7 +484,6 @@ class Analysis(models.Model):
 
 
 #table Authors
-
 class AuthorsManager(models.Manager):
     def create_new_authors(self, data):
         new_authors = self.create(
@@ -626,7 +622,7 @@ class QcStats(models.Model):
     objects = QcStatsManager()
     
     
-    #Table Public Database
+#Table Public Database
 class PublicDatabaseManager(models.Manager):
     def create_new_analysis(self, data):
         new_public_database = self.create(
@@ -664,7 +660,7 @@ class PublicDatabaseManager(models.Manager):
             submitted_aspera = data["submitted_aspera"],
             submitted_galaxy = data["submitted_galaxy"],
             submitted_format = data["submitted_format"],
-            sra_bytes = data["sra_bytes"],
+            sra_bytes = data["sra_bytector googles"],
             sra_md5 = data["sra_md5"],
             sra_ftp = data["sra_ftp"],
             sra_aspera = data["sra_aspera"],
@@ -852,8 +848,8 @@ class PublicDatabase(models.Model):
     objects = PublicDatabaseManager()
     
     
-    
-    #Lineage or optional Table
+"""    
+#Lineage or optional Table
 class LineageManager(models.Manager):
     def create_new_Lineage(self,data):
         new_lineage = self.create(lineage=data["lineage"], week=data["week"])
@@ -876,3 +872,4 @@ class Lineage(models.Model):
         return "%s" % (self.week)
     
     objects = LineageManager()
+"""
