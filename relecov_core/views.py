@@ -35,25 +35,20 @@ def documentation(request):
 
 # plotly dash example
 def plotly_ex(request):
-    #sequences_list = generate_random_sequences()
-    #weeks_list = generate_weeks()
+    # sequences_list = generate_random_sequences()
+    # weeks_list = generate_weeks()
 
-    variant_data = parse_csv_into_list_of_dicts("relecov_core/docs/variantLuisTableCSV.csv")
+    variant_data = parse_csv_into_list_of_dicts(
+        "relecov_core/docs/variantLuisTableCSV.csv"
+    )
     print(type(variant_data))
     print(type(variant_data[0]))
-        
-        
-    
-    #for i in range(len(var)):
+
+    # for i in range(len(var)):
     #    insert_into_variant_table(var[i]["variant_dict"])
-        
-        
-        
-        #print(var[i]["variant_dict"])
-    
-    
-    
-    
+
+    # print(var[i]["variant_dict"])
+
     """
         app = DjangoDash("SimpleExample2")  # replaces dash.Dash
 
@@ -90,4 +85,3 @@ def plotly_ex(request):
         )
     """
     return render(request, "relecov_core/documentation.html", {})
-

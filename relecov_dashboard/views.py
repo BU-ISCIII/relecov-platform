@@ -1,36 +1,44 @@
 from django.shortcuts import render
 from plotly.offline import plot
 import plotly.graph_objects as go
+
 # plotly dash
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
-#import plotly.graph_objects as go
+
+# import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+
 # IMPORT FROM UTILS
 from relecov_core.utils.random_data import *
 from relecov_core.utils.parse_files import *
 
 
 def index(request):
+    df_table = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
     sequences_list = generate_random_sequences()
     weeks_list = generate_weeks()
     lineage_list = []
     lineage_week_list = []
-    variant_data = parse_csv_into_list_of_dicts("relecov_core/docs/variantLuisTableCSV.csv")
+    variant_data = parse_csv_into_list_of_dicts(
+        "relecov_core/docs/variantLuisTableCSV.csv"
+    )
     for variant in variant_data:
         lineage_list.append(variant["lineage_dict"]["lineage"])
         lineage_week_list.append(variant["lineage_dict"]["week"])
-        
-    
-    
+
     app = DjangoDash("SimpleExample")  # replaces dash.Dash
 
     colors = {"background": "#111111", "text": "#7FDBFF"}
     # assume you have a "long-form" data frame, see https://plotly.com/python/px-arguments/ for more options
     df = pd.DataFrame(
-        {"Week": lineage_week_list, "Sequences": sequences_list, "Variant": lineage_list}
+        {
+            "Week": lineage_week_list,
+            "Sequences": sequences_list,
+            "Variant": lineage_list,
+        }
     )
 
     fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack")
@@ -45,24 +53,74 @@ def index(request):
         style={"backgroundColor": colors["background"]},
         children=[
             html.H1(
-                children="Hello Dash",
+                children="Variant Dashboard",
                 style={"textAlign": "center", "color": colors["text"]},
             ),
             html.Div(
-                children="Dash: A web application framework for your data.",
+                children="Variant data.",
                 style={"textAlign": "center", "color": colors["text"]},
             ),
             dcc.Graph(
                 # id="example-graph-2",
                 figure=fig
+                
             ),
-        ],
+            html.Br(),
+            dcc.Slider(
+                df["Week"].min(),
+                df["Week"].max(),
+                #marks={str(week): str(week) for week in df['Week'].unique()},
+                step=None,
+                value=df["Week"].max(),
+                #marks={str(week): str(week) for week in df['Week'].unique()},
+                #marks={i: f'Label {i}' if i == 1 else str(i) for i in range(1,19)},
+                
+            ),
+            html.Div(
+                style={"background": "white"},
+                children=[
+                    html.H1(
+                        children="Prueba de tabla",
+                        style={"color": "#7FDBFF"}
+                    ),
+                    html.Div(
+                        style={"border":"1px solid"},    
+                        children=generate_table(df_table)
+                    )
+                ]    
     )
+            
+            
+        ]
+        )
     
+    
+    
+    
+    
+
     return render(request, "relecov_dashboard/index.html")
 
 
 def index2(request):
+    df = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
+    
+    
+
+
+    app = DjangoDash("SimpleExampleTable")
+    
+    app.layout = html.Div(
+        children = generate_table(df)
+    )
+
+    """
+    app.layout = html.Div([
+        html.H4(children='Variant Table'),
+        generate_table(df)
+    ])
+    """
+
     return render(request, "relecov_dashboard/index2.html")
 
 
@@ -85,3 +143,16 @@ def index3(request):
     context = {"plot1": scatter()}
 
     return render(request, "relecov_dashboard/index3.html", context)
+
+def generate_table(dataframe, max_rows=14):
+        return html.Table([
+        html.Thead(
+            html.Tr(
+                [html.Th(col) for col in dataframe.columns])
+        ),
+        html.Tbody([
+            html.Tr([
+                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
+            ]) for i in range(min(len(dataframe), max_rows))
+        ])
+    ])
