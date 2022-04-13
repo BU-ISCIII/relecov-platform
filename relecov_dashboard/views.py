@@ -59,17 +59,43 @@ def index(request):
             html.Div(
                 children="Variant data.",
                 style={"textAlign": "center", "color": colors["text"]},
-                
-    
             ),
             dcc.Graph(
                 # id="example-graph-2",
                 figure=fig
                 
             ),
-            
-        ],
+            html.Br(),
+            dcc.Slider(
+                df["Week"].min(),
+                df["Week"].max(),
+                #marks={str(week): str(week) for week in df['Week'].unique()},
+                step=None,
+                value=df["Week"].max(),
+                #marks={str(week): str(week) for week in df['Week'].unique()},
+                #marks={i: f'Label {i}' if i == 1 else str(i) for i in range(1,19)},
+                
+            ),
+            html.Div(
+                style={"background": "white"},
+                children=[
+                    html.H1(
+                        children="Prueba de tabla",
+                        style={"color": "#7FDBFF"}
+                    ),
+                    html.Div(
+                        style={"border":"1px solid"},    
+                        children=generate_table(df_table)
+                    )
+                ]    
     )
+            
+            
+        ]
+        )
+    
+    
+    
     
     
 
@@ -83,11 +109,17 @@ def index2(request):
 
 
     app = DjangoDash("SimpleExampleTable")
+    
+    app.layout = html.Div(
+        children = generate_table(df)
+    )
 
+    """
     app.layout = html.Div([
         html.H4(children='Variant Table'),
         generate_table(df)
     ])
+    """
 
     return render(request, "relecov_dashboard/index2.html")
 
