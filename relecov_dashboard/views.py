@@ -17,6 +17,7 @@ from relecov_core.utils.parse_files import *
 
 
 def index(request):
+    df_table = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
     sequences_list = generate_random_sequences()
     weeks_list = generate_weeks()
     lineage_list = []
@@ -58,18 +59,36 @@ def index(request):
             html.Div(
                 children="Variant data.",
                 style={"textAlign": "center", "color": colors["text"]},
+                
+    
             ),
             dcc.Graph(
                 # id="example-graph-2",
                 figure=fig
+                
             ),
+            
         ],
     )
+    
+    
 
     return render(request, "relecov_dashboard/index.html")
 
 
 def index2(request):
+    df = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
+    
+    
+
+
+    app = DjangoDash("SimpleExampleTable")
+
+    app.layout = html.Div([
+        html.H4(children='Variant Table'),
+        generate_table(df)
+    ])
+
     return render(request, "relecov_dashboard/index2.html")
 
 
@@ -92,3 +111,16 @@ def index3(request):
     context = {"plot1": scatter()}
 
     return render(request, "relecov_dashboard/index3.html", context)
+
+def generate_table(dataframe, max_rows=14):
+        return html.Table([
+        html.Thead(
+            html.Tr(
+                [html.Th(col) for col in dataframe.columns])
+        ),
+        html.Tbody([
+            html.Tr([
+                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
+            ]) for i in range(min(len(dataframe), max_rows))
+        ])
+    ])
