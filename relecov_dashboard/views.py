@@ -129,85 +129,10 @@ def index(request):
 
 
 def index2(request):
-    df = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
-    app = DjangoDash("SimpleExampleTable")
-
-    app.layout = html.Div([
-        html.H6("Change the value in the text box to see callbacks in action!"),
-        html.Div([
-            "Input: ",
-            dcc.Input(id='my-input', value='', type='text')
-        ]),
-        html.Br(),
-        html.Div(id='my-output'),
-
-    ])
-
-
-    @app.callback(
-        Output(component_id='my-output', component_property='children'),
-        Input(component_id='my-input', component_property='value')
-    )
-    def update_output_div(input_value):
-        return f'Output: {input_value}'
-
     return render(request, "relecov_dashboard/index2.html")
 
 
-def index3(request):
-    def scatter():
-        x1 = [1, 2, 3, 4]
-        y1 = [30, 35, 25, 45]
 
-        trace = go.Scatter(x=x1, y=y1)
-        layout = dict(
-            title="Simple Graph",
-            xaxis=dict(range=[min(x1), max(x1)]),
-            yaxis=dict(range=[min(y1), max(y1)]),
-        )
-
-        fig = go.Figure(data=[trace], layout=layout)
-        plot_div = plot(fig, output_type="div", include_plotlyjs=False)
-        return plot_div
-
-    context = {"plot1": scatter()}
-
-    return render(request, "relecov_dashboard/index3.html", context)
-
-def index4(request):
-    df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminderDataFiveYear.csv')
-
-    app = DjangoDash("SimpleExample4")
-
-    app.layout = html.Div([
-        dcc.Graph(id='graph-with-slider'),
-        dcc.Slider(
-            df['year'].min(),
-            df['year'].max(),
-            step=None,
-            value=df['year'].min(),
-            #marks={str(year): str(year) for year in df['year'].unique()},
-            #id='year-slider'
-        )
-    ])
-
-    """
-    @app.callback(
-        Output('graph-with-slider', 'figure'),
-        Input('year-slider', 'value'))
-    def update_figure(selected_year):
-        filtered_df = df[df.year == selected_year]
-
-        fig = px.scatter(filtered_df, x="gdpPercap", y="lifeExp",
-                        size="pop", color="continent", hover_name="country",
-                        log_x=True, size_max=55)
-
-        fig.update_layout(transition_duration=500)
-
-        return fig
-    update_figure(2009)
-    """
-    return render(request, "relecov_dashboard/index4.html")
 """
 def generate_table(dataframe, max_rows=14):
         return html.Table([
