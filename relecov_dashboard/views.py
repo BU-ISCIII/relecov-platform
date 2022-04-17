@@ -1,6 +1,7 @@
+from unicodedata import name
 from django.shortcuts import render
-from plotly.offline import plot
-import plotly.graph_objects as go
+#from plotly.offline import plot
+#import plotly.graph_objects as go
 
 # plotly dash
 import dash_core_components as dcc
@@ -13,138 +14,149 @@ import pandas as pd
 
 #from dash import Input, Output#Dash, dcc, html, 
 from dash.dependencies import Input, Output
+import dash
+import dash_bootstrap_components as dbc
 
 # IMPORT FROM UTILS
 from relecov_core.utils.random_data import *
 from relecov_core.utils.parse_files import *
+from relecov_core.utils.dashboard import *
 
 
 def index(request):
-    #df_table = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
-    sequences_list = generate_random_sequences()
-    #weeks_list = generate_weeks()
-    lineage_list = []
-    lineage_week_list = []
     variant_data = parse_csv_into_list_of_dicts(
         "relecov_core/docs/variantLuisTableCSV.csv"
     )
-    for variant in variant_data:
-        lineage_list.append(variant["lineage_dict"]["lineage"])
-        lineage_week_list.append(variant["lineage_dict"]["week"])
-
-    app = DjangoDash("SimpleExample")  # replaces dash.Dash
-
-    colors = {"background": "#111111", "text": "#7FDBFF"}
-    # assume you have a "long-form" data frame, see https://plotly.com/python/px-arguments/ for more options
-    df = pd.DataFrame(
-        {
-            "Week": lineage_week_list,
-            "Sequences": sequences_list,
-            "Variant": lineage_list,
-        }
-    )
-    print(len(df["Week"]))
-    print(df["Week"].min())
-    print(df["Week"].max())
-    fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack")
-
-    fig.update_layout(
-        plot_bgcolor=colors["background"],
-        paper_bgcolor=colors["background"],
-        font_color=colors["text"],
-    )
-
-    app.layout = html.Div(
-        style={"backgroundColor": colors["background"]},
-        children=[
-            html.H1(
-                children="Variant Dashboard",
-                style={"textAlign": "center", "color": colors["text"]},
-            ),
-            html.Div(
-                children="Variant data.",
-                style={"textAlign": "center", "color": colors["text"]},
-            ),
-            dcc.Graph(
-                id="graph-with-slider",
-                figure=fig
-                
-            ),
-            html.Br(),
-            dcc.Slider(
-                min = df["Week"].min(),
-                max = df["Week"].max(),
-                step=None,
-                value=df["Week"].min(),
-                marks={str(week): str(week) for week in df['Week'].unique()},
-                id='week-slider'
-            ),
-            html.Div(
-                style={"background": "white"},
-                children=[
-                    html.H1(
-                        children="Prueba de tabla",
-                        style={"color": "#7FDBFF"}
-                    ),
-                    html.Div(
-                        style={"border":"1px solid"},    
-                        #children=generate_table(df_table)
-                    )
-                ]    
-            )
-       ]
-    )
+    
+    app = DjangoDash(name= "VariantGraph", external_stylesheets=[dbc.themes.BOOTSTRAP])  # replaces dash.Dash
+    
+    app.layout = get_variant_graph(variant_data) 
+    
     @app.callback(
     Output('graph-with-slider', 'figure'),
     Input('week-slider', 'value'))
     
-    def update_figure(selected_week):
-        sequences_list2 = []
-        lineage_week_list2 =[]
-        lineage_list2 = []
+    def update_figure(selected_range):
+        print('You have selected "{}"'.format(selected_range))
+    
+        df = set_dataframe_range_slider(variant_data, selected_range)
 
-        for variant in variant_data:
-            
-            if(int(variant["lineage_dict"]["week"]) >= int(selected_week)):
-                lineage_list2.append(variant["lineage_dict"]["lineage"])
-                lineage_week_list2.append(variant["lineage_dict"]["week"])
-                
-        sequences_list2 = sequences_list[len(lineage_list)-len(lineage_list2):]
-        
-        df = pd.DataFrame(
-            {
-                "Week": lineage_week_list2,
-                "Sequences": sequences_list2,
-                "Variant": lineage_list2,
-            }
-        )
-             
         fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack",
                         hover_name="Variant")
 
         fig.update_layout(transition_duration=500)
-        return fig
+        return fig   
         
     return render(request, "relecov_dashboard/index.html")
 
 
 def index2(request):
+    max_weeks=0
+    selected_range =[1,19] 
+    df_table = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
+    
+    variant_data = parse_csv_into_list_of_dicts(
+        "relecov_core/docs/variantLuisTableCSV.csv"
+    )
+    df = set_dataframe_range_slider(variant_data,selected_range)
+    
+    for week in df['Week'].unique():
+        max_weeks += 1
+    
+    app = DjangoDash("SimpleExampleRangeSlider", external_stylesheets=[dbc.themes.BOOTSTRAP])  # replaces dash.Dash
+
+    fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack")
+
+    app.layout = html.Div(
+        className="card",
+        children=[
+            html.Div(
+                className="card-body bg-light",
+                children=[
+                    html.H1(
+                        className="card-title",
+                        children="VOCs/VUIs in Spain",
+                    ),
+                    html.Div(
+                        className="card-text",
+                        children="Variant data.",
+                    ),
+                ]
+            ),
+          
+            html.Div(
+                children=[
+                    html.Div(
+                        children=[
+                            dcc.Graph(
+                                className = "card",
+                                id="graph-with-slider",
+                                figure=fig
+                                
+                            )
+                        ]
+                    )
+                ]
+            ),
+            html.Br(),
+            html.Div(
+               children = dcc.RangeSlider(
+                    min = df["Week"].min(),
+                    max = max_weeks, 
+                    step="1",
+                    value=[int(df["Week"].min()),max_weeks],
+                    marks={str(week): str(week) for week in df['Week'].unique()},
+                    id='week-slider'
+                ), 
+
+            ),
+            html.Div(
+                className="card bg-light",
+                children=[
+                    html.Div(
+                        className="card-body",
+                        children=[
+                            html.H3(
+                            children="Variants of concern (VOC) and under investigation (VUI) detected in the Spain data.",
+                            className="card-title"
+                            ),
+                            html.H5(
+                                children="DISCLAIMER: relecov-platform uses curated sequences for determining the counts of a given lineage. Other sources of information may be reporting cases with partial sequence information or other forms of PCR testing.",
+                                className="card-text"
+                            )
+                            
+                        ]
+                    )
+                ]    
+            ),
+            html.Div(           
+                children=generate_table(df_table),
+            )
+       ]
+    )
+
+    @app.callback(
+    Output('graph-with-slider', 'figure'),
+    Input('week-slider', 'value'))
+    
+    def update_figure(selected_range):
+        print('You have selected "{}"'.format(selected_range))
+    
+        df = set_dataframe_range_slider(variant_data, selected_range)
+
+        fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack",
+                        hover_name="Variant")
+
+        fig.update_layout(transition_duration=500)
+        return fig   
+    
     return render(request, "relecov_dashboard/index2.html")
 
+def index3(request):
+    app = DjangoDash( name= 'SimpleExampleBootstrap', external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-
-"""
-def generate_table(dataframe, max_rows=14):
-        return html.Table([
-        html.Thead(
-            html.Tr(
-                [html.Th(col) for col in dataframe.columns])
-        ),
-        html.Tbody([
-            html.Tr([
-                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-            ]) for i in range(min(len(dataframe), max_rows))
-        ])
-    ])
-"""
-
+    app.layout = dbc.Container(
+        dbc.Alert("Hello Bootstrap!", color="success"),
+        className="p-5",
+    )
+    return render(request,"relecov_dashboard/index3.html")
