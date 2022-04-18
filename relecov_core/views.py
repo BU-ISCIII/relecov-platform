@@ -31,4 +31,3 @@ def variants(request):
 def documentation(request):
     context = {}
     return render(request, "relecov_core/documentation.html", context)
-    
