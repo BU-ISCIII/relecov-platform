@@ -34,13 +34,6 @@ class VariantAdmin(admin.ModelAdmin):
     list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
 
 
-"""  
-#Duplicada de momento  
-class SampleAdmin(admin.ModelAdmin):
-    list_display = ["collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name", "gisaid_id", "sequencing_date"]
-"""
-
-
 class AnalysisAdmin(admin.ModelAdmin):
     list_display = [
         "raw_sequence_data_processing_method",
@@ -99,19 +92,55 @@ class AuthorsAdmin(admin.ModelAdmin):
     list_display = ["analysis_authors", "author_submitter", "authors"]
 
 
+class PublicDatabaseAdmin(admin.ModelAdmin):
+    list_display = ["databaseName"]
+    
+    
+class PublicDatabaseFieldAdmin(admin.ModelAdmin):
+    list_display = ["publicDatabaseID", "fieldName", "fieldDescription", "fieldInUse"]
+
+
+# Register models
+admin.site.register(Caller, CallerAdmin)
+admin.site.register(Filter, FilterAdmin)
+admin.site.register(Effect, EffectAdmin)
+admin.site.register(Lineage, LineageAdmin)
+admin.site.register(Gene, GeneAdmin)
+admin.site.register(Chromosome, ChromosomeAdmin)
+admin.site.register(Sample, SampleAdmin)
+admin.site.register(Variant, VariantAdmin)
+admin.site.register(Analysis, AnalysisAdmin)
+admin.site.register(QcStats, QcStatsAdmin)
+admin.site.register(Authors, AuthorsAdmin)
+admin.site.register(PublicDatabase, PublicDatabaseAdmin)
+admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
+# admin.site.register(Sample, SampleAdmin) #Duplicada de momento
+# admin.site.register(Lineage, LineageAdmin) #Duplicada de momento
+# admin.site.register(LineageOrOptional, LineageOrOptionalAdmin) #No definida de momento
+
+
+
+
+"""  
+#Duplicada de momento  
+class SampleAdmin(admin.ModelAdmin):
+    list_display = ["collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name", "gisaid_id", "sequencing_date"]
+"""
+
 """    
 #Duplicada de momento
 class LineageAdmin(admin.ModelAdmin):
     list_display = ["lineage_identification_date", "lineage_name", "lineage_analysis_software_name", 
                     "if_lineage_identification_other", "lineage_analysis_software_version"]
 """
+
 """ 
 #No definida de momento   
 class LineageOrOptionalAdmin(admin.ModelAdmin):
     list_display = []
 """
 
-
+"""
 class PublicDatabaseAdmin(admin.ModelAdmin):
     list_display = [
         "library_selection",
@@ -157,21 +186,6 @@ class PublicDatabaseAdmin(admin.ModelAdmin):
         "nominal_sdev",
         "first_created_date",
     ]
+"""
 
 
-# Register models
-admin.site.register(Caller, CallerAdmin)
-admin.site.register(Filter, FilterAdmin)
-admin.site.register(Effect, EffectAdmin)
-admin.site.register(Lineage, LineageAdmin)
-admin.site.register(Gene, GeneAdmin)
-admin.site.register(Chromosome, ChromosomeAdmin)
-admin.site.register(Sample, SampleAdmin)
-admin.site.register(Variant, VariantAdmin)
-# admin.site.register(Sample, SampleAdmin) #Duplicada de momento
-admin.site.register(Analysis, AnalysisAdmin)
-admin.site.register(QcStats, QcStatsAdmin)
-admin.site.register(Authors, AuthorsAdmin)
-# admin.site.register(Lineage, LineageAdmin) #Duplicada de momento
-# admin.site.register(LineageOrOptional, LineageOrOptionalAdmin) #No definida de momento
-admin.site.register(PublicDatabase, PublicDatabaseAdmin)
