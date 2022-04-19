@@ -117,11 +117,18 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     #apt-get install git libpango1.0 libpango1.0-dev   -y
 fi
 
-echo "iSkyLIMS installation"
-cd /opt/iSkyLIMS
+if [[ $linux_distribution == "Centos" ]]; then 
+    echo "Software installation for Centos"
+    yum groupinstall “Development tools”
+    yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
+    yum install git libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
+fi
+
+echo "relecov-platform installation"
+cd /opt/relecov-platform
 git checkout master
 
-mkdir -p /opt/iSkyLIMS/logs
+mkdir -p /opt/relecov-platform/logs
 
 # install virtual environment
 if [[ $linux_distribution == "Ubuntu" ]]; then 
@@ -132,44 +139,55 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     
 fi
 
+if [[ $linux_distribution == "Centos" ]]; then 
+    echo "Creating virtual environment"
+    cd /opt/python/3.6.4/bin
+    ./pip3 install virtualenv 
+    virtualenv --python=/usr/bin/python3 virtualenv
+    
+    
+fi
+
 source virtualenv/bin/activate
+#cd /srv/iSkyLIMS
+#/opt/python/3.6.4/bin/virtualenv --python=/opt/python/3.6.4/bin/python3.6 virtualenv
 
 # Starting iSkyLIMS
-python3 -m pip install -r conf/pythonPackagesRequired.txt
-django-admin startproject iSkyLIMS .
-grep ^SECRET iSkyLIMS/settings.py > ~/.secret
+python3 -m pip install -r conf/requirements.txt
+django-admin startproject relecov-platform .
+grep ^SECRET relecov-platform/settings.py > ~/.secret
 
 
 # Copying config files and script
-cp conf/settings.py /opt/iSkyLIMS/iSkyLIMS/settings.py
-cp conf/urls.py /opt/iSkyLIMS/iSkyLIMS/
+cp conf/settings.py /opt/relecov-platform/relecov_platform/settings.py
+cp conf/urls.py /opt/relecov-platform/relecov_platform/
 
-sed -i "/^SECRET/c\\$(cat ~/.secret)" iSkyLIMS/settings.py
-sed -i "s/djangouser/${DB_USER}/g" iSkyLIMS/settings.py
-sed -i "s/djangopass/${DB_PASS}/g" iSkyLIMS/settings.py
-sed -i "s/djangohost/${DB_SERVER_IP}/g" iSkyLIMS/settings.py
-sed -i "s/djangoport/${DB_PORT}/g" iSkyLIMS/settings.py
+sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
+sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
+sed -i "s/djangopass/${DB_PASS}/g" relecov_platform/settings.py
+sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
+sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
-sed -i "s/emailhostserver/${EMAIL_HOST_SERVER}/g" iSkyLIMS/settings.py
-sed -i "s/emailport/${EMAIL_PORT}/g" iSkyLIMS/settings.py
-sed -i "s/emailhostuser/${EMAIL_HOST_USER}/g" iSkyLIMS/settings.py
-sed -i "s/emailhostpassword/${EMAIL_HOST_PASSWORD}/g" iSkyLIMS/settings.py
-sed -i "s/emailhosttls/${EMAIL_USE_TLS}/g" iSkyLIMS/settings.py
-sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" iSkyLIMS/settings.py
+sed -i "s/emailhostserver/${EMAIL_HOST_SERVER}/g" relecov_platform/settings.py
+sed -i "s/emailport/${EMAIL_PORT}/g" relecov_platform/settings.py
+sed -i "s/emailhostuser/${EMAIL_HOST_USER}/g" relecov_platform/settings.py
+sed -i "s/emailhostpassword/${EMAIL_HOST_PASSWORD}/g" relecov_platform/settings.py
+sed -i "s/emailhosttls/${EMAIL_USE_TLS}/g" relecov_platform/settings.py
+sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
 
-echo "Creating the database structure for iSkyLIMS"
+echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-python3 manage.py makemigrations django_utils iSkyLIMS_core iSkyLIMS_wetlab iSkyLIMS_drylab iSkyLIMS_clinic
+python3 manage.py makemigrations django_utils relecov_core 
 python3 manage.py migrate
 
 python3 manage.py collectstatic
 
 echo "Change owner of files to Apache user"
-chown -R www-data:www-data /opt/iSkyLIMS
+chown -R www-data:www-data /opt/relecov-platform
 
-echo "Loading in database initial data"
-python3 manage.py loaddata conf/new_installation_loading_tables.json
+#echo "Loading in database initial data"
+#python3 manage.py loaddata conf/new_installation_loading_tables.json
 
 echo "Running crontab"
 python3 manage.py crontab add
@@ -180,7 +198,7 @@ chown www-data /var/spool/cron/crontabs/www-data
 
 echo "Updating Apache configuration"
 cp conf/apache2.conf /etc/apache2/sites-available/000-default.conf
-echo  'LoadModule wsgi_module "/opt/iSkyLIMS/virtualenv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so"' >/etc/apache2/mods-available/iskylims.load
+echo  'LoadModule wsgi_module "/opt/relecov-platform/virtualenv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so"' >/etc/apache2/mods-available/iskylims.load
 cp conf/iskylims.conf /etc/apache2/mods-available/iskylims.conf
 
 # Create needed symbolic links to enable the configurations:
@@ -194,7 +212,7 @@ python3 manage.py createsuperuser
 printf "\n\n%s"
 printf "${BLUE}------------------${NC}\n"
 printf "%s"
-printf "${BLUE}Successfuly iSkyLIMS Installation version: ${ISKYLIMS_VERSION}${NC}\n"
+printf "${BLUE}Successfuly iSkyLIMS Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
 printf "%s"
 printf "${BLUE}------------------${NC}\n\n"
 
