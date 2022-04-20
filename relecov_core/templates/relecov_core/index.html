@@ -5,14 +5,7 @@
 {% block content %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'dashboard/style.css' %}">
-<style media="screen">
-/* set a max-width for horizontal fluid layout and make it centered */
-.container-fluid {
-  margin-right: auto;
-  margin-left: auto;
-  max-width: 1600px;
-}
-</style>
+
 <!--cards-->
 <div class="container-fluid">
   <!--1º row Counters-->
@@ -20,110 +13,92 @@
     <!--First Card-->
     <div class="card mb-2 mx-5" style="max-width: 20%;">
       <div class="row g-0">
-
+       
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Samples received</h5>
             <div class="content">
               <div class="value" akhi="28000">0</div>
             </div>
-            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <!--<p class="card-text"></p>-->
             <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
           </div>
         </div>
       </div>
-
+      
     </div>
     <!--end First -->
 
     <!--Second Card-->
     <div class="card mb-2 me-5" style="max-width: 20%;">
       <div class="row g-0">
-
+       
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Samples processed</h5>
             <div class="content">
               <div class="value" akhi="25000">0</div>
             </div>
-            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <!--<p class="card-text"></p>-->
             <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
           </div>
         </div>
       </div>
-
+      
     </div>
     <!--end Second -->
 
     <!--Third Card-->
     <div class="card mb-2 me-5" style="max-width: 20%;">
       <div class="row g-0">
-
+       
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Uploads to ENA</h5>
             <div class="content">
               <div class="value" akhi="21000">0</div>
             </div>
-            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <!--<p class="card-text"></p>-->
             <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
           </div>
         </div>
       </div>
-
+      
     </div>
     <!--end Third -->
 
     <!--Fourth Card-->
     <div class="card mb-2 me-5" style="max-width: 20%;">
       <div class="row g-0">
-
+       
         <div class="col-md-auto">
           <div class="card-body">
             <h5 class="card-title">Uploads to GISAID</h5>
             <div class="content">
               <div class="value" akhi="19000">0</div>
             </div>
-            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <!--<p class="card-text"></p>-->
             <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
           </div>
         </div>
       </div>
-
+      
     </div>
     <!--end Fourth -->
-
+  
   <!--end 1º row Counters-->
 </div>
   <!--2º row Links-->
   <div class="row mx-5 mt-5">
+    
     <!--First Card Link-->
-    <div class="card mb-3 mx-5" style="max-width: 28%;">
-      <div class="row g-0">
-        <div class="col-md-8">
-          <div class="card-body">
-            <h5 class="card-title">Methodology</h5>
-            <p class="card-text">Ut pharetra metus sit amet dui ornare commodo ut sed est.</p>
-            <a href="dashboard/" class="btn" style="background-color: rgb(135, 163, 85);">Go to dashboard</a>
-            <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-          </div>
-        </div>
-        <div class="col-md-3 mt-4">
-          <img src="{% static 'images/samplesReceived.jpg' %}" class="img-fluid rounded-start me-2" style="height: 5em;width: 120px;" alt="Samples Received image">
-        </div>
-      </div>
-    </div>
-
-    <!--end First Link-->
-
-    <!--Second Card Link-->
     <div class="card mb-3 me-5" style="max-width: 28%;">
       <div class="row g-0">
         <div class="col-md-8">
           <div class="card-body">
             <h5 class="card-title">Variants</h5>
             <p class="card-text">Curabitur convallis, felis eu faucibus viverra, enim quam efficitur velit.</p>
-            <a href="{% url 'variants' %}" class="btn" style="background-color:  rgb(135, 163, 85);">Go to Variants</a>
+            <a href="dashboard/" class="btn" style="background-color:  rgb(135, 163, 85);">Go to Variants</a>
             <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
           </div>
         </div>
@@ -132,6 +107,25 @@
         </div>
       </div>
     </div>
+    <!--end First Link-->
+
+    <!--Second Card Link-->
+    <div class="card mb-3 mx-5" style="max-width: 28%;">
+      <div class="row g-0">
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">Methodology</h5>
+            <p class="card-text">Ut pharetra metus sit amet dui ornare commodo ut sed est.</p>
+            <a href="{% url 'variants' %}" class="btn" style="background-color: rgb(135, 163, 85);">Go to dashboard</a>
+            <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+          </div>
+        </div>
+        <div class="col-md-3 mt-4">
+          <img src="{% static 'images/samplesReceived.jpg' %}" class="img-fluid rounded-start me-2" style="height: 5em;width: 120px;" alt="Samples Received image">
+        </div>
+      </div>
+    </div>
+    
     <!--end Second Link-->
 
     <!--Third Card Link-->
