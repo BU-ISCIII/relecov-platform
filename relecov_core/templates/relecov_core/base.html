@@ -19,6 +19,7 @@
         <!--<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet">
         <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">  -->
         
+        
         <!--animated counter-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/vquery/5.0.1/v.min.js" integrity="sha512-JTaEfpc0EjojckV4ObScEHC2yHkDKUXEC5xO4Yb8upLDUR/2clSQKloqw6Ocp66a7dW689eKo0b/KC9C+T6osg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <style>
@@ -58,7 +59,7 @@
             </a>
           </li>  
           
-          <li class="mt-5 ms-5" >  
+          <li class="mt-4" >  
             <a href="http://relecov.isciiides.es/">
               Relecov project
               <span class="border border-top"></span>
@@ -67,7 +68,7 @@
               <span class="border border-left"></span>
             </a>
           </li>
-          <li class="mt-5 ms-5">
+          <li class="mt-4">
             <!--<a href="#0">-->
               <a class="nav-link dropdown-toggle" type="button" id="dropdownDashboard" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;font-size: x-large;">
                 Dashboard
@@ -83,7 +84,7 @@
               <span class="border border-left"></span>
             <!--</a>-->
           </li>
-          <li class="mt-5 ms-5">
+          <li class="mt-4 ">
             <a href="http://relecov.isciiides.es/contributors/">
               Contact
               <span class="border border-top"></span>
@@ -92,7 +93,7 @@
               <span class="border border-left"></span>
             </a>
           </li>
-          <li class="mt-5 ms-5">
+          <li class="mt-4 ms-5">
             <button type="button" class="btn me-5" style="margin-left: 1em;margin-top: 0em;margin-bottom: 8px;height: auto; background-color: rgb(135, 163, 85);color: white;" >Intranet</button>
           </li>
         </ul>
@@ -100,16 +101,7 @@
       </div>
       <!--end navbar with hover-->
         
-      <!--Banner-->
-          <div class="card bg-dark text-white">
-            <img src="{% static 'images/virus.jpg' %}" class="card-img" alt="banner relecov-platform" style="height: 20em;opacity: 0.3;">
-            <div class="card-img-overlay">
-              <p class="card-title" style="text-align: center;font-size: 5em;">relecov-platform</p>
-              <p class="card-text" style="text-align: center;font-size: 2em;">Platform for viral sequencing and variants evolution monitoring in the context of the Spanish Network for genomics surveillance of SARS-Cov-2</p>
-            </div>
-          </div>
-
-      <!--end Banner-->
+      
 
         {% block content %}{% endblock %}
 
