@@ -31,3 +31,7 @@ def variants(request):
 def documentation(request):
     context = {}
     return render(request, "relecov_core/documentation.html", context)
+
+def relecov_form(request):
+    #csv_file = "relecov_core/docs/jspreadsheet.csv"
+    return render(request,"relecov_core/relecovForm.html",{})
