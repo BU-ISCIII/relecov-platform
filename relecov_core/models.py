@@ -628,6 +628,21 @@ class SampleManager(models.Manager):
 
 
 class Sample(models.Model):
+    ########these fields appear in relecov_core/form############
+    Public Health sample id (SIVIES)
+    Sample ID given by the submitting laboratory
+    Sample ID given in the microbiology lab
+    Sample ID given if multiple rna-extraction or passages
+    Originating Laboratory
+    Sample Collection Date
+    Sample Received Date
+    Specimen source
+    Environmental Material
+    Host Age
+    Host Gender
+    Sequence file R1 fastq
+    Sequence file R2 fastq
+    ##############################################################
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
     biosample_accession_ENA = models.CharField(max_length=80)
