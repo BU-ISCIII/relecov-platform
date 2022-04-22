@@ -27,7 +27,14 @@ class ChromosomeAdmin(admin.ModelAdmin):
 
 
 class SampleAdmin(admin.ModelAdmin):
-    list_display = ["sample"]
+    list_display = [
+        "collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name",
+        "gisaid_id", "sequencing_date", "public_health_sample_id_sivies", "submitting_lab_sample_id",
+        "microbiology_lab_sample_id", "isolate_sample_id", "collecting_institution", "sample_collection_date",
+        "sample_received_date", "anatomical_material", "environmental_material", "host_age", "host_gender",
+        "sequence_file_R1_fastq", "sequence_file_R2_fastq"
+        ]
+    
 
 
 class VariantAdmin(admin.ModelAdmin):
