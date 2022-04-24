@@ -22,6 +22,7 @@
         
         <!--animated counter-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/vquery/5.0.1/v.min.js" integrity="sha512-JTaEfpc0EjojckV4ObScEHC2yHkDKUXEC5xO4Yb8upLDUR/2clSQKloqw6Ocp66a7dW689eKo0b/KC9C+T6osg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="{% static 'dashboard/js/myscript.js' %}"></script>
         <style>
           *{
             padding:0;
@@ -50,16 +51,16 @@
     </head>
     <body style="background-color: white!important;">
       <!--navbar with hover-->  
-      <div class="dropdown" style="background-color: rgb(238, 241, 236);">
+      <div class="container-fluid" style="background-color: rgb(238, 241, 236);">
         <hr>
         <ul class="menu" data-animation="diagonal">
-          <li style="margin-right: 20%"> 
+          <li > 
             <a class="navbar-brand" href="#">
-              <img src="{% static 'images/relecov_minus.png' %}" class="rounded-start img-thumbnail" alt="logo ECDC-relecov" style="width: 30%">
+              <img src="{% static 'images/relecov_minus.png' %}" class="rounded-start img-thumbnail" alt="logo ECDC-relecov" style="width: 25%">
             </a>
           </li>  
           
-          <li class="mt-4" >  
+          <li>  
             <a href="http://relecov.isciiides.es/">
               Relecov project
               <span class="border border-top"></span>
@@ -68,23 +69,24 @@
               <span class="border border-left"></span>
             </a>
           </li>
-          <li class="mt-4">
+          <li class="mx-4">
             <!--<a href="#0">-->
-              <a class="nav-link dropdown-toggle" type="button" id="dropdownDashboard" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;font-size: x-large;">
+              <a class="dropdown-toggle"  id="dropdownDashboard" data-bs-toggle="dropdown" style="color: black;">
                 Dashboard
+                <span class="border border-top"></span>
+                <span class="border border-right"></span>
+                <span class="border border-bottom"></span>
+                <span class="border border-left"></span>
               </a>
-              <ul class="dropdown-menu" aria-labelledby="dropdownDashboard">
-                <li><a class="dropdown-item" href="dashboard/">Variants</a></li>
-                <li><a class="dropdown-item" href="{% url 'variants' %}">Methodology</a></li>
+              <ul class="dropdown-menu" aria-labelledby="dropdownDashboard" >
+                <li><a class="dropdown-item" style="font-size: larger;" href="dashboard/">Variants</a></li>
+                <li><a class="dropdown-item" style="font-size: larger;" href="{% url 'variants' %}">Methodology</a></li>
               </ul>
               
-              <span class="border border-top"></span>
-              <span class="border border-right"></span>
-              <span class="border border-bottom"></span>
-              <span class="border border-left"></span>
+              
             <!--</a>-->
           </li>
-          <li class="mt-4 ">
+          <li>
             <a href="http://relecov.isciiides.es/contributors/">
               Contact
               <span class="border border-top"></span>
@@ -93,8 +95,8 @@
               <span class="border border-left"></span>
             </a>
           </li>
-          <li class="mt-4 ms-5">
-            <button type="button" class="btn me-5" style="margin-left: 1em;margin-top: 0em;margin-bottom: 8px;height: auto; background-color: rgb(135, 163, 85);color: white;" >Intranet</button>
+          <li>
+            <button type="button" class="ms-5 btn" style="background-color: rgb(135, 163, 85);color: white;" >Intranet</button>
           </li>
         </ul>
         <hr>
@@ -106,7 +108,7 @@
         {% block content %}{% endblock %}
 
         <!--Footer-->
-        <footer class="container-fluid mt-5 bg-light" >
+        <footer class="container-fluid mt-5 mb-5 bg-light" >
           <hr>
             <div class="container-fluid mt-5">
               <div class="row" style="margin-left: 2%;">
@@ -155,17 +157,17 @@
                 <!--end card column 2-->
 
                 <!--card column 3-->
-                <div class="ms-2" style="width: 30%;">
-                  <div class="bg-light"style="text-align: center;"> 
-                    <div class="card bg-light d-inline ">
-                      <img src="{% static 'images/LogoISCIII.png' %}" class="card-img" alt="banner relecov-platform" style="width: 100%;">
+                <div class="ms-2" style="width: 50%;">
+                  <div class="mt-2 mb-2"> 
+                    <div class="d-inline ">
+                      <img src="{% static 'images/LogoISCIII.png' %}" class="img" alt="banner relecov-platform" style="width: 85%;">
                     </div>
                   </div>
                   <div>
-                    <div class="card bg-light d-inline ms-5">
-                      <img src="{% static 'images/logoECDC.png' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                      <img src="{% static 'images/logo_union_europea.jpg' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                      <img src="{% static 'images/logo_bu_isciii.png' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
+                    <div class="d-inline mt-5">
+                      <img src="{% static 'images/logoECDC.png' %}" class="card-img" alt="logo ECDC" style="width:14%;">
+                      <img src="{% static 'images/logo_union_europea.jpg' %}" class="card-img mx-4" alt="logo UE" style="width:14%;">
+                      <img src="{% static 'images/logo_bu_isciii.png' %}" class="card-img" alt="logo BU-ISCIII" style="width:32%;">
                     </div>
         
                     <!--<div class="card bg-light d-inline ms-5">
@@ -193,24 +195,7 @@
         
         <!--script animated counter-->
         <script>
-          const counters = document.querySelectorAll('.value');
-          const speed = 500;
-          
-          counters.forEach( counter => {
-             const animate = () => {
-                const value = +counter.getAttribute('akhi');
-                const data = +counter.innerText;
-               
-                const time = value / speed;
-               if(data < value) {
-                    counter.innerText = Math.ceil(data + time);
-                    setTimeout(animate, 1);
-                  }else{
-                    counter.innerText = value;
-                  }
-              }
-             animate();
-          });
+          setCounters()
         </script>    
         
     </body>
