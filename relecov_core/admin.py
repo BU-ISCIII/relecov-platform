@@ -34,8 +34,12 @@ class SampleAdmin(admin.ModelAdmin):
         "sample_received_date", "anatomical_material", "environmental_material", "host_age", "host_gender",
         "sequence_file_R1_fastq", "sequence_file_R2_fastq"
         ]
-    
 
+class SampleOtherAdmin(admin.ModelAdmin):
+    list_display = [
+    "sample_storage_conditions", "collection_device", "rna_extraction_Protocol", "library_kit", "library_preparation_kit"
+    ]
+         
 
 class VariantAdmin(admin.ModelAdmin):
     list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
@@ -121,7 +125,8 @@ admin.site.register(QcStats, QcStatsAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
-# admin.site.register(Sample, SampleAdmin) #Duplicada de momento
+admin.site.register(SampleOther, SampleOtherAdmin) #Duplicada de momento
+
 # admin.site.register(Lineage, LineageAdmin) #Duplicada de momento
 # admin.site.register(LineageOrOptional, LineageOrOptionalAdmin) #No definida de momento
 
