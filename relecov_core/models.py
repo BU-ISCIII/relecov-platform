@@ -152,22 +152,122 @@ class Chromosome(models.Model):
 # Sample Table
 class SampleManager(models.Manager):
     def create_new_sample(self, data):
-        new_sample = self.create(sample=data["sample"])
+        new_sample = self.create(
+            collecting_lab_sample_id=data["collecting_lab_sample_id"],
+            sequencing_sample_id=data["sequencing_sample_id"],
+            biosample_accession_ENA=data["biosample_accession_ENA"],
+            virus_name=data["virus_name"],
+            gisaid_id=data["gisaid_id"],
+            sequencing_date=data["sequencing_date"]
+        )
         return new_sample
 
 
 class Sample(models.Model):
-    sample = models.CharField(max_length=50)
+    collecting_lab_sample_id = models.CharField(max_length=80)
+    sequencing_sample_id = models.CharField(max_length=80)
+    biosample_accession_ENA = models.CharField(max_length=80)
+    virus_name = models.CharField(max_length=80)
+    gisaid_id = models.CharField(max_length=80)
+    sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
+    
     class Meta:
         db_table = "Sample"
-
+        
     def __str__(self):
-        return "%s" % (self.sample)
-
+        return "%s" % (self.collecting_lab_sample_id)
+    def get_collecting_lab_sample_id(self):
+        return "%s" % (self.collecting_lab_sample_id)
+    
+    def get_sequencing_sample_id(self):
+        return "%s" % (self.sequencing_sample_id)
+    
+    def get_biosample_accession_ENA(self):
+        return "%s" % (self.biosample_accession_ENA)
+    
+    def get_virus_name(self):
+        return "%s" % (self.virus_name)
+    
+    def get_gisaid_id(self):
+        return "%s" % (self.gisaid_id)
+    
+    def get_sequencing_date(self):
+        return "%s" % (self.sequencing_date)
+    
     objects = SampleManager()
+
+
+# SampleOther Table
+class SampleOtherManager(models.Manager):
+    def create_new_sample_other(self, data):
+        new_sample = self.create(
+            collecting_lab_sample_id=data["collecting_lab_sample_id"],
+            sequencing_sample_id=data["sequencing_sample_id"],
+            biosample_accession_ENA=data["biosample_accession_ENA"],
+            virus_name=data["virus_name"],
+            gisaid_id=data["gisaid_id"],
+            sequencing_date=data["sequencing_date"],
+            ##########################################################
+            public_health_sample_id_sivies = data["public_health_sample_id_sivies"], #Public Health sample id (SIVIES)
+            submitting_lab_sample_id = data["submitting_lab_sample_id"], #Sample ID given by the submitting laboratory
+            microbiology_lab_sample_id = data["microbiology_lab_sample_id"], #Sample ID given in the microbiology lab
+            isolate_sample_id = data["isolate_sample_id"], #Sample ID given if multiple rna-extraction or passages
+            collecting_institution = data["collecting_institution"], #Originating Laboratory
+            sample_collection_date = data["sample_collection_date"],#Sample Collection Date
+            sample_received_date = data["sample_received_date"], #Sample Received Date
+            anatomical_material =  data["anatomical_material"], #Specimen source
+            environmental_material =  data["environmental_material"], #Environmental Material
+            host_age =  data["host_age"], #Host Age
+            host_gender =  data["host_gender"], #Host Gender
+            sequence_file_R1_fastq =  data["sequence_file_R1_fastq"], #Sequence file R1 fastq
+            sequence_file_R2_fastq =  data["sequence_file_R2_fastq"], #Sequence file R2 fastq
+            )
+        return new_sample_other
+
+
+class SampleOther(models.Model):
+    ########these fields appear in relecov_core/form############
+    sample_storage_conditions = models.CharField(max_length=80) #Biological Sample Storage Condition 
+    collection_device = models.CharField(max_length=80) #Collection Device
+    rna_extraction_Protocol = models.CharField(max_length=80) #Rna Extraction Protocol
+    library_kit = models.CharField(max_length=80) #Commercial All-in-one library kit
+    library_preparation_kit = models.CharField(max_length=80) #Library Preparation Kit
+    
+     #= models.CharField(max_length=80) #
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    
+    class Meta:
+        db_table = "SampleOther"
+        
+    def __str__(self):
+        return "%s" % (self.collection_device)
+    #######################################################################################
+    def sample_storage_conditions(self):
+        return "%s" % (self.sample_storage_conditions)
+    
+    def collection_device(self):
+        return "%s" % (self.collection_device)
+    
+    def rna_extraction_Protocol(self):
+        return "%s" % (self.rna_extraction_Protocol)
+    
+    def get_library_kit(self):
+        return "%s" % (self.library_kit)
+    
+    def get_library_preparation_kit(self):
+        return "%s" % (self.library_preparation_kit)
+    
+    #def get_(self):
+    #    return "%s" % (self.)
+    
+    
+    objects = SampleOtherManager()
+
+
 
 
 # Variant Table
@@ -627,56 +727,24 @@ class SampleManager(models.Manager):
         return new_sample
 
 
+class SampleManager(models.Manager):
+    def create_new_sample(self, data):
+        new_sample = self.create(sample=data["sample"])
+        return new_sample
+
+
 class Sample(models.Model):
-    ########these fields appear in relecov_core/form############
-    Public Health sample id (SIVIES)
-    Sample ID given by the submitting laboratory
-    Sample ID given in the microbiology lab
-    Sample ID given if multiple rna-extraction or passages
-    Originating Laboratory
-    Sample Collection Date
-    Sample Received Date
-    Specimen source
-    Environmental Material
-    Host Age
-    Host Gender
-    Sequence file R1 fastq
-    Sequence file R2 fastq
-    ##############################################################
-    collecting_lab_sample_id = models.CharField(max_length=80)
-    sequencing_sample_id = models.CharField(max_length=80)
-    biosample_accession_ENA = models.CharField(max_length=80)
-    virus_name = models.CharField(max_length=80)
-    gisaid_id = models.CharField(max_length=80)
-    sequencing_date = models.CharField(max_length=80)
+    sample = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
         db_table = "Sample"
-        
+
     def __str__(self):
-        return "%s" % (self.collecting_lab_sample_id)
-    
-    def get_collecting_lab_sample_id(self):
-        return "%s" % (self.collecting_lab_sample_id)
-    
-    def get_sequencing_sample_id(self):
-        return "%s" % (self.sequencing_sample_id)
-    
-    def get_biosample_accession_ENA(self):
-        return "%s" % (self.biosample_accession_ENA)
-    
-    def get_virus_name(self):
-        return "%s" % (self.virus_name)
-    
-    def get_gisaid_id(self):
-        return "%s" % (self.gisaid_id)
-    
-    def get_sequencing_date(self):
-        return "%s" % (self.sequencing_date)
-    
-    objects = SampleManager() 
+        return "%s" % (self.sample)
+
+    objects = SampleManager()
 """
 
 """DUPLICADA DE MOMENTO 

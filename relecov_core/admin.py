@@ -27,8 +27,11 @@ class ChromosomeAdmin(admin.ModelAdmin):
 
 
 class SampleAdmin(admin.ModelAdmin):
-    list_display = ["sample"]
-
+    list_display = [
+        "collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name",
+        "gisaid_id", "sequencing_date"
+        ]
+    
 
 class VariantAdmin(admin.ModelAdmin):
     list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
@@ -114,78 +117,3 @@ admin.site.register(QcStats, QcStatsAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
-# admin.site.register(Sample, SampleAdmin) #Duplicada de momento
-# admin.site.register(Lineage, LineageAdmin) #Duplicada de momento
-# admin.site.register(LineageOrOptional, LineageOrOptionalAdmin) #No definida de momento
-
-
-
-
-"""  
-#Duplicada de momento  
-class SampleAdmin(admin.ModelAdmin):
-    list_display = ["collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name", "gisaid_id", "sequencing_date"]
-"""
-
-"""    
-#Duplicada de momento
-class LineageAdmin(admin.ModelAdmin):
-    list_display = ["lineage_identification_date", "lineage_name", "lineage_analysis_software_name", 
-                    "if_lineage_identification_other", "lineage_analysis_software_version"]
-"""
-
-""" 
-#No definida de momento   
-class LineageOrOptionalAdmin(admin.ModelAdmin):
-    list_display = []
-"""
-
-"""
-class PublicDatabaseAdmin(admin.ModelAdmin):
-    list_display = [
-        "library_selection",
-        "library_strategy",
-        "library_layout",
-        "analysis_accession",
-        "study_accession",
-        "secondary_study_accession",
-        "sample_accession",
-        "secondary_sample_accession",
-        "experiment_accession",
-        "run_accession",
-        "submission_accession",
-        "read_count",
-        "read_length",
-        "base_count",
-        "center_name",
-        "first_public",
-        "last_updated",
-        "experiment_title",
-        "study_title",
-        "study_alias",
-        "experiment_alias",
-        "run_alias",
-        "fastq_bytes",
-        "fastq_md5_r1",
-        "fastq_md5_r2",
-        "fastq_ftp",
-        "fastq_aspera",
-        "fastq_galaxy",
-        "submitted_bytes",
-        "submitted_md5",
-        "submitted_ftp",
-        "submitted_aspera",
-        "submitted_galaxy",
-        "submitted_format",
-        "sra_bytes",
-        "sra_md5",
-        "sra_ftp",
-        "sra_aspera",
-        "sra_galaxy",
-        "broker_name",
-        "nominal_sdev",
-        "first_created_date",
-    ]
-"""
-
-
