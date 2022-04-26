@@ -1,220 +1,84 @@
-{% load static %}
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <title>Dashboard</title>
+        {% load static %}
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="Relecov">
+        <meta content="" name="COVID">
+        <title>Relecov Platform</title>
+
+        <!-- Favicons -->
+        <link href="{% static 'relecov_core/assets/img/favicon.png' %}" rel="icon">
         <!--buISCIII style sheet css-->
-        <link href="{% static 'dashboard/css/buISCIII_styles.css'%}" rel="stylesheet"/>
-        
-      <!-- Bootstrap -->
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-        <!-- JavaScript Bundle with Popper -->
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
-        <!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>-->
-        <!--bootstrap icons-->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/bootstrap-icons.svg"/>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" integrity="sha512-Oy+sz5W86PK0ZIkawrG0iv7XwWhYecM3exvUtMKNJMekGFJtVAhibhRPTpmyTj8+lJCkmWfnpxKgT2OopquBHA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <!-- Font Awesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <!--<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet">
-        <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">  -->
-        
-        <!--JQuery 3.6.0-->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-        
-        <!--animated counter-->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/vquery/5.0.1/v.min.js" integrity="sha512-JTaEfpc0EjojckV4ObScEHC2yHkDKUXEC5xO4Yb8upLDUR/2clSQKloqw6Ocp66a7dW689eKo0b/KC9C+T6osg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <style>
-          *{
-            padding:0;
-            margin:0;
-          }
-          .content {
-            display: flex;
-            justify-content: left;
-            align-items: left;
-            background: white;
-            height: auto;
-          }
-          .value {
-            font-size: 2em;
-            display: block;
-            font-weight: bold;
-            color: dark-gray;
-          }
-          a{
-            text-decoration: none;
-            font-size: x-large;
-          }
-        </style>
-        <!--end animated counter-->
-            
-       
+        <!-- <link href="{% static 'dashboard/css/buISCIII_styles.css'%}" rel="stylesheet"/> -->
+
+        <!-- Bootstrap -->
+        <link href="{% static 'relecov_core/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'relecov_core/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+        <link href="{% static 'relecov_core/assets/vendor/aos/aos.css" rel="stylesheet' %}">
+        <link href="{% static 'relecov_core/assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+
+        <!-- Variables CSS Files. Uncomment your preferred color scheme -->
+        <link href="{% static 'relecov_core/assets/css/variables-green2.css' %}" rel="stylesheet">
+
+        <!-- Template Main CSS File -->
+        <link href="{% static 'relecov_core/assets/css/main.css' %}" rel="stylesheet">
+
     </head>
-    <body style="background-color: white!important;">
-      <!--navbar with hover-->  
-      <div class="dropdown" style="background-color: rgb(238, 241, 236);">
-        <hr>
-        <ul class="menu" data-animation="diagonal">
-          <li style="margin-right: 20%"> 
-            <a class="navbar-brand" href="#">
-              <img src="{% static 'images/relecov_minus.png' %}" class="rounded-start img-thumbnail" alt="logo ECDC-relecov" style="width: 30%">
-            </a>
-          </li>  
-          
-          <li class="mt-4" >  
-            <a href="http://relecov.isciiides.es/">
-              Relecov project
-              <span class="border border-top"></span>
-              <span class="border border-right"></span>
-              <span class="border border-bottom"></span>
-              <span class="border border-left"></span>
-            </a>
-          </li>
-          <li class="mt-4">
-            <!--<a href="#0">-->
-              <a class="nav-link dropdown-toggle" type="button" id="dropdownDashboard" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;font-size: x-large;">
-                Dashboard
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="dropdownDashboard">
-                <li><a class="dropdown-item" href="dashboard/">Variants</a></li>
-                <li><a class="dropdown-item" href="{% url 'variants' %}">Methodology</a></li>
-              </ul>
-              
-              <span class="border border-top"></span>
-              <span class="border border-right"></span>
-              <span class="border border-bottom"></span>
-              <span class="border border-left"></span>
-            <!--</a>-->
-          </li>
-          <li class="mt-4 ">
-            <a href="http://relecov.isciiides.es/contributors/">
-              Contact
-              <span class="border border-top"></span>
-              <span class="border border-right"></span>
-              <span class="border border-bottom"></span>
-              <span class="border border-left"></span>
-            </a>
-          </li>
-          <li class="mt-4 ms-5">
-            <button type="button" class="btn me-5" style="margin-left: 1em;margin-top: 0em;margin-bottom: 8px;height: auto; background-color: rgb(135, 163, 85);color: white;" >Intranet</button>
-          </li>
-        </ul>
-        <hr>
-      </div>
-      <!--end navbar with hover-->
-        
-      
+    <!-- <body style="background-color: white!important;"> -->
+    <body>
+        <!-- ======= Header ======= -->
+        <header id="header" class="header fixed-top" data-scrollto-offset="0">
+            <div class="container-fluid d-flex align-items-center justify-content-between">
 
-        {% block content %}{% endblock %}
-
-        <!--Footer-->
-        <footer class="container-fluid mt-5 bg-light" >
-          <hr>
-            <div class="container-fluid mt-5">
-              <div class="row" style="margin-left: 2%;">
-                <div class="" style="width: 15%;">
-                  <div class="card-body">
-                    <h5 class="card-title fs-5">relecov-platform</h5>
-                    <h6 class="card-subtitle mb-2 text-muted" style="font-size: small;">lorem ipsum quaescitae indorum</h6>
-                      <p style="font-size: small;">Powered by 
-                        <img src="{% static 'images/django_logo.png' %}" class="card-img-top" alt="icono Django" style="width:17%;">
-                        and
-                        <img src="{% static 'images/mysqlLogo.png' %}" class="card-img-top mx-1" alt="icono MySQL" style="width:11%;">
-                      </p>  
-                      <h6 class="card-text mt-2 text-muted" style="font-size: small;">See the source code for this App on <a href="https://github.com/BU-ISCIII/relecov-platform" style="font-size: small;">Github</a></h6>
-                  </div>
-                  <div style="text-align: center;">
-                    <p>
-                      <a href="https://github.com/BU-ISCIII/relecov-platform" ><i class="bi bi-github"></i></a>
-                      <a href="https://join.slack.com/t/relecov/shared_invite/zt-16pxnynsl-ekOuDfbfGFh1JEghEQm6OA" ><i class="bi bi-slack ms-2"></i></a>
-                      <a href="https://twitter.com/SaludISCIII" ><i class="bi bi-twitter ms-2"></i></i></a>
-                    </p>
-                  </div>
-                </div>
-                <!--</div>-->
-                <!--end card logos-->
-            
-                <!--card column 1-->
-                <div class="ms-2" style="width: 15%;">
-                  <div class="card-body">
-                    <h5 class="card-title fs-5">Who We Are</h5>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="http://relecov.isciiides.es/" class="card-link fs-6" style="color: #777676!important;">About Us</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="http://relecov.isciiides.es/contributors-2/" class="card-link fs-6" style="color: #777676!important;">Contributors</a></h6>
-                  </div>
-                </div>
-                <!--end card column 1-->
-
-                <!--card column 2-->
-                <div class="ms-2" style="width: 15%;">
-                  <div class="card-body">
-                    <h5 class="card-title fs-5">Related Links</h5>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="https://www.isciii.es" class="card-link fs-6" style="color: #777676!important;">ISCIII</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="http://relecov.isciiides.es/" class="card-link fs-6" style="color: #777676!important;">Wordpress</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="https://www.gisaid.org" class="card-link fs-6" style="color: #777676!important;">Gisaid</a></h6>
-                    <h6 class="card-subtitle mb-2 text-muted"><a href="https://www.covid19dataportal.org/" class="card-link fs-6" style="color: #777676!important;">Covid Data Portal</a></h6>
-                  </div>
-                </div>
-                <!--end card column 2-->
-
-                <!--card column 3-->
-                <div class="ms-2" style="width: 30%;">
-                  <div class="bg-light"style="text-align: center;"> 
-                    <div class="card bg-light d-inline ">
-                      <img src="{% static 'images/LogoISCIII.png' %}" class="card-img" alt="banner relecov-platform" style="width: 100%;">
-                    </div>
-                  </div>
-                  <div>
-                    <div class="card bg-light d-inline ms-5">
-                      <img src="{% static 'images/logoECDC.png' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                      <img src="{% static 'images/logo_union_europea.jpg' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                      <img src="{% static 'images/logo_bu_isciii.png' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                    </div>
-        
-                    <!--<div class="card bg-light d-inline ms-5">
-                      <img src="{% static 'images/logo_union_europea.jpg' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                    </div>
-                    <div class="card bg-light d-inline ms-5">
-                      <img src="{% static 'images/logo_bu_isciii.png' %}" class="card-img" alt="banner relecov-platform" style="width:33%;">
-                    </div>
-                  </div>-->  
-               
-
-
-                <!--card logos-->
-          
-
-
-                <!--end card column 3-->
-              </div>
+                <a href="index.html" class="d-flex align-items-center scrollto me-auto me-lg-0">
+                    <img src="{% static 'relecov_core/img/relecov_logo.png' %}" width="200" alt="Relecov Logo">
+                 </a>
+                 <nav id="navbar" class="navbar">
+                    <ul>
+                        <li><a class="nav-link scrollto" href="#">Relecov Project</a></li>
+                        <li class="dropdown"><a href="#"><span>Dashboard</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                            <ul>
+                                <li><a href="index.html">Dashboard</a></li>
+                                <li><a href="#">Home 2 - index-2.html</a></li>
+                                <li><a href="#">Home 3 - index-3.html</a></li>
+                            </ul>
+                        </li>
+                        <li><a class="nav-link scrollto" href="#">Contact</a></li>
+                    </ul>
+                    <i class="bi bi-list mobile-nav-toggle d-none"></i>
+                </nav><!-- .navbar -->
+                <a class="btn-getstarted scrollto" href="#">Intranet</a>
             </div>
-              <!--end card info-->
-        </footer>
-        <!--end Footer-->   
-        
-        
-        
-        <!--script animated counter-->
-        <script>
-          const counters = document.querySelectorAll('.value');
-          const speed = 500;
-          
-          counters.forEach( counter => {
-             const animate = () => {
-                const value = +counter.getAttribute('akhi');
-                const data = +counter.innerText;
-               
-                const time = value / speed;
-               if(data < value) {
-                    counter.innerText = Math.ceil(data + time);
-                    setTimeout(animate, 1);
-                  }else{
-                    counter.innerText = value;
-                  }
-              }
-             animate();
-          });
-        </script>    
-        
+        </header><!-- End Header -->
+
+            <section id="relecov-platform" class="hero-animated d-flex align-items-center">
+                <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+                    <main id="main">
+                {% block content %}
+
+                {% endblock %}
+                 </main><!-- End #main -->
+                </div>
+            </section>
+
+        {% include "relecov_core/footer.html" %}
+        <!--end Footer-->
+
+        <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+        <!-- Vendor JS Files -->
+          <script src="{% static 'relecov_core/assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+          <script src="{% static 'relecov_core/assets/vendor/aos/aos.js' %}"></script>
+          <script src="{% static 'relecov_core/assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
+          <script src="{% static 'relecov_core/assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+          <script src="{% static 'relecov_core/assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
+          <script src="{% static 'relecov_core/assets/vendor/php-email-form/validate.js' %}"></script>
+
+          <!-- Template Main JS File -->
+          <script src="{% static 'relecov_core/assets/js/main.js' %}"></script>
+
+
     </body>
 </html>
