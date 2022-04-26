@@ -38,5 +38,4 @@ def relecov_form(request):
     if request.method == 'POST' and request.POST['action'] == 'sampledefinition':
         #import pdb; pdb.set_trace()
         sample_recorded = analyze_input_samples(request)
-        print(sample_recorded)
     return render(request,"relecov_core/relecovForm.html",{})
