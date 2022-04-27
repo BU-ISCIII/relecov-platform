@@ -19,6 +19,9 @@ class Caller(models.Model):
 
     def __str__(self):
         return "%s" % (self.name)
+    
+    def get_version(self):
+        return "%s" % (self.version)
 
     objects = CallerManager()
 
@@ -85,13 +88,22 @@ class Effect(models.Model):
 # Lineage Table
 class LineageManager(models.Manager):
     def create_new_Lineage(self, data):
-        new_lineage = self.create(lineage=data["lineage"], week=data["week"])
+        new_lineage = self.create(
+            lineage_identification_date=data["lineage_identification_date"], 
+            lineage_name=data["lineage_name"],
+            lineage_analysis_software_name=data["lineage_analysis_software_name"],
+            if_lineage_identification_other=data["if_lineage_identification_other"],
+            lineage_analysis_software_version=data["lineage_analysis_software_version"],
+        )
         return new_lineage
 
 
 class Lineage(models.Model):
-    lineage = models.CharField(max_length=100)
-    week = models.CharField(max_length=4)
+    lineage_identification_date = models.CharField(max_length=100)
+    lineage_name = models.CharField(max_length=100)
+    lineage_analysis_software_name = models.CharField(max_length=100)
+    if_lineage_identification_other = models.CharField(max_length=100)
+    lineage_analysis_software_version = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
@@ -99,10 +111,22 @@ class Lineage(models.Model):
         db_table = "Lineage"
 
     def __str__(self):
-        return "%s" % (self.lineage)
+        return "%s" % (self.lineage_name)
 
-    def get_week(self):
-        return "%s" % (self.week)
+    def get_lineage_identification_date(self):
+        return "%s" % (self.lineage_identification_date)
+    
+    def get_lineage_name(self):
+        return "%s" % (self.lineage_name)
+    
+    def get_lineage_analysis_software_name(self):
+        return "%s" % (self.lineage_analysis_software_name)
+    
+    def get_if_lineage_identification_other(self):
+        return "%s" % (self.if_lineage_identification_other)
+    
+    def get_lineage_analysis_software_version(self):
+        return "%s" % (self.lineage_analysis_software_version)
 
     objects = LineageManager()
 
@@ -172,6 +196,8 @@ class Sample(models.Model):
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    #Many-to-one relationships
+    #analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
     
     class Meta:
         db_table = "Sample"
@@ -202,7 +228,7 @@ class Sample(models.Model):
 # SampleOther Table
 class SampleOtherManager(models.Manager):
     def create_new_sample_other(self, data):
-        new_sample = self.create(
+        new_sample_other = self.create(
             collecting_lab_sample_id=data["collecting_lab_sample_id"],
             sequencing_sample_id=data["sequencing_sample_id"],
             biosample_accession_ENA=data["biosample_accession_ENA"],
@@ -268,8 +294,6 @@ class SampleOther(models.Model):
     objects = SampleOtherManager()
 
 
-
-
 # Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
@@ -286,16 +310,6 @@ class VariantManager(models.Manager):
 
 
 class Variant(models.Model):  # include Foreign Keys
-    """
-    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    effect = models.ForeignKey(Effect, on_delete=models.CASCADE)
-    caller = models.ForeignKey(Caller, on_delete=models.CASCADE)
-    filter = models.ForeignKey(Filter, on_delete=models.CASCADE)
-    lineage = models.ForeignKey(Lineage, on_delete=models.CASCADE)
-    chromosome = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
-    """
-
     pos = models.CharField(max_length=7)
     ref = models.CharField(max_length=60)
     alt = models.CharField(max_length=10)
@@ -305,7 +319,7 @@ class Variant(models.Model):  # include Foreign Keys
     af = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
+    
     class Meta:
         db_table = "Variant"
 
@@ -405,7 +419,12 @@ class Analysis(models.Model):
     reference_genome_accession = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
+    
+    #Many-to-one relationships
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    
+    
     class Meta:
         db_table = "Analysis"
 
@@ -518,7 +537,7 @@ class Authors(models.Model):
     authors = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
+    
     class Meta:
         db_table = "Authors"
 
@@ -582,7 +601,10 @@ class QcStats(models.Model):
     number_of_variants_with_effect = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
+    
+    #One-to-one relationships
+    analysis = models.OneToOneField(Analysis, on_delete=models.CASCADE, primary_key=True)
+    
     class Meta:
         db_table = "QCStats"
 
@@ -653,8 +675,11 @@ class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
     
+    #ManyToOne
+    authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
+    
+
     class Meta:
         db_table = "PublicDatabase"
         
@@ -683,6 +708,8 @@ class PublicDatabaseField(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
+    #ManyToOne
+    public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
     
     class Meta:
         db_table = "PublicDatabaseField"
@@ -704,572 +731,3 @@ class PublicDatabaseField(models.Model):
     
     objects = PublicDatabaseFieldManager()
         
-
-
-
-
-
-
-##################################################################################################################################
-##################################################################################################################################
-"""  DUPLICADA DE MOMENTO  
-    #Sample Table   def __str__(): ¿que campo ponemos, cual es el más representativo?      
-class SampleManager(models.Manager):
-    def create_new_sample(self, data):
-        new_sample = self.create(
-            collecting_lab_sample_id=data["collecting_lab_sample_id"],
-            sequencing_sample_id=data["sequencing_sample_id"],
-            biosample_accession_ENA=data["biosample_accession_ENA"],
-            virus_name=data["virus_name"],
-            gisaid_id=data["gisaid_id"],
-            sequencing_date=data["sequencing_date"]
-            )
-        return new_sample
-
-
-class SampleManager(models.Manager):
-    def create_new_sample(self, data):
-        new_sample = self.create(sample=data["sample"])
-        return new_sample
-
-
-class Sample(models.Model):
-    sample = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "Sample"
-
-    def __str__(self):
-        return "%s" % (self.sample)
-
-    objects = SampleManager()
-"""
-
-"""DUPLICADA DE MOMENTO 
-    #Lineage Table def __str__(): == def get_lineage_name(self): //¿duplicamos?  
-class LineageManager(models.Manager):
-    def create_new_Lineage(self,data):
-        new_lineage = self.create(
-            lineage_identification_date=data["lineage_identification_date"], 
-            lineage_name=data["lineage_name"]),
-            lineage_analysis_software_name=data["lineage_analysis_software_name"]),
-            if_lineage_identification_other=data["if_lineage_identification_other"]),
-            lineage_analysis_software_version=data["lineage_analysis_software_version"]
-            )
-        return new_lineage
-    
-
-class Lineage(models.Model):
-    lineage_identification_date = models.CharField(max_length=100)
-    lineage_name = models.CharField(max_length=100)
-    lineage_analysis_software_name = models.CharField(max_length=100)
-    if_lineage_identification_other = models.CharField(max_length=100)
-    lineage_analysis_software_version = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
-    class Meta:
-        db_table = "Lineage"
-        
-    def __str__(self):
-        return "%s" % (self.lineage_name)
-        
-    def get_lineage_name(self):
-        return "%s" % (self.lineage_name)
-    
-    def get_lineage_identification_date(self):
-        return "%s" % (self.lineage_identification_date)
-        
-    def get_lineage_analysis_software_name(self):
-        return "%s" % (self.lineage_analysis_software_name)
-        
-    def get_if_lineage_identification_other(self):
-        return "%s" % (self.if_lineage_identification_other)
-        
-    def get_lineage_analysis_software_version(self):
-        return "%s" % (self.lineage_analysis_software_version)
-    
-    objects = LineageManager()
-"""
-
-
-#####################################################################################################
-#Para eliminar
-"""
-# Table PublicDatabase
-class PublicDatabaseManager(models.Manager):
-    def create_new_public_database(self, data):
-        new_public_database = self.create(
-            library_selection=data["library_selection"],
-            library_strategy=data["dehosting_method"],
-            library_layout=data["assembly"],
-            analysis_accession=data["if_assembly_other"],
-            study_accession=data["assembly_params"],
-            secondary_study_accession=data["variant_calling"],
-            sample_accession=data["if_variant_calling_other"],
-            secondary_sample_accession=data["variant_calling_params"],
-            experiment_accession=data["consensus_sequence_name"],
-            run_accession=data["consensus_sequence_name_md5"],
-            submission_accession=data["consensus_sequence_filepath"],
-            read_count=data["consensus_sequence_software_name"],
-            read_length=data["if_consensus_other"],
-            base_count=data["base_count"],
-            center_name=data["center_name"],
-            first_public=data["first_public"],
-            last_updated=data["last_updated"],
-            experiment_title=data["experiment_title"],
-            study_title=data["study_title"],
-            study_alias=data["study_alias"],
-            experiment_alias=data["experiment_alias"],
-            run_alias=data["run_alias"],
-            fastq_bytes=data["fastq_bytes"],
-            fastq_md5_r1=data["fastq_md5_r1"],
-            fastq_md5_r2=data["fastq_md5_r2"],
-            fastq_ftp=data["fastq_ftp"],
-            fastq_aspera=data["fastq_aspera"],
-            fastq_galaxy=data["fastq_galaxy"],
-            submitted_bytes=data["submitted_bytes"],
-            submitted_md5=data["submitted_md5"],
-            submitted_ftp=data["submitted_ftp"],
-            submitted_aspera=data["submitted_aspera"],
-            submitted_galaxy=data["submitted_galaxy"],
-            submitted_format=data["submitted_format"],
-            sra_bytes=data["sra_bytector googles"],
-            sra_md5=data["sra_md5"],
-            sra_ftp=data["sra_ftp"],
-            sra_aspera=data["sra_aspera"],
-            sra_galaxy=data["sra_galaxy"],
-            broker_name=data["broker_name"],
-            nominal_sdev=data["nominal_sdev"],
-            first_created_date=data["first_created_date"],
-        )
-        return new_public_database
-
-
-class PublicDatabase(models.Model):
-    library_selection = models.CharField(max_length=100)
-    library_strategy = models.CharField(max_length=100)
-    library_layout = models.CharField(max_length=100)
-    analysis_accession = models.CharField(max_length=100)
-    study_accession = models.CharField(max_length=100)
-    secondary_study_accession = models.CharField(max_length=100)
-    sample_accession = models.CharField(max_length=100)
-    secondary_sample_accession = models.CharField(max_length=100)
-    experiment_accession = models.CharField(max_length=100)
-    run_accession = models.CharField(max_length=100)
-    submission_accession = models.CharField(max_length=100)
-    read_count = models.CharField(max_length=100)
-    read_length = models.CharField(max_length=100)
-    base_count = models.CharField(max_length=100)
-    center_name = models.CharField(max_length=100)
-    first_public = models.CharField(max_length=100)
-    last_updated = models.CharField(max_length=100)
-    experiment_title = models.CharField(max_length=100)
-    study_title = models.CharField(max_length=100)
-    study_alias = models.CharField(max_length=100)
-    experiment_alias = models.CharField(max_length=100)
-    run_alias = models.CharField(max_length=100)
-    fastq_bytes = models.CharField(max_length=100)
-    fastq_md5_r1 = models.CharField(max_length=100)
-    fastq_md5_r2 = models.CharField(max_length=100)
-    fastq_ftp = models.CharField(max_length=100)
-    fastq_aspera = models.CharField(max_length=100)
-    fastq_galaxy = models.CharField(max_length=100)
-    submitted_bytes = models.CharField(max_length=100)
-    submitted_md5 = models.CharField(max_length=100)
-    submitted_ftp = models.CharField(max_length=100)
-    submitted_aspera = models.CharField(max_length=100)
-    submitted_galaxy = models.CharField(max_length=100)
-    submitted_format = models.CharField(max_length=100)
-    sra_bytes = models.CharField(max_length=100)
-    sra_md5 = models.CharField(max_length=100)
-    sra_ftp = models.CharField(max_length=100)
-    sra_aspera = models.CharField(max_length=100)
-    sra_galaxy = models.CharField(max_length=100)
-    broker_name = models.CharField(max_length=100)
-    nominal_sdev = models.CharField(max_length=100)
-    first_created_date = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "PublicDatabase"
-
-    def __str__(self):
-        return "%s" % (self.library_selection)
-
-    def get_library_selection(self):
-        return "%s" % (self.library_selection)
-
-    def get_library_strategy(self):
-        return "%s" % (self.library_strategy)
-
-    def get_library_layout(self):
-        return "%s" % (self.library_layout)
-
-    def get_analysis_accession(self):
-        return "%s" % (self.analysis_accession)
-
-    def get_study_accession(self):
-        return "%s" % (self.study_accession)
-
-    def get_secondary_sample_accession(self):
-        return "%s" % (self.secondary_sample_accession)
-
-    def get_experiment_accession(self):
-        return "%s" % (self.experiment_accession)
-
-    def get_run_accession(self):
-        return "%s" % (self.run_accession)
-
-    def get_submission_accession(self):
-        return "%s" % (self.submission_accession)
-
-    def get_read_count(self):
-        return "%s" % (self.read_count)
-
-    def get_read_length(self):
-        return "%s" % (self.read_length)
-
-    def get_base_count(self):
-        return "%s" % (self.base_count)
-
-    def get_center_name(self):
-        return "%s" % (self.center_name)
-
-    def get_first_public(self):
-        return "%s" % (self.first_public)
-
-    def get_last_updated(self):
-        return "%s" % (self.last_updated)
-
-    def get_experiment_title(self):
-        return "%s" % (self.experiment_title)
-
-    def get_study_title(self):
-        return "%s" % (self.study_title)
-
-    def get_study_alias(self):
-        return "%s" % (self.study_alias)
-
-    def get_experiment_alias(self):
-        return "%s" % (self.experiment_alias)
-
-    def get_run_alias(self):
-        return "%s" % (self.run_alias)
-
-    def get_fastq_bytes(self):
-        return "%s" % (self.fastq_bytes)
-
-    def get_fastq_md5_r1(self):
-        return "%s" % (self.fastq_md5_r1)
-
-    def get_fastq_md5_r2(self):
-        return "%s" % (self.fastq_md5_r2)
-
-    def get_fastq_ftp(self):
-        return "%s" % (self.fastq_ftp)
-
-    def get_fastq_aspera(self):
-        return "%s" % (self.fastq_aspera)
-
-    def get_fastq_galaxy(self):
-        return "%s" % (self.fastq_galaxy)
-
-    def get_submitted_bytes(self):
-        return "%s" % (self.submitted_bytes)
-
-    def get_submitted_md5(self):
-        return "%s" % (self.submitted_md5)
-
-    def get_submitted_ftp(self):
-        return "%s" % (self.submitted_ftp)
-
-    def get_submitted_aspera(self):
-        return "%s" % (self.submitted_aspera)
-
-    def get_submitted_galaxy(self):
-        return "%s" % (self.submitted_galaxy)
-
-    def get_submitted_format(self):
-        return "%s" % (self.submitted_format)
-
-    def get_sra_bytes(self):
-        return "%s" % (self.sra_bytes)
-
-    def get_sra_md5(self):
-        return "%s" % (self.sra_md5)
-
-    def get_sra_ftp(self):
-        return "%s" % (self.sra_ftp)
-
-    def get_sra_aspera(self):
-        return "%s" % (self.sra_aspera)
-
-    def get_sra_galaxy(self):
-        return "%s" % (self.sra_galaxy)
-
-    def get_broker_name(self):
-        return "%s" % (self.broker_name)
-
-    def get_nominal_sdev(self):
-        return "%s" % (self.nominal_sdev)
-
-    def get_first_created_date(self):
-        return "%s" % (self.first_created_date)
-
-    objects = PublicDatabaseManager()
-    
-
-# Table PublicDatabaseField
-class PublicDatabaseManagerField(models.Manager):
-    def create_new_public_database(self, data):
-        new_public_database_field = self.create(
-            library_selection=data["library_selection"],
-            library_strategy=data["dehosting_method"],
-            library_layout=data["assembly"],
-            analysis_accession=data["if_assembly_other"],
-            study_accession=data["assembly_params"],
-            secondary_study_accession=data["variant_calling"],
-            sample_accession=data["if_variant_calling_other"],
-            secondary_sample_accession=data["variant_calling_params"],
-            experiment_accession=data["consensus_sequence_name"],
-            run_accession=data["consensus_sequence_name_md5"],
-            submission_accession=data["consensus_sequence_filepath"],
-            read_count=data["consensus_sequence_software_name"],
-            read_length=data["if_consensus_other"],
-            base_count=data["base_count"],
-            center_name=data["center_name"],
-            first_public=data["first_public"],
-            last_updated=data["last_updated"],
-            experiment_title=data["experiment_title"],
-            study_title=data["study_title"],
-            study_alias=data["study_alias"],
-            experiment_alias=data["experiment_alias"],
-            run_alias=data["run_alias"],
-            fastq_bytes=data["fastq_bytes"],
-            fastq_md5_r1=data["fastq_md5_r1"],
-            fastq_md5_r2=data["fastq_md5_r2"],
-            fastq_ftp=data["fastq_ftp"],
-            fastq_aspera=data["fastq_aspera"],
-            fastq_galaxy=data["fastq_galaxy"],
-            submitted_bytes=data["submitted_bytes"],
-            submitted_md5=data["submitted_md5"],
-            submitted_ftp=data["submitted_ftp"],
-            submitted_aspera=data["submitted_aspera"],
-            submitted_galaxy=data["submitted_galaxy"],
-            submitted_format=data["submitted_format"],
-            sra_bytes=data["sra_bytector googles"],
-            sra_md5=data["sra_md5"],
-            sra_ftp=data["sra_ftp"],
-            sra_aspera=data["sra_aspera"],
-            sra_galaxy=data["sra_galaxy"],
-            broker_name=data["broker_name"],
-            nominal_sdev=data["nominal_sdev"],
-            first_created_date=data["first_created_date"],
-        )
-        return new_public_database_field
-
-
-class PublicDatabaseField(models.Model):
-    library_selection = models.CharField(max_length=100)
-    library_strategy = models.CharField(max_length=100)
-    library_layout = models.CharField(max_length=100)
-    analysis_accession = models.CharField(max_length=100)
-    study_accession = models.CharField(max_length=100)
-    secondary_study_accession = models.CharField(max_length=100)
-    sample_accession = models.CharField(max_length=100)
-    secondary_sample_accession = models.CharField(max_length=100)
-    experiment_accession = models.CharField(max_length=100)
-    run_accession = models.CharField(max_length=100)
-    submission_accession = models.CharField(max_length=100)
-    read_count = models.CharField(max_length=100)
-    read_length = models.CharField(max_length=100)
-    base_count = models.CharField(max_length=100)
-    center_name = models.CharField(max_length=100)
-    first_public = models.CharField(max_length=100)
-    last_updated = models.CharField(max_length=100)
-    experiment_title = models.CharField(max_length=100)
-    study_title = models.CharField(max_length=100)
-    study_alias = models.CharField(max_length=100)
-    experiment_alias = models.CharField(max_length=100)
-    run_alias = models.CharField(max_length=100)
-    fastq_bytes = models.CharField(max_length=100)
-    fastq_md5_r1 = models.CharField(max_length=100)
-    fastq_md5_r2 = models.CharField(max_length=100)
-    fastq_ftp = models.CharField(max_length=100)
-    fastq_aspera = models.CharField(max_length=100)
-    fastq_galaxy = models.CharField(max_length=100)
-    submitted_bytes = models.CharField(max_length=100)
-    submitted_md5 = models.CharField(max_length=100)
-    submitted_ftp = models.CharField(max_length=100)
-    submitted_aspera = models.CharField(max_length=100)
-    submitted_galaxy = models.CharField(max_length=100)
-    submitted_format = models.CharField(max_length=100)
-    sra_bytes = models.CharField(max_length=100)
-    sra_md5 = models.CharField(max_length=100)
-    sra_ftp = models.CharField(max_length=100)
-    sra_aspera = models.CharField(max_length=100)
-    sra_galaxy = models.CharField(max_length=100)
-    broker_name = models.CharField(max_length=100)
-    nominal_sdev = models.CharField(max_length=100)
-    first_created_date = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "PublicDatabaseField"
-
-    def __str__(self):
-        return "%s" % (self.library_selection)
-
-    def get_library_selection(self):
-        return "%s" % (self.library_selection)
-
-    def get_library_strategy(self):
-        return "%s" % (self.library_strategy)
-
-    def get_library_layout(self):
-        return "%s" % (self.library_layout)
-
-    def get_analysis_accession(self):
-        return "%s" % (self.analysis_accession)
-
-    def get_study_accession(self):
-        return "%s" % (self.study_accession)
-
-    def get_secondary_sample_accession(self):
-        return "%s" % (self.secondary_sample_accession)
-
-    def get_experiment_accession(self):
-        return "%s" % (self.experiment_accession)
-
-    def get_run_accession(self):
-        return "%s" % (self.run_accession)
-
-    def get_submission_accession(self):
-        return "%s" % (self.submission_accession)
-
-    def get_read_count(self):
-        return "%s" % (self.read_count)
-
-    def get_read_length(self):
-        return "%s" % (self.read_length)
-
-    def get_base_count(self):
-        return "%s" % (self.base_count)
-
-    def get_center_name(self):
-        return "%s" % (self.center_name)
-
-    def get_first_public(self):
-        return "%s" % (self.first_public)
-
-    def get_last_updated(self):
-        return "%s" % (self.last_updated)
-
-    def get_experiment_title(self):
-        return "%s" % (self.experiment_title)
-
-    def get_study_title(self):
-        return "%s" % (self.study_title)
-
-    def get_study_alias(self):
-        return "%s" % (self.study_alias)
-
-    def get_experiment_alias(self):
-        return "%s" % (self.experiment_alias)
-
-    def get_run_alias(self):
-        return "%s" % (self.run_alias)
-
-    def get_fastq_bytes(self):
-        return "%s" % (self.fastq_bytes)
-
-    def get_fastq_md5_r1(self):
-        return "%s" % (self.fastq_md5_r1)
-
-    def get_fastq_md5_r2(self):
-        return "%s" % (self.fastq_md5_r2)
-
-    def get_fastq_ftp(self):
-        return "%s" % (self.fastq_ftp)
-
-    def get_fastq_aspera(self):
-        return "%s" % (self.fastq_aspera)
-
-    def get_fastq_galaxy(self):
-        return "%s" % (self.fastq_galaxy)
-
-    def get_submitted_bytes(self):
-        return "%s" % (self.submitted_bytes)
-
-    def get_submitted_md5(self):
-        return "%s" % (self.submitted_md5)
-
-    def get_submitted_ftp(self):
-        return "%s" % (self.submitted_ftp)
-
-    def get_submitted_aspera(self):
-        return "%s" % (self.submitted_aspera)
-
-    def get_submitted_galaxy(self):
-        return "%s" % (self.submitted_galaxy)
-
-    def get_submitted_format(self):
-        return "%s" % (self.submitted_format)
-
-    def get_sra_bytes(self):
-        return "%s" % (self.sra_bytes)
-
-    def get_sra_md5(self):
-        return "%s" % (self.sra_md5)
-
-    def get_sra_ftp(self):
-        return "%s" % (self.sra_ftp)
-
-    def get_sra_aspera(self):
-        return "%s" % (self.sra_aspera)
-
-    def get_sra_galaxy(self):
-        return "%s" % (self.sra_galaxy)
-
-    def get_broker_name(self):
-        return "%s" % (self.broker_name)
-
-    def get_nominal_sdev(self):
-        return "%s" % (self.nominal_sdev)
-
-    def get_first_created_date(self):
-        return "%s" % (self.first_created_date)
-
-    objects = PublicDatabaseManager()
-"""
-
-"""    
-#Lineage or optional Table
-class LineageManager(models.Manager):
-    def create_new_Lineage(self,data):
-        new_lineage = self.create(lineage=data["lineage"], week=data["week"])
-        return new_lineage
-    
-
-class Lineage(models.Model):
-    lineage = models.CharField(max_length=100)
-    week = models.CharField(max_length=4)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
-    class Meta:
-        db_table = "Lineage"
-        
-    def __str__(self):
-        return "%s" % (self.lineage)
-    
-    def get_week(self):
-        return "%s" % (self.week)
-    
-    objects = LineageManager()
-"""
