@@ -1,0 +1,47 @@
+{% extends "relecov_core/base.html" %}
+
+{% load static %}
+
+{% block content %}
+{% if form.errors %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <h4 class="card-title" >Your userid and/or password are incorrect</h4>
+                <div class="card-body">
+                    <p> Please enter your credentials again to login</p>
+                </div>  <!-- end card-body -->
+            </div>  <!-- end card -->
+        </div> <!-- end col-md-6 -->
+    </div> <!-- end row -->
+{% endif %}
+
+<br><br>
+<div class="container">
+    <div class="row justify-content-center"">
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">LOGIN</h3>
+                    <p class="card-title"> Write your credentials to access to relecov Platform Intranet</p>
+                    <form class="row g-3"  method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="floatingInput" name="username" placeholder="userid">
+                            <label for="floatingInput">Type your userid</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
+                            <label for="floatingPassword">Password</label>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary mb-3">Submit credentials</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
