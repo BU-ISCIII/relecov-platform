@@ -160,46 +160,10 @@ class SampleManager(models.Manager):
             gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"]
         )
-                ##########################################################
-        """
-                public_health_sample_id_sivies = data["public_health_sample_id_sivies"], #Public Health sample id (SIVIES)
-                submitting_lab_sample_id = data["submitting_lab_sample_id"], #Sample ID given by the submitting laboratory
-                microbiology_lab_sample_id = data["microbiology_lab_sample_id"], #Sample ID given in the microbiology lab
-                isolate_sample_id = data["isolate_sample_id"], #Sample ID given if multiple rna-extraction or passages
-                collecting_institution = data["collecting_institution"], #Originating Laboratory
-                sample_collection_date = data["sample_collection_date"],#Sample Collection Date
-                sample_received_date = data["sample_received_date"], #Sample Received Date
-                anatomical_material =  data["anatomical_material"], #Specimen source
-                environmental_material =  data["environmental_material"], #Environmental Material
-                host_age =  data["host_age"], #Host Age
-                host_gender =  data["host_gender"], #Host Gender
-                sequence_file_R1_fastq =  data["sequence_file_R1_fastq"], #Sequence file R1 fastq
-                sequence_file_R2_fastq =  data["sequence_file_R2_fastq"], #Sequence file R2 fastq
-        
-        )
-        """
-            
         return new_sample
 
 
 class Sample(models.Model):
-    ########these fields appear in relecov_core/form############
-    """
-    public_health_sample_id_sivies = models.CharField(max_length=80) #Public Health sample id (SIVIES)
-    submitting_lab_sample_id = models.CharField(max_length=80) #Sample ID given by the submitting laboratory
-    microbiology_lab_sample_id = models.CharField(max_length=80) #Sample ID given in the microbiology lab
-    isolate_sample_id = models.CharField(max_length=80) #Sample ID given if multiple rna-extraction or passages
-    collecting_institution = models.CharField(max_length=80) #Originating Laboratory
-    sample_collection_date = models.CharField(max_length=80) #Sample Collection Date
-    sample_received_date = models.CharField(max_length=80) #Sample Received Date
-    anatomical_material =  models.CharField(max_length=80) #Specimen source
-    environmental_material =  models.CharField(max_length=80) #Environmental Material
-    host_age =  models.CharField(max_length=80) #Host Age
-    host_gender =  models.CharField(max_length=80) #Host Gender
-    sequence_file_R1_fastq =  models.CharField(max_length=80) #Sequence file R1 fastq
-    sequence_file_R2_fastq =  models.CharField(max_length=80) #Sequence file R2 fastq
-    """
-    ##############################################################
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
     biosample_accession_ENA = models.CharField(max_length=80)
@@ -214,48 +178,6 @@ class Sample(models.Model):
         
     def __str__(self):
         return "%s" % (self.collecting_lab_sample_id)
-    #######################################################################################
-    """
-    def get_public_health_sample_id_sivies(self):
-        return "%s" % (self.public_health_sample_id_sivies)
-    
-    def get_submitting_lab_sample_id(self):
-        return "%s" % (self.submitting_lab_sample_id)
-    
-    def get_microbiology_lab_sample_id(self):
-        return "%s" % (self.microbiology_lab_sample_id)
-    
-    def get_isolate_sample_id(self):
-        return "%s" % (self.isolate_sample_id)
-    
-    def get_collecting_institution(self):
-        return "%s" % (self.collecting_institution)
-    
-    def get_sample_collection_date(self):
-        return "%s" % (self.sample_collection_date)
-    
-    def get_sample_received_date(self):
-        return "%s" % (self.sample_received_date)
-    
-    def get_anatomical_material(self):
-        return "%s" % (self.anatomical_material)
-    
-    def get_environmental_material(self):
-        return "%s" % (self.environmental_material)
-    
-    def get_host_age(self):
-        return "%s" % (self.host_age)
-    
-    def get_host_gender(self):
-        return "%s" % (self.host_gender)
-    
-    def get_sequence_file_R1_fastq(self):
-        return "%s" % (self.sequence_file_R1_fastq)
-    
-    def get_sequence_file_R2_fastq(self):
-        return "%s" % (self.sequence_file_R2_fastq)
-    """
-    ##########################################################################################
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
     
