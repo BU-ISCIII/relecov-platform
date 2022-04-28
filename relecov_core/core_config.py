@@ -13,6 +13,9 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("Environmental Material", "environmental_material"),
     ("Host Age", "host_age"),
     ("Host Gender", "host_gender"),
+    ("Analysis Authors", "Analysis_authors"),
+    ("Author Submitter", "Author_submitter"),
+    ("Authors", "authors"),
     ("Sequence file R1 fastq", "sequence_file_R1_fastq"),
     ("Sequence file R2 fastq", "sequence_file_R2_fastq"),
 ]
