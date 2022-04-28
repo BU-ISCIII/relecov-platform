@@ -523,10 +523,8 @@ class AuthorsManager(models.Manager):
     def create_new_authors(self, data):
         new_authors = self.create(
             analysis_authors=data["analysis_authors"],
+            author_submitter=data["author_submitter"],
             authors=data["authors"],
-            raw_sequence_data_processing_method=data[
-                "raw_sequence_data_processing_method"
-            ],
         )
         return new_authors
 
