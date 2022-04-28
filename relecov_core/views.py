@@ -18,10 +18,17 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 
+from django.contrib.auth.decorators import login_required
+
 
 def index(request):
     context = {}
     return render(request, "relecov_core/index.html", context)
+
+
+@login_required
+def intranet(request):
+    return render(request, "relecov_core/relecovForm.html")
 
 
 def variants(request):
@@ -38,5 +45,4 @@ def relecov_form(request):
     if request.method == 'POST' and request.POST['action'] == 'sampledefinition':
         #import pdb; pdb.set_trace()
         sample_recorded = analyze_input_samples(request)
-        print(sample_recorded)
     return render(request,"relecov_core/relecovForm.html",{})
