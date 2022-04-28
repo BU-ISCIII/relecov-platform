@@ -8,7 +8,7 @@
 #CENTRE:BU-ISCIII
 #AUTHOR: Luis Chapado
 SCRIPT_VERSION=0.1
-#CREATED: 18 April 2022
+#CREATED: 28 April 2022
 #
 #
 #DESCRIPTION: This script install on your local server the latest stable
@@ -178,10 +178,10 @@ sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-python3 manage.py makemigrations django_utils relecov_core 
+python3 manage.py makemigrations relecov_core 
 python3 manage.py migrate
 
-python3 manage.py collectstatic
+# python3 manage.py collectstatic
 
 echo "Change owner of files to Apache user"
 chown -R www-data:www-data /opt/relecov-platform
@@ -190,9 +190,9 @@ chown -R www-data:www-data /opt/relecov-platform
 #python3 manage.py loaddata conf/new_installation_loading_tables.json
 
 echo "Running crontab"
-python3 manage.py crontab add
-mv /var/spool/cron/crontabs/root /var/spool/cron/crontabs/www-data
-chown www-data /var/spool/cron/crontabs/www-data 
+#python3 manage.py crontab add
+#mv /var/spool/cron/crontabs/root /var/spool/cron/crontabs/www-data
+#chown www-data /var/spool/cron/crontabs/www-data 
 
 
 
@@ -216,5 +216,6 @@ printf "${BLUE}Successfuly iSkyLIMS Installation version: ${RELECOVPLATFORM_VERS
 printf "%s"
 printf "${BLUE}------------------${NC}\n\n"
 
+echo "Installation completed"
 
 
