@@ -15,7 +15,7 @@ class EffectAdmin(admin.ModelAdmin):
 
 
 class LineageAdmin(admin.ModelAdmin):
-    list_display = ["lineage", "week"]
+    list_display = ["lineage_identification_date", "lineage_name", "lineage_analysis_software_name", "if_lineage_identification_other", "lineage_analysis_software_version"]
 
 
 class GeneAdmin(admin.ModelAdmin):

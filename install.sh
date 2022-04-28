@@ -8,11 +8,11 @@
 #CENTRE:BU-ISCIII
 #AUTHOR: Luis Chapado
 SCRIPT_VERSION=0.1
-#CREATED: 18 April 2022
+#CREATED: 28 April 2022
 #
 #
 #DESCRIPTION: This script install on your local server the latest stable
-#   version of relecov-platform application 
+#   version of relecov-platform application
 #
 #
 #================================================================
@@ -34,7 +34,7 @@ db_check(){
     if  ! [ "$RESULT" == "Relecov" ] ; then
         echo -e "${RED}ERROR : Relecov database is not defined yet ${NC}"
         echo -e "${RED}ERROR : Create Relecov database on your mysql server and run again the installation script ${NC}"
-        exit 1    
+        exit 1
     fi
 }
 
@@ -84,7 +84,7 @@ if [[ $EUID -ne 0 ]]; then
     printf "\n\n%s"
     printf "${RED}------------------${NC}\n"
     printf "%s"
-    printf "${RED}Exiting installation. This script must be run as root ${NC}\n" 
+    printf "${RED}Exiting installation. This script must be run as root ${NC}\n"
     printf "\n\n%s"
     printf "${RED}------------------${NC}\n"
     printf "%s"
@@ -106,18 +106,18 @@ if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
 fi
 
 #================================================================
-if [[ $linux_distribution == "Ubuntu" ]]; then 
+if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Software installation for Ubuntu"
     apt-get update && apt-get upgrade -y
     apt-get install -y \
         lightdm git apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
         libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3
-    #apt-get install build-essential  -y 
+    #apt-get install build-essential  -y
     #apt-get install libghc-zlib-dev libbz2-dev libssl1.0-dev -y
     #apt-get install git libpango1.0 libpango1.0-dev   -y
 fi
 
-if [[ $linux_distribution == "Centos" ]]; then 
+if [[ $linux_distribution == "Centos" ]]; then
     echo "Software installation for Centos"
     yum groupinstall “Development tools”
     yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
@@ -131,21 +131,21 @@ git checkout master
 mkdir -p /opt/relecov-platform/logs
 
 # install virtual environment
-if [[ $linux_distribution == "Ubuntu" ]]; then 
+if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Creating virtual environment"
-    pip3 install virtualenv 
+    pip3 install virtualenv
     virtualenv --python=/usr/bin/python3 virtualenv
-    
-    
+
+
 fi
 
-if [[ $linux_distribution == "Centos" ]]; then 
+if [[ $linux_distribution == "Centos" ]]; then
     echo "Creating virtual environment"
     cd /opt/python/3.6.4/bin
-    ./pip3 install virtualenv 
+    ./pip3 install virtualenv
     virtualenv --python=/usr/bin/python3 virtualenv
-    
-    
+
+
 fi
 
 source virtualenv/bin/activate
@@ -178,10 +178,10 @@ sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-python3 manage.py makemigrations django_utils relecov_core 
+python3 manage.py makemigrations relecov_core
 python3 manage.py migrate
 
-python3 manage.py collectstatic
+# python3 manage.py collectstatic
 
 echo "Change owner of files to Apache user"
 chown -R www-data:www-data /opt/relecov-platform
@@ -190,9 +190,9 @@ chown -R www-data:www-data /opt/relecov-platform
 #python3 manage.py loaddata conf/new_installation_loading_tables.json
 
 echo "Running crontab"
-python3 manage.py crontab add
-mv /var/spool/cron/crontabs/root /var/spool/cron/crontabs/www-data
-chown www-data /var/spool/cron/crontabs/www-data 
+#python3 manage.py crontab add
+#mv /var/spool/cron/crontabs/root /var/spool/cron/crontabs/www-data
+#chown www-data /var/spool/cron/crontabs/www-data
 
 
 
@@ -216,5 +216,6 @@ printf "${BLUE}Successfuly iSkyLIMS Installation version: ${RELECOVPLATFORM_VERS
 printf "%s"
 printf "${BLUE}------------------${NC}\n\n"
 
+echo "Installation completed"
 
 
