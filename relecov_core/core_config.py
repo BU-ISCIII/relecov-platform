@@ -68,11 +68,11 @@ HEADING_FOR_ANALYSIS = [
     ("reference genome accession", "reference_genome_accession"),
 ]
 
-HEADING_FOR_AUTHOR_TABLE = [
-    ("Analysis Authors", "analysis_authors"),
-    ("Author Submitter", "author_submitter"),
-    ("Authors", "authors"),
-]
+HEADING_FOR_AUTHOR_TABLE = {
+    "Analysis Authors": "analysis_authors",
+    "Author Submitter": "author_submitter",
+    "Authors": "authors",
+}
 
 HEADING_FOR_QCSTATS_TABLE = [
     ("Quality control metrics", "quality_control_metrics"),
