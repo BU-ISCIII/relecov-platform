@@ -3,6 +3,7 @@ from multiprocessing import context, Manager
 from relecov_core.models import *
 from django.shortcuts import render
 from relecov_core.utils.feed_db import *
+from relecov_core.utils.form.handling_samples import get_input_samples, analyze_input_samples
 from relecov_core.utils.random_data import generate_random_sequences, generate_weeks
 from relecov_core.utils.parse_files import *
 
@@ -39,6 +40,10 @@ def documentation(request):
     context = {}
     return render(request, "relecov_core/documentation.html", context)
 
+#@login_required()
 def relecov_form(request):
-    #csv_file = "relecov_core/docs/jspreadsheet.csv"
-    return render(request,"relecov_core/relecovForm.html",{})
+    sample_recorded = get_input_samples(request)
+    if request.method == 'POST' and request.POST['action'] == 'sampledefinition':
+        sample_recorded = analyze_input_samples(request)
+        #import pdb; pdb.set_trace()
+    return render(request,"relecov_core/relecovForm.html",{"sample_recorded": sample_recorded})
