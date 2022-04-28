@@ -226,6 +226,7 @@ class Sample(models.Model):
 
 
 # SampleOther Table
+"""
 class SampleOtherManager(models.Manager):
     def create_new_sample_other(self, data):
         new_sample_other = self.create(
@@ -292,8 +293,7 @@ class SampleOther(models.Model):
     
     
     objects = SampleOtherManager()
-
-
+"""
 # Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
@@ -693,7 +693,10 @@ class PublicDatabase(models.Model):
 class PublicDatabaseFieldManager(models.Manager):
     def create_new_public_database(self, data):
         new_public_database_field = self.create(
-            databaseName = data["databaseName"]
+            fieldName = data["fieldName"],
+            fieldDescription = data["fieldDescription"],
+            fieldInUse =data["fieldInUse"],
+            
         )
         return new_public_database_field
     
@@ -709,7 +712,7 @@ class PublicDatabaseField(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     #ManyToOne
-    public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
+    #public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
     
     class Meta:
         db_table = "PublicDatabaseField"
