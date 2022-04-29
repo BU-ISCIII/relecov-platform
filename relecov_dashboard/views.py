@@ -15,6 +15,8 @@ import pandas as pd
 #from dash import Input, Output#Dash, dcc, html,
 from dash.dependencies import Input, Output
 import dash
+import os
+from django.conf import settings
 
 #import dash_bootstrap_components as dbc
 
@@ -26,7 +28,7 @@ from relecov_core.utils.dashboard import *
 
 def index(request):
     variant_data = parse_csv_into_list_of_dicts(
-        "relecov_core/docs/variantLuisTableCSV.csv"
+        os.path.join(settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv")
     )
 
     # app = DjangoDash(name= "VariantGraph", external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -55,7 +57,7 @@ def index(request):
 def index2(request):
     max_weeks=0
     selected_range =[1,19]
-    df_table = pd.read_csv("relecov_core/docs/cogUK/table_3_2022-04-12.csv")
+    df_table = pd.read_csv(os.path.join(settings.BASE_DIR, "relecov_core", "docs", "cogUK", "table_3_2022-04-12.csv"))
 
     variant_data = parse_csv_into_list_of_dicts(
         "relecov_core/docs/variantLuisTableCSV.csv"
