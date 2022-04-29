@@ -30,8 +30,11 @@
     <!-- <body style="background-color: white!important;"> -->
     <body>
         <!-- ======= Header ======= -->
+
         <header id="header" class="header fixed-top" data-scrollto-offset="0">
-            <div class="container-fluid d-flex align-items-center justify-content-between">
+
+            <div class="container d-flex align-items-center justify-content-between">
+            <!-- <div class="container-fluid d-flex align-items-center justify-content-between"> -->
 
                 <a href="/index.html" class="d-flex align-items-center scrollto me-auto me-lg-0">
                     <img src="{% static 'relecov_core/img/relecov_logo.png' %}" width="200" alt="Relecov Logo">
@@ -41,7 +44,7 @@
                         <li><a class="nav-link scrollto" href="#">Relecov Project</a></li>
                         <li class="dropdown"><a href="#"><span>Dashboard</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
                             <ul>
-                                <li><a href="/index.html">Dashboard</a></li>
+                                <li><a href="/dashboard">Dashboard</a></li>
                                 <li><a href="#">Home 2 - index-2.html</a></li>
                                 <li><a href="#">Home 3 - index-3.html</a></li>
                             </ul>
@@ -50,12 +53,12 @@
                     </ul>
                     <i class="bi bi-list mobile-nav-toggle d-none"></i>
                 </nav><!-- .navbar -->
-                {% if not user.is_authenticated %}
                     <a class="btn-getstarted scrollto" href="/intranet">Intranet</a>
-                {% else %}
+                {% if user.is_authenticated %}
                     {% include "registration/login_inline.html" %}
                 {% endif %}
             </div>
+
         </header><!-- End Header -->
 
             <section id="relecov-platform" class="hero-animated d-flex align-items-center">
