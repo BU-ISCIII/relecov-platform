@@ -41,9 +41,9 @@ def documentation(request):
     return render(request, "relecov_core/documentation.html", context)
 
 #@login_required()
-def relecov_form(request):
+def metadata_form(request):
     sample_recorded = get_input_samples(request)
     if request.method == 'POST' and request.POST['action'] == 'sampledefinition':
         sample_recorded = analyze_input_samples(request)
         #import pdb; pdb.set_trace()
-    return render(request,"relecov_core/relecovForm.html",{"sample_recorded": sample_recorded})
+    return render(request,"relecov_core/metadataForm.html",{"sample_recorded": sample_recorded})

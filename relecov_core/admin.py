@@ -31,7 +31,14 @@ class SampleAdmin(admin.ModelAdmin):
         "collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name",
         "gisaid_id", "sequencing_date"
         ]
-    
+
+
+class SampleStateAdmin(admin.ModelAdmin): 
+    list_display = [
+        "state",
+        "description"
+    ]
+
 
 class VariantAdmin(admin.ModelAdmin):
     list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
