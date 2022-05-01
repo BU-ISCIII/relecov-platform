@@ -6,8 +6,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("2", views.index2, name="index2"),
-    path("3", views.index3, name="index3"),
+    path("methodology", views.methodology_index, name="methodology_index"),
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
 ]
 if settings.DEBUG:
