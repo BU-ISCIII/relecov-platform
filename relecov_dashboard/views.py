@@ -26,6 +26,10 @@ from relecov_core.utils.parse_files import *
 from relecov_core.utils.dashboard import *
 
 
+def new_index(request):
+    return render(request, "relecov_dashboard/newIndex.html")
+
+
 def index(request):
     variant_data = parse_csv_into_list_of_dicts(
         os.path.join(settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv")

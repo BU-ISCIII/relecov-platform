@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("2", views.index2, name="index2"),
     path("3", views.index3, name="index3"),
+    path("newIndex", views.new_index, name="new_index"),
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
 ]
 if settings.DEBUG:
