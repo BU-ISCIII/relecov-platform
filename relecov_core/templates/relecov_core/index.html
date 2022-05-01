@@ -5,100 +5,104 @@
 {% block content %}
 
 <!--Banner-->
-<div class="container">
-    <div class="card bg-dark text-white">
-        <img src="{% static 'relecov_core/img/virus_crop.jpg' %}" class="card-img" alt="relecov platform" style="height: 20em;opacity: 0.5;">
-        <div class="card-img-overlay">
-            <p class="card-title text-white"  style="text-align: center;font-size: 5em;">Relecov Platform</p>
-            <p class="card-text text-white" style="text-align: center;font-size: 2em;">Platform for viral sequencing and variants evolution monitoring in the context of the Spanish Network for genomics surveillance of SARS-Cov-2</p>
-        </div> <!--end card image-->
-    </div> <!--end card bg-dark-->
-</div> <!--end container-->
-<!--end Banner-->
-<section>
-    <div class="container-fluid overflow-hidden">
-        <div class="row row-eq-height">
-            <div class="col">
-                <div class="p-3 border bg-light"><h4>Received Samples</h4>
-                <br>
-                <h1><div class="value" akhi="27536">0</div></h1>
+<section id="relecov-platform" class="hero-animated d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+
+        <div class="container">
+            <div class="card bg-dark text-white">
+                <img src="{% static 'relecov_core/img/virus_crop.jpg' %}" class="card-img" alt="relecov platform" style="height: 20em;opacity: 0.5;">
+                <div class="card-img-overlay">
+                    <p class="card-title text-white"  style="text-align: center;font-size: 5em;">Relecov Platform</p>
+                    <p class="card-text text-white" style="text-align: center;font-size: 2em;">Platform for viral sequencing and variants evolution monitoring in the context of the Spanish Network for genomics surveillance of SARS-Cov-2</p>
+                </div> <!--end card image-->
+            </div> <!--end card bg-dark-->
+        </div> <!--end container-->
+        <!--end Banner-->
+        <section>
+            <div class="container-fluid overflow-hidden">
+                <div class="row row-eq-height">
+                    <div class="col">
+                        <div class="p-3 border bg-light"><h4>Received Samples</h4>
+                        <br>
+                        <h1><div class="value" akhi="27536">0</div></h1>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-3 border "><h4>Procesed Samples</h4>
+                        <br>
+                        <h1><div class="value" akhi="24735">0</div></h1>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-3 border bg-light"><h4>Uploads to GISAID</h4>
+                        <br>
+                        <h1><div class="value" akhi="23586">0</div></h1>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-3 border bg-light"><h4>Uploads to  ENA</h4>
+                        <br><h3> </h3><br>
+                        <h1><div class="value" akhi="22984">0</div></h1>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="p-3 border "><h4>Procesed Samples</h4>
-                <br>
-                <h1><div class="value" akhi="24735">0</div></h1>
+        </section>
+
+        <!-- ======= Services Section ======= -->
+        <section id="featured-services" class="featured-services">
+            <div class="container">
+                <div class="row gy-4">
+                    <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-out">
+                        <div class="service-item position-relative">
+                            <div class="icon"><i class="bi bi-activity icon"></i></div>
+                            <h4><a href="/dashboard" class="stretched-link">Variants</a></h4>
+                            <p></p>
+                            <a class="btn-getstarted scrollto" href="/dashboard">Go to Variants</a>
+                        </div>
+                    </div><!-- End Service Item -->
+
+                    <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-out" data-aos-delay="200">
+                        <div class="service-item position-relative">
+                            <div class="icon"><i class="bi bi-bounding-box-circles icon"></i></div>
+                            <h4><a href="/dashboard/methodology" class="stretched-link">Methodology</a></h4>
+                            <p></p>
+                            <a class="btn-getstarted scrollto" href="index.html#about">Go to Dashboard</a>
+                        </div>
+                    </div><!-- End Service Item -->
+
+                    <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-out" data-aos-delay="400">
+                        <div class="service-item position-relative">
+                            <div class="icon"><i class="bi bi-folder icon"></i></div>
+                            <h4><a href="/documentation" class="stretched-link">Documentation</a></h4>
+                            <p></p>
+                            <a class="btn-getstarted scrollto" href="index.html#about">Go to Documentation</a>
+                        </div>
+                    </div><!-- End Service Item -->
                 </div>
             </div>
-            <div class="col">
-                <div class="p-3 border bg-light"><h4>Uploads to GISAID</h4>
-                <br>
-                <h1><div class="value" akhi="23586">0</div></h1>
-                </div>
-            </div>
-            <div class="col">
-                <div class="p-3 border bg-light"><h4>Uploads to  ENA</h4>
-                <br><h3> </h3><br>
-                <h1><div class="value" akhi="22984">0</div></h1>
-                </div>
-            </div>
-        </div>
+        </section><!-- End Featured Services Section -->
+
+        <script>
+            const counters = document.querySelectorAll('.value');
+            const speed = 500;
+
+            counters.forEach( counter => {
+               const animate = () => {
+                  const value = +counter.getAttribute('akhi');
+                  const data = +counter.innerText;
+
+                  const time = value / speed;
+                 if(data < value) {
+                      counter.innerText = Math.ceil(data + time);
+                      setTimeout(animate, 1);
+                    }else{
+                      counter.innerText = value;
+                    }
+                }
+               animate();
+            });
+        </script>
     </div>
 </section>
-
-<!-- ======= Services Section ======= -->
-<section id="featured-services" class="featured-services">
-    <div class="container">
-        <div class="row gy-4">
-            <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-out">
-                <div class="service-item position-relative">
-                    <div class="icon"><i class="bi bi-activity icon"></i></div>
-                    <h4><a href="/dashboard" class="stretched-link">Variants</a></h4>
-                    <p></p>
-                    <a class="btn-getstarted scrollto" href="/dashboard">Go to Varians</a>
-                </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-out" data-aos-delay="200">
-                <div class="service-item position-relative">
-                    <div class="icon"><i class="bi bi-bounding-box-circles icon"></i></div>
-                    <h4><a href="#" class="stretched-link">Methodology</a></h4>
-                    <p></p>
-                    <a class="btn-getstarted scrollto" href="index.html#about">Go to Dashboard</a>
-                </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-out" data-aos-delay="400">
-                <div class="service-item position-relative">
-                    <div class="icon"><i class="bi bi-folder icon"></i></div>
-                    <h4><a href="" class="stretched-link">Documentation</a></h4>
-                    <p></p>
-                    <a class="btn-getstarted scrollto" href="index.html#about">Go to Documentation</a>
-                </div>
-            </div><!-- End Service Item -->
-        </div>
-    </div>
-</section><!-- End Featured Services Section -->
-
-<script>
-    const counters = document.querySelectorAll('.value');
-    const speed = 500;
-
-    counters.forEach( counter => {
-       const animate = () => {
-          const value = +counter.getAttribute('akhi');
-          const data = +counter.innerText;
-
-          const time = value / speed;
-         if(data < value) {
-              counter.innerText = Math.ceil(data + time);
-              setTimeout(animate, 1);
-            }else{
-              counter.innerText = value;
-            }
-        }
-       animate();
-    });
-</script>
-
 {% endblock %}
