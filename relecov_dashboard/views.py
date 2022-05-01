@@ -28,7 +28,7 @@ from relecov_core.utils.dashboard import *
 from .utils.graphic_test import create_test_variant_graph
 
 
-def new_index(request):
+def index(request):
     variant_data = parse_csv_into_list_of_dicts(
         os.path.join(settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv")
     )
@@ -46,36 +46,8 @@ def new_index(request):
                         hover_name="Variant")
 
         fig.update_layout(transition_duration=500)
-        
+
         return fig
-    return render(request, "relecov_dashboard/newIndex.html")
-
-
-def index(request):
-    variant_data = parse_csv_into_list_of_dicts(
-        os.path.join(settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv")
-    )
-
-    # app = DjangoDash(name= "VariantGraph", external_stylesheets=[dbc.themes.BOOTSTRAP])
-    app = DjangoDash(name= "VariantGraph")   # replaces dash.Dash
-
-    app.layout = get_variant_graph(variant_data)
-
-    @app.callback(
-    Output('graph-with-slider', 'figure'),
-    Input('week-slider', 'value'))
-
-    def update_figure(selected_range):
-        print('You have selected "{}"'.format(selected_range))
-
-        df = set_dataframe_range_slider(variant_data, selected_range)
-
-        fig = px.bar(df, x="Week", y="Sequences", color="Variant", barmode="stack",
-                        hover_name="Variant")
-
-        fig.update_layout(transition_duration=500)
-        return fig
-
     return render(request, "relecov_dashboard/index.html")
 
 
