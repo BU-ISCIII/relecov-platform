@@ -47,3 +47,7 @@ def relecov_form(request):
         sample_recorded = analyze_input_samples(request)
         #import pdb; pdb.set_trace()
     return render(request,"relecov_core/relecovForm.html",{"sample_recorded": sample_recorded})
+
+def intranet2(request):
+
+    return render(request,"relecov_core/intranet2.html",{})
