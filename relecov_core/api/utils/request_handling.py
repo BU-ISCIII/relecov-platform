@@ -14,6 +14,7 @@ def split_sample_data(data):
         if item in author_fields:
             split_data['author'][item] = value
             continue
+        
     return split_data
 
 
