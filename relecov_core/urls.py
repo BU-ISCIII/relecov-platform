@@ -10,6 +10,7 @@ urlpatterns = [
     path("relecovForm", views.relecov_form, name="relecovForm"),
     path("intranet/", views.intranet, name="intranet"),
     path("intranet2/", views.intranet2, name="intranet2"),
+    path("contributorInfo/", views.contributor_info, name="contributorInfo"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

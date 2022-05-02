@@ -51,3 +51,8 @@ def relecov_form(request):
 def intranet2(request):
 
     return render(request,"relecov_core/intranet2.html",{})
+
+def contributor_info(request):
+    if request.method == 'POST': #and request.POST['action'] == 'sampledefinition':
+        print(request)
+    return render(request,"relecov_core/contributorInfo.html",{})
