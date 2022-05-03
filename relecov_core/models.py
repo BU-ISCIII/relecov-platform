@@ -1,7 +1,7 @@
-# from webbrowser import Chrome
 from urllib import request
 from django.db import models
 from django.forms import CharField
+
 
 # Caller Table
 class CallerManager(models.Manager):
@@ -13,8 +13,14 @@ class CallerManager(models.Manager):
 class Caller(models.Model):
     name = models.CharField(max_length=60)
     version = models.CharField(max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Caller"
@@ -37,8 +43,14 @@ class FilterManager(models.Manager):
 
 class Filter(models.Model):
     filter = models.CharField(max_length=70)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Filter"
@@ -66,8 +78,14 @@ class Effect(models.Model):
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1_letter = models.CharField(max_length=60)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Effect"
@@ -93,9 +111,15 @@ class LineageManager(models.Manager):
         new_lineage = self.create(
             lineage_identification_date=data["lineage_identification_date"],
             lineage_name=data["lineage_name"],
-            lineage_analysis_software_name=data["lineage_analysis_software_name"],
-            if_lineage_identification_other=data["if_lineage_identification_other"],
-            lineage_analysis_software_version=data["lineage_analysis_software_version"],
+            lineage_analysis_software_name=data[
+                "lineage_analysis_software_name"
+                ],
+            if_lineage_identification_other=data[
+                "if_lineage_identification_other"
+                ],
+            lineage_analysis_software_version=data[
+                "lineage_analysis_software_version"
+                ],
         )
         return new_lineage
 
@@ -106,8 +130,14 @@ class Lineage(models.Model):
     lineage_analysis_software_name = models.CharField(max_length=100)
     if_lineage_identification_other = models.CharField(max_length=100)
     lineage_analysis_software_version = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Lineage"
@@ -142,8 +172,14 @@ class GeneManager(models.Manager):
 
 class Gene(models.Model):
     gene = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Gene"
@@ -163,8 +199,14 @@ class ChromosomeManager(models.Manager):
 
 class Chromosome(models.Model):
     chromosome = models.CharField(max_length=110)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Chromosome"
@@ -196,8 +238,14 @@ class Sample(models.Model):
     virus_name = models.CharField(max_length=80)
     gisaid_id = models.CharField(max_length=80)
     sequencing_date = models.CharField(max_length=80)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
     # Many-to-one relationships
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
     # sample_state = models.ForeignKey(SampleStates, on_delete=models.CASCADE)
@@ -242,8 +290,14 @@ class SampleStateManager(models.Manager):
 class SampleState(models.Model):
     state = models.CharField(max_length=80)
     description = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "SampleState"
@@ -280,8 +334,14 @@ class Variant(models.Model):  # include Foreign Keys
     alt_dp = models.CharField(max_length=5)
     ref_dp = models.CharField(max_length=10)
     af = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Variant"
@@ -327,7 +387,9 @@ class AnalysisManager(models.Manager):
             consensus_sequence_name=data["consensus_sequence_name"],
             consensus_sequence_name_md5=data["consensus_sequence_name_md5"],
             consensus_sequence_filepath=data["consensus_sequence_filepath"],
-            consensus_sequence_software_name=data["consensus_sequence_software_name"],
+            consensus_sequence_software_name=data[
+                "consensus_sequence_software_name"
+                ],
             if_consensus_other=data["if_consensus_other"],
             consensus_sequence_software_version=data[
                 "consensus_sequence_software_version"
@@ -338,7 +400,9 @@ class AnalysisManager(models.Manager):
             if_bioinformatic_protocol_is_other_specify=data[
                 "if_bioinformatic_protocol_is_other_specify"
             ],
-            bioinformatic_protocol_version=data["bioinformatic_protocol_version"],
+            bioinformatic_protocol_version=data[
+                "bioinformatic_protocol_version"
+                ],
             analysis_date=data["analysis_date"],
             commercial_open_source_both=data["commercial_open_source_both"],
             preprocessing=data["preprocessing"],
@@ -369,7 +433,9 @@ class Analysis(models.Model):
     consensus_criteria = models.CharField(max_length=100)
     reference_genome_accession = models.CharField(max_length=100)
     bioinformatics_protocol = models.CharField(max_length=100)
-    if_bioinformatic_protocol_is_other_specify = models.CharField(max_length=100)
+    if_bioinformatic_protocol_is_other_specify = models.CharField(
+        max_length=100
+        )
     bioinformatic_protocol_version = models.CharField(max_length=100)
     analysis_date = models.CharField(max_length=100)
     commercial_open_source_both = models.CharField(max_length=100)
@@ -380,8 +446,14 @@ class Analysis(models.Model):
     if_mapping_other = models.CharField(max_length=100)
     mapping_params = models.CharField(max_length=100)
     reference_genome_accession = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     # Many-to-one relationships
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
@@ -438,9 +510,6 @@ class Analysis(models.Model):
     def get_consensus_criteria(self):
         return "%s" % (self.consensus_criteria)
 
-    def get_reference_genome_accession(self):
-        return "%s" % (self.reference_genome_accession)
-
     def get_bioinformatics_protocol(self):
         return "%s" % (self.bioinformatics_protocol)
 
@@ -495,8 +564,13 @@ class Authors(models.Model):
     analysis_authors = models.CharField(max_length=100)
     author_submitter = models.CharField(max_length=100)
     authors = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     class Meta:
         db_table = "Authors"
@@ -524,7 +598,9 @@ class QcStatsManager(models.Manager):
             breadth_of_coverage_value=data["breadth_of_coverage_value"],
             depth_of_coverage_value=data["depth_of_coverage_value"],
             depth_of_coverage_threshold=data["depth_of_coverage_threshold"],
-            number_of_base_pairs_sequenced=data["number_of_base_pairs_sequenced"],
+            number_of_base_pairs_sequenced=data[
+                "number_of_base_pairs_sequenced"
+                ],
             consensus_genome_length=data["consensus_genome_length"],
             ns_per_100_kbp=data["ns_per_100_kbp"],
             per_qc_filtered=data["per_qc_filtered"],
@@ -537,7 +613,9 @@ class QcStatsManager(models.Manager):
             number_of_variants_AF_greater_75percent=data[
                 "number_of_variants_AF_greater_75percent"
             ],
-            number_of_variants_with_effect=data["number_of_variants_with_effect"],
+            number_of_variants_with_effect=data[
+                "number_of_variants_with_effect"
+            ],
         )
         return new_qc_stats
 
@@ -559,8 +637,14 @@ class QcStats(models.Model):
     per_Ns = models.CharField(max_length=100)
     number_of_variants_AF_greater_75percent = models.CharField(max_length=100)
     number_of_variants_with_effect = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     # One-to-one relationships
     analysis = models.OneToOneField(
@@ -633,8 +717,14 @@ class PublicDatabaseManager(models.Manager):
 
 class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     # ManyToOne
     authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
@@ -666,11 +756,22 @@ class PublicDatabaseField(models.Model):
     fieldName = models.CharField(max_length=50)
     fieldDescription = models.CharField(max_length=400, null=True, blank=True)
     fieldInUse = models.BooleanField()
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=("created at")
+        )
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=("updated at")
+        )
 
     # ManyToOne
-    # public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
+    """
+    public_database = models.ForeignKey(
+        PublicDatabase, 
+        on_delete= models.CASCADE
+        )
+    """
 
     class Meta:
         db_table = "PublicDatabaseField"
