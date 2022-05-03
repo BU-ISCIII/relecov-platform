@@ -1,5 +1,94 @@
-#from webbrowser import Chrome
 from django.db import models
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
+
+
+class schema(models.Model):
+    fileName = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
+    schemaName = models.CharField(max_length=40)
+    schemaVersion = models.CharField(max_length=10)
+    schemaInUse = models.BooleanField(default=True)
+    schemaAppsName = models.CharField(max_length=40, null=True, blank=True)
+
+    class Meta:
+        db_table = "schema"
+
+    def __str__(self):
+        return "%s_%s" % (self.schemaName, self.schemaVersion)
+
+    def get_schema_and_version(self):
+        return "%s_%s" % (self.schemaName, self.schemaVersion)
+
+
+class schemaPropertiesManager(models.Manager):
+    def create_new_property(self, data):
+        new_property_obj = self.create(
+            schema=data["schema"],
+            property=data["property"],
+            examples=data["examples"],
+            ontology=data["ontology"],
+            type=data["type"],
+            description=data["description"],
+            label=data["label"],
+            classification=data["classification"],
+            required=data["required"],
+            options=data["options"])
+        return new_property_obj
+
+
+class schemaProperties(models.Model):
+    schemaID = models.ForeignKey(
+        schema,
+        on_delete=models.CASCADE
+    )
+    properties = models.CharField(max_length=50)
+    examples = models.CharField(max_length=80, null=True, blank=True)
+    ontology = models.CharField(max_length=40, null=True, blank=True)
+    type = models.CharField(max_length=20)
+    description = models.CharField(max_length=200, null=True, blank=True)
+    label = models.CharField(max_length=200, null=True, blank=True)
+    classification = models.CharField(max_length=80, null=True, blank=True)
+    required = models.BooleanField(default=False)
+    options = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "schemaProperties"
+
+    def __str__(self):
+        return "%s" % (self.properties)
+
+    def get_property_name(self):
+        return "%s" % (self.properties)
+
+    objects = schemaPropertiesManager()
+
+
+class propertyOptionsManager(models.Manager):
+    def create_property_options(self, data):
+        new_property_option_obj = self.create(
+            propertyID=data["property"],
+            enums=data["enums"],
+            ontology=data["ontology"]
+        )
+        return new_property_option_obj
+
+
+class propertyOptions(models.Model):
+    propertyID = models.ForeignKey(
+        schemaProperties,
+        on_delete=models.CASCADE
+    )
+    enums = models.CharField(max_length=80, null=True, blank=True)
+    ontology = models.CharField(max_length=40, null=True, blank=True)
+
+    class Meta:
+        db_table = "propertyOptions"
+
+    def __str__(self):
+        return "%s" % (self.enums)
+
+    def get_enum(self):
+        return "%s" % (self.enums)
+
 
 # Caller Table
 class CallerManager(models.Manager):
@@ -19,7 +108,7 @@ class Caller(models.Model):
 
     def __str__(self):
         return "%s" % (self.name)
-    
+
     def get_version(self):
         return "%s" % (self.version)
 
@@ -89,7 +178,7 @@ class Effect(models.Model):
 class LineageManager(models.Manager):
     def create_new_Lineage(self, data):
         new_lineage = self.create(
-            lineage_identification_date=data["lineage_identification_date"], 
+            lineage_identification_date=data["lineage_identification_date"],
             lineage_name=data["lineage_name"],
             lineage_analysis_software_name=data["lineage_analysis_software_name"],
             if_lineage_identification_other=data["if_lineage_identification_other"],
@@ -115,16 +204,16 @@ class Lineage(models.Model):
 
     def get_lineage_identification_date(self):
         return "%s" % (self.lineage_identification_date)
-    
+
     def get_lineage_name(self):
         return "%s" % (self.lineage_name)
-    
+
     def get_lineage_analysis_software_name(self):
         return "%s" % (self.lineage_analysis_software_name)
-    
+
     def get_if_lineage_identification_other(self):
         return "%s" % (self.if_lineage_identification_other)
-    
+
     def get_lineage_analysis_software_version(self):
         return "%s" % (self.lineage_analysis_software_version)
 
@@ -198,30 +287,30 @@ class Sample(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     #Many-to-one relationships
     #analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
-    
+
     class Meta:
         db_table = "Sample"
-        
+
     def __str__(self):
         return "%s" % (self.collecting_lab_sample_id)
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
-    
+
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
-    
+
     def get_biosample_accession_ENA(self):
         return "%s" % (self.biosample_accession_ENA)
-    
+
     def get_virus_name(self):
         return "%s" % (self.virus_name)
-    
+
     def get_gisaid_id(self):
         return "%s" % (self.gisaid_id)
-    
+
     def get_sequencing_date(self):
         return "%s" % (self.sequencing_date)
-    
+
     objects = SampleManager()
 
 
@@ -256,42 +345,42 @@ class SampleOtherManager(models.Manager):
 
 class SampleOther(models.Model):
     ########these fields appear in relecov_core/form############
-    sample_storage_conditions = models.CharField(max_length=80) #Biological Sample Storage Condition 
+    sample_storage_conditions = models.CharField(max_length=80) #Biological Sample Storage Condition
     collection_device = models.CharField(max_length=80) #Collection Device
     rna_extraction_Protocol = models.CharField(max_length=80) #Rna Extraction Protocol
     library_kit = models.CharField(max_length=80) #Commercial All-in-one library kit
     library_preparation_kit = models.CharField(max_length=80) #Library Preparation Kit
-    
+
      #= models.CharField(max_length=80) #
-    
+
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
         db_table = "SampleOther"
-        
+
     def __str__(self):
         return "%s" % (self.collection_device)
     #######################################################################################
     def sample_storage_conditions(self):
         return "%s" % (self.sample_storage_conditions)
-    
+
     def collection_device(self):
         return "%s" % (self.collection_device)
-    
+
     def rna_extraction_Protocol(self):
         return "%s" % (self.rna_extraction_Protocol)
-    
+
     def get_library_kit(self):
         return "%s" % (self.library_kit)
-    
+
     def get_library_preparation_kit(self):
         return "%s" % (self.library_preparation_kit)
-    
+
     #def get_(self):
     #    return "%s" % (self.)
-    
-    
+
+
     objects = SampleOtherManager()
 """
 # Variant Table
@@ -319,7 +408,7 @@ class Variant(models.Model):  # include Foreign Keys
     af = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
         db_table = "Variant"
 
@@ -346,7 +435,7 @@ class Variant(models.Model):  # include Foreign Keys
 
     objects = VariantManager()
 
-    
+
 # Table Analysis
 class AnalysisManager(models.Manager):
     def create_new_analysis(self, data):
@@ -419,12 +508,12 @@ class Analysis(models.Model):
     reference_genome_accession = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     #Many-to-one relationships
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    
-    
+
+
     class Meta:
         db_table = "Analysis"
 
@@ -535,7 +624,7 @@ class Authors(models.Model):
     authors = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
         db_table = "Authors"
 
@@ -599,10 +688,10 @@ class QcStats(models.Model):
     number_of_variants_with_effect = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     #One-to-one relationships
     analysis = models.OneToOneField(Analysis, on_delete=models.CASCADE, primary_key=True)
-    
+
     class Meta:
         db_table = "QCStats"
 
@@ -667,25 +756,25 @@ class PublicDatabaseManager(models.Manager):
             databaseName = data["databaseName"]
         )
         return new_public_database
-    
+
 
 class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     #ManyToOne
     authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
-    
+
 
     class Meta:
         db_table = "PublicDatabase"
-        
+
     def __str__(self):
         return "%s" % (self.databaseName)
-    
+
     objects = PublicDatabaseManager()
-    
+
 
 #table PublicDatabaseField
 class PublicDatabaseFieldManager(models.Manager):
@@ -694,10 +783,10 @@ class PublicDatabaseFieldManager(models.Manager):
             fieldName = data["fieldName"],
             fieldDescription = data["fieldDescription"],
             fieldInUse =data["fieldInUse"],
-            
+
         )
         return new_public_database_field
-    
+
 
 class PublicDatabaseField(models.Model):
     publicDatabaseID = models.ForeignKey(
@@ -711,24 +800,23 @@ class PublicDatabaseField(models.Model):
 
     #ManyToOne
     #public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
-    
+
     class Meta:
         db_table = "PublicDatabaseField"
-        
+
     def __str__(self):
         return "%s" % (self.fieldName)
-    
+
     def get_public_database_id(self):
         return "%s" % (self.publicDatabaseID)
-    
+
     def get_field_name(self):
         return "%s" % (self.fieldName)
-    
+
     def get_field_description(self):
         return "%s" % (self.fieldDescription)
-    
+
     def get_field_in_use(self):
         return "%s" % (self.fieldInUse)
-    
+
     objects = PublicDatabaseFieldManager()
-        

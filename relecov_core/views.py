@@ -1,7 +1,7 @@
 from distutils.log import debug
 from multiprocessing import context, Manager
 from relecov_core.models import *
-from django.shortcuts import render
+
 from relecov_core.utils.feed_db import *
 from relecov_core.utils.form.handling_samples import get_input_samples, analyze_input_samples
 from relecov_core.utils.random_data import generate_random_sequences, generate_weeks
@@ -18,12 +18,19 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 
 def index(request):
-    context = {}
     return render(request, "relecov_core/index.html", context)
+
+
+@login_required
+def schema_handling(request):
+    if request.user.username != 'admin':
+        return redirect('/')
+    return render(request, "relecov_core/schemaHandling.html")
 
 
 @login_required
