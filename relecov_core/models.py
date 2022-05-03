@@ -31,15 +31,13 @@ class schemaPropertiesManager(models.Manager):
             label=data["label"],
             classification=data["classification"],
             required=data["required"],
-            options=data["options"])
+            options=data["options"],
+        )
         return new_property_obj
 
 
 class schemaProperties(models.Model):
-    schemaID = models.ForeignKey(
-        schema,
-        on_delete=models.CASCADE
-    )
+    schemaID = models.ForeignKey(schema, on_delete=models.CASCADE)
     properties = models.CharField(max_length=50)
     examples = models.CharField(max_length=80, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
@@ -65,18 +63,13 @@ class schemaProperties(models.Model):
 class propertyOptionsManager(models.Manager):
     def create_property_options(self, data):
         new_property_option_obj = self.create(
-            propertyID=data["property"],
-            enums=data["enums"],
-            ontology=data["ontology"]
+            propertyID=data["property"], enums=data["enums"], ontology=data["ontology"]
         )
         return new_property_option_obj
 
 
 class propertyOptions(models.Model):
-    propertyID = models.ForeignKey(
-        schemaProperties,
-        on_delete=models.CASCADE
-    )
+    propertyID = models.ForeignKey(schemaProperties, on_delete=models.CASCADE)
     enums = models.CharField(max_length=80, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
 
@@ -271,7 +264,7 @@ class SampleManager(models.Manager):
             biosample_accession_ENA=data["biosample_accession_ENA"],
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
-            sequencing_date=data["sequencing_date"]
+            sequencing_date=data["sequencing_date"],
         )
         return new_sample
 
@@ -285,14 +278,15 @@ class Sample(models.Model):
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    #Many-to-one relationships
-    #analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
+    # Many-to-one relationships
+    # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Sample"
 
     def __str__(self):
         return "%s" % (self.collecting_lab_sample_id)
+
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
 
@@ -509,10 +503,9 @@ class Analysis(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
-    #Many-to-one relationships
+    # Many-to-one relationships
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-
 
     class Meta:
         db_table = "Analysis"
@@ -689,8 +682,10 @@ class QcStats(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
-    #One-to-one relationships
-    analysis = models.OneToOneField(Analysis, on_delete=models.CASCADE, primary_key=True)
+    # One-to-one relationships
+    analysis = models.OneToOneField(
+        Analysis, on_delete=models.CASCADE, primary_key=True
+    )
 
     class Meta:
         db_table = "QCStats"
@@ -749,12 +744,10 @@ class QcStats(models.Model):
     objects = QcStatsManager()
 
 
-#table PublicDatabase
+# table PublicDatabase
 class PublicDatabaseManager(models.Manager):
     def create_new_public_database(self, data):
-        new_public_database = self.create(
-            databaseName = data["databaseName"]
-        )
+        new_public_database = self.create(databaseName=data["databaseName"])
         return new_public_database
 
 
@@ -763,9 +756,8 @@ class PublicDatabase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
-    #ManyToOne
+    # ManyToOne
     authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
-
 
     class Meta:
         db_table = "PublicDatabase"
@@ -776,30 +768,29 @@ class PublicDatabase(models.Model):
     objects = PublicDatabaseManager()
 
 
-#table PublicDatabaseField
+# table PublicDatabaseField
 class PublicDatabaseFieldManager(models.Manager):
     def create_new_public_database(self, data):
         new_public_database_field = self.create(
-            fieldName = data["fieldName"],
-            fieldDescription = data["fieldDescription"],
-            fieldInUse =data["fieldInUse"],
-
+            fieldName=data["fieldName"],
+            fieldDescription=data["fieldDescription"],
+            fieldInUse=data["fieldInUse"],
         )
         return new_public_database_field
 
 
 class PublicDatabaseField(models.Model):
     publicDatabaseID = models.ForeignKey(
-                PublicDatabase,
-                on_delete= models.CASCADE, null = True, blank = True)
+        PublicDatabase, on_delete=models.CASCADE, null=True, blank=True
+    )
     fieldName = models.CharField(max_length=50)
-    fieldDescription = models.CharField(max_length= 400, null=True, blank=True)
+    fieldDescription = models.CharField(max_length=400, null=True, blank=True)
     fieldInUse = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
-    #ManyToOne
-    #public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
+    # ManyToOne
+    # public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
 
     class Meta:
         db_table = "PublicDatabaseField"
