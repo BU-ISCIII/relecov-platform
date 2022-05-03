@@ -1,0 +1,148 @@
+{% extends "relecov_core/base.html" %}
+{% load static %}
+
+<!--{%load plotly_dash%}-->
+
+
+{% block content %}
+{% include "relecov_core/intranet2Sidebar.html" %}
+
+<script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+<link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+<script src="https://jsuites.net/v4/jsuites.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+<style>
+    .scrolling-wrapper {
+        overflow-x: auto;
+        overflow-y: auto;
+        white-space: nowrap;
+        height: 400px;
+    }
+ </style>
+{% if sample_recorded.process == "Success" %}
+    Process Success
+{% elif sample_recorded.process == "Error" %}
+<div class="container" style="margin-top: -6%">   
+    <div class = "card">
+        <div class="card-body text-center">
+            
+            <h4 class="card-title bg-warning">
+                <img src="{% static 'images/oops.png' %}" class="card-img" style="width:5%;" >
+                ... we had problems with some records
+            </h4>
+            <p class="card-text">check the following rows</p>
+        </div>
+        
+    </div>
+</div>                
+<!-------------------------------------------------------------->
+<section style="">
+    <div class="container overflow-hidden">
+       <div class="row gx-5">
+           <div style="text-align:center">
+               <form method="post" enctype="multipart/form-data" name="sampledata"  id="sampledata" class="form-horizontal well" style="min-height: 500px;">
+                   {% csrf_token %}
+                   <input type="hidden" name="action" value="sampledefinition"/>
+                   <div class="scrolling-wrapper">
+                       <div id="spreadsheet" class="overflow-scroll" style="width:75%"></div>
+                   </div> <!--  end of scrolling  -->
+                   <input type="button" value="Download Spreadsheet" onclick="table1.download()"/>
+                   <input class="btn pull-right btn-primary" type="submit" value="Submit">
+               </form>
+           </div>
+       </div>
+   </div>
+</section>
+
+<script>
+    var data = {{sample_recorded.wrong_rows|safe}};
+    var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
+       data:data,
+       //csvHeaders:true,
+       //tableOverflow:false,
+       columns: [
+           {% for item in sample_recorded.heading %}
+               {% if "Date" in item %}
+                   { type: 'calendar', title: "{{item}}", width:280 },
+               {% else %}
+                   { type: 'text', title: "{{item}}", width:280 },
+               {% endif %}
+           {% endfor %}
+       ],
+       allowInsertColumn:false,
+       allowDeleteColumn:false,
+       allowRenameColumn:false,
+       csvFileName:'Metadata_download',
+       minDimensions:[{{sample_recorded.heading|length}},6],
+    });
+</script>
+
+<!---------------------------------------------------------------->
+{% else %}
+<section style="">
+    <div class="container d-flex flex-column text-center position-relative">
+
+     <section style="">
+         <div class="container overflow-hidden" >
+            <div class="row gx-5">
+                <div style="text-align:center">
+                    <h3>Form Metadata</h3>
+                    <form method="post" enctype="multipart/form-data" name="sampledata"  id="sampledata" class="form-horizontal well" style="min-height: 500px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="sampledefinition"/>
+                        <div class="scrolling-wrapper">
+                            <div id="spreadsheet" class="overflow-scroll" style="width:75%"></div>
+                        </div> <!--  end of scrolling  -->
+                        <input type="button" value="Download Spreadsheet" onclick="table1.download()"/>
+                        <input class="btn pull-right btn-primary" type="submit" value="Submit">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    </div>
+</section>
+
+    <script>
+        var data = [[]];//initialized with 6 empty rows
+
+        var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
+            data:data,
+            //csvHeaders:true,
+            //tableOverflow:false,
+            columns: [
+                {% for item in sample_recorded.heading %}
+                    {% if "Date" in item %}
+                        { type: 'calendar', title: "{{item}}", width:280 },
+                    {% else %}
+                        { type: 'text', title: "{{item}}", width:280 },
+                    {% endif %}
+                {% endfor %}
+            ],
+            allowInsertColumn:false,
+            allowDeleteColumn:false,
+            allowRenameColumn:false,
+            csvFileName:'Metadata_download',
+            minDimensions:[{{sample_recorded.heading|length}},6],
+        });
+    </script>
+    <script>
+        $( document ).ready(function () {
+            $("#sampledata").submit(function(e){
+            //stop submitting the form to see the disabled button effect
+            // e.preventDefault();
+            //disable the submit button
+                var table_data = table1.getData();
+                var data_json = JSON.stringify(table_data);
+                $("<input />").attr("type", "hidden")
+                    .attr("name", "table_data")
+                    .attr("value", data_json)
+                    .appendTo("#sampledata");
+                $("#btnSubmit").attr("disabled", true);
+                return true;
+                });
+        });
+
+    </script>
+{% endif %}
+{% endblock %}

@@ -1,4 +1,3 @@
-# HEADING_FOR_RECORD_SAMPLES, HEADING_FOR_SAMPLE_TABLE, HEADING_FOR_LINEAGE_TABLE, HEADING_FOR_ANALYSIS
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
@@ -73,7 +72,7 @@ HEADING_FOR_LINEAGE_TABLE = {
     "Lineage/clade analysis software version": "lineage_analysis_software_version",
 }
 
-HEADING_FOR_ANALYSIS = {
+HEADING_FOR_ANALYSIS_TABLE = {
     "Raw sequence data processing method": "raw_sequence_data_processing_method",
     "Dehosting Method": "dehosting_method",
     "Assembly": "assembly",
