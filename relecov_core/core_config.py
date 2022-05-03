@@ -128,3 +128,5 @@ HEADING_FOR_QCSTATS_TABLE = {
     "Number of variants (AF greater 75%)": "number_of_variants_AF_greater_75percent",
     "Numer of variants with effect": "number_of_variants_with_effect",
 }
+
+SCHEMAS_UPLOAD_FOLDER = "documents/tmp"
