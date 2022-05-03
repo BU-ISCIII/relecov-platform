@@ -760,26 +760,3 @@ class PublicDatabaseField(models.Model):
         return "%s" % (self.fieldInUse)
 
     objects = PublicDatabaseFieldManager()
-#       
-class ContributorInfo(models.Model):
-    hospital_name = CharField(max_length=150)
-    admin_email = CharField(max_length=150)
-    admin_telephone = CharField(max_length=50)
-    admin_position = CharField(max_length=150)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "ContributorInfo"
-
-    def __str__(self) :
-        return "%s" % (self.hospital_name)
-
-    def get_admin_email(self) :
-        return "%s" % (self.admin_email)
-
-    def get_admin_telephone(self) :
-        return "%s" % (self.admin_telephone)
-
-    def get_admin_position(self) :
-        return "%s" % (self.admin_position)
