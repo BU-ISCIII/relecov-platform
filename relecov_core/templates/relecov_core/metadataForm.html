@@ -36,7 +36,7 @@
     </div>
 </div>                
 <!-------------------------------------------------------------->
-<section>
+<section style="">
     <div class="container overflow-hidden">
        <div class="row gx-5">
            <div style="text-align:center">
@@ -79,10 +79,14 @@
 
 <!---------------------------------------------------------------->
 {% else %}
-     <section style="margin-top: -7%;">
+<section style="">
+    <div class="container d-flex flex-column text-center position-relative">
+
+     <section style="">
          <div class="container overflow-hidden" >
             <div class="row gx-5">
                 <div style="text-align:center">
+                    <h3>Form Metadata</h3>
                     <form method="post" enctype="multipart/form-data" name="sampledata"  id="sampledata" class="form-horizontal well" style="min-height: 500px;">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="sampledefinition"/>
@@ -96,6 +100,8 @@
             </div>
         </div>
     </section>
+    </div>
+</section>
 
     <script>
         var data = [[]];//initialized with 6 empty rows
