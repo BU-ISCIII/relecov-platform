@@ -29,6 +29,7 @@ Before starting the installation check :
 
 cd /opt
 sudo git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+```
 
 #### Configuration settings
 
