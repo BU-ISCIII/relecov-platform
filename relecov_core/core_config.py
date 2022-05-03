@@ -1,15 +1,9 @@
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
-    (
-        "Sample ID given by the submitting laboratory", 
-        "submitting_lab_sample_id"
-    ),
+    ("Sample ID given by the submitting laboratory", "submitting_lab_sample_id"),
     ("Sample ID given in the microbiology lab", "microbiology_lab_sample_id"),
-    (
-        "Sample ID given if multiple rna-extraction or passages",
-        "isolate_sample_id"
-    ),
+    ("Sample ID given if multiple rna-extraction or passages", "isolate_sample_id"),
     ("Sample ID given for sequencing", "sequencing_sample_id"),
     ("ENA Sample ID", "biosample_accession_ENA"),
     ("GISAID Virus Name", "virus_name"),

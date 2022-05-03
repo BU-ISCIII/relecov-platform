@@ -12,11 +12,7 @@ urlpatterns = [
     # path("intranet2/", views.intranet2, name="intranet2"),
     path("contributorInfo/", views.contributor_info, name="contributorInfo"),
     path("uploadStatus/", views.upload_status, name="uploadStatus"),
-    path(
-        "uploadStatusToENA/", 
-        views.upload_status_to_ENA, 
-        name="uploadStatusToENA"
-    ),
+    path("uploadStatusToENA/", views.upload_status_to_ENA, name="uploadStatusToENA"),
     path(
         "uploadStatusToGISAID/",
         views.upload_status_to_GISAID,
@@ -28,13 +24,9 @@ urlpatterns = [
         name="resultsInfoProcessed",
     ),
     path(
-        "resultsInfoReceived/", 
-        views.results_info_received, 
-        name="resultsInfoReceived"
+        "resultsInfoReceived/", views.results_info_received, name="resultsInfoReceived"
     ),
     path("resultsDownload/", views.results_download, name="resultsDownload"),
 ]
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
