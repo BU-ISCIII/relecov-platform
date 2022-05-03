@@ -49,14 +49,19 @@ def metadata_form(request):
     sample_recorded = get_input_samples(request)
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
-        #import pdb; pdb.set_trace()
-    return render(request,"relecov_core/metadataForm.html",{"sample_recorded": sample_recorded})
+        # import pdb; pdb.set_trace()
+    return render(
+        request, "relecov_core/metadataForm.html", {"sample_recorded": sample_recorded}
+    )
+
 
 def intranet2(request):
 
-    return render(request,"relecov_core/intranet2.html",{})
+    return render(request, "relecov_core/intranet2.html", {})
+
 
 def contributor_info(request):
-    if request.method == 'POST': #and request.POST['action'] == 'sampledefinition':
-        print(request)
-    return render(request,"relecov_core/contributorInfo.html",{})
+    if request.method == "POST":  # and request.POST['action'] == 'sampledefinition':
+        print(request.POST["hospital_name"])
+        print(request.POST)
+    return render(request, "relecov_core/contributorInfo.html", {})
