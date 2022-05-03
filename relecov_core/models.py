@@ -664,10 +664,7 @@ class PublicDatabaseField(models.Model):
     fieldDescription = models.CharField(max_length=400, null=True, blank=True)
     fieldInUse = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(
-        auto_now=True, 
-        verbose_name=("updated at")
-    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     # ManyToOne
     """
