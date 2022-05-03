@@ -15,7 +15,13 @@ class EffectAdmin(admin.ModelAdmin):
 
 
 class LineageAdmin(admin.ModelAdmin):
-    list_display = ["lineage_identification_date", "lineage_name", "lineage_analysis_software_name", "if_lineage_identification_other", "lineage_analysis_software_version"]
+    list_display = [
+        "lineage_identification_date",
+        "lineage_name",
+        "lineage_analysis_software_name",
+        "if_lineage_identification_other",
+        "lineage_analysis_software_version",
+    ]
 
 
 class GeneAdmin(admin.ModelAdmin):
@@ -28,10 +34,18 @@ class ChromosomeAdmin(admin.ModelAdmin):
 
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
-        "collecting_lab_sample_id", "sequencing_sample_id", "biosample_accession_ENA", "virus_name",
-        "gisaid_id", "sequencing_date"
-        ]
-    
+        "collecting_lab_sample_id",
+        "sequencing_sample_id",
+        "biosample_accession_ENA",
+        "virus_name",
+        "gisaid_id",
+        "sequencing_date",
+    ]
+
+
+class SampleStateAdmin(admin.ModelAdmin):
+    list_display = ["state", "description"]
+
 
 class VariantAdmin(admin.ModelAdmin):
     list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
@@ -97,8 +111,8 @@ class AuthorsAdmin(admin.ModelAdmin):
 
 class PublicDatabaseAdmin(admin.ModelAdmin):
     list_display = ["databaseName"]
-    
-    
+
+
 class PublicDatabaseFieldAdmin(admin.ModelAdmin):
     list_display = ["publicDatabaseID", "fieldName", "fieldDescription", "fieldInUse"]
 

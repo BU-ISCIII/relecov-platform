@@ -10,14 +10,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 
-from .serializers import (
-    CreateSampleSerializer
-    )
+from .serializers import CreateSampleSerializer
 
-from .utils.request_handling import (
-    split_sample_data,
-    include_instances_in_sample
-    )
+from .utils.request_handling import split_sample_data, include_instances_in_sample
 
 
 @api_view(["GET"])
