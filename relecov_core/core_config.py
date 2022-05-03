@@ -1,4 +1,3 @@
-#HEADING_FOR_RECORD_SAMPLES, HEADING_FOR_SAMPLE_TABLE, HEADING_FOR_LINEAGE_TABLE, HEADING_FOR_ANALYSIS
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
@@ -27,9 +26,15 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("Commercial All-in-one library kit", "library_kit"),
     ("Library Preparation Kit", "library_preparation_kit"),
     ("Enrichment Protocol", "enrichment_protocol"),
-    ("If Enrichment Protocol Is Other, Specify", "if_enrichment_protocol_is_other_specify"),
+    (
+        "If Enrichment Protocol Is Other, Specify",
+        "if_enrichment_protocol_is_other_specify",
+    ),
     ("Enrichment panel/assay", "amplicon_protocol"),
-    ("If Enrichment panel/assay If Other, Especify", "id_amplicon_protocol_if_other_especify"),
+    (
+        "If Enrichment panel/assay If Other, Especify",
+        "id_amplicon_protocol_if_other_especify",
+    ),
     ("Enrichment panel/assay version", "amplicon_version"),
     ("Number Of Samples In Run", "number_of_samples_in_run"),
     ("Runid", "runID"),
@@ -54,7 +59,7 @@ HEADING_FOR_SAMPLE_TABLE = {
     "Sample ID given by originating laboratory": "collecting_lab_sample_id",
     "Sample ID given for sequencing": "sequencing_sample_id",
     "ENA Sample Id": "biosample_accession_ENA",
-    "GISAID Virus Name":  "virus_name",
+    "GISAID Virus Name": "virus_name",
     "GISAID Id": "gisaid_id",
     "Sequencing Date": "sequencing_date",
 }
@@ -67,10 +72,10 @@ HEADING_FOR_LINEAGE_TABLE = {
     "Lineage/clade analysis software version": "lineage_analysis_software_version",
 }
 
-HEADING_FOR_ANALYSIS = {
+HEADING_FOR_ANALYSIS_TABLE = {
     "Raw sequence data processing method": "raw_sequence_data_processing_method",
     "Dehosting Method": "dehosting_method",
-    "Assembly":"assembly",
+    "Assembly": "assembly",
     "If assembly Is Other, Specify": "if_assembly_other",
     "AssEmbly params": "assembly_params",
     "Variant Calling": "variant_calling",
@@ -78,7 +83,7 @@ HEADING_FOR_ANALYSIS = {
     "Variant Calling params": "variant_calling_params",
     "Consensus sequence name": "consensus_sequence_name",
     "Consensus sequence name md5": "consensus_sequence_name_md5",
-    "Consensus sequence filepath":"consensus_sequence_filepath",
+    "Consensus sequence filepath": "consensus_sequence_filepath",
     "Consensus sequence software name": "consensus_sequence_software_name",
     "If consensus Is Other, Specify": "if consensus other",
     "Consensus sequence software version": "consensus_sequence_software_version",
@@ -106,7 +111,7 @@ HEADING_FOR_AUTHOR_TABLE = {
 
 HEADING_FOR_QCSTATS_TABLE = {
     "Quality control metrics": "quality_control_metrics",
-    "Breadth of coverage value":"breadth_of_coverage_value",
+    "Breadth of coverage value": "breadth_of_coverage_value",
     "Depth of coverage value": "depth_of_coverage_value",
     "Depth of coverage threshold": "depth_of_coverage_threshold",
     "Number of base pairs sequenced": "number_of_base_pairs_sequenced",

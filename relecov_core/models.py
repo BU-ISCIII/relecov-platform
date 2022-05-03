@@ -1,6 +1,7 @@
-#from webbrowser import Chrome
+from urllib import request
 from django.db import models
 from django.forms import CharField
+
 
 # Caller Table
 class CallerManager(models.Manager):
@@ -20,7 +21,7 @@ class Caller(models.Model):
 
     def __str__(self):
         return "%s" % (self.name)
-    
+
     def get_version(self):
         return "%s" % (self.version)
 
@@ -90,7 +91,7 @@ class Effect(models.Model):
 class LineageManager(models.Manager):
     def create_new_Lineage(self, data):
         new_lineage = self.create(
-            lineage_identification_date=data["lineage_identification_date"], 
+            lineage_identification_date=data["lineage_identification_date"],
             lineage_name=data["lineage_name"],
             lineage_analysis_software_name=data["lineage_analysis_software_name"],
             if_lineage_identification_other=data["if_lineage_identification_other"],
@@ -116,16 +117,16 @@ class Lineage(models.Model):
 
     def get_lineage_identification_date(self):
         return "%s" % (self.lineage_identification_date)
-    
+
     def get_lineage_name(self):
         return "%s" % (self.lineage_name)
-    
+
     def get_lineage_analysis_software_name(self):
         return "%s" % (self.lineage_analysis_software_name)
-    
+
     def get_if_lineage_identification_other(self):
         return "%s" % (self.if_lineage_identification_other)
-    
+
     def get_lineage_analysis_software_version(self):
         return "%s" % (self.lineage_analysis_software_version)
 
@@ -183,7 +184,7 @@ class SampleManager(models.Manager):
             biosample_accession_ENA=data["biosample_accession_ENA"],
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
-            sequencing_date=data["sequencing_date"]
+            sequencing_date=data["sequencing_date"],
         )
         return new_sample
 
@@ -197,104 +198,65 @@ class Sample(models.Model):
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    #Many-to-one relationships
-    #analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
-    
+    # Many-to-one relationships
+    # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
+    # sample_state = models.ForeignKey(SampleStates, on_delete=models.CASCADE)
+
     class Meta:
         db_table = "Sample"
-        
+
     def __str__(self):
         return "%s" % (self.collecting_lab_sample_id)
+
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
-    
+
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
-    
+
     def get_biosample_accession_ENA(self):
         return "%s" % (self.biosample_accession_ENA)
-    
+
     def get_virus_name(self):
         return "%s" % (self.virus_name)
-    
+
     def get_gisaid_id(self):
         return "%s" % (self.gisaid_id)
-    
+
     def get_sequencing_date(self):
         return "%s" % (self.sequencing_date)
-    
+
     objects = SampleManager()
 
 
-# SampleOther Table
-"""
-class SampleOtherManager(models.Manager):
-    def create_new_sample_other(self, data):
-        new_sample_other = self.create(
-            collecting_lab_sample_id=data["collecting_lab_sample_id"],
-            sequencing_sample_id=data["sequencing_sample_id"],
-            biosample_accession_ENA=data["biosample_accession_ENA"],
-            virus_name=data["virus_name"],
-            gisaid_id=data["gisaid_id"],
-            sequencing_date=data["sequencing_date"],
-            ##########################################################
-            public_health_sample_id_sivies = data["public_health_sample_id_sivies"], #Public Health sample id (SIVIES)
-            submitting_lab_sample_id = data["submitting_lab_sample_id"], #Sample ID given by the submitting laboratory
-            microbiology_lab_sample_id = data["microbiology_lab_sample_id"], #Sample ID given in the microbiology lab
-            isolate_sample_id = data["isolate_sample_id"], #Sample ID given if multiple rna-extraction or passages
-            collecting_institution = data["collecting_institution"], #Originating Laboratory
-            sample_collection_date = data["sample_collection_date"],#Sample Collection Date
-            sample_received_date = data["sample_received_date"], #Sample Received Date
-            anatomical_material =  data["anatomical_material"], #Specimen source
-            environmental_material =  data["environmental_material"], #Environmental Material
-            host_age =  data["host_age"], #Host Age
-            host_gender =  data["host_gender"], #Host Gender
-            sequence_file_R1_fastq =  data["sequence_file_R1_fastq"], #Sequence file R1 fastq
-            sequence_file_R2_fastq =  data["sequence_file_R2_fastq"], #Sequence file R2 fastq
-            )
-        return new_sample_other
+# Sample states table
+class SampleStateManager(models.Manager):
+    def create_new_sample_state(self, data):
+        new_sample_state = self.create(
+            state=data["state"],
+            description=data["description"],
+        )
+        return new_sample_state
 
 
-class SampleOther(models.Model):
-    ########these fields appear in relecov_core/form############
-    sample_storage_conditions = models.CharField(max_length=80) #Biological Sample Storage Condition 
-    collection_device = models.CharField(max_length=80) #Collection Device
-    rna_extraction_Protocol = models.CharField(max_length=80) #Rna Extraction Protocol
-    library_kit = models.CharField(max_length=80) #Commercial All-in-one library kit
-    library_preparation_kit = models.CharField(max_length=80) #Library Preparation Kit
-    
-     #= models.CharField(max_length=80) #
-    
+class SampleState(models.Model):
+    state = models.CharField(max_length=80)
+    description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
-        db_table = "SampleOther"
-        
+        db_table = "SampleState"
+
     def __str__(self):
-        return "%s" % (self.collection_device)
-    #######################################################################################
-    def sample_storage_conditions(self):
-        return "%s" % (self.sample_storage_conditions)
-    
-    def collection_device(self):
-        return "%s" % (self.collection_device)
-    
-    def rna_extraction_Protocol(self):
-        return "%s" % (self.rna_extraction_Protocol)
-    
-    def get_library_kit(self):
-        return "%s" % (self.library_kit)
-    
-    def get_library_preparation_kit(self):
-        return "%s" % (self.library_preparation_kit)
-    
-    #def get_(self):
-    #    return "%s" % (self.)
-    
-    
-    objects = SampleOtherManager()
-"""
+        return "%s" % (self.state)
+
+    def get_string(self):
+        return "%s" % (self.description)
+
+    objects = SampleStateManager()
+
+
 # Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
@@ -320,7 +282,7 @@ class Variant(models.Model):  # include Foreign Keys
     af = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
         db_table = "Variant"
 
@@ -347,7 +309,7 @@ class Variant(models.Model):  # include Foreign Keys
 
     objects = VariantManager()
 
-    
+
 # Table Analysis
 class AnalysisManager(models.Manager):
     def create_new_analysis(self, data):
@@ -420,12 +382,11 @@ class Analysis(models.Model):
     reference_genome_accession = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
-    #Many-to-one relationships
+
+    # Many-to-one relationships
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    
-    
+
     class Meta:
         db_table = "Analysis"
 
@@ -476,9 +437,6 @@ class Analysis(models.Model):
 
     def get_consensus_criteria(self):
         return "%s" % (self.consensus_criteria)
-
-    def get_reference_genome_accession(self):
-        return "%s" % (self.reference_genome_accession)
 
     def get_bioinformatics_protocol(self):
         return "%s" % (self.bioinformatics_protocol)
@@ -536,7 +494,7 @@ class Authors(models.Model):
     authors = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
+
     class Meta:
         db_table = "Authors"
 
@@ -600,10 +558,12 @@ class QcStats(models.Model):
     number_of_variants_with_effect = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
-    #One-to-one relationships
-    analysis = models.OneToOneField(Analysis, on_delete=models.CASCADE, primary_key=True)
-    
+
+    # One-to-one relationships
+    analysis = models.OneToOneField(
+        Analysis, on_delete=models.CASCADE, primary_key=True
+    )
+
     class Meta:
         db_table = "QCStats"
 
@@ -661,97 +621,75 @@ class QcStats(models.Model):
     objects = QcStatsManager()
 
 
-#table PublicDatabase
+# table PublicDatabase
 class PublicDatabaseManager(models.Manager):
     def create_new_public_database(self, data):
-        new_public_database = self.create(
-            databaseName = data["databaseName"]
-        )
+        new_public_database = self.create(databaseName=data["databaseName"])
         return new_public_database
-    
+
 
 class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    
-    #ManyToOne
+
+    # ManyToOne
     authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
-    
 
     class Meta:
         db_table = "PublicDatabase"
-        
+
     def __str__(self):
         return "%s" % (self.databaseName)
-    
-    objects = PublicDatabaseManager()
-    
 
-#table PublicDatabaseField
+    objects = PublicDatabaseManager()
+
+
+# table PublicDatabaseField
 class PublicDatabaseFieldManager(models.Manager):
     def create_new_public_database(self, data):
         new_public_database_field = self.create(
-            fieldName = data["fieldName"],
-            fieldDescription = data["fieldDescription"],
-            fieldInUse =data["fieldInUse"],
-            
+            fieldName=data["fieldName"],
+            fieldDescription=data["fieldDescription"],
+            fieldInUse=data["fieldInUse"],
         )
         return new_public_database_field
-    
+
 
 class PublicDatabaseField(models.Model):
     publicDatabaseID = models.ForeignKey(
-                PublicDatabase,
-                on_delete= models.CASCADE, null = True, blank = True)
+        PublicDatabase, on_delete=models.CASCADE, null=True, blank=True
+    )
     fieldName = models.CharField(max_length=50)
-    fieldDescription = models.CharField(max_length= 400, null=True, blank=True)
+    fieldDescription = models.CharField(max_length=400, null=True, blank=True)
     fieldInUse = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
-    #ManyToOne
-    #public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
-    
+    # ManyToOne
+    """
+    public_database = models.ForeignKey(
+    PublicDatabase, 
+    on_delete= models.CASCADE
+    )
+    """
+
     class Meta:
         db_table = "PublicDatabaseField"
-        
+
     def __str__(self):
         return "%s" % (self.fieldName)
-    
+
     def get_public_database_id(self):
         return "%s" % (self.publicDatabaseID)
-    
+
     def get_field_name(self):
         return "%s" % (self.fieldName)
-    
+
     def get_field_description(self):
         return "%s" % (self.fieldDescription)
-    
+
     def get_field_in_use(self):
         return "%s" % (self.fieldInUse)
-    
+
     objects = PublicDatabaseFieldManager()
-#       
-class contributor_info(models.Model):
-    hospital_name = CharField(max_length=150)
-    admin_email = CharField(max_length=150)
-    admin_telephone = CharField(max_length=50)
-    admin_position = CharField(max_length=150)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "ContributorsInfo"
-
-    def __str__(self) :
-        return "%s" % (self.hospital_name)
-
-    def get_admin_email(self) :
-        return "%s" % (self.admin_email)
-
-    def get_admin_telephone(self) :
-        return "%s" % (self.admin_telephone)
-
-    def get_admin_position(self) :
-        return "%s" % (self.admin_position)
