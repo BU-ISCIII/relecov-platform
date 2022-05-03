@@ -31,7 +31,8 @@ def index(request):
 
 @login_required
 def intranet(request):
-    return render(request, "relecov_core/relecovForm.html")
+    # return render(request, "relecov_core/relecovForm.html")
+    return render(request, "relecov_core/intranet2.html")
 
 
 def variants(request):
@@ -44,7 +45,7 @@ def documentation(request):
     return render(request, "relecov_core/documentation.html", context)
 
 
-# @login_required()
+@login_required()
 def metadata_form(request):
     sample_recorded = get_input_samples(request)
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
@@ -55,13 +56,46 @@ def metadata_form(request):
     )
 
 
-def intranet2(request):
-
-    return render(request, "relecov_core/intranet2.html", {})
-
-
+@login_required()
 def contributor_info(request):
     if request.method == "POST":  # and request.POST['action'] == 'sampledefinition':
         print(request.POST["hospital_name"])
         print(request.POST)
     return render(request, "relecov_core/contributorInfo.html", {})
+
+
+@login_required()
+def upload_status(request):
+    return render(request, "relecov_core/uploadStatus.html", {})
+
+
+@login_required()
+def upload_status_to_ENA(request):
+    return render(request, "relecov_core/uploadStatusToENA.html", {})
+
+
+@login_required()
+def upload_status_to_GISAID(request):
+    return render(request, "relecov_core/uploadStatusToGISAID.html", {})
+
+
+@login_required()
+def results_info_received(request):
+    return render(request, "relecov_core/resultsInfoReceived.html", {})
+
+
+@login_required()
+def results_info_processed(request):
+    return render(request, "relecov_core/resultsInfoProcessed.html", {})
+
+
+@login_required()
+def results_download(request):
+    return render(request, "relecov_core/resultsDownload.html", {})
+
+
+"""
+def intranet2(request):
+
+    return render(request, "relecov_core/intranet2.html", {})
+"""
