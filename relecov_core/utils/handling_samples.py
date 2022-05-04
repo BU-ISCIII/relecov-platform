@@ -1,4 +1,3 @@
-# from itertools import count
 from relecov_core.core_config import *
 import json
 from relecov_core.models import *
@@ -37,10 +36,9 @@ def analyze_input_samples(request):
     wrong_rows = []
     row_counter = 0
     na_json_data = json.loads(request.POST["table_data"])
-    # row read
+    
     for row in na_json_data:
-        # row_counter += 1
-
+        
         if row[0] == "":
             continue
 
@@ -52,10 +50,7 @@ def analyze_input_samples(request):
         for idx in range(len(heading)):
             if heading[idx] in HEADING_FOR_AUTHOR_TABLE:
                 data_author[HEADING_FOR_AUTHOR_TABLE[heading[idx]]] = row[idx]
-                # if row[idx] == "":
-                #    wrong_rows[row_counter] = row
-                # Authors.objects.create_new_authors(data_author)
-        # print(row_counter)
+                
         print(data_author)
         print(wrong_rows)
         if len(wrong_rows) < 1:
