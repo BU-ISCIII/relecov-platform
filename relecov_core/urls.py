@@ -8,7 +8,6 @@ urlpatterns = [
     path("documentation", views.documentation, name="documentation"),
     path("metadataForm", views.metadata_form, name="metadataForm"),
     path("intranet/", views.intranet, name="intranet"),
-    # path("intranet2/", views.intranet2, name="intranet2"),
     path("contributorInfo/", views.contributor_info, name="contributorInfo"),
     path("uploadStatus/", views.upload_status, name="uploadStatus"),
     path("uploadStatusToENA/", views.upload_status_to_ENA, name="uploadStatusToENA"),
