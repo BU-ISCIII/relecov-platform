@@ -22,19 +22,21 @@
 {% if sample_recorded.process == "Success" %}
     Process Success
 {% elif sample_recorded.process == "Error" %}
-<div class="container" style="margin-top: -6%">   
-    <div class = "card">
-        <div class="card-body text-center">
-            
-            <h4 class="card-title bg-warning">
-                <img src="{% static 'images/oops.png' %}" class="card-img" style="width:5%;" >
-                ... we had problems with some records
-            </h4>
-            <p class="card-text">check the following rows</p>
-        </div>
-        
+<section style="margin-top: 4%">
+    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
+        <div class="container" style="">   
+            <div class = "card border border-warning bg-light">
+                <div class="card-body text-center">
+                    <h4 class="card-title">
+                        <img src="{% static 'relecov_core/img/oops.png' %}" class="card-img" style="width:5%;" >
+                        ... we had problems with some records
+                    </h4>
+                    <p class="card-text">check the following rows</p>
+                </div>
+            </div>
+        </div>                
     </div>
-</div>                
+</section>
 <!-------------------------------------------------------------->
 <section style="">
     <div class="container overflow-hidden">
