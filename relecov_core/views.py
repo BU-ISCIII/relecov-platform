@@ -49,7 +49,7 @@ def metadata_form(request):
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
     return render(
-        request, "relecov_core/metadataForm.html", {"sample_recorded": sample_recorded}
+        request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
     )
 
 
