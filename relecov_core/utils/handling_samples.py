@@ -36,9 +36,9 @@ def analyze_input_samples(request):
     wrong_rows = []
     row_counter = 0
     na_json_data = json.loads(request.POST["table_data"])
-    
+
     for row in na_json_data:
-        
+
         if row[0] == "":
             continue
 
@@ -50,7 +50,7 @@ def analyze_input_samples(request):
         for idx in range(len(heading)):
             if heading[idx] in HEADING_FOR_AUTHOR_TABLE:
                 data_author[HEADING_FOR_AUTHOR_TABLE[heading[idx]]] = row[idx]
-                
+
         print(data_author)
         print(wrong_rows)
         if len(wrong_rows) < 1:
