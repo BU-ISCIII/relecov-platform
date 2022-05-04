@@ -1,17 +1,10 @@
-# from distutils.log import debug
-# from multiprocessing import context, Manager
 from relecov_core.models import *
 
-from relecov_core.utils.feed_db import *
-from relecov_core.utils.form.handling_samples import (
+from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
-from relecov_core.utils.random_data import generate_random_sequences, generate_weeks
 from relecov_core.utils.parse_files import *
-
-# IMPORT FROM UTILS
-# from relecov_core.utils import *
 
 # plotly dash
 import dash_core_components as dcc
@@ -97,10 +90,3 @@ def results_info_processed(request):
 @login_required()
 def results_download(request):
     return render(request, "relecov_core/resultsDownload.html", {})
-
-
-"""
-def intranet2(request):
-
-    return render(request, "relecov_core/intranet2.html", {})
-"""
