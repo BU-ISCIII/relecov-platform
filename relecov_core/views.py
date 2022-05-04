@@ -1,17 +1,10 @@
-# from distutils.log import debug
-# from multiprocessing import context, Manager
 from relecov_core.models import *
 
-from relecov_core.utils.feed_db import *
-from relecov_core.utils.form.handling_samples import (
+from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
-from relecov_core.utils.random_data import generate_random_sequences, generate_weeks
 from relecov_core.utils.parse_files import *
-
-# IMPORT FROM UTILS
-# from relecov_core.utils import *
 
 # plotly dash
 import dash_core_components as dcc
@@ -38,7 +31,6 @@ def schema_handling(request):
 
 @login_required
 def intranet(request):
-    # return render(request, "relecov_core/relecovForm.html")
     return render(request, "relecov_core/intranet2.html")
 
 
@@ -56,10 +48,18 @@ def metadata_form(request):
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
+        return render(
+            request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
+        )
+    elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
+        print("Fichero recibido")
+        sample_recorded["Process"] = "fichero_recibido"
+        return render(
+            request, "relecov_core/metadataForm2.html", {"sample_recorded": "sample_recorded"}
+        )
     return render(
-        request, "relecov_core/metadataForm.html", {"sample_recorded": sample_recorded}
-    )
-
+            request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
+        )
 
 @login_required()
 def contributor_info(request):
@@ -97,10 +97,3 @@ def results_info_processed(request):
 @login_required()
 def results_download(request):
     return render(request, "relecov_core/resultsDownload.html", {})
-
-
-"""
-def intranet2(request):
-
-    return render(request, "relecov_core/intranet2.html", {})
-"""
