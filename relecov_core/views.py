@@ -33,6 +33,9 @@ def index(request):
 def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
+    if request.method == "POST" and request.POST["action"] == "uploadSchema":
+        load_schema(request.FILE["schemaFile"])
+        import pdb; pdb.set_trace()
     return render(request, "relecov_core/schemaHandling.html")
 
 
