@@ -31,7 +31,6 @@ def schema_handling(request):
 
 @login_required
 def intranet(request):
-    # return render(request, "relecov_core/relecovForm.html")
     return render(request, "relecov_core/intranet2.html")
 
 
