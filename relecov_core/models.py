@@ -4,7 +4,8 @@ from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 class Document(models.Model):
     title = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to="metadata")
+    file_path = models.CharField(max_length=200)
+    uploadedFile = models.FileField(upload_to="metadata/")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
