@@ -2,7 +2,19 @@ from django.db import models
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
-class schema(models.Model):
+class SchemaManager(models.Manager):
+    def create_new_schema(self, data):
+        new_schema = self.create(
+            fileName=data["file_name"],
+            schemaName=data["schema_name"],
+            schemaVersion=data["schema_version"],
+            schemaInUse=True,
+            schemaAppsName=data["schema_app_name"]
+        )
+        return new_schema
+
+
+class Schema(models.Model):
     fileName = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
     schemaName = models.CharField(max_length=40)
     schemaVersion = models.CharField(max_length=10)
@@ -10,7 +22,7 @@ class schema(models.Model):
     schemaAppsName = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
-        db_table = "schema"
+        db_table = "Schema"
 
     def __str__(self):
         return "%s_%s" % (self.schemaName, self.schemaVersion)
@@ -18,8 +30,10 @@ class schema(models.Model):
     def get_schema_and_version(self):
         return "%s_%s" % (self.schemaName, self.schemaVersion)
 
+    objects = SchemaManager()
 
-class schemaPropertiesManager(models.Manager):
+
+class SchemaPropertiesManager(models.Manager):
     def create_new_property(self, data):
         new_property_obj = self.create(
             schema=data["schema"],
@@ -36,8 +50,8 @@ class schemaPropertiesManager(models.Manager):
         return new_property_obj
 
 
-class schemaProperties(models.Model):
-    schemaID = models.ForeignKey(schema, on_delete=models.CASCADE)
+class SchemaProperties(models.Model):
+    schemaID = models.ForeignKey(Schema, on_delete=models.CASCADE)
     properties = models.CharField(max_length=50)
     examples = models.CharField(max_length=80, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
@@ -49,7 +63,7 @@ class schemaProperties(models.Model):
     options = models.BooleanField(default=False)
 
     class Meta:
-        db_table = "schemaProperties"
+        db_table = "SchemaProperties"
 
     def __str__(self):
         return "%s" % (self.properties)
@@ -57,10 +71,10 @@ class schemaProperties(models.Model):
     def get_property_name(self):
         return "%s" % (self.properties)
 
-    objects = schemaPropertiesManager()
+    objects = SchemaPropertiesManager()
 
 
-class propertyOptionsManager(models.Manager):
+class PropertyOptionsManager(models.Manager):
     def create_property_options(self, data):
         new_property_option_obj = self.create(
             propertyID=data["property"], enums=data["enums"], ontology=data["ontology"]
@@ -68,19 +82,21 @@ class propertyOptionsManager(models.Manager):
         return new_property_option_obj
 
 
-class propertyOptions(models.Model):
-    propertyID = models.ForeignKey(schemaProperties, on_delete=models.CASCADE)
+class PropertyOptions(models.Model):
+    propertyID = models.ForeignKey(SchemaProperties, on_delete=models.CASCADE)
     enums = models.CharField(max_length=80, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
-        db_table = "propertyOptions"
+        db_table = "PropertyOptions"
 
     def __str__(self):
         return "%s" % (self.enums)
 
     def get_enum(self):
         return "%s" % (self.enums)
+
+    objects = PropertyOptionsManager()
 
 
 # Caller Table
