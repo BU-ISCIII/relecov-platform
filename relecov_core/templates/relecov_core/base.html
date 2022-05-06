@@ -56,13 +56,14 @@
                             </ul>
                         </li>
                         <li><a class="nav-link scrollto" href="#">Contact</a></li>
+                        <li><a class="btn-getstarted scrollto" href="/intranet">Intranet</a></li>
+                
                     </ul>
                     <i class="bi bi-list mobile-nav-toggle d-none"></i>
                 </nav><!-- .navbar -->
-                    <a class="btn-getstarted scrollto" href="/intranet">Intranet</a>
                 {% if user.is_authenticated %}
-                    {% include "registration/login_inline.html" %}
-                {% endif %}
+                {% include "registration/login_inline.html" %}
+            {% endif %} 
             </div>
 
         </header><!-- End Header -->
