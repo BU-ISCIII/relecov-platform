@@ -3,6 +3,8 @@
 # from django.http import HttpResponseRedirect
 from datetime import datetime
 import os
+import pandas as pd
+from xlrd import open_workbook
 from relecov_core import models
 from relecov_core.models import Document
 
@@ -52,7 +54,7 @@ def documentation(request):
 
 @login_required()
 def metadata_form(request):
-    sample_recorded = get_input_samples(request)
+    sample_recorded = get_input_samples()
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
@@ -75,9 +77,18 @@ def metadata_form(request):
         print(os.path.exists("documents/metadata/" + file_path))
         # document = Document(title=title, uploadedFile=uploadedFile)
         print(file_path)
-        document = Document(title=title, uploadedFile=uploadedFile, file_path=file_path)
-        document.save()
+        # document = Document(title=title, uploadedFile=uploadedFile, file_path=file_path)
+        # document.save()
         # documents = Document.objects.all()
+        # read excel file
+
+        df = pd.read_excel(uploadedFile)
+        print("Columns")
+        print(df.columns)
+
+        for row in df:
+            print(row)
+
         sample_recorded["Process"] = "fichero_recibido"
         return render(
             request,
