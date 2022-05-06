@@ -55,12 +55,19 @@ def metadata_form(request):
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
-        sample_recorded["Process"] = "fichero_recibido"
-        return render(
-            request,
-            "relecov_core/metadataForm2.html",
-            {"sample_recorded": "sample_recorded"},
+       # Fetching the form data
+        #fileTitle = request.POST["fileTitle"]
+        uploadedFile = request.FILES["samplesExcel"]
+
+        # Saving the information in the database
+        document = Document(
+            title = "HelloFile",
+            uploadedFile = uploadedFile
         )
+        document.save()
+
+    documents = Document.objects.all()
+    print(documents)
     return render(
         request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
     )
