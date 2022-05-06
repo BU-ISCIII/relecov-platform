@@ -117,6 +117,10 @@ class PublicDatabaseFieldAdmin(admin.ModelAdmin):
     list_display = ["publicDatabaseID", "fieldName", "fieldDescription", "fieldInUse"]
 
 
+class SchemaAdmin(admin.ModelAdmin):
+    list_display = ["schemaName", "schemaVersion", "schemaInUse", "schemaAppsName"]
+
+
 # Register models
 admin.site.register(Caller, CallerAdmin)
 admin.site.register(Filter, FilterAdmin)
@@ -131,3 +135,4 @@ admin.site.register(QcStats, QcStatsAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
+admin.site.register(Schema, SchemaAdmin)
