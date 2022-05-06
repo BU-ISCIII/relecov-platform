@@ -2,10 +2,11 @@ from relecov_core.models import *
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
-    analyze_input_samples,
+    analyze_input_samples
 )
 from relecov_core.utils.parse_files import *
 
+from relecov_core.utils.schema_handling import process_schema_file
 # plotly dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -27,7 +28,9 @@ def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
-        load_schema(request.FILE["schemaFile"])
+        schema_data = process_schema_file(request.FILES["schemaFile"], request.POST["version"], request.user, __package__)
+        if "ERROR" in schema_data:
+            return render(request, "relecov_core/schemaHandling.html",{"ERROR":file_name["ERROR"]})
         import pdb; pdb.set_trace()
     return render(request, "relecov_core/schemaHandling.html")
 
