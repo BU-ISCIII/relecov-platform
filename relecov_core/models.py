@@ -2,6 +2,19 @@ from django.db import models
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
+class Document(models.Model):
+    title = models.CharField(max_length = 200)
+    uploadedFile = models.FileField(upload_to = "metadata")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    
+    class Meta:
+        db_table = "DocumentMetadata"
+        
+    def __str__(self):
+        return "%s" % (self.title)
+    
+
 class schema(models.Model):
     fileName = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
     schemaName = models.CharField(max_length=40)
@@ -773,3 +786,7 @@ class PublicDatabaseField(models.Model):
         return "%s" % (self.fieldInUse)
 
     objects = PublicDatabaseFieldManager()
+
+
+
+    
