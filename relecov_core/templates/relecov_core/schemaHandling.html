@@ -4,10 +4,37 @@
 
 {% block content %}
 
+
 <section id="relecov-platform" class="hero-animated d-flex align-items-center">
     <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
         <div class="container sm-9 offset-2">
 			<br><br><br>
+            {% if ERROR %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-9" >
+                        <div class="card  border-danger mb-3">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when loading Schema</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{ERROR}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
+            {% if SUCCESS %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-9" >
+                        <div class="card">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Sucessful schema loaded</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{SUCCESS}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
 			    <li class="nav-item" role="presentation">
 			    	<button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="true">Upload new Schema</button>
@@ -38,6 +65,7 @@
                                                 <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
                                                 <input class="btn float-end btn-outline-primary" type="submit" value="Submit">
                                             </div>
+                                        </div>     <!-- end card body  -->
                                     </form>
                                 </div> <!-- end card  -->
     					  	</div> <!-- end col-md-10 -->
