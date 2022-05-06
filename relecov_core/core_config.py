@@ -128,4 +128,7 @@ HEADING_FOR_QCSTATS_TABLE = {
     "Numer of variants with effect": "number_of_variants_with_effect",
 }
 
-SCHEMAS_UPLOAD_FOLDER = "documents/tmp"
+SCHEMAS_UPLOAD_FOLDER = "schemas"
+
+ERROR_INVALID_JSON = "Invalid json file"
+ERROR_INVALID_SCHEMA = "Invalid Schema"
