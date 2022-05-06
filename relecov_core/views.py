@@ -65,21 +65,6 @@ def metadata_form(request):
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
-<<<<<<< HEAD
-       # Fetching the form data
-        #fileTitle = request.POST["fileTitle"]
-        uploadedFile = request.FILES["samplesExcel"]
-
-        # Saving the information in the database
-        document = Document(
-            title = "HelloFile",
-            uploadedFile = uploadedFile
-        )
-        document.save()
-
-    documents = Document.objects.all()
-    print(documents)
-=======
         date = datetime.today().strftime("%Y-%m-%d_%H:%M")
         user_name = request.user.username
         title = "metadata_{}_{}".format(user_name, date)
@@ -111,7 +96,6 @@ def metadata_form(request):
             {"sample_recorded": "sample_recorded"},
         )
 
->>>>>>> 606c7d2240e076f0fcf87cec980d58db2f95f0dd
     return render(
         request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
     )
