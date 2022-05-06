@@ -1,23 +1,24 @@
-import os
-
-from django.conf import settings
-from django.http import HttpResponseRedirect
-from relecov_core.models import *
+# import os
+# from django.conf import settings
+# from django.http import HttpResponseRedirect
+from relecov_core.models import Document
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
-from relecov_core.utils.parse_files import *
+
+# from relecov_core.utils.parse_files import *
 
 # plotly dash
+"""
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
-
+"""
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -66,10 +67,7 @@ def metadata_form(request):
         # Saving the information in the database
         document = Document(title="user1", uploadedFile=uploadedFile)
         document.save()
-
-        documents = Document.objects.all()
-        print(documents)
-
+        # documents = Document.objects.all()
         sample_recorded["Process"] = "fichero_recibido"
         return render(
             request,
