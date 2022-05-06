@@ -2,6 +2,10 @@ from django.contrib import admin
 from .models import *
 
 
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ["title", "uploadedFile"]
+
+
 class CallerAdmin(admin.ModelAdmin):
     list_display = ["name", "version"]
 
@@ -118,6 +122,7 @@ class PublicDatabaseFieldAdmin(admin.ModelAdmin):
 
 
 # Register models
+admin.site.register(Document, DocumentAdmin)
 admin.site.register(Caller, CallerAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)

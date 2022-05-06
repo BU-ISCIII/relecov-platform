@@ -2,7 +2,7 @@ from relecov_core.core_config import *
 import json
 from relecov_core.models import *
 
-
+#JExcel
 def get_input_samples(request):
     """
     Description:
@@ -62,3 +62,58 @@ def analyze_input_samples(request):
     print(sample_recorded["process"])
 
     return sample_recorded
+
+
+#Upload Excel file
+def prepare_sample_input_table():
+    '''
+    Description: The function collect the species, Lab request, type of
+        samples, and heading used in the input table.
+        Return a dictionary with collected information.
+    Functions:
+        build_record_sample_form  : located at this file
+    Variables:
+        s_information # dictionary which collects all info
+    Return:
+        s_information #
+    '''
+    # get the choices to be included in the form
+    s_information = build_record_sample_form()
+    s_information['heading'] = HEADING_FOR_RECORD_SAMPLES
+    s_information ['table_size']= len(HEADING_FOR_RECORD_SAMPLES)
+    """
+    sample_objs = get_samples_in_state('Pre-defined')
+    if sample_objs :
+        s_information['pre_defined_samples'] = []
+        s_information['pre_defined_heading'] = HEADING_FOR_COMPLETION_SAMPLES_PRE_DEFINED
+        for sample_obj in sample_objs :
+            s_information['pre_defined_samples'].append(sample_obj.get_info_in_defined_state())
+    """
+    print(s_information["heading"])
+    return s_information
+
+def build_record_sample_form() :
+    '''
+    Description:
+        The function collect the stored information of  species, sample origin and sample type to use in the
+        selected form.
+    Input:
+    Functions:
+        get_species             located at this file
+        get_lab_requested       located at this file
+        get_sample_type         located at this file
+    Variables:
+        sample_information:     Dictionnary to collect the information
+    Return:
+        sample_information
+    '''
+
+    sample_information = {}
+    """
+    sample_information['species'] = get_species()
+    sample_information['lab_requested'] = get_lab_requested()
+    sample_information['sampleType'] = get_sample_type(app_name)
+    sample_information['sample_project'] = get_defined_sample_projects (app_name)
+    sample_information['sample_project'].insert(0,'None')
+    """
+    return sample_information
