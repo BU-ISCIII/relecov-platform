@@ -1,19 +1,29 @@
-from relecov_core.models import *
+# import os
+# from django.conf import settings
+# from django.http import HttpResponseRedirect
+from datetime import datetime
+import os
+import pandas as pd
+from xlrd import open_workbook
+from relecov_core import models
+from relecov_core.models import Document
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
-from relecov_core.utils.parse_files import *
+
+# from relecov_core.utils.parse_files import *
 
 # plotly dash
+"""
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
-
+"""
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -44,7 +54,7 @@ def documentation(request):
 
 @login_required()
 def metadata_form(request):
-    sample_recorded = get_input_samples(request)
+    sample_recorded = get_input_samples()
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
@@ -55,6 +65,7 @@ def metadata_form(request):
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
+<<<<<<< HEAD
        # Fetching the form data
         #fileTitle = request.POST["fileTitle"]
         uploadedFile = request.FILES["samplesExcel"]
@@ -68,6 +79,39 @@ def metadata_form(request):
 
     documents = Document.objects.all()
     print(documents)
+=======
+        date = datetime.today().strftime("%Y-%m-%d_%H:%M")
+        user_name = request.user.username
+        title = "metadata_{}_{}".format(user_name, date)
+        file_path = datetime.today().strftime("%Y-%m-%d")
+        print(title)
+
+        # Fetching the form data
+        uploadedFile = request.FILES["samplesExcel"]
+        # Saving the information in the database
+        print(os.path.exists("documents/metadata/" + file_path))
+        # document = Document(title=title, uploadedFile=uploadedFile)
+        print(file_path)
+        # document = Document(title=title, uploadedFile=uploadedFile, file_path=file_path)
+        # document.save()
+        # documents = Document.objects.all()
+        # read excel file
+
+        df = pd.read_excel(uploadedFile)
+        print("Columns")
+        print(df.columns)
+
+        for row in df:
+            print(row)
+
+        sample_recorded["Process"] = "fichero_recibido"
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": "sample_recorded"},
+        )
+
+>>>>>>> 606c7d2240e076f0fcf87cec980d58db2f95f0dd
     return render(
         request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
     )

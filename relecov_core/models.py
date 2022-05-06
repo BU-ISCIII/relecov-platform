@@ -1,5 +1,100 @@
 from django.db import models
-from django.forms import CharField
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
+
+
+class Document(models.Model):
+    title = models.CharField(max_length=200)
+    file_path = models.CharField(max_length=200)
+    uploadedFile = models.FileField(upload_to="metadata/")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+
+    class Meta:
+        db_table = "DocumentMetadata"
+
+    def __str__(self):
+        return "%s" % (self.title)
+
+
+class schema(models.Model):
+    fileName = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
+    schemaName = models.CharField(max_length=40)
+    schemaVersion = models.CharField(max_length=10)
+    schemaInUse = models.BooleanField(default=True)
+    schemaAppsName = models.CharField(max_length=40, null=True, blank=True)
+
+    class Meta:
+        db_table = "schema"
+
+    def __str__(self):
+        return "%s_%s" % (self.schemaName, self.schemaVersion)
+
+    def get_schema_and_version(self):
+        return "%s_%s" % (self.schemaName, self.schemaVersion)
+
+
+class schemaPropertiesManager(models.Manager):
+    def create_new_property(self, data):
+        new_property_obj = self.create(
+            schema=data["schema"],
+            property=data["property"],
+            examples=data["examples"],
+            ontology=data["ontology"],
+            type=data["type"],
+            description=data["description"],
+            label=data["label"],
+            classification=data["classification"],
+            required=data["required"],
+            options=data["options"],
+        )
+        return new_property_obj
+
+
+class schemaProperties(models.Model):
+    schemaID = models.ForeignKey(schema, on_delete=models.CASCADE)
+    properties = models.CharField(max_length=50)
+    examples = models.CharField(max_length=80, null=True, blank=True)
+    ontology = models.CharField(max_length=40, null=True, blank=True)
+    type = models.CharField(max_length=20)
+    description = models.CharField(max_length=200, null=True, blank=True)
+    label = models.CharField(max_length=200, null=True, blank=True)
+    classification = models.CharField(max_length=80, null=True, blank=True)
+    required = models.BooleanField(default=False)
+    options = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "schemaProperties"
+
+    def __str__(self):
+        return "%s" % (self.properties)
+
+    def get_property_name(self):
+        return "%s" % (self.properties)
+
+    objects = schemaPropertiesManager()
+
+
+class propertyOptionsManager(models.Manager):
+    def create_property_options(self, data):
+        new_property_option_obj = self.create(
+            propertyID=data["property"], enums=data["enums"], ontology=data["ontology"]
+        )
+        return new_property_option_obj
+
+
+class propertyOptions(models.Model):
+    propertyID = models.ForeignKey(schemaProperties, on_delete=models.CASCADE)
+    enums = models.CharField(max_length=80, null=True, blank=True)
+    ontology = models.CharField(max_length=40, null=True, blank=True)
+
+    class Meta:
+        db_table = "propertyOptions"
+
+    def __str__(self):
+        return "%s" % (self.enums)
+
+    def get_enum(self):
+        return "%s" % (self.enums)
 
 class Document(models.Model):
     title = models.CharField(max_length = 200)
