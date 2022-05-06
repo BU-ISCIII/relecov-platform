@@ -2,7 +2,7 @@ from relecov_core.core_config import *
 import json
 from relecov_core.models import *
 
-#JExcel
+# JExcel
 def get_input_samples(request):
     """
     Description:
@@ -64,9 +64,9 @@ def analyze_input_samples(request):
     return sample_recorded
 
 
-#Upload Excel file
+# Upload Excel file
 def prepare_sample_input_table():
-    '''
+    """
     Description: The function collect the species, Lab request, type of
         samples, and heading used in the input table.
         Return a dictionary with collected information.
@@ -76,11 +76,11 @@ def prepare_sample_input_table():
         s_information # dictionary which collects all info
     Return:
         s_information #
-    '''
+    """
     # get the choices to be included in the form
     s_information = build_record_sample_form()
-    s_information['heading'] = HEADING_FOR_RECORD_SAMPLES
-    s_information ['table_size']= len(HEADING_FOR_RECORD_SAMPLES)
+    s_information["heading"] = HEADING_FOR_RECORD_SAMPLES
+    s_information["table_size"] = len(HEADING_FOR_RECORD_SAMPLES)
     """
     sample_objs = get_samples_in_state('Pre-defined')
     if sample_objs :
@@ -92,8 +92,9 @@ def prepare_sample_input_table():
     print(s_information["heading"])
     return s_information
 
-def build_record_sample_form() :
-    '''
+
+def build_record_sample_form():
+    """
     Description:
         The function collect the stored information of  species, sample origin and sample type to use in the
         selected form.
@@ -106,7 +107,7 @@ def build_record_sample_form() :
         sample_information:     Dictionnary to collect the information
     Return:
         sample_information
-    '''
+    """
 
     sample_information = {}
     """
