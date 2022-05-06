@@ -1,6 +1,9 @@
 # import os
 # from django.conf import settings
 # from django.http import HttpResponseRedirect
+from datetime import datetime
+import os
+from relecov_core import models
 from relecov_core.models import Document
 
 from relecov_core.utils.handling_samples import (
@@ -60,12 +63,19 @@ def metadata_form(request):
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
-        # Fetching the form data
-        # fileTitle = request.POST["fileTitle"]
-        uploadedFile = request.FILES["samplesExcel"]
+        date = datetime.today().strftime("%Y-%m-%d_%H:%M")
+        user_name = request.user.username
+        title = "metadata_{}_{}".format(user_name, date)
+        file_path = datetime.today().strftime("%Y-%m-%d")
+        print(title)
 
+        # Fetching the form data
+        uploadedFile = request.FILES["samplesExcel"]
         # Saving the information in the database
-        document = Document(title="user1", uploadedFile=uploadedFile)
+        print(os.path.exists("documents/metadata/" + file_path))
+        # document = Document(title=title, uploadedFile=uploadedFile)
+        print(file_path)
+        document = Document(title=title, uploadedFile=uploadedFile, file_path=file_path)
         document.save()
         # documents = Document.objects.all()
         sample_recorded["Process"] = "fichero_recibido"
