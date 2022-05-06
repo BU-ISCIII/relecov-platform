@@ -1,4 +1,4 @@
-from datetime import datetime
+#from datetime import datetime# not used
 from relecov_core.core_config import HEADING_FOR_SAMPLE_TABLE, HEADING_FOR_AUTHOR_TABLE
 
 
