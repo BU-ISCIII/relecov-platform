@@ -4,9 +4,9 @@
 from datetime import datetime
 import os
 import pandas as pd
-from xlrd import open_workbook
-from relecov_core import models
-from relecov_core.models import Document
+# from xlrd import open_workbook
+# from relecov_core import models
+# from relecov_core.models import Document
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
