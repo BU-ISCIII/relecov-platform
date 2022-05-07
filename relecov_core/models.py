@@ -91,6 +91,16 @@ class SchemaProperties(models.Model):
     def get_property_name(self):
         return "%s" % (self.property)
 
+    def get_property_info(self):
+        data = []
+        data.append(self.property)
+        data.append(self.label)
+        data.append(self.required)
+        data.append(self.classification)
+        data.append(self.description)
+        return data
+
+
     objects = SchemaPropertiesManager()
 
 
