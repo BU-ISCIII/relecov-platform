@@ -33,6 +33,18 @@ class Schema(models.Model):
     def get_schema_and_version(self):
         return "%s_%s" % (self.schema_name, self.schema_version)
 
+    def get_schema_id(self):
+        return "%s" % (self.pk)
+
+    def get_schema_info(self):
+        data = []
+        data.append(self.pk)
+        data.append(self.schema_name)
+        data.append(self.schema_version)
+        data.append(str(self.schema_in_use))
+        data.append(self.file_name)
+        return data
+
     objects = SchemaManager()
 
 
