@@ -86,8 +86,25 @@
 						  		<div class="card">
 						  			<div class="card-header"><h2 style="text-align:center">Schemas loaded </h2> </div>
 						  			<div class="card-body">
-                                        <table>
-
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Schema name</th>
+                                                    <th scope="col">Schema version</th>
+                                                    <th scope="col">Schema used</th>
+                                                    <th scope="col">Download File</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for id, name, version, used, file in schemas %}
+                                                    <tr>
+                                                        <td><a href="/schemaDisplay={{id}}">{{name}}</a></td>
+                                                        <td>{{version}}</td>
+                                                        <td>{{used}}</td>
+                                                        <td><a href=/documents/{{file}}>Download</a></td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
                                         </table>
                                     </div> <!-- end card body-->
                                 </div> <!-- end card  -->

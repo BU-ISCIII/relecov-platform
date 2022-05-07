@@ -5,6 +5,14 @@ from relecov_core.models import Schema, SchemaProperties, PropertyOptions
 from relecov_core.utils.generic_functions import store_file
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, ERROR_INVALID_JSON, ERROR_INVALID_SCHEMA, ERROR_SCHEMA_ALREADY_LOADED, SCHEMA_SUCCESSFUL_LOAD
 
+def get_schemas_loaded(apps_name):
+    """Return the definded schemas"""
+    s_data = []
+    if Schema.objects.filter(schema_apps_name__exact=apps_name).exists():
+        schema_objs = Schema.objects.filter(schema_apps_name__exact=apps_name).order_by("schema_name")
+        for schema_obj in schema_objs:
+            s_data.append(schema_obj.get_schema_info())
+    return s_data
 
 def load_schema(json_file):
     """Store json file in the defined folder and store information in database"""
@@ -67,7 +75,6 @@ def process_schema_file(json_file, version, user, apps_name):
     if "ERROR" in schema_data:
         return schema_data
     # store root data of json schema
-
     structure = ["schema", "required", "type", "properties"]
     if not check_heading_valid_json(schema_data["full_schema"], structure):
         return {"ERROR": ERROR_INVALID_SCHEMA}
@@ -80,5 +87,4 @@ def process_schema_file(json_file, version, user, apps_name):
     result = store_schema_properties(new_schema, schema_data["full_schema"]["properties"], schema_data["full_schema"]["required"])
     if "ERROR" in result:
         return result
-    import pdb; pdb.set_trace()
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}

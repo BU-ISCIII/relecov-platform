@@ -6,7 +6,7 @@ from relecov_core.utils.handling_samples import (
 )
 from relecov_core.utils.parse_files import *
 
-from relecov_core.utils.schema_handling import process_schema_file
+from relecov_core.utils.schema_handling import process_schema_file, get_schemas_loaded
 # plotly dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -31,8 +31,10 @@ def schema_handling(request):
         schema_data = process_schema_file(request.FILES["schemaFile"], request.POST["schemaVersion"], request.user, __package__)
         if "ERROR" in schema_data:
             return render(request, "relecov_core/schemaHandling.html", {"ERROR": schema_data["ERROR"]})
-        import pdb; pdb.set_trace()
-    return render(request, "relecov_core/schemaHandling.html", {"SUCCESS": schema_data["SUCCESS"]})
+
+        return render(request, "relecov_core/schemaHandling.html", {"SUCCESS": schema_data["SUCCESS"]})
+    schemas = get_schemas_loaded(__package__)
+    return render(request, "relecov_core/schemaHandling.html", {"schemas": schemas})
 
 
 @login_required
