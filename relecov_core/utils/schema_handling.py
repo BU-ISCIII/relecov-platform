@@ -41,21 +41,24 @@ def store_schema_properties(schema_obj, s_properties, required):
         try:
             new_property = SchemaProperties.objects.create_new_property(data)
         except (KeyError, DataError) as e:
-            import pdb; pdb.set_trace()
-            schema_obj.delete()
-            return {"ERROR": e}
+            print(prop_key, " error ", e)
+            # schema_obj.delete()
+            # return {"ERROR": e}
         if "options" in data:
             for item in s_properties[prop_key]["Enums"]:
                 enum = re.search(r'(.+) \[(.*)\]', item)
-                e_data = {"enums": enum.group(1), "ontology": enum.group(2)}
+                if enum:
+                    e_data = {"enums": enum.group(1), "ontology": enum.group(2)}
+                else:
+                    e_data = {"enums": item, "ontology": None}
                 e_data["propertyID"] = new_property
                 try:
                     PropertyOptions.objects.create_property_options(e_data)
                 except (KeyError, DataError) as e:
-                    import pdb; pdb.set_trace()
-                    schema_obj.delete()
-                    return {"ERROR": e}
-    return {"SUCCESS" : ""}
+                    print(prop_key, " enum ", e)
+                    # schema_obj.delete()
+                    # return {"ERROR": e}
+    return {"SUCCESS": ""}
 
 
 def process_schema_file(json_file, version, user, apps_name):
