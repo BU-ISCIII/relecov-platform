@@ -64,7 +64,7 @@ class SchemaProperties(models.Model):
     ontology = models.CharField(max_length=40, null=True, blank=True)
     type = models.CharField(max_length=20)
     format = models.CharField(max_length=20, null=True, blank=True)
-    description = models.CharField(max_length=200, null=True, blank=True)
+    description = models.CharField(max_length=250, null=True, blank=True)
     label = models.CharField(max_length=200, null=True, blank=True)
     classification = models.CharField(max_length=80, null=True, blank=True)
     required = models.BooleanField(default=False)
