@@ -1,5 +1,20 @@
 from django.contrib import admin
-from relecov_core.models import *
+from relecov_core.models import (
+    Analysis,
+    Authors,
+    Caller,
+    Chromosome,
+    Document,
+    Effect,
+    Gene,
+    Lineage,
+    Filter,
+    PublicDatabase,
+    PublicDatabaseField,
+    Sample,
+    Variant,
+    QcStats,
+)
 
 
 class DocumentAdmin(admin.ModelAdmin):
