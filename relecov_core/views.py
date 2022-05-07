@@ -28,11 +28,11 @@ def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
-        schema_data = process_schema_file(request.FILES["schemaFile"], request.POST["version"], request.user, __package__)
+        schema_data = process_schema_file(request.FILES["schemaFile"], request.POST["schemaVersion"], request.user, __package__)
         if "ERROR" in schema_data:
-            return render(request, "relecov_core/schemaHandling.html",{"ERROR":file_name["ERROR"]})
+            return render(request, "relecov_core/schemaHandling.html", {"ERROR": schema_data["ERROR"]})
         import pdb; pdb.set_trace()
-    return render(request, "relecov_core/schemaHandling.html")
+    return render(request, "relecov_core/schemaHandling.html", {"SUCCESS": schema_data["SUCCESS"]})
 
 
 @login_required
