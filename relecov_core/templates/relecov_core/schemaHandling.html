@@ -54,11 +54,17 @@
                                         <div class="card-body  text-center">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="uploadSchema">
-                                            <div class="md-6">
+                                            <div class="col-md-9">
                                                 <label for="schemaFile" class="form-label">Select json Schema file</label>
                                                 <input class="form-control" type="file" required accept=".json" id="schemaFile", name="schemaFile">
                                             </div>
-
+                                            <br>
+                                            <div class="col-md-9">
+                                                <div class="form-floating col-mb-4">
+                                                    <input class="form-control" type="text" required id="schemaVersion", name="schemaVersion">
+                                                    <label for="schemaVersion" class="form-label">Schema version</label>
+                                                </div>
+                                            </div>
                                         </div> <!-- end card body-->
                                         <div class="card-body">
                                             <div class="text-left">
