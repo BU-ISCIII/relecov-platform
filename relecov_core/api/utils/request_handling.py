@@ -1,5 +1,6 @@
 from relecov_core.core_config import HEADING_FOR_SAMPLE_TABLE, HEADING_FOR_AUTHOR_TABLE
-#from datetime import datetime# not used
+# from datetime import datetime# not used
+
 
 def split_sample_data(data):
     """Split the json request into dictionnaries with the right fields"""

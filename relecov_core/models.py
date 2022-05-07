@@ -504,7 +504,7 @@ class Analysis(models.Model):
 
     def get_consensus_criteria(self):
         return "%s" % (self.consensus_criteria)
-    
+
     def get_bioinformatics_protocol(self):
         return "%s" % (self.bioinformatics_protocol)
 
