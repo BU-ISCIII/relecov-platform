@@ -3,7 +3,22 @@ import re
 from django.db import DataError
 from relecov_core.models import Schema, SchemaProperties, PropertyOptions
 from relecov_core.utils.generic_functions import store_file
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, ERROR_INVALID_JSON, ERROR_INVALID_SCHEMA, ERROR_SCHEMA_ALREADY_LOADED, SCHEMA_SUCCESSFUL_LOAD
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, ERROR_INVALID_JSON, ERROR_INVALID_SCHEMA, ERROR_SCHEMA_ALREADY_LOADED, SCHEMA_SUCCESSFUL_LOAD, ERROR_SCHEMA_ID_NOT_DEFINED, HEADING_SCHEMA_DISPLAY
+
+
+def get_schema_display_data(schema_id):
+    """Get the properties definde for the schema"""
+    schema_obj = get_schema_obj_from_id(schema_id)
+    if schema_obj is None:
+        return {"ERROR": ERROR_SCHEMA_ID_NOT_DEFINED}
+    schema_data = {"s_data": []}
+    if SchemaProperties.objects.filter(schemaID=schema_obj).exists():
+        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by("property")
+        schema_data["heading"] = HEADING_SCHEMA_DISPLAY
+        for s_prop_obj in s_prop_objs:
+            schema_data["s_data"].append(s_prop_obj.get_property_info())
+    return schema_data
+
 
 def get_schemas_loaded(apps_name):
     """Return the definded schemas"""
@@ -13,6 +28,14 @@ def get_schemas_loaded(apps_name):
         for schema_obj in schema_objs:
             s_data.append(schema_obj.get_schema_info())
     return s_data
+
+
+def get_schema_obj_from_id(schema_id):
+    """Get the schema instance from id"""
+    if Schema.objects.filter(pk__exact=schema_id).exists():
+        return Schema.objects.filter(pk__exact=schema_id).last()
+    return None
+
 
 def load_schema(json_file):
     """Store json file in the defined folder and store information in database"""

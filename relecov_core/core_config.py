@@ -130,7 +130,10 @@ HEADING_FOR_QCSTATS_TABLE = {
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
+ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 
 ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
 ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
+
+HEADING_SCHEMA_DISPLAY = ["Property", "Label", "Required", "Classification", "Description"]

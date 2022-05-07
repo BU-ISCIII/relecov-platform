@@ -6,7 +6,7 @@ from relecov_core.utils.handling_samples import (
 )
 from relecov_core.utils.parse_files import *
 
-from relecov_core.utils.schema_handling import process_schema_file, get_schemas_loaded
+from relecov_core.utils.schema_handling import process_schema_file, get_schemas_loaded, get_schema_display_data
 # plotly dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -36,6 +36,13 @@ def schema_handling(request):
     schemas = get_schemas_loaded(__package__)
     return render(request, "relecov_core/schemaHandling.html", {"schemas": schemas})
 
+
+@login_required
+def schema_display(request, schema_id):
+    if request.user.username != "admin":
+        return redirect("/")
+    schema_data = get_schema_display_data(schema_id)
+    return render(request, "relecov_core/schemaDisplay.html", {"schema_data": schema_data})
 
 @login_required
 def intranet(request):
