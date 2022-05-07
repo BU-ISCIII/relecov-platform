@@ -1,11 +1,11 @@
 from relecov_core.core_config import (
     HEADING_FOR_AUTHOR_TABLE,
     HEADING_FOR_RECORD_SAMPLES
-)
+)   
 import json
-from relecov_core.models import *
+# from relecov_core.models import *
 
-# JExcel
+
 def get_input_samples():
     sample_recorded = {}
     sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
@@ -47,7 +47,6 @@ def analyze_input_samples(request):
     return sample_recorded
 
 
-# Upload Excel file
 def prepare_sample_input_table():
     pass
 
