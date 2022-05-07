@@ -1,8 +1,9 @@
 from relecov_core.core_config import (
     HEADING_FOR_AUTHOR_TABLE,
-    HEADING_FOR_RECORD_SAMPLES
+    HEADING_FOR_RECORD_SAMPLES,
 )
 import json
+
 # from relecov_core.models import *
 
 
