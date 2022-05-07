@@ -1,42 +1,48 @@
 from django.db import models
+from django.contrib.auth.models import User
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
 class SchemaManager(models.Manager):
     def create_new_schema(self, data):
         new_schema = self.create(
-            fileName=data["file_name"],
-            schemaName=data["schema_name"],
-            schemaVersion=data["schema_version"],
-            schemaInUse=True,
-            schemaAppsName=data["schema_app_name"]
+            file_name=data["file_name"],
+            user_name=data["user_name"],
+            schema_name=data["schema_name"],
+            schema_version=data["schema_version"],
+            schema_in_use=True,
+            schema_apps_name=data["schema_app_name"]
         )
         return new_schema
 
 
 class Schema(models.Model):
-    fileName = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
-    schemaName = models.CharField(max_length=40)
-    schemaVersion = models.CharField(max_length=10)
-    schemaInUse = models.BooleanField(default=True)
-    schemaAppsName = models.CharField(max_length=40, null=True, blank=True)
+    file_name = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
+    user_name = models.ForeignKey(User, on_delete=models.CASCADE)
+    schema_name = models.CharField(max_length=40)
+    schema_version = models.CharField(max_length=10)
+    schema_in_use = models.BooleanField(default=True)
+    schema_apps_name = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
         db_table = "Schema"
 
     def __str__(self):
-        return "%s_%s" % (self.schemaName, self.schemaVersion)
+        return "%s_%s" % (self.schema_name, self.schema_version)
 
     def get_schema_and_version(self):
-        return "%s_%s" % (self.schemaName, self.schemaVersion)
+        return "%s_%s" % (self.schema_name, self.schema_version)
 
     objects = SchemaManager()
 
 
 class SchemaPropertiesManager(models.Manager):
     def create_new_property(self, data):
+        required = True if "required" in data else False
+        options = True if "options" in data else False
+        format = data["format"] if "format" in data else None
         new_property_obj = self.create(
-            schema=data["schema"],
+            schemaID=data["schemaID"],
             property=data["property"],
             examples=data["examples"],
             ontology=data["ontology"],
@@ -44,18 +50,20 @@ class SchemaPropertiesManager(models.Manager):
             description=data["description"],
             label=data["label"],
             classification=data["classification"],
-            required=data["required"],
-            options=data["options"],
+            required=required,
+            options=options,
+            format=format
         )
         return new_property_obj
 
 
 class SchemaProperties(models.Model):
     schemaID = models.ForeignKey(Schema, on_delete=models.CASCADE)
-    properties = models.CharField(max_length=50)
-    examples = models.CharField(max_length=80, null=True, blank=True)
+    property = models.CharField(max_length=50)
+    examples = models.CharField(max_length=200, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
     type = models.CharField(max_length=20)
+    format = models.CharField(max_length=20, null=True, blank=True)
     description = models.CharField(max_length=200, null=True, blank=True)
     label = models.CharField(max_length=200, null=True, blank=True)
     classification = models.CharField(max_length=80, null=True, blank=True)
@@ -66,10 +74,10 @@ class SchemaProperties(models.Model):
         db_table = "SchemaProperties"
 
     def __str__(self):
-        return "%s" % (self.properties)
+        return "%s" % (self.property)
 
     def get_property_name(self):
-        return "%s" % (self.properties)
+        return "%s" % (self.property)
 
     objects = SchemaPropertiesManager()
 
@@ -77,7 +85,9 @@ class SchemaProperties(models.Model):
 class PropertyOptionsManager(models.Manager):
     def create_property_options(self, data):
         new_property_option_obj = self.create(
-            propertyID=data["property"], enums=data["enums"], ontology=data["ontology"]
+            propertyID=data["propertyID"],
+            enums=data["enums"],
+            ontology=data["ontology"]
         )
         return new_property_option_obj
 
@@ -271,6 +281,34 @@ class Chromosome(models.Model):
     objects = ChromosomeManager()
 
 
+# Sample states table
+class SampleStateManager(models.Manager):
+    def create_new_sample_state(self, data):
+        new_sample_state = self.create(
+            state=data["state"],
+            description=data["description"],
+        )
+        return new_sample_state
+
+
+class SampleState(models.Model):
+    state = models.CharField(max_length=80)
+    description = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+
+    class Meta:
+        db_table = "SampleState"
+
+    def __str__(self):
+        return "%s" % (self.state)
+
+    def get_string(self):
+        return "%s" % (self.description)
+
+    objects = SampleStateManager()
+
+
 # Sample Table
 class SampleManager(models.Manager):
     def create_new_sample(self, data):
@@ -286,6 +324,7 @@ class SampleManager(models.Manager):
 
 
 class Sample(models.Model):
+
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
     biosample_accession_ENA = models.CharField(max_length=80)
@@ -324,33 +363,6 @@ class Sample(models.Model):
 
     objects = SampleManager()
 
-
-# Sample states table
-class SampleStateManager(models.Manager):
-    def create_new_sample_state(self, data):
-        new_sample_state = self.create(
-            state=data["state"],
-            description=data["description"],
-        )
-        return new_sample_state
-
-
-class SampleState(models.Model):
-    state = models.CharField(max_length=80)
-    description = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "SampleState"
-
-    def __str__(self):
-        return "%s" % (self.state)
-
-    def get_string(self):
-        return "%s" % (self.description)
-
-    objects = SampleStateManager()
 
 
 # Variant Table
