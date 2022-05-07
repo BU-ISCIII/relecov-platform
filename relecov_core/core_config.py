@@ -129,6 +129,8 @@ HEADING_FOR_QCSTATS_TABLE = {
 }
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
+SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 
 ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
+ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"

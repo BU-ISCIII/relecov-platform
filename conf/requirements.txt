@@ -11,3 +11,4 @@ channels-redis==3.4.0
 mysqlclient==2.1.0
 pandas==1.4.1
 Werkzeug==2.0.3
+django-cleanup==6.0.0
