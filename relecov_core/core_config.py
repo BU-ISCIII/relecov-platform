@@ -136,4 +136,6 @@ ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
 ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
 
+ERROR_INTIAL_SETTINGS_NOT_DEFINED = "Relecov Platform is not fully completed"
+
 HEADING_SCHEMA_DISPLAY = ["Property", "Label", "Required", "Classification", "Description"]
