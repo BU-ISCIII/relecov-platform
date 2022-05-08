@@ -100,7 +100,6 @@ class SchemaProperties(models.Model):
         data.append(self.description)
         return data
 
-
     objects = SchemaPropertiesManager()
 
 
@@ -318,6 +317,9 @@ class SampleState(models.Model):
     def get_state(self):
         return "%s" % (self.description)
 
+    def get_state_id(self):
+        return "%s" % (self.pk)
+
 
 # Sample Table
 class SampleManager(models.Manager):
@@ -334,7 +336,14 @@ class SampleManager(models.Manager):
 
 
 class Sample(models.Model):
-
+    state = models.ForeignKey(
+        SampleState,
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE, null=True, blank=True
+    )
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
     biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
