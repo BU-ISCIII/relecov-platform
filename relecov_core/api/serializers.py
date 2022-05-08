@@ -6,4 +6,4 @@ from relecov_core.models import Sample
 class CreateSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = []
+        fields = "__all__"
