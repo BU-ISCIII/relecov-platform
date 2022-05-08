@@ -304,20 +304,10 @@ class Chromosome(models.Model):
 
 
 # Sample states table
-class SampleStateManager(models.Manager):
-    def create_new_sample_state(self, data):
-        new_sample_state = self.create(
-            state=data["state"],
-            description=data["description"],
-        )
-        return new_sample_state
-
-
 class SampleState(models.Model):
     state = models.CharField(max_length=80)
-    description = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    display_string = models.CharField(max_length=80, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "SampleState"
@@ -325,10 +315,8 @@ class SampleState(models.Model):
     def __str__(self):
         return "%s" % (self.state)
 
-    def get_string(self):
+    def get_state(self):
         return "%s" % (self.description)
-
-    objects = SampleStateManager()
 
 
 # Sample Table
@@ -349,9 +337,9 @@ class Sample(models.Model):
 
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
-    biosample_accession_ENA = models.CharField(max_length=80)
-    virus_name = models.CharField(max_length=80)
-    gisaid_id = models.CharField(max_length=80)
+    biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
+    virus_name = models.CharField(max_length=80, null=True, blank=True)
+    gisaid_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
