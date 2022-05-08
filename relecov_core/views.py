@@ -1,30 +1,15 @@
-# import os
-# from django.conf import settings
-# from django.http import HttpResponseRedirect
 from datetime import datetime
 import os
-import pandas as pd
+from pathlib import Path
+#import pandas as pd
 
-# from xlrd import open_workbook
-# from relecov_core import models
-# from relecov_core.models import Document
+import xlrd # Important! ==>  pip install xlrd==1.2.0
+from relecov_core.models import Document, document_path_folder
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
-
-# from relecov_core.utils.parse_files import *
-
-# plotly dash
-"""
-import dash_core_components as dcc
-import dash_html_components as html
-from django_plotly_dash import DjangoDash
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
-"""
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -69,27 +54,34 @@ def metadata_form(request):
         date = datetime.today().strftime("%Y-%m-%d_%H:%M")
         user_name = request.user.username
         title = "metadata_{}_{}".format(user_name, date)
-        file_path = datetime.today().strftime("%Y-%m-%d")
+        file_path = datetime.today().strftime("%Y_%m_%d")
         print(title)
 
         # Fetching the form data
         uploadedFile = request.FILES["samplesExcel"]
+        # Create a folder per day if it doesn't exist  
+        path = os.path.join("documents/metadata/",file_path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+
         # Saving the information in the database
-        print(os.path.exists("documents/metadata/" + file_path))
-        # document = Document(title=title, uploadedFile=uploadedFile)
-        print(file_path)
-        # document = Document(title=title, uploadedFile=uploadedFile, file_path=file_path)
-        # document.save()
+        # document_path_folder(path=file_path)
+        document = Document(title=title, uploadedFile=uploadedFile, file_path=path)
+        document.save()
         # documents = Document.objects.all()
-        # read excel file
+        
+        # read excel file xlrd example
+        book = xlrd.open_workbook("documents/metadata/METADATA_LAB_RESPIRATORIOS_V2_WvwyN8Q.xlsx")
+        print("The number of worksheets is {0}".format(book.nsheets))
+        print("Worksheet name(s): {0}".format(book.sheet_names()))
+        sh = book.sheet_by_index(1)
+        print("{0} {1} {2}".format(sh.name, sh.nrows, sh.ncols))
+        print("Cell D30 is {0}".format(sh.cell_value(rowx=29, colx=3)))
+        # for rx in range(sh.nrows):
+        #    print(type(sh.row(rx)))     
 
-        df = pd.read_excel(uploadedFile)
-        print("Columns")
-        print(df.columns)
-
-        for row in df:
-            print(row)
-
+        print(type(sh.row(0)))
+        print(sh.row(0))
         sample_recorded["Process"] = "fichero_recibido"
         return render(
             request,

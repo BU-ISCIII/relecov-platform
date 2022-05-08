@@ -1,11 +1,18 @@
+import os
 from django.db import models
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
+
+
+def document_path_folder(path):
+    return os.path.join("metadata/",path)
+    #return '/'.join(['content',  path])
+
 
 
 class Document(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to="metadata/")
+    uploadedFile = models.FileField(upload_to=document_path_folder("2022_05_08/"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
