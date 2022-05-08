@@ -4,9 +4,8 @@ from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
 def document_path_folder(path):
-    return os.path.join("metadata/",path)
-    #return '/'.join(['content',  path])
-
+    return os.path.join("metadata/", path)
+    # return '/'.join(['content',  path])
 
 
 class Document(models.Model):
