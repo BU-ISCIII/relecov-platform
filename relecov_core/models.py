@@ -11,7 +11,7 @@ class SchemaManager(models.Manager):
             schema_name=data["schema_name"],
             schema_version=data["schema_version"],
             schema_in_use=True,
-            schema_apps_name=data["schema_app_name"]
+            schema_apps_name=data["schema_app_name"],
         )
         return new_schema
 
@@ -64,7 +64,7 @@ class SchemaPropertiesManager(models.Manager):
             classification=data["classification"],
             required=required,
             options=options,
-            format=format
+            format=format,
         )
         return new_property_obj
 
@@ -108,7 +108,7 @@ class PropertyOptionsManager(models.Manager):
         new_property_option_obj = self.create(
             propertyID=data["propertyID"],
             enums=data["enums"],
-            ontology=data["ontology"]
+            ontology=data["ontology"],
         )
         return new_property_option_obj
 
@@ -336,14 +336,8 @@ class SampleManager(models.Manager):
 
 
 class Sample(models.Model):
-    state = models.ForeignKey(
-        SampleState,
-        on_delete=models.CASCADE
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE, null=True, blank=True
-    )
+    state = models.ForeignKey(SampleState, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
     biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
@@ -381,7 +375,6 @@ class Sample(models.Model):
         return "%s" % (self.sequencing_date)
 
     objects = SampleManager()
-
 
 
 # Variant Table
