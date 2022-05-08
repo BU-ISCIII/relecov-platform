@@ -11,7 +11,7 @@ def document_path_folder(path):
 class Document(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to=document_path_folder("2022_05_08/"))
+    uploadedFile = models.FileField(upload_to=document_path_folder("2022_05_08"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 

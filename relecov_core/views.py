@@ -40,6 +40,13 @@ def documentation(request):
 @login_required()
 def metadata_form(request):
     sample_recorded = get_input_samples()
+    if request.method == "POST":
+        sample_recorded["process"] = "pre_metadata_is_correct"
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": sample_recorded},
+        )
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
@@ -64,14 +71,13 @@ def metadata_form(request):
             os.mkdir(path)
 
         # Saving the information in the database
-        # document_path_folder(path=file_path)
         document = Document(title=title, uploadedFile=uploadedFile, file_path=path)
         document.save()
         # documents = Document.objects.all()
 
         # read excel file xlrd example
         book = xlrd.open_workbook(
-            "documents/metadata/METADATA_LAB_RESPIRATORIOS_V2_WvwyN8Q.xlsx"
+            "documents/metadata/2022_05_08/METADATA_LAB_RESPIRATORIOS_V2.xlsx"
         )
         print("The number of worksheets is {0}".format(book.nsheets))
         print("Worksheet name(s): {0}".format(book.sheet_names()))
