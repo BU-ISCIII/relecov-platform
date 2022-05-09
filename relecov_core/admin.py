@@ -143,6 +143,7 @@ class SchemaAdmin(admin.ModelAdmin):
     list_display = [
         "schema_name",
         "schema_version",
+        "schema_default",
         "schema_in_use",
         "schema_apps_name",
     ]
