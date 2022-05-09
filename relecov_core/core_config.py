@@ -123,6 +123,7 @@ HEADING_FOR_QCSTATS_TABLE = {
 }
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
+METADATA_UPLOAD_FOLDER = "metadata"
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 

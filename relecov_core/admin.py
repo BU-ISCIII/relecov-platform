@@ -137,10 +137,18 @@ class PublicDatabaseFieldAdmin(admin.ModelAdmin):
 
 
 class SchemaAdmin(admin.ModelAdmin):
-    list_display = ["schema_name", "schema_version", "schema_in_use", "schema_apps_name"]
+    list_display = [
+        "schema_name",
+        "schema_version",
+        "schema_in_use",
+        "schema_apps_name",
+    ]
+
 
 class SchemaPropertiesAdmin(admin.ModelAdmin):
     list_display = ["schemaID", "property", "label", "required"]
+
+
 # Register models
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Caller, CallerAdmin)

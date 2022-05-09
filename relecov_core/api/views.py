@@ -40,7 +40,7 @@ def create_sample_data(request):
         s_data["sampleUser"] = request.user.pk
 
         sample_serializer = CreateSampleSerializer(data=s_data)
-        
+
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST

@@ -9,20 +9,7 @@ from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples
 )
-<<<<<<< HEAD
-from relecov_core.utils.parse_files import *
 
-from relecov_core.utils.schema_handling import process_schema_file, get_schemas_loaded, get_schema_display_data
-# plotly dash
-import dash_core_components as dcc
-import dash_html_components as html
-from django_plotly_dash import DjangoDash
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
-
-=======
->>>>>>> 5ac1a0c3af3809e86f45c1b6340c51dd9803cf00
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -94,13 +81,12 @@ def metadata_form(request):
         # Fetching the form data
         uploadedFile = request.FILES["samplesExcel"]
         # Create a folder per day if it doesn't exist
-        path = os.path.join("documents/metadata/", file_path)
+        path = os.path.join("METADATA_UPLOAD_FOLDER, file_path)
         if not os.path.exists(path):
             os.mkdir(path)
 
         # Saving the information in the database
-        document = Document(title=title, uploadedFile=uploadedFile, file_path=path)
-        document.save()
+        file_upload = store_file(uploadedFile, path)
         # documents = Document.objects.all()
 
         # read excel file xlrd example
