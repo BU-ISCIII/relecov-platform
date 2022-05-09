@@ -392,6 +392,7 @@ class Sample(models.Model):
 
 # Variant Table
 
+
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
         new_variant = self.create(
