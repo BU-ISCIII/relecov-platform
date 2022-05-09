@@ -6,4 +6,5 @@ app_name = "relecov_api"
 
 urlpatterns = [
     path("test/", views.test, name="test"),
+    path("createSample", views.create_sample_data, name="create_sample_data"),
 ]

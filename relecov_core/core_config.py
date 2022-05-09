@@ -122,4 +122,21 @@ HEADING_FOR_QCSTATS_TABLE = {
     "Numer of variants with effect": "number_of_variants_with_effect",
 }
 
-SCHEMAS_UPLOAD_FOLDER = "documents/tmp"
+SCHEMAS_UPLOAD_FOLDER = "schemas"
+METADATA_UPLOAD_FOLDER = "metadata"
+SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
+ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
+
+ERROR_INVALID_JSON = "Invalid json file"
+ERROR_INVALID_SCHEMA = "Invalid Schema"
+ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
+
+ERROR_INTIAL_SETTINGS_NOT_DEFINED = "Relecov Platform is not fully completed"
+
+HEADING_SCHEMA_DISPLAY = [
+    "Property",
+    "Label",
+    "Required",
+    "Classification",
+    "Description",
+]

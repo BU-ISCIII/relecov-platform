@@ -14,6 +14,9 @@ from relecov_core.models import (
     Sample,
     Variant,
     QcStats,
+    SampleState,
+    Schema,
+    SchemaProperties,
 )
 
 
@@ -136,6 +139,19 @@ class PublicDatabaseFieldAdmin(admin.ModelAdmin):
     list_display = ["publicDatabaseID", "fieldName", "fieldDescription", "fieldInUse"]
 
 
+class SchemaAdmin(admin.ModelAdmin):
+    list_display = [
+        "schema_name",
+        "schema_version",
+        "schema_in_use",
+        "schema_apps_name",
+    ]
+
+
+class SchemaPropertiesAdmin(admin.ModelAdmin):
+    list_display = ["schemaID", "property", "label", "required"]
+
+
 # Register models
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Caller, CallerAdmin)
@@ -145,9 +161,12 @@ admin.site.register(Lineage, LineageAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(Sample, SampleAdmin)
+admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(Analysis, AnalysisAdmin)
 admin.site.register(QcStats, QcStatsAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
+admin.site.register(Schema, SchemaAdmin)
+admin.site.register(SchemaProperties, SchemaPropertiesAdmin)

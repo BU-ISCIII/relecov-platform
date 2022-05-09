@@ -25,6 +25,7 @@ urlpatterns = [
         "resultsInfoReceived/", views.results_info_received, name="resultsInfoReceived"
     ),
     path("resultsDownload/", views.results_download, name="resultsDownload"),
+    path("schemaDisplay=<int:schema_id>", views.schema_display, name="schema_display"),
     path("schemaHandling", views.schema_handling, name="schema_handling"),
 ]
 if settings.DEBUG:

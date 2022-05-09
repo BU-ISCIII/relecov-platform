@@ -4,10 +4,37 @@
 
 {% block content %}
 
+
 <section id="relecov-platform" class="hero-animated d-flex align-items-center">
-    <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
         <div class="container sm-9 offset-2">
 			<br><br><br>
+            {% if ERROR %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-9" >
+                        <div class="card  border-danger mb-3">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when loading Schema</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{ERROR}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
+            {% if SUCCESS %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-9" >
+                        <div class="card">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Sucessful schema loaded</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{SUCCESS}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
 			    <li class="nav-item" role="presentation">
 			    	<button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="true">Upload new Schema</button>
@@ -22,24 +49,30 @@
                        <div class="row mt-4">
                            <div class="col-md-8">
                                 <div class="card">
-                                    <div class="card-header"><h2 style="text-align:center">Load Schema</h2> </div>
-                                    <div class="card-body">
-                                        <form method="post" enctype="multipart/form-data" name="defineBatchSamples"  id="uploadSchema" class="form-horizontal well" style="min-height: 100px;">
+                                    <div class="card-header text-center"><h2 style="text-align:center">Load Schema</h2> </div>
+                                    <form method="post" enctype="multipart/form-data" name="defineBatchSamples"  id="uploadSchema" class="form-horizontal well" style="min-height: 100px;">
+                                        <div class="card-body  text-center">
                                             {% csrf_token %}
-                                            <div class="md-6">
-                                                <label for="formFile" class="form-label">Select json Schema file</label>
-                                                <input class="form-control" type="file" id="formFile">
+                                            <input type="hidden" name="action" value="uploadSchema">
+                                            <div class="col-md-9">
+                                                <label for="schemaFile" class="form-label">Select json Schema file</label>
+                                                <input class="form-control" type="file" required accept=".json" id="schemaFile", name="schemaFile">
                                             </div>
-                                        </form>
-                                    </div> <!-- end card body-->
-								</div> <!-- end card  -->
-                                <div class="card-body">
-                                    <div class="text-left">
-                                        <input class="btn text-align-left btn-outline-secondary" type="reset" value="Reset Fields">
-                                        <input class="btn float-end btn-outline-primary" type="submit" value="Submit">
-                                    </div>
-
-
+                                            <br>
+                                            <div class="col-md-9">
+                                                <div class="form-floating">
+                                                    <input class="form-control" type="text" required id="schemaVersion", name="schemaVersion"  placeholder="Schema version">
+                                                    <label for="schemaVersion">Schema version</label>
+                                                </div>
+                                            </div>
+                                        </div> <!-- end card body-->
+                                        <div class="card-body">
+                                            <div class="text-left">
+                                                <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                                <input class="btn float-end btn-outline-primary" type="submit" value="Submit">
+                                            </div>
+                                        </div>     <!-- end card body  -->
+                                    </form>
                                 </div> <!-- end card  -->
     					  	</div> <!-- end col-md-10 -->
     					</div> <!-- end row-->
@@ -53,8 +86,25 @@
 						  		<div class="card">
 						  			<div class="card-header"><h2 style="text-align:center">Schemas loaded </h2> </div>
 						  			<div class="card-body">
-                                        <table>
-
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Schema name</th>
+                                                    <th scope="col">Schema version</th>
+                                                    <th scope="col">Schema used</th>
+                                                    <th scope="col">Download File</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for id, name, version, used, file in schemas %}
+                                                    <tr>
+                                                        <td><a href="/schemaDisplay={{id}}">{{name}}</a></td>
+                                                        <td>{{version}}</td>
+                                                        <td>{{used}}</td>
+                                                        <td><a href=/documents/{{file}}>Download</a></td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
                                         </table>
                                     </div> <!-- end card body-->
                                 </div> <!-- end card  -->

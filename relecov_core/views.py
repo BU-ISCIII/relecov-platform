@@ -1,14 +1,23 @@
 from datetime import datetime
-import os
+
+# import os
 
 # Important! ==>  pip install xlrd==1.2.0
 import xlrd
-from relecov_core.models import Document
+
+# from relecov_core.models import Document
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
+
+from relecov_core.utils.schema_handling import (
+    process_schema_file,
+    get_schemas_loaded,
+    get_schema_display_data,
+)
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -21,7 +30,37 @@ def index(request):
 def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
-    return render(request, "relecov_core/schemaHandling.html")
+    if request.method == "POST" and request.POST["action"] == "uploadSchema":
+        schema_data = process_schema_file(
+            request.FILES["schemaFile"],
+            request.POST["schemaVersion"],
+            request.user,
+            __package__,
+        )
+        if "ERROR" in schema_data:
+            return render(
+                request,
+                "relecov_core/schemaHandling.html",
+                {"ERROR": schema_data["ERROR"]},
+            )
+
+        return render(
+            request,
+            "relecov_core/schemaHandling.html",
+            {"SUCCESS": schema_data["SUCCESS"]},
+        )
+    schemas = get_schemas_loaded(__package__)
+    return render(request, "relecov_core/schemaHandling.html", {"schemas": schemas})
+
+
+@login_required
+def schema_display(request, schema_id):
+    if request.user.username != "admin":
+        return redirect("/")
+    schema_data = get_schema_display_data(schema_id)
+    return render(
+        request, "relecov_core/schemaDisplay.html", {"schema_data": schema_data}
+    )
 
 
 @login_required
@@ -60,19 +99,18 @@ def metadata_form(request):
         date = datetime.today().strftime("%Y-%m-%d_%H:%M")
         user_name = request.user.username
         title = "metadata_{}_{}".format(user_name, date)
-        file_path = datetime.today().strftime("%Y_%m_%d")
+        # file_path = datetime.today().strftime("%Y_%m_%d")
         print(title)
 
         # Fetching the form data
-        uploadedFile = request.FILES["samplesExcel"]
+        # uploadedFile = request.FILES["samplesExcel"]
         # Create a folder per day if it doesn't exist
-        path = os.path.join("documents/metadata/", file_path)
-        if not os.path.exists(path):
-            os.mkdir(path)
+        # path = os.path.join(METADATA_UPLOAD_FOLDER, file_path)
+        # if not os.path.exists(path):
+        #    os.mkdir(path)
 
         # Saving the information in the database
-        document = Document(title=title, uploadedFile=uploadedFile, file_path=path)
-        document.save()
+        # file_upload = store_file(uploadedFile, path)
         # documents = Document.objects.all()
 
         # read excel file xlrd example
