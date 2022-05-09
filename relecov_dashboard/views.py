@@ -1,33 +1,10 @@
-# from unicodedata import name
 from django.shortcuts import render
-
-# from plotly.offline import plot
-# import plotly.graph_objects as go
-
-# plotly dash
-# import dash_core_components as dcc
-# import dash_html_components as html
 from django_plotly_dash import DjangoDash
-
-# import plotly.graph_objects as go
 import plotly.express as px
-
-# import pandas as pd
-
-# from dash import Input, Output#Dash, dcc, html,
 from dash.dependencies import Input, Output
-
-# import dash
 import os
 from django.conf import settings
-
-# import dash_bootstrap_components as dbc
-
-# IMPORT FROM UTILS
-
 from relecov_core.utils.parse_files import parse_csv_into_list_of_dicts
-
-# from relecov_core.utils.dashboard import *
 from .utils.graphic_test import create_test_variant_graph, set_dataframe_range_slider
 
 
