@@ -24,6 +24,7 @@ class SchemaManager(models.Manager):
             user_name=data["user_name"],
             schema_name=data["schema_name"],
             schema_version=data["schema_version"],
+            schema_default=data["schema_default"],
             schema_in_use=True,
             schema_apps_name=data["schema_app_name"],
         )
@@ -36,6 +37,7 @@ class Schema(models.Model):
     schema_name = models.CharField(max_length=40)
     schema_version = models.CharField(max_length=10)
     schema_in_use = models.BooleanField(default=True)
+    schema_default = models.BooleanField(default=True)
     schema_apps_name = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
@@ -55,9 +57,14 @@ class Schema(models.Model):
         data.append(self.pk)
         data.append(self.schema_name)
         data.append(self.schema_version)
+        data.append(self.schema_default)
         data.append(str(self.schema_in_use))
         data.append(self.file_name)
         return data
+
+    def update_default(self, default):
+        self.schema_default = default
+        self.save()
 
     objects = SchemaManager()
 
