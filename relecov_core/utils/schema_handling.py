@@ -3,7 +3,15 @@ import re
 from django.db import DataError
 from relecov_core.models import Schema, SchemaProperties, PropertyOptions
 from relecov_core.utils.generic_functions import store_file
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, ERROR_INVALID_JSON, ERROR_INVALID_SCHEMA, ERROR_SCHEMA_ALREADY_LOADED, SCHEMA_SUCCESSFUL_LOAD, ERROR_SCHEMA_ID_NOT_DEFINED, HEADING_SCHEMA_DISPLAY
+from relecov_core.core_config import (
+    SCHEMAS_UPLOAD_FOLDER,
+    ERROR_INVALID_JSON,
+    ERROR_INVALID_SCHEMA,
+    ERROR_SCHEMA_ALREADY_LOADED,
+    SCHEMA_SUCCESSFUL_LOAD,
+    ERROR_SCHEMA_ID_NOT_DEFINED,
+    HEADING_SCHEMA_DISPLAY,
+)
 
 
 def get_schema_display_data(schema_id):
@@ -13,7 +21,9 @@ def get_schema_display_data(schema_id):
         return {"ERROR": ERROR_SCHEMA_ID_NOT_DEFINED}
     schema_data = {"s_data": []}
     if SchemaProperties.objects.filter(schemaID=schema_obj).exists():
-        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by("property")
+        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by(
+            "property"
+        )
         schema_data["heading"] = HEADING_SCHEMA_DISPLAY
         for s_prop_obj in s_prop_objs:
             schema_data["s_data"].append(s_prop_obj.get_property_info())
@@ -24,7 +34,9 @@ def get_schemas_loaded(apps_name):
     """Return the definded schemas"""
     s_data = []
     if Schema.objects.filter(schema_apps_name__exact=apps_name).exists():
-        schema_objs = Schema.objects.filter(schema_apps_name__exact=apps_name).order_by("schema_name")
+        schema_objs = Schema.objects.filter(schema_apps_name__exact=apps_name).order_by(
+            "schema_name"
+        )
         for schema_obj in schema_objs:
             s_data.append(schema_obj.get_schema_info())
     return s_data
@@ -77,7 +89,7 @@ def store_schema_properties(schema_obj, s_properties, required):
             # return {"ERROR": e}
         if "options" in data:
             for item in s_properties[prop_key]["Enums"]:
-                enum = re.search(r'(.+) \[(.*)\]', item)
+                enum = re.search(r"(.+) \[(.*)\]", item)
                 if enum:
                     e_data = {"enums": enum.group(1), "ontology": enum.group(2)}
                 else:
@@ -93,7 +105,7 @@ def store_schema_properties(schema_obj, s_properties, required):
 
 
 def process_schema_file(json_file, version, user, apps_name):
-    """ Check json file and store in database"""
+    """Check json file and store in database"""
     schema_data = load_schema(json_file)
     if "ERROR" in schema_data:
         return schema_data
@@ -103,11 +115,25 @@ def process_schema_file(json_file, version, user, apps_name):
         return {"ERROR": ERROR_INVALID_SCHEMA}
 
     schema_name = schema_data["full_schema"]["schema"]
-    if Schema.objects.filter(schema_name__iexact=schema_name, schema_version__iexact=version, schema_apps_name__exact=apps_name).exists():
+    if Schema.objects.filter(
+        schema_name__iexact=schema_name,
+        schema_version__iexact=version,
+        schema_apps_name__exact=apps_name,
+    ).exists():
         return {"ERROR": ERROR_SCHEMA_ALREADY_LOADED}
-    data = {"schema_name": schema_name, "file_name": schema_data["file_name"], "schema_version": version, 'schema_app_name': apps_name, "user_name": user}
+    data = {
+        "schema_name": schema_name,
+        "file_name": schema_data["file_name"],
+        "schema_version": version,
+        "schema_app_name": apps_name,
+        "user_name": user,
+    }
     new_schema = Schema.objects.create_new_schema(data)
-    result = store_schema_properties(new_schema, schema_data["full_schema"]["properties"], schema_data["full_schema"]["required"])
+    result = store_schema_properties(
+        new_schema,
+        schema_data["full_schema"]["properties"],
+        schema_data["full_schema"]["required"],
+    )
     if "ERROR" in result:
         return result
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}
