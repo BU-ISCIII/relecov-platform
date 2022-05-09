@@ -1,5 +1,24 @@
 from django.contrib import admin
-from .models import *
+from relecov_core.models import (
+    Analysis,
+    Authors,
+    Caller,
+    Chromosome,
+    Document,
+    Effect,
+    Gene,
+    Lineage,
+    Filter,
+    PublicDatabase,
+    PublicDatabaseField,
+    Sample,
+    Variant,
+    QcStats,
+)
+
+
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ["title", "uploadedFile"]
 
 
 class CallerAdmin(admin.ModelAdmin):
@@ -118,6 +137,7 @@ class PublicDatabaseFieldAdmin(admin.ModelAdmin):
 
 
 # Register models
+admin.site.register(Document, DocumentAdmin)
 admin.site.register(Caller, CallerAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)

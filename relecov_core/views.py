@@ -1,19 +1,14 @@
-from relecov_core.models import *
+from datetime import datetime
+import os
+
+# Important! ==>  pip install xlrd==1.2.0
+import xlrd
+from relecov_core.models import Document
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
-from relecov_core.utils.parse_files import *
-
-# plotly dash
-import dash_core_components as dcc
-import dash_html_components as html
-from django_plotly_dash import DjangoDash
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
-
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -44,7 +39,14 @@ def documentation(request):
 
 @login_required()
 def metadata_form(request):
-    sample_recorded = get_input_samples(request)
+    sample_recorded = get_input_samples()
+    if request.method == "POST":
+        sample_recorded["process"] = "pre_metadata_is_correct"
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": sample_recorded},
+        )
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
@@ -55,12 +57,45 @@ def metadata_form(request):
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
+        date = datetime.today().strftime("%Y-%m-%d_%H:%M")
+        user_name = request.user.username
+        title = "metadata_{}_{}".format(user_name, date)
+        file_path = datetime.today().strftime("%Y_%m_%d")
+        print(title)
+
+        # Fetching the form data
+        uploadedFile = request.FILES["samplesExcel"]
+        # Create a folder per day if it doesn't exist
+        path = os.path.join("documents/metadata/", file_path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        # Saving the information in the database
+        document = Document(title=title, uploadedFile=uploadedFile, file_path=path)
+        document.save()
+        # documents = Document.objects.all()
+
+        # read excel file xlrd example
+        book = xlrd.open_workbook(
+            "documents/metadata/2022_05_08/METADATA_LAB_RESPIRATORIOS_V2.xlsx"
+        )
+        print("The number of worksheets is {0}".format(book.nsheets))
+        print("Worksheet name(s): {0}".format(book.sheet_names()))
+        sh = book.sheet_by_index(1)
+        print("{0} {1} {2}".format(sh.name, sh.nrows, sh.ncols))
+        print("Cell D30 is {0}".format(sh.cell_value(rowx=29, colx=3)))
+        # for rx in range(sh.nrows):
+        #    print(type(sh.row(rx)))
+
+        print(type(sh.row(0)))
+        print(sh.row(0))
         sample_recorded["Process"] = "fichero_recibido"
         return render(
             request,
             "relecov_core/metadataForm2.html",
             {"sample_recorded": "sample_recorded"},
         )
+
     return render(
         request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
     )
