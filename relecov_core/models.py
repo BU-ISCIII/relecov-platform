@@ -83,6 +83,7 @@ class SchemaPropertiesManager(models.Manager):
             description=data["description"],
             label=data["label"],
             classification=data["classification"],
+            fill_mode=data["fill_mode"],
             required=required,
             options=options,
             format=format,
@@ -102,6 +103,7 @@ class SchemaProperties(models.Model):
     classification = models.CharField(max_length=80, null=True, blank=True)
     required = models.BooleanField(default=False)
     options = models.BooleanField(default=False)
+    fill_mode = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         db_table = "SchemaProperties"
