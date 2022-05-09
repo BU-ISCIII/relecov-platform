@@ -133,4 +133,10 @@ ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
 
 ERROR_INTIAL_SETTINGS_NOT_DEFINED = "Relecov Platform is not fully completed"
 
-HEADING_SCHEMA_DISPLAY = ["Property", "Label", "Required", "Classification", "Description"]
+HEADING_SCHEMA_DISPLAY = [
+    "Property",
+    "Label",
+    "Required",
+    "Classification",
+    "Description",
+]

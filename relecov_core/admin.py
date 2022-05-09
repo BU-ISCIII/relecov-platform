@@ -14,6 +14,9 @@ from relecov_core.models import (
     Sample,
     Variant,
     QcStats,
+    SampleState,
+    Schema,
+    SchemaProperties
 )
 
 
