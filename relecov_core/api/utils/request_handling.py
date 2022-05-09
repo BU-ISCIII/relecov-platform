@@ -1,4 +1,11 @@
-from relecov_core.core_config import HEADING_FOR_SAMPLE_TABLE, HEADING_FOR_AUTHOR_TABLE, HEADING_FOR_ANALYSIS_TABLE, HEADING_FOR_QCSTATS_TABLE, HEADING_FOR_LINEAGE_TABLE, ERROR_INTIAL_SETTINGS_NOT_DEFINED
+from relecov_core.core_config import (
+    HEADING_FOR_SAMPLE_TABLE,
+    HEADING_FOR_AUTHOR_TABLE,
+    HEADING_FOR_ANALYSIS_TABLE,
+    HEADING_FOR_QCSTATS_TABLE,
+    HEADING_FOR_LINEAGE_TABLE,
+    ERROR_INTIAL_SETTINGS_NOT_DEFINED,
+)
 from relecov_core.models import SampleState
 
 # from datetime import datetime# not used
@@ -6,7 +13,13 @@ from relecov_core.models import SampleState
 
 def split_sample_data(data):
     """Split the json request into dictionnaries with the right fields"""
-    split_data = {"sample": {}, "autor": {}, "qstats": {}, "analysis": {}, "lineage": {}}
+    split_data = {
+        "sample": {},
+        "autor": {},
+        "qstats": {},
+        "analysis": {},
+        "lineage": {},
+    }
     sample_fields = list(HEADING_FOR_SAMPLE_TABLE.values())
     author_fields = list(HEADING_FOR_AUTHOR_TABLE.values())
     qstats_fields = list(HEADING_FOR_QCSTATS_TABLE.values())
@@ -38,7 +51,9 @@ def prepare_fields_in_sample(s_data):
     """Add sample state and set to None GISAID and ENA if not set"""
     if not SampleState.objects.filter(state__exact="Defined").exists():
         return {"ERROR": ERROR_INTIAL_SETTINGS_NOT_DEFINED}
-    s_data["state"] = SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+    s_data["state"] = (
+        SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+    )
     if "biosample_accession_ENA" not in s_data:
         s_data["biosample_accession_ENA"] = None
     if "virus_name" not in s_data:
