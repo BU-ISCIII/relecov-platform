@@ -104,7 +104,21 @@ def store_schema_properties(schema_obj, s_properties, required):
     return {"SUCCESS": ""}
 
 
-def process_schema_file(json_file, version, user, apps_name):
+def remove_existing_default_schema(schema_name, apps_name):
+    """Remove the tag for default schema for the given schema name"""
+    if Schema.objects.filter(
+        schema_name__iexact=schema_name, schema_apps_name=apps_name, schema_default=True
+    ).exists():
+        schema_obj = Schema.objects.filter(
+            schema_name__iexact=schema_name,
+            schema_apps_name=apps_name,
+            schema_default=True,
+        ).last()
+        schema_obj.update_default(False)
+    return
+
+
+def process_schema_file(json_file, version, default, user, apps_name):
     """Check json file and store in database"""
     schema_data = load_schema(json_file)
     if "ERROR" in schema_data:
@@ -113,8 +127,12 @@ def process_schema_file(json_file, version, user, apps_name):
     structure = ["schema", "required", "type", "properties"]
     if not check_heading_valid_json(schema_data["full_schema"], structure):
         return {"ERROR": ERROR_INVALID_SCHEMA}
-
     schema_name = schema_data["full_schema"]["schema"]
+    if default == "on":
+        remove_existing_default_schema(schema_name, apps_name)
+        default = True
+    else:
+        default = False
     if Schema.objects.filter(
         schema_name__iexact=schema_name,
         schema_version__iexact=version,
@@ -125,6 +143,7 @@ def process_schema_file(json_file, version, user, apps_name):
         "schema_name": schema_name,
         "file_name": schema_data["file_name"],
         "schema_version": version,
+        "schema_default": default,
         "schema_app_name": apps_name,
         "user_name": user,
     }
