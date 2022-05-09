@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, METADATA_UPLOAD_FOLDER
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
 class Document(models.Model):

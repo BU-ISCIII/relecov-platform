@@ -1,11 +1,4 @@
-# from relecov_core.models import Document
-# import datetime
-# import os
-from relecov_core.core_config import METADATA_UPLOAD_FOLDER
-from relecov_core.models import Document
-from relecov_core.utils.generic_functions import store_file
 from relecov_core.utils.metadata_handling import upload_excel_file
-import xlrd
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
