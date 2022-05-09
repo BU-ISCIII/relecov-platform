@@ -1,8 +1,10 @@
+import os
 from django.db import models
 from django.contrib.auth.models import User
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
+<<<<<<< HEAD
 class SchemaManager(models.Manager):
     def create_new_schema(self, data):
         new_schema = self.create(
@@ -23,6 +25,33 @@ class Schema(models.Model):
     schema_version = models.CharField(max_length=10)
     schema_in_use = models.BooleanField(default=True)
     schema_apps_name = models.CharField(max_length=40, null=True, blank=True)
+=======
+def document_path_folder(path):
+    return os.path.join("metadata/", path)
+    # return '/'.join(['content',  path])
+
+
+class Document(models.Model):
+    title = models.CharField(max_length=200)
+    file_path = models.CharField(max_length=200)
+    uploadedFile = models.FileField(upload_to=document_path_folder("2022_05_08"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+
+    class Meta:
+        db_table = "DocumentMetadata"
+
+    def __str__(self):
+        return "%s" % (self.title)
+
+
+class schema(models.Model):
+    fileName = models.FileField(upload_to=SCHEMAS_UPLOAD_FOLDER)
+    schemaName = models.CharField(max_length=40)
+    schemaVersion = models.CharField(max_length=10)
+    schemaInUse = models.BooleanField(default=True)
+    schemaAppsName = models.CharField(max_length=40, null=True, blank=True)
+>>>>>>> 5ac1a0c3af3809e86f45c1b6340c51dd9803cf00
 
     class Meta:
         db_table = "Schema"
@@ -348,7 +377,6 @@ class Sample(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     # Many-to-one relationships
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
-    # sample_state = models.ForeignKey(SampleStates, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Sample"
@@ -378,6 +406,11 @@ class Sample(models.Model):
 
 
 # Variant Table
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5ac1a0c3af3809e86f45c1b6340c51dd9803cf00
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
         new_variant = self.create(
@@ -787,12 +820,7 @@ class PublicDatabaseField(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     # ManyToOne
-    """
-    public_database = models.ForeignKey(
-    PublicDatabase,
-    on_delete= models.CASCADE
-    )
-    """
+    # public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
 
     class Meta:
         db_table = "PublicDatabaseField"

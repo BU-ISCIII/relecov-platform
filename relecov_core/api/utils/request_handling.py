@@ -1,6 +1,7 @@
-from datetime import datetime
 from relecov_core.core_config import HEADING_FOR_SAMPLE_TABLE, HEADING_FOR_AUTHOR_TABLE, HEADING_FOR_ANALYSIS_TABLE, HEADING_FOR_QCSTATS_TABLE, HEADING_FOR_LINEAGE_TABLE, ERROR_INTIAL_SETTINGS_NOT_DEFINED
 from relecov_core.models import SampleState
+
+# from datetime import datetime# not used
 
 
 def split_sample_data(data):
