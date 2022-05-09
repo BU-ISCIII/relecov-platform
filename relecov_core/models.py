@@ -6,12 +6,12 @@ from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, METADATA_UPLOAD_FOLD
 class Document(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to=METADATA_UPLOAD_FOLDER)
+    uploadedFile = models.FileField(upload_to="METADATA_UPLOAD_FOLDER")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
-        db_table = "DocumentMetadata"
+        db_table = "Document"
 
     def __str__(self):
         return "%s" % (self.title)
@@ -362,6 +362,7 @@ class Sample(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     # Many-to-one relationships
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
+    document_upload = models.ForeignKey(Document, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Sample"
