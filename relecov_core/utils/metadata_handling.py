@@ -1,6 +1,7 @@
 import datetime
 import os
 from pathlib import Path
+import time
 import xlrd
 
 # Important! ==>  pip install xlrd==1.2.0
@@ -11,7 +12,8 @@ from relecov_core.models import Document
 
 def upload_excel_file(request):
     sample_recorded = {}
-    date = datetime.date.today().strftime("%Y-%m-%d_%H:%M")
+    file_path = datetime.date.today().strftime("%Y_%m_%d")
+    date = datetime.date.today().strftime("%Y-%m-%d_%H:%M:%S")
     user_name = request.user.username
     title = "metadata_{}_{}".format(user_name, date)
     file_path = datetime.date.today().strftime("%Y_%m_%d")
@@ -24,18 +26,9 @@ def upload_excel_file(request):
     if not os.path.exists(path):
         path = Path(path)
         path.mkdir(parents=True)
-
-    """
-    try:
-        os.stat(path)
-    except:
-        os.mkdir(path)
-    if not os.path.exists(path):
-        os.mkdir(path)
-    """
-    # Saving the information in the database
-    file_upload = store_file(uploadedFile, file_path)
-    print(file_upload)
+# Saving the information in the database
+    #file_upload = store_file(uploadedFile, file_path)
+    #print(file_upload)
     document = Document(title=title, file_path=path, uploadedFile=uploadedFile)
     document.save()
 
