@@ -1,6 +1,3 @@
-import os
-from relecov_platform.settings import MEDIA_ROOT, MEDIA_URL
-
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
