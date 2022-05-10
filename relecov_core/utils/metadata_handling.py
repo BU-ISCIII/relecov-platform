@@ -1,7 +1,7 @@
 import datetime
 import os
 from pathlib import Path
-import xlrd
+# import xlrd
 from relecov_core.core_config import METADATA_UPLOAD_FOLDER
 from relecov_core.utils.generic_functions import store_file
 from relecov_core.models import Document
