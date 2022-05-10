@@ -1,13 +1,7 @@
 import time
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-from relecov_core.core_config import METADATA_UPLOAD_FOLDER
-
-# from django.conf import settings
-
 import os
-
-from relecov_platform.settings import MEDIA_URL
 
 
 def store_file(user_file, folder):
