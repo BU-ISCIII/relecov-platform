@@ -24,21 +24,15 @@ def upload_excel_file(request):
     if not os.path.exists(path):
         path = Path(path)
         path.mkdir(parents=True)
-
-    """
-    try:
-        os.stat(path)
-    except:
-        os.mkdir(path)
-    if not os.path.exists(path):
-        os.mkdir(path)
-    """
-    # Saving the information in the database
     file_upload = store_file(uploadedFile, file_path)
     print(file_upload)
+
+
+    # Saving the information in the database
     document = Document(title=title, file_path=path, uploadedFile=uploadedFile)
     document.save()
 
+    """
     # read excel file xlrd example
     book = xlrd.open_workbook(
         "documents/metadata/2022_05_08/METADATA_LAB_RESPIRATORIOS_V2.xlsx"
@@ -50,9 +44,8 @@ def upload_excel_file(request):
     print("Cell D30 is {0}".format(sh.cell_value(rowx=29, colx=3)))
     # for rx in range(sh.nrows):
     #    print(type(sh.row(rx)))
-
     print(type(sh.row(0)))
     print(sh.row(0))
     sample_recorded["Process"] = "fichero_recibido"
-
+    """
     return sample_recorded
