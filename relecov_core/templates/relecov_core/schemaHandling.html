@@ -50,7 +50,7 @@
                            <div class="col-md-8">
                                 <div class="card">
                                     <div class="card-header text-center"><h2 style="text-align:center">Load Schema</h2> </div>
-                                    <form method="post" enctype="multipart/form-data" name="defineBatchSamples"  id="uploadSchema" class="form-horizontal well" style="min-height: 100px;">
+                                    <form method="post" enctype="multipart/form-data" name="uploadSchema"  id="uploadSchema" class="form-horizontal well" style="min-height: 100px;">
                                         <div class="card-body  text-center">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="uploadSchema">
@@ -70,11 +70,14 @@
                                                 <label class="form-check-label" for="schemaDefault">Default schema</label>
                                                 <input class="form-check-input float-end" type="checkbox" id="schemaDefault" name="schemaDefault">
                                             </div>
+                                            <div hidden class="spinner-border text-success" role="status" id="spinner">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
                                         </div> <!-- end card body-->
                                         <div class="card-body">
                                             <div class="text-left">
                                                 <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                                <input class="btn float-end btn-outline-primary" type="submit" value="Submit">
+                                                <input class="btn float-end btn-outline-primary" type="submit"  id="btnSubmit" value="Submit">
                                             </div>
                                         </div>     <!-- end card body  -->
                                     </form>
@@ -127,4 +130,17 @@
 		</div>  <!-- end container -->
     </div>
 </section>
+
+<script>
+    $(document).ready(function() {
+        $("#btnSubmit").click(function() {
+          // disable button
+          $(this).prop("disabled", true);
+          // Show spinner
+          $("#spinner").prop("hidden", false);
+          $("#uploadSchema").submit();
+        });
+    });
+</script>
+
 {% endblock %}
