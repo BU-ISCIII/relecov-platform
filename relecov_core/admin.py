@@ -152,7 +152,7 @@ class SchemaAdmin(admin.ModelAdmin):
 
 class SchemaPropertiesAdmin(admin.ModelAdmin):
     list_display = ["schemaID", "property", "label", "required"]
-    
+
 
 class PropertyOptionsAdmin(admin.ModelAdmin):
     list_display = ["propertyID", "enums", "ontology"]
