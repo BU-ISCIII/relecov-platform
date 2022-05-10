@@ -354,6 +354,7 @@ class SampleManager(models.Manager):
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
+            metadata_file=data["metadata_file"],
         )
         return new_sample
 
@@ -361,6 +362,9 @@ class SampleManager(models.Manager):
 class Sample(models.Model):
     state = models.ForeignKey(SampleState, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    metadata_file = models.ForeignKey(
+        Document, on_delete=models.CASCADE, null=True, blank=True
+    )
     collecting_lab_sample_id = models.CharField(max_length=80)
     sequencing_sample_id = models.CharField(max_length=80)
     biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
@@ -369,9 +373,7 @@ class Sample(models.Model):
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-    # Many-to-one relationships
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
-    document_upload = models.ForeignKey(Document, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Sample"
