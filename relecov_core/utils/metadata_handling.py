@@ -27,7 +27,6 @@ def upload_excel_file(request):
     file_upload = store_file(uploadedFile, file_path)
     print(file_upload)
 
-
     # Saving the information in the database
     document = Document(title=title, file_path=path, uploadedFile=uploadedFile)
     document.save()
