@@ -17,6 +17,7 @@ from relecov_core.models import (
     SampleState,
     Schema,
     SchemaProperties,
+    PropertyOptions,
 )
 
 
@@ -151,6 +152,10 @@ class SchemaAdmin(admin.ModelAdmin):
 
 class SchemaPropertiesAdmin(admin.ModelAdmin):
     list_display = ["schemaID", "property", "label", "required"]
+    
+
+class PropertyOptionsAdmin(admin.ModelAdmin):
+    list_display = ["propertyID", "enums", "ontology"]
 
 
 # Register models
@@ -171,3 +176,4 @@ admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
+admin.site.register(PropertyOptions, PropertyOptionsAdmin)

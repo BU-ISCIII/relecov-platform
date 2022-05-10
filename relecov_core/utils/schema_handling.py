@@ -15,7 +15,7 @@ from relecov_core.core_config import (
 
 
 def get_schema_display_data(schema_id):
-    """Get the properties definde for the schema"""
+    """Get the properties define for the schema"""
     schema_obj = get_schema_obj_from_id(schema_id)
     if schema_obj is None:
         return {"ERROR": ERROR_SCHEMA_ID_NOT_DEFINED}
