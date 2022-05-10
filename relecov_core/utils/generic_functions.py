@@ -20,7 +20,9 @@ def store_file(user_file, folder):
     filename, file_extension = os.path.splitext(user_file.name)
     file_name = filename + "_" + str(time.strftime("%Y%m%d-%H%M%S")) + file_extension
     path_file = os.path.join(folder, file_name)
-    saved_file = os.path.join(settings.MEDIA_ROOT, path_file)
+    path_to_metadata_folder = os.path.join(settings.MEDIA_ROOT, "metadata")
+    saved_file = os.path.join(path_to_metadata_folder, path_file)
+    # saved_file = os.path.join(settings.MEDIA_ROOT, path_file)
     fs = FileSystemStorage()
     fs.save(saved_file, user_file)
     return path_file

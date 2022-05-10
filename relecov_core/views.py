@@ -1,9 +1,11 @@
-from relecov_core.utils.metadata_handling import upload_excel_file
+from relecov_core.utils.generic_functions import store_file
+# from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.handling_samples import (
     get_input_samples,
     analyze_input_samples,
 )
+from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.schema_handling import (
     process_schema_file,
@@ -93,6 +95,9 @@ def metadata_form(request):
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
+        # uploadedFile = request.FILES["samplesExcel"]
+        # path_file = store_file(request.FILES["samplesExcel"],"2022_5_10")
+        # print(path_file)
         sample_recorded = upload_excel_file(request)
 
     return render(
