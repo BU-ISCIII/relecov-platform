@@ -4,39 +4,53 @@ from relecov_core.core_config import (
 )
 import json
 
-from relecov_core.models import(
+from relecov_core.models import (
     SchemaProperties,
     PropertyOptions,
     Schema,
 )
-def  fetch_batch_options():
+
+
+def fetch_batch_options():
     data = []
     # check schema
-    schema_obj = Schema.objects.filter(schema_name = "RELECOV",schema_default = True).last()
-    properties_objs = SchemaProperties.objects.filter(fill_mode="batch", schemaID=schema_obj)
+    schema_obj = Schema.objects.filter(
+        schema_name="RELECOV", schema_default=True
+    ).last()
+    properties_objs = SchemaProperties.objects.filter(
+        fill_mode="batch", schemaID=schema_obj
+    )
     for properties_obj in properties_objs:
         data_dict = {}
         if properties_obj.has_options():
-            data_dict["Options"] = list(PropertyOptions.objects.filter(propertyID_id = properties_obj).values_list('enums', flat=True).distinct())
+            data_dict["Options"] = list(
+                PropertyOptions.objects.filter(propertyID_id=properties_obj)
+                .values_list("enums", flat=True)
+                .distinct()
+            )
         data_dict["Label"] = properties_obj.get_label()
         data_dict["Property"] = properties_obj.get_property()
         data_dict["Format"] = properties_obj.get_format()
-        
+
         data.append(data_dict)
     return data
 
 
 def fetch_sample_fields():
     data = []
-    schema_obj = Schema.objects.filter(schema_name = "RELECOV",schema_default = True).last()
-    properties_objs = SchemaProperties.objects.filter(fill_mode="sample", schemaID=schema_obj)
+    schema_obj = Schema.objects.filter(
+        schema_name="RELECOV", schema_default=True
+    ).last()
+    properties_objs = SchemaProperties.objects.filter(
+        fill_mode="sample", schemaID=schema_obj
+    )
     for properties_obj in properties_objs:
         data_dict = {}
         data_dict["Label"] = properties_obj.get_label()
         data_dict["Property"] = properties_obj.get_property()
         data_dict["Format"] = properties_obj.get_format()
         print(properties_obj)
-        
+
         data.append(data_dict)
         print(data_dict)
     return data
