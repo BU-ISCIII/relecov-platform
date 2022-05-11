@@ -53,6 +53,10 @@ class CallerAdmin(admin.ModelAdmin):
     list_display = ["name", "version"]
 
 
+class ConfigSettingAdmin(admin.ModelAdmin):
+    list_display = ["configuration_name", "configuration_value"]
+
+
 class FilterAdmin(admin.ModelAdmin):
     list_display = ["filter"]
 
@@ -185,6 +189,7 @@ class PropertyOptionsAdmin(admin.ModelAdmin):
 # Register models
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Caller, CallerAdmin)
+admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
 admin.site.register(Lineage, LineageAdmin)
