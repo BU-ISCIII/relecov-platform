@@ -7,6 +7,7 @@ from relecov_core.models import (
     Authors,
     Caller,
     Chromosome,
+    ConfigSetting,
     Document,
     Effect,
     Gene,
