@@ -36,7 +36,7 @@ def fetch_batch_options():
     return data
 
 
-def fetch_sample_fields():
+def fetch_sample_options():
     data = []
     schema_obj = Schema.objects.filter(
         schema_name="RELECOV", schema_default=True
@@ -46,6 +46,12 @@ def fetch_sample_fields():
     )
     for properties_obj in properties_objs:
         data_dict = {}
+        if properties_obj.has_options():
+            data_dict["Options"] = list(
+                PropertyOptions.objects.filter(propertyID_id=properties_obj)
+                .values_list("enums", flat=True)
+                .distinct()
+            )
         data_dict["Label"] = properties_obj.get_label()
         data_dict["Property"] = properties_obj.get_property()
         data_dict["Format"] = properties_obj.get_format()
@@ -60,7 +66,7 @@ def create_metadata_form():
     sample_recorded = {}
     sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
     sample_recorded["batch"] = fetch_batch_options()
-    sample_recorded["samples"] = fetch_sample_fields()
+    sample_recorded["samples"] = fetch_sample_options()
 
     return sample_recorded
 
