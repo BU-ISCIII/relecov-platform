@@ -6,7 +6,7 @@ import os
 
 
 def get_configuration_value(parameter_name):
-    '''
+    """
     Description:
         Function will get the parameter value defined in the configutration table
         if not exists return 'False'
@@ -15,10 +15,12 @@ def get_configuration_value(parameter_name):
         parameter_name    #parameter name
     Return:
         parameter_value
-    '''
-    parameter_value = 'False'
+    """
+    parameter_value = "False"
     if ConfigSetting.objects.filter(configurationName__exact=parameter_name).exists():
-        parameter_obj = ConfigSetting.objects.filter(configurationName__exact=parameter_name).last()
+        parameter_obj = ConfigSetting.objects.filter(
+            configurationName__exact=parameter_name
+        ).last()
         parameter_value = parameter_obj.get_configuration_value()
     return parameter_value
 
