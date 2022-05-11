@@ -1,9 +1,10 @@
+from pickle import FALSE
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, METADATA_UPLOAD_FOLDER
 
 
 class Profile(models.Model):
@@ -27,7 +28,7 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
 class Document(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to="METADATA_UPLOAD_FOLDER")
+    uploadedFile = models.FileField(upload_to=METADATA_UPLOAD_FOLDER)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
@@ -143,6 +144,23 @@ class SchemaProperties(models.Model):
         data.append(self.classification)
         data.append(self.description)
         return data
+
+    def has_options(self):
+        has_options = FALSE
+        if self.options == 1:
+            has_options = True
+        else:
+            has_options = False
+        return has_options
+
+    def get_label(self):
+        return "%s" % (self.label)
+
+    def get_property(self):
+        return "%s" % (self.property)
+
+    def get_format(self):
+        return "%s" % (self.format)
 
     objects = SchemaPropertiesManager()
 
