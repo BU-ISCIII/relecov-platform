@@ -9,7 +9,6 @@ from relecov_core.utils.schema_handling import (
     process_schema_file,
     get_schemas_loaded,
     get_schema_display_data,
-    
 )
 
 from django.shortcuts import render, redirect
@@ -96,9 +95,7 @@ def metadata_form(request):
         print("Fichero recibido")
         sample_recorded = upload_excel_file(request)
 
-    return render(
-        request, "relecov_core/metadataForm2.html", {"m_form": m_form}
-    )
+    return render(request, "relecov_core/metadataForm2.html", {"m_form": m_form})
 
 
 @login_required()

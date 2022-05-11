@@ -141,24 +141,23 @@ class SchemaProperties(models.Model):
         data.append(self.classification)
         data.append(self.description)
         return data
-    
+
     def has_options(self):
         has_options = FALSE
         if self.options == 1:
             has_options = True
         else:
-            has_options = False 
+            has_options = False
         return has_options
-    
+
     def get_label(self):
         return "%s" % (self.label)
-    
+
     def get_property(self):
         return "%s" % (self.property)
-    
+
     def get_format(self):
         return "%s" % (self.format)
-    
 
     objects = SchemaPropertiesManager()
 
