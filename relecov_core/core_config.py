@@ -141,3 +141,6 @@ HEADING_SCHEMA_DISPLAY = [
     "Classification",
     "Description",
 ]
+
+# REST API TO iSkyLIMS
+ISKLIMS_LABORATORY_PARAMETERS = ["/wetlab/api/laboratoryData", "laboratory"]
