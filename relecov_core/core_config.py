@@ -1,6 +1,3 @@
-import os
-from relecov_platform.settings import MEDIA_ROOT
-
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
@@ -126,7 +123,7 @@ HEADING_FOR_QCSTATS_TABLE = {
 }
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
-METADATA_UPLOAD_FOLDER = os.path.join(MEDIA_ROOT, "metadata")  # "metadata"
+METADATA_UPLOAD_FOLDER = "metadata"
 
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
