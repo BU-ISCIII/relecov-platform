@@ -10,6 +10,9 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     laboratory = models.CharField(max_length=60, null=True, blank=True)
 
+    class Meta:
+        db_table = "Profile"
+
     def __str__(self):
         return self.user.username
 
