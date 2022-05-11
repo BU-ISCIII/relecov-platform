@@ -1,9 +1,10 @@
+from pickle import FALSE
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, METADATA_UPLOAD_FOLDER
 
 
 class Profile(models.Model):
@@ -140,6 +141,24 @@ class SchemaProperties(models.Model):
         data.append(self.classification)
         data.append(self.description)
         return data
+    
+    def has_options(self):
+        has_options = FALSE
+        if self.options == 1:
+            has_options = True
+        else:
+            has_options = False 
+        return has_options
+    
+    def get_label(self):
+        return "%s" % (self.label)
+    
+    def get_property(self):
+        return "%s" % (self.property)
+    
+    def get_format(self):
+        return "%s" % (self.format)
+    
 
     objects = SchemaPropertiesManager()
 
