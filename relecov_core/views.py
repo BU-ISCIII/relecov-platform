@@ -1,7 +1,7 @@
 from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.handling_samples import (
-    get_input_samples,
+    create_metadata_form,
     analyze_input_samples,
 )
 
@@ -9,6 +9,7 @@ from relecov_core.utils.schema_handling import (
     process_schema_file,
     get_schemas_loaded,
     get_schema_display_data,
+    
 )
 
 from django.shortcuts import render, redirect
@@ -72,7 +73,7 @@ def documentation(request):
 
 @login_required()
 def metadata_form(request):
-    sample_recorded = get_input_samples()
+    m_form = create_metadata_form()
     """
     if request.method == "POST":
         print("prime if")
@@ -96,7 +97,7 @@ def metadata_form(request):
         sample_recorded = upload_excel_file(request)
 
     return render(
-        request, "relecov_core/metadataForm2.html", {"sample_recorded": sample_recorded}
+        request, "relecov_core/metadataForm2.html", {"m_form": m_form}
     )
 
 
