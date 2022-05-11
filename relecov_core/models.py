@@ -874,3 +874,33 @@ class PublicDatabaseField(models.Model):
         return "%s" % (self.fieldInUse)
 
     objects = PublicDatabaseFieldManager()
+
+
+class ConfigSettingManager(models.Manager):
+    def create_config_setting(self, configuration_name, configuration_value):
+        new_config_settings = self.create(
+            configurationName=configuration_name, configurationValue=configuration_value
+        )
+        return new_config_settings
+
+
+class ConfigSetting(models.Model):
+    configurationName = models.CharField(max_length=80)
+    configurationValue = models.CharField(max_length=255, null=True, blank=True)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "ConfigSetting"
+
+    def __str__(self):
+        return "%s" % (self.configurationName)
+
+    def get_configuration_value(self):
+        return "%s" % (self.configurationValue)
+
+    def set_configuration_value(self, new_value):
+        self.configurationValue = new_value
+        self.save()
+        return self
+
+    objects = ConfigSettingManager()
