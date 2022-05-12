@@ -19,17 +19,15 @@ def fetch_batch_options():
     ).last()
     # classification="Bioinformatics and QC metrics"
     properties_objs = SchemaProperties.objects.filter(
-        fill_mode="batch", 
+        fill_mode="batch",
         schemaID=schema_obj,
-        classification="Bioinformatics and QC metrics"
-        
+        classification="Bioinformatics and QC metrics",
     )
     # classification="Contributor Acknowledgement"
     properties_objs2 = SchemaProperties.objects.filter(
-        fill_mode="batch", 
+        fill_mode="batch",
         schemaID=schema_obj,
-        classification="Contributor Acknowledgement"
-        
+        classification="Contributor Acknowledgement",
     )
     print(properties_objs)
     for properties_obj in properties_objs:
@@ -125,7 +123,7 @@ def analyze_input_samples(request):
             sample_recorded["process"] = "Error"
             sample_recorded["wrong_rows"] = wrong_rows
             sample_recorded["heading"] = heading
-    #print(sample_recorded["process"])
+    # print(sample_recorded["process"])
 
     return sample_recorded
 
