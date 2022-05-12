@@ -105,16 +105,24 @@ def get_dropdown_options():
 
 
 def get_properties_dict():
-    properties = SchemaProperties.objects.filter(fill_mode = "batch").values_list('id', 'property').distinct()
+    properties = (
+        SchemaProperties.objects.filter(fill_mode="batch")
+        .values_list("id", "property")
+        .distinct()
+    )
     properties_dict = dict(properties)
-    
+
     return properties_dict
 
 
 def get_properties_options(properties):
     properties_dict = {}
     for property in properties:
-        options = PropertyOptions.objects.filter(propertyID_id = property).values_list('enums', flat=True).distinct()
+        options = (
+            PropertyOptions.objects.filter(propertyID_id=property)
+            .values_list("enums", flat=True)
+            .distinct()
+        )
         options_dict = list(options)
         properties_dict[property] = options_dict
     return options_dict

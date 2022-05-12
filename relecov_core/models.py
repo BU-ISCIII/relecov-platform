@@ -499,11 +499,15 @@ class AnalysisManager(models.Manager):
             raw_sequence_data_processing_method=data[
                 "raw_sequence_data_processing_method"
             ],
-            dehosting_method=data["dehosting_method"],
+            # dehosting_method=data["dehosting_method"],
+            dehosting_software_name=data["dehosting_software_name"],
+            dehosting_software_version=data["dehosting_software_version"],
             assembly=data["assembly"],
             if_assembly_other=data["if_assembly_other"],
             assembly_params=data["assembly_params"],
-            variant_calling=data["variant_calling"],
+            # variant_calling=data["variant_calling"],
+            variant_calling_software_name=data["variant_calling_software_name"],
+            variant_calling_software_version=data["variant_calling_software_version"],
             if_variant_calling_other=data["if_variant_calling_other"],
             variant_calling_params=data["variant_calling_params"],
             consensus_sequence_name=data["consensus_sequence_name"],
@@ -514,19 +518,27 @@ class AnalysisManager(models.Manager):
             consensus_sequence_software_version=data[
                 "consensus_sequence_software_version"
             ],
-            consensus_criteria=data["consensus_criteria"],
+            # consensus_criteria=data["consensus_criteria"],
+            consensus_params=data["consensus_params"],
             reference_genome_accession=data["reference_genome_accession"],
-            bioinformatics_protocol=data["bioinformatics_protocol"],
+            # bioinformatics_protocol=data["bioinformatics_protocol"],
+            bioinformatics_protocol_software_name=data[
+                "bioinformatics_protocol_software_name"
+            ],
             if_bioinformatic_protocol_is_other_specify=data[
                 "if_bioinformatic_protocol_is_other_specify"
             ],
             bioinformatic_protocol_version=data["bioinformatic_protocol_version"],
             analysis_date=data["analysis_date"],
             commercial_open_source_both=data["commercial_open_source_both"],
-            preprocessing=data["preprocessing"],
+            # preprocessing=data["preprocessing"],
+            preprocessing_software_name=data["preprocessing_software_name"],
+            preprocessing_software_version=data["preprocessing_software_version"],
             if_preprocessing_other=data["if_preprocessing_other"],
             preprocessing_params=data["preprocessing_params"],
-            mapping=data["mapping"],
+            # mapping=data["mapping"],
+            mapping_software_name=data["mapping_software_name"],
+            mapping_software_version=data["mapping_software_version"],
             if_mapping_other=data["if_mapping_other"],
             mapping_params=data["mapping_params"],
         )
@@ -535,11 +547,15 @@ class AnalysisManager(models.Manager):
 
 class Analysis(models.Model):
     raw_sequence_data_processing_method = models.CharField(max_length=100)
-    dehosting_method = models.CharField(max_length=100)
+    # dehosting_method = models.CharField(max_length=100)
+    dehosting_software_name = models.CharField(max_length=100)
+    dehosting_software_version = models.CharField(max_length=100)
     assembly = models.CharField(max_length=100)
     if_assembly_other = models.CharField(max_length=100)
     assembly_params = models.CharField(max_length=100)
-    variant_calling = models.CharField(max_length=100)
+    # variant_calling = models.CharField(max_length=100)
+    variant_calling_software_name = (models.CharField(max_length=100),)
+    variant_calling_software_version = (models.CharField(max_length=100),)
     if_variant_calling_other = models.CharField(max_length=100)
     variant_calling_params = models.CharField(max_length=100)
     consensus_sequence_name = models.CharField(max_length=100)
@@ -548,17 +564,23 @@ class Analysis(models.Model):
     consensus_sequence_software_name = models.CharField(max_length=100)
     if_consensus_other = models.CharField(max_length=100)
     consensus_sequence_software_version = models.CharField(max_length=100)
-    consensus_criteria = models.CharField(max_length=100)
+    # consensus_criteria = models.CharField(max_length=100)
+    consensus_params = models.CharField(max_length=100)
     reference_genome_accession = models.CharField(max_length=100)
-    bioinformatics_protocol = models.CharField(max_length=100)
+    # bioinformatics_protocol = models.CharField(max_length=100)
+    bioinformatics_protocol_software_name = models.CharField(max_length=100)
     if_bioinformatic_protocol_is_other_specify = models.CharField(max_length=100)
     bioinformatic_protocol_version = models.CharField(max_length=100)
     analysis_date = models.CharField(max_length=100)
     commercial_open_source_both = models.CharField(max_length=100)
-    preprocessing = models.CharField(max_length=100)
+    # preprocessing = models.CharField(max_length=100)
+    preprocessing_software_name = (models.CharField(max_length=100),)
+    preprocessing_software_version = (models.CharField(max_length=100),)
     if_preprocessing_other = models.CharField(max_length=100)
     preprocessing_params = models.CharField(max_length=100)
-    mapping = models.CharField(max_length=100)
+    # mapping = models.CharField(max_length=100)
+    mapping_software_name = models.CharField(max_length=100)
+    mapping_software_version = models.CharField(max_length=100)
     if_mapping_other = models.CharField(max_length=100)
     mapping_params = models.CharField(max_length=100)
     reference_genome_accession = models.CharField(max_length=100)
@@ -578,8 +600,14 @@ class Analysis(models.Model):
     def get_raw_sequence_data_processing_method(self):
         return "%s" % (self.raw_sequence_data_processing_method)
 
-    def get_dehosting_method(self):
-        return "%s" % (self.dehosting_method)
+    # def get_dehosting_method(self):
+    #    return "%s" % (self.dehosting_method)
+
+    def get_dehosting_software_name(self):
+        return "%s" % (self.dehosting_software_name)
+
+    def get_dehosting_software_version(self):
+        return "%s" % (self.dehosting_software_version)
 
     def get_assembly(self):
         return "%s" % (self.assembly)
@@ -590,8 +618,14 @@ class Analysis(models.Model):
     def get_assembly_params(self):
         return "%s" % (self.assembly_params)
 
-    def get_variant_calling(self):
-        return "%s" % (self.variant_calling)
+    # def get_variant_calling(self):
+    #    return "%s" % (self.variant_calling)
+
+    def get_variant_calling_software_name(self):
+        return "%s" % (self.variant_calling_software_name)
+
+    def get_variant_calling_software_version(self):
+        return "%s" % (self.variant_calling_software_version)
 
     def get_if_variant_calling_other(self):
         return "%s" % (self.if_variant_calling_other)
@@ -617,11 +651,17 @@ class Analysis(models.Model):
     def get_consensus_sequence_software_version(self):
         return "%s" % (self.consensus_sequence_software_version)
 
-    def get_consensus_criteria(self):
-        return "%s" % (self.consensus_criteria)
+    # def get_consensus_criteria(self):
+    #    return "%s" % (self.consensus_criteria)
+
+    def get_consensus_params(self):
+        return "%s" % (self.consensus_params)
+
+    # def get_bioinformatics_protocol(self):
+    #    return "%s" % (self.bioinformatics_protocol)
 
     def get_bioinformatics_protocol(self):
-        return "%s" % (self.bioinformatics_protocol)
+        return "%s" % (self.bioinformatics_protocol_software_name)
 
     def get_if_bioinformatic_protocol_is_other_specify(self):
         return "%s" % (self.if_bioinformatic_protocol_is_other_specify)
@@ -635,8 +675,14 @@ class Analysis(models.Model):
     def get_commercial_open_source_both(self):
         return "%s" % (self.commercial_open_source_both)
 
-    def get_preprocessing(self):
-        return "%s" % (self.preprocessing)
+    # def get_preprocessing(self):
+    #    return "%s" % (self.preprocessing)
+
+    def get_preprocessing_software_name(self):
+        return "%s" % (self.preprocessing_software_name)
+
+    def get_preprocessing_software_version(self):
+        return "%s" % (self.preprocessing_software_version)
 
     def get_if_preprocessing_other(self):
         return "%s" % (self.if_preprocessing_other)
@@ -644,8 +690,14 @@ class Analysis(models.Model):
     def get_preprocessing_params(self):
         return "%s" % (self.preprocessing_params)
 
-    def get_mapping(self):
-        return "%s" % (self.mapping)
+    # def get_mapping(self):
+    #    return "%s" % (self.mapping)
+
+    def get_mapping_software_name(self):
+        return "%s" % (self.mapping_software_name)
+
+    def get_mapping_software_version(self):
+        return "%s" % (self.mapping_software_version)
 
     def get_if_mapping_other(self):
         return "%s" % (self.if_mapping_other)
