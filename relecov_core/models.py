@@ -410,6 +410,7 @@ class Sample(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
+    
     class Meta:
         db_table = "Sample"
 
