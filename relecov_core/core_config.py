@@ -1,6 +1,4 @@
-import os
-from relecov_platform.settings import MEDIA_ROOT
-
+"""
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
@@ -51,6 +49,64 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("Sequence file R1 fastq", "sequence_file_R1_fastq"),
     ("Sequence file R2 fastq", "sequence_file_R2_fastq"),
 ]
+"""
+HEADING_FOR_RECORD_SAMPLES = [
+    ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
+    ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
+    ("Sample ID given by the submitting laboratory", "submitting_lab_sample_id"),
+    ("Sample ID given in the microbiology lab", "microbiology_lab_sample_id"),
+    ("Sample ID given if multiple rna-extraction or passages", "isolate_sample_id"),
+    ("Sample ID given for sequencing", "sequencing_sample_id"),
+    ("ENA Sample ID", "biosample_accession_ENA"),
+    ("GISAID Virus Name", "virus_name"),
+    ("GISAID id", "gisaid_id"),
+    ("Originating Laboratory", "collecting_lab_sample_id"),
+    ("Submitting Institution", "submitting_institution"),
+    ("Sample Collection Date", "sample_collection_date"),
+    ("Sample Received Date", "sample_received_date"),
+    ("Purpose of sampling", "purpose_sampling"),
+    ("Biological Sample Storage Condition ", "sample_storage_conditions"),
+    ("Specimen source", "anatomical_material"),
+    ("Environmental Material", "environmental_material"),
+    ("Environmental System", "environmental_site"),
+    ("Collection Device", "collection_device"),
+    ("Host", "host_common_name"),
+    ("Host Age", "host_age"),
+    ("Host Gender", "host_gender"),
+    ("Sequencing Date", "sequencing_date"),
+    ("Rna Extraction Protocol", "rna_extraction_Protocol"),
+    ("Commercial All-in-one library kit", "library_kit"),
+    ("Library Preparation Kit", "library_preparation_kit"),
+    ("Enrichment Protocol", "enrichment_protocol"),
+    (
+        "If Enrichment Protocol Is Other, Specify",
+        "if_enrichment_protocol_is_other_specify",
+    ),
+    ("Enrichment panel/assay", "amplicon_protocol"),
+    (
+        "If Enrichment panel/assay If Other, Especify",
+        "id_amplicon_protocol_if_other_especify",
+    ),
+    ("Enrichment panel/assay version", "amplicon_version"),
+    ("Number Of Samples In Run", "number_of_samples_in_run"),
+    ("Runid", "runID"),
+    ("Sequencing Instrument Model", "sequencing_instrument_model"),
+    ("Flowcell Kit", "flowcell_kit"),
+    ("Source material", "library_source"),
+    ("Capture method", "library_selection"),
+    ("Sequencing technique", "library_strategy"),
+    ("Library Layout", "library_layout"),
+    ("Gene Name 1", "gene_name_1"),
+    ("Diagnostic Pcr Ct Value 1", "diagnostic_pcr_Ct_value_1"),
+    ("Gene Name 2", "gene_name_2"),
+    ("Diagnostic Pcr Ct Value-2", "diagnostic_pcr_Ct_value-2"),
+    ("Analysis Authors", "Analysis_authors"),
+    ("Author Submitter", "Author_submitter"),
+    ("Authors", "authors"),
+    ("Sequence file R1 fastq", "sequence_file_R1_fastq"),
+    ("Sequence file R2 fastq", "sequence_file_R2_fastq"),
+]
+
 
 HEADING_FOR_SAMPLE_TABLE = {
     "Sample ID given by originating laboratory": "collecting_lab_sample_id",
