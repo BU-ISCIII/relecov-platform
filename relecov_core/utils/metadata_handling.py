@@ -1,11 +1,6 @@
 import datetime
 import os
 from pathlib import Path
-<<<<<<< HEAD
-import time
-import xlrd
-=======
->>>>>>> 5efa158f4b389ed9833718c3efb1f16fcc424648
 
 # import xlrd
 from relecov_core.core_config import METADATA_UPLOAD_FOLDER
@@ -29,16 +24,9 @@ def upload_excel_file(request):
     if not os.path.exists(path):
         path = Path(path)
         path.mkdir(parents=True)
-<<<<<<< HEAD
 # Saving the information in the database
     #file_upload = store_file(uploadedFile, file_path)
     #print(file_upload)
-=======
-    file_upload = store_file(uploadedFile, file_path)
-    print(file_upload)
-
-    # Saving the information in the database
->>>>>>> 5efa158f4b389ed9833718c3efb1f16fcc424648
     document = Document(title=title, file_path=path, uploadedFile=uploadedFile)
     document.save()
 
