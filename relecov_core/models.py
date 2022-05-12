@@ -1,9 +1,6 @@
 from pickle import FALSE
 from django.db import models
 from django.contrib.auth.models import User
-<<<<<<< HEAD
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, METADATA_UPLOAD_FOLDER
-=======
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -23,7 +20,6 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
->>>>>>> 5efa158f4b389ed9833718c3efb1f16fcc424648
 
 
 class Document(models.Model):
@@ -414,11 +410,6 @@ class Sample(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5efa158f4b389ed9833718c3efb1f16fcc424648
     class Meta:
         db_table = "Sample"
 
