@@ -17,10 +17,35 @@ def fetch_batch_options():
     schema_obj = Schema.objects.filter(
         schema_name="RELECOV", schema_default=True
     ).last()
+    # classification="Bioinformatics and QC metrics"
     properties_objs = SchemaProperties.objects.filter(
-        fill_mode="batch", schemaID=schema_obj
+        fill_mode="batch", 
+        schemaID=schema_obj,
+        classification="Bioinformatics and QC metrics"
+        
     )
+    # classification="Contributor Acknowledgement"
+    properties_objs2 = SchemaProperties.objects.filter(
+        fill_mode="batch", 
+        schemaID=schema_obj,
+        classification="Contributor Acknowledgement"
+        
+    )
+    print(properties_objs)
     for properties_obj in properties_objs:
+        data_dict = {}
+        if properties_obj.has_options():
+            data_dict["Options"] = list(
+                PropertyOptions.objects.filter(propertyID_id=properties_obj)
+                .values_list("enums", flat=True)
+                .distinct()
+            )
+        data_dict["Label"] = properties_obj.get_label()
+        data_dict["Property"] = properties_obj.get_property()
+        data_dict["Format"] = properties_obj.get_format()
+
+        data.append(data_dict)
+    for properties_obj in properties_objs2:
         data_dict = {}
         if properties_obj.has_options():
             data_dict["Options"] = list(
@@ -55,10 +80,10 @@ def fetch_sample_options():
         data_dict["Label"] = properties_obj.get_label()
         data_dict["Property"] = properties_obj.get_property()
         data_dict["Format"] = properties_obj.get_format()
-        print(properties_obj)
+        # print(properties_obj)
 
         data.append(data_dict)
-        print(data_dict)
+        # print(data_dict)
     return data
 
 
@@ -100,7 +125,7 @@ def analyze_input_samples(request):
             sample_recorded["process"] = "Error"
             sample_recorded["wrong_rows"] = wrong_rows
             sample_recorded["heading"] = heading
-    print(sample_recorded["process"])
+    #print(sample_recorded["process"])
 
     return sample_recorded
 
