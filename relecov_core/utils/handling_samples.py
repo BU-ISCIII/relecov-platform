@@ -24,11 +24,13 @@ def fetch_batch_options():
         classification="Bioinformatics and QC metrics",
     )
     # classification="Contributor Acknowledgement"
+    """
     properties_objs2 = SchemaProperties.objects.filter(
         fill_mode="batch",
         schemaID=schema_obj,
         classification="Contributor Acknowledgement",
     )
+    """
     print(properties_objs)
     for properties_obj in properties_objs:
         data_dict = {}
@@ -43,6 +45,7 @@ def fetch_batch_options():
         data_dict["Format"] = properties_obj.get_format()
 
         data.append(data_dict)
+    """
     for properties_obj in properties_objs2:
         data_dict = {}
         if properties_obj.has_options():
@@ -56,6 +59,7 @@ def fetch_batch_options():
         data_dict["Format"] = properties_obj.get_format()
 
         data.append(data_dict)
+    """
     return data
 
 
@@ -96,7 +100,7 @@ def create_metadata_form():
 
 def analyze_input_samples(request):
     sample_recorded = {}
-    heading = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
+    # heading = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
     data_author = {}
     wrong_rows = []
     na_json_data = json.loads(request.POST["table_data"])
@@ -110,19 +114,21 @@ def analyze_input_samples(request):
             if row[field] == "":
                 wrong_rows.append(row)
                 break
-
+        """
         for idx in range(len(heading)):
             if heading[idx] in HEADING_FOR_AUTHOR_TABLE:
                 data_author[HEADING_FOR_AUTHOR_TABLE[heading[idx]]] = row[idx]
-
+        """
         print(data_author)
         print(wrong_rows)
         if len(wrong_rows) < 1:
             sample_recorded["process"] = "Success"
+            sample_recorded["batch"] = fetch_batch_options()
         else:
             sample_recorded["process"] = "Error"
             sample_recorded["wrong_rows"] = wrong_rows
-            sample_recorded["heading"] = heading
+            # sample_recorded["heading"] = heading
+            sample_recorded["sample"] = fetch_sample_options()
     # print(sample_recorded["process"])
 
     return sample_recorded
