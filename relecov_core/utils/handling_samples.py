@@ -3,16 +3,10 @@ from relecov_core.core_config import (
 )
 import json
 
-<<<<<<< HEAD
-from relecov_core.models import(
-    SchemaProperties,
-    PropertyOptions,
-=======
 from relecov_core.models import (
     SchemaProperties,
     PropertyOptions,
     Schema,
->>>>>>> 5efa158f4b389ed9833718c3efb1f16fcc424648
 )
 
 
@@ -97,15 +91,9 @@ def fetch_sample_options():
 def create_metadata_form():
     sample_recorded = {}
     sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
-<<<<<<< HEAD
-    dropdown_options = get_dropdown_options()
-    sample_recorded["dropdown"] = dropdown_options
-    
-=======
     sample_recorded["batch"] = fetch_batch_options()
     sample_recorded["samples"] = fetch_sample_options()
 
->>>>>>> 5efa158f4b389ed9833718c3efb1f16fcc424648
     return sample_recorded
 
 
