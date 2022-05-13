@@ -1,5 +1,6 @@
 # from os import stat
 from django.contrib.auth.models import User
+from django.contrib import auth
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
     HEADING_FOR_SAMPLE_TABLE,
@@ -135,6 +136,7 @@ def get_properties_options(properties):
 
 
 def analyze_input_samples(request):
+    get_user_info(request)
     sample_recorded = {}
     # headings = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
     # data_sample = {}
@@ -169,7 +171,8 @@ def analyze_input_samples(request):
 
         sample = Sample(
             state=state,
-            user=User.objects.create_user("user04", "email@email.com", "0xfa0xff"),
+            # user=User.objects.create_user("user04", "email@email.com", "0xfa0xff"),
+            user=auth.authenticate(username="luis", password="0xfa0xff"),
             metadata_file=metadata_file,
             collecting_lab_sample_id=row[0],
             sequencing_sample_id="",
@@ -215,6 +218,18 @@ def analyze_input_samples(request):
     # print(sample_recorded["process"])
 
     return sample_recorded
+
+
+def get_user_info(request):
+    login_user = ""
+    users = User.objects.all()
+    for user in users:
+        print(user)
+        if user == request.user.username:
+            login_user = user
+    user = User(username=login_user)
+
+    return user
 
 
 def prepare_sample_input_table():
