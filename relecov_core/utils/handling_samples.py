@@ -1,4 +1,4 @@
-from os import stat
+# from os import stat
 from django.contrib.auth.models import User
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
@@ -136,8 +136,8 @@ def get_properties_options(properties):
 
 def analyze_input_samples(request):
     sample_recorded = {}
-    headings = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
-    data_sample = {}
+    # headings = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
+    # data_sample = {}
     wrong_rows = []
     na_json_data = json.loads(request.POST["table_data"])
 
@@ -200,7 +200,7 @@ def analyze_input_samples(request):
                 data_sample[HEADING_FOR_SAMPLE_TABLE[heading[idx]]] = row[idx]
                 # print(row[idx])
         print(heading)
-        
+
         print(data_sample)
         """
         print(wrong_rows)
