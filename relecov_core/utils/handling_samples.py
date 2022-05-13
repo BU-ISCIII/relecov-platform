@@ -1,12 +1,18 @@
+from os import stat
+from django.contrib.auth.models import User
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
+    HEADING_FOR_SAMPLE_TABLE,
 )
 import json
 
 from relecov_core.models import (
+    Document,
+    SampleState,
     SchemaProperties,
     PropertyOptions,
     Schema,
+    Sample,
 )
 
 
@@ -130,12 +136,13 @@ def get_properties_options(properties):
 
 def analyze_input_samples(request):
     sample_recorded = {}
-    # heading = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
-    data_author = {}
+    headings = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
+    data_sample = {}
     wrong_rows = []
     na_json_data = json.loads(request.POST["table_data"])
 
     for row in na_json_data:
+        print(row)
 
         if row[0] == "":
             continue
@@ -144,12 +151,58 @@ def analyze_input_samples(request):
             if row[field] == "":
                 wrong_rows.append(row)
                 break
+
+        headings_sample = HEADING_FOR_SAMPLE_TABLE.values()
+        print(headings_sample)
+
+        state = SampleState(
+            state="1",
+            display_string="display_string",
+            description="description",
+        )
+        state.save()
+
+        metadata_file = Document(
+            title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
+        )
+        metadata_file.save()
+
+        sample = Sample(
+            state=state,
+            user=User.objects.create_user("user04", "email@email.com", "0xfa0xff"),
+            metadata_file=metadata_file,
+            collecting_lab_sample_id=row[0],
+            sequencing_sample_id="",
+            biosample_accession_ENA=row[5],
+            virus_name=row[6],
+            gisaid_id=row[14],
+            sequencing_date="",
+        )
+        sample.save()
         """
         for idx in range(len(heading)):
-            if heading[idx] in HEADING_FOR_AUTHOR_TABLE:
-                data_author[HEADING_FOR_AUTHOR_TABLE[heading[idx]]] = row[idx]
+            if heading[idx] in HEADING_FOR_SAMPLE_TABLE:
+                data_sample[HEADING_FOR_SAMPLE_TABLE[heading[idx]]] = row[idx]
+                print(row[idx])
+        print(heading)
         """
-        print(data_author)
+        """
+        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by(
+            "property"
+        )
+        schema_data["heading"] = HEADING_SCHEMA_DISPLAY
+        for s_prop_obj in s_prop_objs:
+            schema_data["s_data"].append(s_prop_obj.get_property_info())
+        for heading in headings:
+            data_sample
+        for idx in range(len(heading)):
+            if heading[idx] in HEADING_FOR_SAMPLE_TABLE:
+                data_sample[HEADING_FOR_SAMPLE_TABLE[heading[idx]]] = row[idx]
+                # print(row[idx])
+        print(heading)
+        
+        print(data_sample)
+        """
         print(wrong_rows)
         if len(wrong_rows) < 1:
             sample_recorded["process"] = "Success"

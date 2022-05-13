@@ -107,7 +107,6 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("Sequence file R2 fastq", "sequence_file_R2_fastq"),
 ]
 
-
 HEADING_FOR_SAMPLE_TABLE = {
     "Sample ID given by originating laboratory": "collecting_lab_sample_id",
     "Sample ID given for sequencing": "sequencing_sample_id",
@@ -117,6 +116,16 @@ HEADING_FOR_SAMPLE_TABLE = {
     "Sequencing Date": "sequencing_date",
 }
 
+"""
+HEADING_FOR_SAMPLE_TABLE = [
+    ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),
+    ("Sample ID given for sequencing", "sequencing_sample_id"),
+    ("ENA Sample Id", "biosample_accession_ENA"),
+    ("GISAID Virus Name", "virus_name"),
+    ("GISAID Id", "gisaid_id"),
+    ("Sequencing Date", "sequencing_date"),
+]
+"""
 HEADING_FOR_LINEAGE_TABLE = {
     "Lineage identification date": "lineage_identification_date",
     "Lineage/clade name": "lineage_name",
