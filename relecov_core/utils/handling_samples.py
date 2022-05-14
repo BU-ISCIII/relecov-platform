@@ -1,5 +1,4 @@
 # from os import stat
-from django.contrib.auth.models import User
 from django.contrib import auth
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
