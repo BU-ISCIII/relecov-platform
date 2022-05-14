@@ -1,3 +1,26 @@
+HEADING_FOR_METADATA_FORM_SAMPLE = [
+    ("Submitting Institution", "submitting_institution"),
+    ("Purpose of sampling", "purpose_sampling"),
+    ("Biological Sample Storage Condition ", "sample_storage_conditions"),
+    ("Environmental System", "environmental_site"),
+    ("Collection Device", "collection_device"),
+    ("Host", "host_common_name"),
+    ("Commercial All-in-one library kit", "library_kit"),
+    ("Library Preparation Kit", "library_preparation_kit"),
+    ("Enrichment Protocol", "enrichment_protocol"),
+    (
+        "If Enrichment Protocol Is Other, Specify",
+        "if_enrichment_protocol_is_other_specify",
+    ),
+    ("Enrichment panel/assay", "amplicon_protocol"),
+    (
+        "If Enrichment panel/assay If Other, Especify",
+        "id_amplicon_protocol_if_other_especify",
+    ),
+    ("Enrichment panel/assay version", "amplicon_version"),
+    ("Number Of Samples In Run", "number_of_samples_in_run"),
+]
+
 """
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
@@ -10,7 +33,7 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("GISAID Virus Name", "virus_name"),
     ("GISAID id", "gisaid_id"),
     ("Originating Laboratory", "collecting_lab_sample_id"),
-    # ("Submitting Institution", "submitting_institution"),
+    
     ("Sample Collection Date", "sample_collection_date"),
     ("Sample Received Date", "sample_received_date"),
     # ("Purpose of sampling", "purpose_sampling"),
@@ -50,6 +73,7 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("Sequence file R2 fastq", "sequence_file_R2_fastq"),
 ]
 """
+
 HEADING_FOR_RECORD_SAMPLES = [
     ("Public Health sample id (SIVIES)", "public_health_sample_id_sivies"),
     ("Sample ID given by originating laboratory", "collecting_lab_sample_id"),

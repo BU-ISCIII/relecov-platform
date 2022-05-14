@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib import auth
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
-    HEADING_FOR_SAMPLE_TABLE,
 )
 import json
 
@@ -37,7 +36,6 @@ def fetch_batch_options():
         classification="Contributor Acknowledgement",
     )
     """
-    print(properties_objs)
     for properties_obj in properties_objs:
         data_dict = {}
         if properties_obj.has_options():
@@ -88,11 +86,31 @@ def fetch_sample_options():
         data_dict["Label"] = properties_obj.get_label()
         data_dict["Property"] = properties_obj.get_property()
         data_dict["Format"] = properties_obj.get_format()
-        # print(properties_obj)
-
         data.append(data_dict)
-        # print(data_dict)
+
     return data
+
+
+def sample_table_columns_names():
+    sample_table_columns_names = []
+    for field in Sample._meta.fields:
+        sample_table_columns_names.append(field.get_attname_column()[1])
+        print(sample_table_columns_names)
+    return sample_table_columns_names
+
+
+def get_sample_data(row):
+    data_sample = {}
+    idx = 0
+    headings = fetch_sample_options()
+    sample_columns_names = sample_table_columns_names()
+
+    for heading in headings:
+        if heading["Property"] in sample_columns_names:
+            print(heading["Property"])
+            data_sample[heading["Property"]] = row[idx]
+        idx += 1
+    return data_sample
 
 
 def create_metadata_form():
@@ -102,6 +120,33 @@ def create_metadata_form():
     sample_recorded["samples"] = fetch_sample_options()
 
     return sample_recorded
+
+
+def execute_query(data_sample):
+    metadata_file = Document(
+        title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
+    )
+    metadata_file.save()
+
+    state = SampleState(
+        state="1",
+        display_string="display_string",
+        description="description",
+    )
+    state.save()
+
+    sample = Sample(
+        state=state,
+        user=auth.authenticate(username="luis", password="0xfa0xff"),
+        metadata_file=metadata_file,
+        collecting_lab_sample_id=data_sample["collecting_lab_sample_id"],
+        sequencing_sample_id=data_sample["sequencing_sample_id"],
+        biosample_accession_ENA=data_sample["biosample_accession_ENA"],
+        virus_name=data_sample["virus_name"],
+        gisaid_id=data_sample["gisaid_id"],
+        sequencing_date="",
+    )
+    sample.save()
 
 
 def get_dropdown_options():
@@ -136,100 +181,44 @@ def get_properties_options(properties):
 
 
 def analyze_input_samples(request):
-    get_user_info(request)
     sample_recorded = {}
-    # headings = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
-    # data_sample = {}
-    wrong_rows = []
     na_json_data = json.loads(request.POST["table_data"])
+    process_rows_in_json(na_json_data)
+
+    wrong_rows = []
+    print(wrong_rows)
+    if len(wrong_rows) < 1:
+        sample_recorded["process"] = "Success"
+        sample_recorded["batch"] = fetch_batch_options()
+    else:
+        sample_recorded["process"] = "Error"
+        sample_recorded["wrong_rows"] = wrong_rows
+        sample_recorded["sample"] = fetch_sample_options()
+
+    return sample_recorded
+
+
+def process_rows_in_json(na_json_data):
+    process_results = {}
+    wrong_rows = []
 
     for row in na_json_data:
         print(row)
-
         if row[0] == "":
             continue
 
+        # check if all fields are completed
         for field in range(len(row)):
             if row[field] == "":
                 wrong_rows.append(row)
                 break
 
-        headings_sample = HEADING_FOR_SAMPLE_TABLE.values()
-        print(headings_sample)
+        data_sample = get_sample_data(row)
+        execute_query(data_sample)
 
-        state = SampleState(
-            state="1",
-            display_string="display_string",
-            description="description",
-        )
-        state.save()
+    process_results["Wrong_rows"] = wrong_rows
 
-        metadata_file = Document(
-            title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
-        )
-        metadata_file.save()
-
-        sample = Sample(
-            state=state,
-            # user=User.objects.create_user("user04", "email@email.com", "0xfa0xff"),
-            user=auth.authenticate(username="luis", password="0xfa0xff"),
-            metadata_file=metadata_file,
-            collecting_lab_sample_id=row[0],
-            sequencing_sample_id="",
-            biosample_accession_ENA=row[5],
-            virus_name=row[6],
-            gisaid_id=row[14],
-            sequencing_date="",
-        )
-        sample.save()
-        """
-        for idx in range(len(heading)):
-            if heading[idx] in HEADING_FOR_SAMPLE_TABLE:
-                data_sample[HEADING_FOR_SAMPLE_TABLE[heading[idx]]] = row[idx]
-                print(row[idx])
-        print(heading)
-        """
-        """
-        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by(
-            "property"
-        )
-        schema_data["heading"] = HEADING_SCHEMA_DISPLAY
-        for s_prop_obj in s_prop_objs:
-            schema_data["s_data"].append(s_prop_obj.get_property_info())
-        for heading in headings:
-            data_sample
-        for idx in range(len(heading)):
-            if heading[idx] in HEADING_FOR_SAMPLE_TABLE:
-                data_sample[HEADING_FOR_SAMPLE_TABLE[heading[idx]]] = row[idx]
-                # print(row[idx])
-        print(heading)
-
-        print(data_sample)
-        """
-        print(wrong_rows)
-        if len(wrong_rows) < 1:
-            sample_recorded["process"] = "Success"
-            sample_recorded["batch"] = fetch_batch_options()
-        else:
-            sample_recorded["process"] = "Error"
-            sample_recorded["wrong_rows"] = wrong_rows
-            # sample_recorded["heading"] = heading
-            sample_recorded["sample"] = fetch_sample_options()
-    # print(sample_recorded["process"])
-
-    return sample_recorded
-
-
-def get_user_info(request):
-    login_user = ""
-    users = User.objects.all()
-    for user in users:
-        print(user)
-        if user == request.user.username:
-            login_user = user
-    user = User(username=login_user)
-
-    return user
+    return process_results
 
 
 def prepare_sample_input_table():
