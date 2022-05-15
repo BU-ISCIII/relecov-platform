@@ -76,6 +76,8 @@ def documentation(request):
 @login_required()
 def metadata_form(request):
     m_form = create_metadata_form()
+    # if request.session["insert_sample_data"] == "insert_sample_data":
+    #    print("you already completed this table")
     """
     if request.method == "POST" and request.POST["action"] == "metadata_form_batch":
         sample_recorded = {}
@@ -90,6 +92,9 @@ def metadata_form(request):
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
         # import pdb; pdb.set_trace()
+        if sample_recorded["process"] == "Success":
+            request.session["insert_sample_data"] = "insert_sample_data"
+           
         return render(
             request,
             "relecov_core/metadataForm2.html",
