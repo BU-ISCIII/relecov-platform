@@ -108,6 +108,27 @@ HEADING_FOR_RECORD_SAMPLES = [
     ("Sequence file R2 fastq", "sequence_file_R2_fastq"),
 ]
 
+HEADING_FOR_SAMPLE_TABLE = {
+    "Sample ID given by originating laboratory": "collecting_lab_sample_id",
+    "Sample ID given for sequencing": "sequencing_sample_id",
+    "ENA Sample Id": "biosample_accession_ENA",
+    "GISAID Virus Name": "virus_name",
+    "GISAID Id": "gisaid_id",
+    "Sequencing Date": "sequencing_date",
+}
+
+HEADINGS_FOR_ISkyLIMS = {
+    "Originating Laboratory": "collecting_institution",
+    "Submitting Institution": "submitting_institution",
+    "Sample Collection Date": "sample_collection_date",
+    "Sample Received Date": "sample_received_date",
+    "Sample ID given in the microbiology lab": "microbiology_lab_sample_id",
+    "Public Health sample id (SIVIES)": "public_health_sample_id_sivies",
+    "Sequence file R1 fastq": "sequence_file_R1_fastq",
+    "Sequence file R2 fastq": "sequence_file_R2_fastq",
+    "Sample ID given if multiple rna-extraction or passages": "isolate_sample_id",
+}
+
 HEADING_FOR_LINEAGE_TABLE = {
     "Lineage identification date": "lineage_identification_date",
     "Lineage/clade name": "lineage_name",

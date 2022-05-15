@@ -2,6 +2,7 @@
 from django.contrib import auth
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
+    HEADINGS_FOR_ISkyLIMS,
 )
 import json
 
@@ -100,15 +101,23 @@ def sample_table_columns_names():
 
 def get_sample_data(row):
     data_sample = {}
+    data_ISkyLIMS = {}
     idx = 0
     headings = fetch_sample_options()
     sample_columns_names = sample_table_columns_names()
 
+    # submittin_lab_sequencing_id => not found
     for heading in headings:
         if heading["Property"] in sample_columns_names:
-            print(heading["Property"])
+            # print(heading["Property"])
             data_sample[heading["Property"]] = row[idx]
-        idx += 1
+            idx += 1
+        if heading["Label"] in HEADINGS_FOR_ISkyLIMS:
+            # print(heading["Property"])
+            data_ISkyLIMS[heading["Property"]] = row[idx]
+            idx += 1
+    print(data_sample)
+    print(data_ISkyLIMS)
     return data_sample
 
 
