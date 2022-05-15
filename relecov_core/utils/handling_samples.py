@@ -160,7 +160,7 @@ def execute_query(data, request):
         sequencing_date="",
     )
     sample.save()
-
+    
     # TODO - query to ISkyLIMS data
     # data_sample["data_ISkyLIMS"]
 
@@ -202,11 +202,12 @@ def analyze_input_samples(request):
     if len(wrong_rows) < 1:
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
+        
     else:
         sample_recorded["process"] = "Error"
         sample_recorded["wrong_rows"] = wrong_rows
         sample_recorded["sample"] = fetch_sample_options()
-
+        
     return sample_recorded
 
 
