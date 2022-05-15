@@ -94,7 +94,7 @@ def metadata_form(request):
         # import pdb; pdb.set_trace()
         if sample_recorded["process"] == "Success":
             request.session["insert_sample_data"] = "insert_sample_data"
-           
+
         return render(
             request,
             "relecov_core/metadataForm2.html",
