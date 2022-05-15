@@ -95,11 +95,12 @@ def sample_table_columns_names():
     sample_table_columns_names = []
     for field in Sample._meta.fields:
         sample_table_columns_names.append(field.get_attname_column()[1])
-        print(sample_table_columns_names)
+
     return sample_table_columns_names
 
 
 def get_sample_data(row):
+    data = {}
     data_sample = {}
     data_ISkyLIMS = {}
     idx = 0
@@ -109,16 +110,16 @@ def get_sample_data(row):
     # submittin_lab_sequencing_id => not found
     for heading in headings:
         if heading["Property"] in sample_columns_names:
-            # print(heading["Property"])
             data_sample[heading["Property"]] = row[idx]
             idx += 1
         if heading["Label"] in HEADINGS_FOR_ISkyLIMS:
-            # print(heading["Property"])
             data_ISkyLIMS[heading["Property"]] = row[idx]
             idx += 1
-    print(data_sample)
-    print(data_ISkyLIMS)
-    return data_sample
+
+    data["data_sample"] = data_sample
+    data["data_ISkyLIMS"] = data_ISkyLIMS
+
+    return data
 
 
 def create_metadata_form():
@@ -130,7 +131,8 @@ def create_metadata_form():
     return sample_recorded
 
 
-def execute_query(data_sample):
+def execute_query(data, request):
+    data_sample = data["data_sample"]
     metadata_file = Document(
         title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
     )
@@ -145,7 +147,10 @@ def execute_query(data_sample):
 
     sample = Sample(
         state=state,
-        user=auth.authenticate(username="luis", password="0xfa0xff"),
+        user=auth.authenticate(
+            username=request.user.username,
+            password=request.user.password,
+        ),
         metadata_file=metadata_file,
         collecting_lab_sample_id=data_sample["collecting_lab_sample_id"],
         sequencing_sample_id=data_sample["sequencing_sample_id"],
@@ -156,11 +161,13 @@ def execute_query(data_sample):
     )
     sample.save()
 
+    # TODO query to ISkyLIMS data
+    # data_sample["data_ISkyLIMS"]
+
 
 def get_dropdown_options():
     properties = get_properties_dict()
     options = get_properties_options(properties)
-    print(options)
     return options
 
 
@@ -191,10 +198,10 @@ def get_properties_options(properties):
 def analyze_input_samples(request):
     sample_recorded = {}
     na_json_data = json.loads(request.POST["table_data"])
-    process_rows_in_json(na_json_data)
+    process_rows_in_json(na_json_data, request)
 
     wrong_rows = []
-    print(wrong_rows)
+    # print(wrong_rows)
     if len(wrong_rows) < 1:
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
@@ -206,12 +213,11 @@ def analyze_input_samples(request):
     return sample_recorded
 
 
-def process_rows_in_json(na_json_data):
+def process_rows_in_json(na_json_data, request):
     process_results = {}
     wrong_rows = []
 
     for row in na_json_data:
-        print(row)
         if row[0] == "":
             continue
 
@@ -222,7 +228,7 @@ def process_rows_in_json(na_json_data):
                 break
 
         data_sample = get_sample_data(row)
-        execute_query(data_sample)
+        execute_query(data_sample, request)
 
     process_results["Wrong_rows"] = wrong_rows
 
