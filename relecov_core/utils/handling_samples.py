@@ -161,7 +161,7 @@ def execute_query(data, request):
     )
     sample.save()
 
-    # TODO query to ISkyLIMS data
+    # TODO - query to ISkyLIMS data
     # data_sample["data_ISkyLIMS"]
 
 
@@ -198,10 +198,7 @@ def get_properties_options(properties):
 def analyze_input_samples(request):
     sample_recorded = {}
     na_json_data = json.loads(request.POST["table_data"])
-    process_rows_in_json(na_json_data, request)
-
-    wrong_rows = []
-    # print(wrong_rows)
+    wrong_rows = process_rows_in_json(na_json_data, request)
     if len(wrong_rows) < 1:
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
@@ -214,7 +211,6 @@ def analyze_input_samples(request):
 
 
 def process_rows_in_json(na_json_data, request):
-    process_results = {}
     wrong_rows = []
 
     for row in na_json_data:
@@ -227,12 +223,10 @@ def process_rows_in_json(na_json_data, request):
                 wrong_rows.append(row)
                 break
 
-        data_sample = get_sample_data(row)
-        execute_query(data_sample, request)
+        data = get_sample_data(row)
+        execute_query(data, request)
 
-    process_results["Wrong_rows"] = wrong_rows
-
-    return process_results
+    return wrong_rows
 
 
 def prepare_sample_input_table():
