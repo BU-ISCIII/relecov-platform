@@ -439,9 +439,25 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
+class MetadataIsCompleted(models.Model):
+    user = models.CharField(max_length=100)
+    sample_data = models.BooleanField(default=False)
+    batch_data = models.BooleanField(default=False)
+    sampleID_id = models.OneToOneField(
+        Sample,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+
+    # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "MetadataIsCompleted"
+
+
 # Variant Table
-
-
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
         new_variant = self.create(

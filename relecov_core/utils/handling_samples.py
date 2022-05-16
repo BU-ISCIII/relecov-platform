@@ -13,6 +13,7 @@ from relecov_core.models import (
     PropertyOptions,
     Schema,
     Sample,
+    MetadataIsCompleted,
 )
 
 
@@ -160,6 +161,14 @@ def execute_query(data, request):
         sequencing_date="",
     )
     sample.save()
+
+    metadata_is_completed = MetadataIsCompleted(
+        user=request.user.username,
+        sample_data=True,
+        batch_data=False,
+        sampleID_id=Sample.objects.get(id=sample.id),
+    )
+    metadata_is_completed.save()
 
     # TODO - query to ISkyLIMS data
     # data_sample["data_ISkyLIMS"]
