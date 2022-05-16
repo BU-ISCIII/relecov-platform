@@ -451,10 +451,23 @@ class MetadataIsCompleted(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
-    # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
-
     class Meta:
         db_table = "MetadataIsCompleted"
+
+    def __str__(self):
+        return "%s" % (self.user)
+
+    def get_user(self):
+        return "%s" % (self.user)
+
+    def get_sample_data(self):
+        return "%s" % (self.sample_data)
+
+    def get_batch_data(self):
+        return "%s" % (self.batch_data)
+
+    def get_sampleID_id(self):
+        return "%s" % (self.sampleID_id_id)
 
 
 # Variant Table
