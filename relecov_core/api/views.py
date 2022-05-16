@@ -58,7 +58,11 @@ def analysis_data(request):
         data = request.data
         import pdb
 
+        if "long_table" == data["analysis"]:
+            print(data)
         pdb.set_trace()
         if "upload_file" in request.FILES:
             a_file = request.FILES["analysis_file"]
+            print(a_file)
+
     return Response(status=status.HTTP_201_CREATED)
