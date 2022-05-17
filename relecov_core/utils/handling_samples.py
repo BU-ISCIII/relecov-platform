@@ -28,7 +28,7 @@ def fetch_batch_options():
     properties_objs = SchemaProperties.objects.filter(
         fill_mode="batch",
         schemaID=schema_obj,
-        classification="Bioinformatics and QC metrics",
+        # classification="Bioinformatics and QC metrics",
     )
     # classification="Contributor Acknowledgement"
     """
@@ -38,17 +38,20 @@ def fetch_batch_options():
         classification="Contributor Acknowledgement",
     )
     """
+    headings = HEADING_FOR_RECORD_SAMPLES.values()
     for properties_obj in properties_objs:
         data_dict = {}
-        if properties_obj.has_options():
-            data_dict["Options"] = list(
-                PropertyOptions.objects.filter(propertyID_id=properties_obj)
-                .values_list("enums", flat=True)
-                .distinct()
-            )
-        data_dict["Label"] = properties_obj.get_label()
-        data_dict["Property"] = properties_obj.get_property()
-        data_dict["Format"] = properties_obj.get_format()
+        if properties_obj.property in HEADING_FOR_RECORD_SAMPLES.values():
+            # print(properties_obj)
+            if properties_obj.has_options():
+                data_dict["Options"] = list(
+                    PropertyOptions.objects.filter(propertyID_id=properties_obj)
+                    .values_list("enums", flat=True)
+                    .distinct()
+                )
+            data_dict["Label"] = properties_obj.get_label()
+            data_dict["Property"] = properties_obj.get_property()
+            data_dict["Format"] = properties_obj.get_format()
 
         data.append(data_dict)
     """
@@ -66,6 +69,7 @@ def fetch_batch_options():
 
         data.append(data_dict)
     """
+    print(data)
     return data
 
 
@@ -80,6 +84,7 @@ def fetch_sample_options():
     for properties_obj in properties_objs:
         data_dict = {}
         if properties_obj.has_options():
+
             data_dict["Options"] = list(
                 PropertyOptions.objects.filter(propertyID_id=properties_obj)
                 .values_list("enums", flat=True)
@@ -219,7 +224,6 @@ def analyze_input_samples(request):
         sample_recorded["wrong_rows"] = wrong_rows
         sample_recorded["sample"] = fetch_sample_options()
 
-    # print(sample_recorded)
     return sample_recorded
 
 
@@ -247,7 +251,31 @@ def process_rows_in_json(na_json_data, request):
             data = get_sample_data(complete_row)
             execute_query(data, request)
 
-    print("wrong_rows: " + str(wrong_rows))
-    print("complete_rows: " + str(complete_rows))
-
     return wrong_rows
+
+
+def metadata_is_completed(request):
+    metadata_is_completed = MetadataIsCompleted.objects.filter(
+        user=request.user.username,
+        sample_data=True,
+        batch_data=False,
+    ).last()
+
+    # check if a record about this user exits
+    if metadata_is_completed is not None:
+        sample_data_inserted = list(
+            Sample.objects.filter(id=metadata_is_completed.get_sampleID_id()).values(
+                "collecting_lab_sample_id",
+                "sequencing_sample_id",
+                "biosample_accession_ENA",
+                "virus_name",
+                "gisaid_id",
+                "sequencing_date",
+            )
+        )
+
+        if metadata_is_completed.__sizeof__() > 0:
+            request.session["pending_data_list"] = sample_data_inserted[0]
+            request.session["pending_data_msg"] = "PENDING DATA"
+        else:
+            request.session["pending_data_msg"] = "NOT PENDING DATA"
