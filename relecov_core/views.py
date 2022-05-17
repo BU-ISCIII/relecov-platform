@@ -2,10 +2,14 @@
 
 # from relecov_core.utils.metadata_handling import upload_excel_file
 
-from relecov_core.models import MetadataIsCompleted, Sample
+from relecov_core.models import (
+    MetadataIsCompleted,
+    Sample,
+)
 from relecov_core.utils.handling_samples import (
     create_metadata_form,
     analyze_input_samples,
+    metadata_is_completed,
 )
 from relecov_core.utils.metadata_handling import upload_excel_file
 
@@ -77,30 +81,7 @@ def documentation(request):
 @login_required()
 def metadata_form(request):
     m_form = create_metadata_form()
-
-    metadata_is_completed = MetadataIsCompleted.objects.filter(
-        user=request.user.username,
-        sample_data=True,
-        batch_data=False,
-    ).last()
-
-    if metadata_is_completed is not None:
-        sample_data_inserted = list(
-            Sample.objects.filter(id=metadata_is_completed.get_sampleID_id()).values(
-                "collecting_lab_sample_id",
-                "sequencing_sample_id",
-                "biosample_accession_ENA",
-                "virus_name",
-                "gisaid_id",
-                "sequencing_date",
-            )
-        )
-
-        if metadata_is_completed.__sizeof__() > 0:
-            request.session["pending_data_list"] = sample_data_inserted[0]
-            request.session["pending_data_msg"] = "PENDING DATA"
-        else:
-            request.session["pending_data_msg"] = "NOT PENDING DATA"
+    metadata_is_completed(request)
 
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
@@ -114,7 +95,6 @@ def metadata_form(request):
             {"sample_recorded": sample_recorded},
         )
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
-        print("Fichero recibido")
         sample_recorded = upload_excel_file(request)
 
     elif (
