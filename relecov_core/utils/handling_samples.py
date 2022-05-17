@@ -38,7 +38,6 @@ def fetch_batch_options():
         classification="Contributor Acknowledgement",
     )
     """
-    headings = HEADING_FOR_RECORD_SAMPLES.values()
     for properties_obj in properties_objs:
         data_dict = {}
         if properties_obj.property in HEADING_FOR_RECORD_SAMPLES.values():
