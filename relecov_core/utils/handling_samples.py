@@ -20,55 +20,36 @@ from relecov_core.models import (
 
 def fetch_batch_options():
     data = []
+    headings = list(HEADING_FOR_RECORD_SAMPLES.values())
+
     # check schema
     schema_obj = Schema.objects.filter(
         schema_name="RELECOV", schema_default=True
     ).last()
+
     # classification="Bioinformatics and QC metrics"
     properties_objs = SchemaProperties.objects.filter(
         fill_mode="batch",
         schemaID=schema_obj,
-        # classification="Bioinformatics and QC metrics",
+        # classification="Bioinformatics and QC metrics","Contributor Acknowledgement"
     )
-    # classification="Contributor Acknowledgement"
-    """
-    properties_objs2 = SchemaProperties.objects.filter(
-        fill_mode="batch",
-        schemaID=schema_obj,
-        classification="Contributor Acknowledgement",
-    )
-    """
+
     for properties_obj in properties_objs:
         data_dict = {}
-        if properties_obj.property in HEADING_FOR_RECORD_SAMPLES.values():
-            # print(properties_obj)
-            if properties_obj.has_options():
-                data_dict["Options"] = list(
-                    PropertyOptions.objects.filter(propertyID_id=properties_obj)
-                    .values_list("enums", flat=True)
-                    .distinct()
-                )
-            data_dict["Label"] = properties_obj.get_label()
-            data_dict["Property"] = properties_obj.get_property()
-            data_dict["Format"] = properties_obj.get_format()
+        for idx in range(len(headings)):
+            if properties_obj.get_property() in headings[idx]:
+                if properties_obj.has_options():
+                    data_dict["Options"] = list(
+                        PropertyOptions.objects.filter(propertyID_id=properties_obj)
+                        .values_list("enums", flat=True)
+                        .distinct()
+                    )
+                data_dict["Label"] = properties_obj.get_label()
+                data_dict["Property"] = properties_obj.get_property()
+                data_dict["Format"] = properties_obj.get_format()
 
-        data.append(data_dict)
-    """
-    for properties_obj in properties_objs2:
-        data_dict = {}
-        if properties_obj.has_options():
-            data_dict["Options"] = list(
-                PropertyOptions.objects.filter(propertyID_id=properties_obj)
-                .values_list("enums", flat=True)
-                .distinct()
-            )
-        data_dict["Label"] = properties_obj.get_label()
-        data_dict["Property"] = properties_obj.get_property()
-        data_dict["Format"] = properties_obj.get_format()
+                data.append(data_dict)
 
-        data.append(data_dict)
-    """
-    print(data)
     return data
 
 

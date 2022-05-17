@@ -120,9 +120,9 @@ def metadata_form(request):
 
 @login_required()
 def contributor_info(request):
-    if request.method == "POST":
-        print(request.POST["hospital_name"])
-        print(request.POST)
+    # if request.method == "POST":
+    # print(request.POST["hospital_name"])
+    # print(request.POST)
     return render(request, "relecov_core/contributorInfo.html", {})
 
 
