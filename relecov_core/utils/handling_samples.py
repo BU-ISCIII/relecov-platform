@@ -14,6 +14,7 @@ from relecov_core.models import (
     Schema,
     Sample,
     MetadataIsCompleted,
+    User,
 )
 
 
@@ -134,6 +135,9 @@ def create_metadata_form():
 
 def execute_query(data, request):
     data_sample = data["data_sample"]
+
+    user = User.objects.get(username=request.user.username)
+
     metadata_file = Document(
         title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
     )
@@ -148,10 +152,8 @@ def execute_query(data, request):
 
     sample = Sample(
         state=state,
-        user=auth.authenticate(
-            username=request.user.username,
-            password=request.user.password,
-        ),
+        user=user,
+        # user=auth.authenticate(username=request.user.username, password=request.user.password,),
         metadata_file=metadata_file,
         collecting_lab_sample_id=data_sample["collecting_lab_sample_id"],
         sequencing_sample_id=data_sample["sequencing_sample_id"],
@@ -217,6 +219,7 @@ def analyze_input_samples(request):
         sample_recorded["wrong_rows"] = wrong_rows
         sample_recorded["sample"] = fetch_sample_options()
 
+    print(sample_recorded)
     return sample_recorded
 
 

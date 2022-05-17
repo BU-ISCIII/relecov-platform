@@ -83,22 +83,24 @@ def metadata_form(request):
         sample_data=True,
         batch_data=False,
     ).last()
-    sample_data_inserted = list(
-        Sample.objects.filter(id=metadata_is_completed.get_sampleID_id()).values(
-            "collecting_lab_sample_id",
-            "sequencing_sample_id",
-            "biosample_accession_ENA",
-            "virus_name",
-            "gisaid_id",
-            "sequencing_date",
-        )
-    )
 
-    if metadata_is_completed.__sizeof__() > 0:
-        request.session["pending_data_list"] = sample_data_inserted[0]
-        request.session["pending_data_msg"] = "PENDING DATA"
-    else:
-        request.session["pending_data_msg"] = "NOT PENDING DATA"
+    if metadata_is_completed != None:
+        sample_data_inserted = list(
+            Sample.objects.filter(id=metadata_is_completed.get_sampleID_id()).values(
+                "collecting_lab_sample_id",
+                "sequencing_sample_id",
+                "biosample_accession_ENA",
+                "virus_name",
+                "gisaid_id",
+                "sequencing_date",
+            )
+        )
+
+        if metadata_is_completed.__sizeof__() > 0:
+            request.session["pending_data_list"] = sample_data_inserted[0]
+            request.session["pending_data_msg"] = "PENDING DATA"
+        else:
+            request.session["pending_data_msg"] = "NOT PENDING DATA"
 
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
@@ -114,6 +116,18 @@ def metadata_form(request):
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         print("Fichero recibido")
         sample_recorded = upload_excel_file(request)
+
+    elif (
+        request.method == "POST"
+        and request.POST["action"] == "sampledefinitionReprocess"
+    ):
+        sample_recorded = analyze_input_samples(request)
+
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": sample_recorded},
+        )
     """
     if request.method == "POST" and request.POST["action"] == "metadata_form_batch":
         sample_recorded = {}
