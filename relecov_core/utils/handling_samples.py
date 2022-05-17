@@ -219,12 +219,14 @@ def analyze_input_samples(request):
         sample_recorded["wrong_rows"] = wrong_rows
         sample_recorded["sample"] = fetch_sample_options()
 
-    print(sample_recorded)
+    # print(sample_recorded)
     return sample_recorded
 
 
 def process_rows_in_json(na_json_data, request):
     wrong_rows = []
+    complete_rows = []
+    process_rows = {}
 
     for row in na_json_data:
         if row[0] == "":
@@ -236,15 +238,16 @@ def process_rows_in_json(na_json_data, request):
                 wrong_rows.append(row)
                 break
 
-        data = get_sample_data(row)
-        execute_query(data, request)
+        if "" not in row:
+            complete_rows.append(row)
+
+        process_rows["wrong_rows"] = wrong_rows
+        process_rows["complete_rows"] = complete_rows
+        for complete_row in complete_rows:
+            data = get_sample_data(complete_row)
+            execute_query(data, request)
+
+    print("wrong_rows: " + str(wrong_rows))
+    print("complete_rows: " + str(complete_rows))
 
     return wrong_rows
-
-
-def prepare_sample_input_table():
-    pass
-
-
-def build_record_sample_form():
-    pass
