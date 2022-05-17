@@ -2,9 +2,6 @@
 
 # from relecov_core.utils.metadata_handling import upload_excel_file
 
-from relecov_core.models import (
-    Sample,
-)
 from relecov_core.utils.handling_samples import (
     create_metadata_form,
     analyze_input_samples,
