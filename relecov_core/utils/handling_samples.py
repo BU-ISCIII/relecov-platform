@@ -1,5 +1,5 @@
 # from os import stat
-from django.contrib import auth
+# from django.contrib import auth
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
     HEADINGS_FOR_ISkyLIMS,

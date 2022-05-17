@@ -84,7 +84,7 @@ def metadata_form(request):
         batch_data=False,
     ).last()
 
-    if metadata_is_completed != None:
+    if metadata_is_completed is not None:
         sample_data_inserted = list(
             Sample.objects.filter(id=metadata_is_completed.get_sampleID_id()).values(
                 "collecting_lab_sample_id",
