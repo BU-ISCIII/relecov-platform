@@ -170,28 +170,30 @@ def get_sample_data(row):
 
 
 def metadata_sample_and_batch_is_completed(request):
+    sample_data_inserted = []
+
     metadata_is_completed = Sample.objects.filter(
         user_id=request.user.id,
     ).last()
 
     # check if a record about this user exits
-    if metadata_is_completed.get_state() == "pre_record":
-        sample_data_inserted = list(
-            Sample.objects.filter(id=metadata_is_completed.id).values(
-                "collecting_lab_sample_id",
-                "sequencing_sample_id",
-                "biosample_accession_ENA",
-                "virus_name",
-                "gisaid_id",
-                "sequencing_date",
+    if metadata_is_completed is not None:
+        if metadata_is_completed.get_state() == "pre_recorded":
+            sample_data_inserted = list(
+                Sample.objects.filter(id=metadata_is_completed.id).values(
+                    "collecting_lab_sample_id",
+                    "sequencing_sample_id",
+                    "biosample_accession_ENA",
+                    "virus_name",
+                    "gisaid_id",
+                    "sequencing_date",
+                )
             )
-        )
-        # print(sample_data_inserted)
-        if metadata_is_completed.__sizeof__() > 0:
-            request.session["pending_data_list"] = sample_data_inserted[0]
-            request.session["pending_data_msg"] = "PENDING DATA"
-        else:
-            request.session["pending_data_msg"] = "NOT PENDING DATA"
+    if metadata_is_completed.__sizeof__() > 0:
+        request.session["pending_data_list"] = sample_data_inserted
+        request.session["pending_data_msg"] = "PENDING DATA"
+    else:
+        request.session["pending_data_msg"] = "NOT PENDING DATA"
 
 
 def process_batch_metadata_form(request):
