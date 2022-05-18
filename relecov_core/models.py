@@ -377,7 +377,7 @@ class SampleState(models.Model):
 # Sample Table
 class SampleManager(models.Manager):
     def create_new_sample(self, data, user):
-        state = SampleState.objects.filter(state__exact="pre_record").last()
+        state = SampleState.objects.filter(state__exact="pre_recorded").last()
         metadata_file = Document(
             title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
         )
