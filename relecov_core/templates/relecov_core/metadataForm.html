@@ -50,9 +50,9 @@
     <div class="container overflow-hidden">
        <div class="row gx-5">
            <div style="text-align:center">
-               <form method="post" enctype="multipart/form-data" name="sampledata"  id="sampledata" class="form-horizontal well" style="min-height: 500px;">
+               <form method="post" enctype="multipart/form-data" name="sampledataReprocess"  id="sampledataReprocess" class="form-horizontal well" style="min-height: 500px;">
                    {% csrf_token %}
-                   <input type="hidden" name="action" value="sampledefinition"/>
+                   <input type="hidden" name="action" value="sampledefinitionReprocess"/>
                    <div class="scrolling-wrapper">
                        <div id="spreadsheet" class="overflow-scroll" style="width:75%"></div>
                    </div> <!--  end of scrolling  -->
@@ -84,6 +84,24 @@
        allowRenameColumn:false,
        csvFileName:'Metadata_download',
        minDimensions:[{{sample_recorded.samples|length}},6],
+    });
+</script>
+
+<script>
+    $( document ).ready(function () {
+        $("#sampledataReprocess").submit(function(e){
+        //stop submitting the form to see the disabled button effect
+        // e.preventDefault();
+        //disable the submit button
+            var table_data = table1.getData();
+            var data_json = JSON.stringify(table_data);
+            $("<input />").attr("type", "hidden")
+                .attr("name", "table_data")
+                .attr("value", data_json)
+                .appendTo("#sampledataReprocess");
+            $("#btnSubmit").attr("disabled", true);
+            return true;
+            });
     });
 </script>
 <!--EndJExcel Form after Errors-->
@@ -396,8 +414,8 @@
                                                 <div  class="card" >
                                                     <div class="card-body" >
                                                         <div class="card-body overflow-scroll">
-                                                            <br>You entered the data shown below.<br>
                                                             {% if request.session.pending_data_msg == "PENDING DATA"%}
+                                                            <br>You entered the data shown below.<br>
                                                             <table>
                                                                 <tr>
                                                                 {% for key, value in request.session.pending_data_list.items %}
@@ -410,6 +428,8 @@
                                                                 {% endfor %}          
                                                                 </tr>
                                                             </table>
+                                                            {% else %}
+                                                                You don't have Pending Data 
                                                             {% endif %}
                                                             <br>
                                                         </div> <!-- End   Panel Body   -->
