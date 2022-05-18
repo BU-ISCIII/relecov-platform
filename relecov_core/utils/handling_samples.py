@@ -59,7 +59,7 @@ def fetch_batch_options():
             data_dict["Label"] = properties_obj.get_label()
             data_dict["Property"] = properties_obj.get_property()
             data_dict["Format"] = properties_obj.get_format()
-            print(data_dict["Property"])
+            # print(data_dict["Property"])
 
             data.append(data_dict)
 
@@ -186,7 +186,7 @@ def metadata_sample_and_batch_is_completed(request):
                 "sequencing_date",
             )
         )
-        print(sample_data_inserted)
+        # print(sample_data_inserted)
         if metadata_is_completed.__sizeof__() > 0:
             request.session["pending_data_list"] = sample_data_inserted[0]
             request.session["pending_data_msg"] = "PENDING DATA"
