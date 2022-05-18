@@ -5,7 +5,6 @@ from relecov_core.core_config import (
 import json
 
 from relecov_core.models import (
-    SampleState,
     SchemaProperties,
     PropertyOptions,
     Schema,
@@ -17,7 +16,7 @@ from relecov_core.models import (
 def analyze_input_samples(request):
     sample_recorded = {}
     na_json_data = json.loads(request.POST["table_data"])
-    wrong_rows = process_rows_in_json(na_json_data, request)
+    wrong_rows = process_rows_in_json(na_json_data)
     if len(wrong_rows) < 1:
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
@@ -196,19 +195,14 @@ def metadata_sample_and_batch_is_completed(request):
 
 
 def process_batch_metadata_form(request):
-    # import pdb; pdb.set_trace()
-    samples = {}
-    data = []
     headings = HEADING_FOR_RECORD_SAMPLES.values()
-    # print(headings)
     for heading in headings:
-        # print(heading + " : " + request.POST[heading])
         if heading in request.POST:
             print(heading + " : " + request.POST[heading])
     print(request.POST)
 
 
-def process_rows_in_json(na_json_data, request):
+def process_rows_in_json(na_json_data):
     wrong_rows = []
     complete_rows = []
     process_rows = {}
