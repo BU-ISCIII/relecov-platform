@@ -1,5 +1,3 @@
-# from os import stat
-# from django.contrib import auth
 from relecov_core.core_config import (
     HEADING_FOR_RECORD_SAMPLES,
     HEADINGS_FOR_ISkyLIMS,
@@ -7,15 +5,29 @@ from relecov_core.core_config import (
 import json
 
 from relecov_core.models import (
-    Document,
     SampleState,
     SchemaProperties,
     PropertyOptions,
     Schema,
     Sample,
-    MetadataIsCompleted,
     User,
 )
+
+
+def analyze_input_samples(request):
+    sample_recorded = {}
+    na_json_data = json.loads(request.POST["table_data"])
+    wrong_rows = process_rows_in_json(na_json_data, request)
+    if len(wrong_rows) < 1:
+        sample_recorded["process"] = "Success"
+        sample_recorded["batch"] = fetch_batch_options()
+
+    else:
+        sample_recorded["process"] = "Error"
+        sample_recorded["wrong_rows"] = wrong_rows
+        sample_recorded["sample"] = fetch_sample_options()
+
+    return sample_recorded
 
 
 def fetch_batch_options():
@@ -36,19 +48,21 @@ def fetch_batch_options():
 
     for properties_obj in properties_objs:
         data_dict = {}
-        for idx in range(len(headings)):
-            if properties_obj.get_property() in headings[idx]:
-                if properties_obj.has_options():
-                    data_dict["Options"] = list(
-                        PropertyOptions.objects.filter(propertyID_id=properties_obj)
-                        .values_list("enums", flat=True)
-                        .distinct()
-                    )
-                data_dict["Label"] = properties_obj.get_label()
-                data_dict["Property"] = properties_obj.get_property()
-                data_dict["Format"] = properties_obj.get_format()
+        # for idx in range(len(headings)):
+        # if properties_obj.get_property() in headings[idx]:
+        if properties_obj.get_property() in headings:
+            if properties_obj.has_options():
+                data_dict["Options"] = list(
+                    PropertyOptions.objects.filter(propertyID_id=properties_obj)
+                    .values_list("enums", flat=True)
+                    .distinct()
+                )
+            data_dict["Label"] = properties_obj.get_label()
+            data_dict["Property"] = properties_obj.get_property()
+            data_dict["Format"] = properties_obj.get_format()
+            print(data_dict["Property"])
 
-                data.append(data_dict)
+            data.append(data_dict)
 
     return data
 
@@ -86,29 +100,6 @@ def sample_table_columns_names():
     return sample_table_columns_names
 
 
-def get_sample_data(row):
-    data = {}
-    data_sample = {}
-    data_ISkyLIMS = {}
-    idx = 0
-    headings = fetch_sample_options()
-    sample_columns_names = sample_table_columns_names()
-
-    # submittin_lab_sequencing_id => not found
-    for heading in headings:
-        if heading["Property"] in sample_columns_names:
-            data_sample[heading["Property"]] = row[idx]
-            idx += 1
-        if heading["Label"] in HEADINGS_FOR_ISkyLIMS:
-            data_ISkyLIMS[heading["Property"]] = row[idx]
-            idx += 1
-
-    data["data_sample"] = data_sample
-    data["data_ISkyLIMS"] = data_ISkyLIMS
-
-    return data
-
-
 def create_metadata_form():
     sample_recorded = {}
     sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
@@ -118,44 +109,10 @@ def create_metadata_form():
     return sample_recorded
 
 
-def execute_query(data, request):
+def execute_query(data):
+    user = User.objects.get(id=1)
     data_sample = data["data_sample"]
-
-    user = User.objects.get(username=request.user.username)
-
-    metadata_file = Document(
-        title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
-    )
-    metadata_file.save()
-
-    state = SampleState(
-        state="1",
-        display_string="display_string",
-        description="description",
-    )
-    state.save()
-
-    sample = Sample(
-        state=state,
-        user=user,
-        # user=auth.authenticate(username=request.user.username, password=request.user.password,),
-        metadata_file=metadata_file,
-        collecting_lab_sample_id=data_sample["collecting_lab_sample_id"],
-        sequencing_sample_id=data_sample["sequencing_sample_id"],
-        biosample_accession_ENA=data_sample["biosample_accession_ENA"],
-        virus_name=data_sample["virus_name"],
-        gisaid_id=data_sample["gisaid_id"],
-        sequencing_date="",
-    )
-    sample.save()
-
-    metadata_is_completed = MetadataIsCompleted(
-        user=request.user.username,
-        sample_data=True,
-        batch_data=False,
-        sampleID_id=Sample.objects.get(id=sample.id),
-    )
-    metadata_is_completed.save()
+    Sample.objects.create_new_sample(data=data_sample, user=user)
 
     # TODO - query to ISkyLIMS data
     # data_sample["data_ISkyLIMS"]
@@ -191,20 +148,64 @@ def get_properties_options(properties):
     return options_dict
 
 
-def analyze_input_samples(request):
-    sample_recorded = {}
-    na_json_data = json.loads(request.POST["table_data"])
-    wrong_rows = process_rows_in_json(na_json_data, request)
-    if len(wrong_rows) < 1:
-        sample_recorded["process"] = "Success"
-        sample_recorded["batch"] = fetch_batch_options()
+def get_sample_data(row):
+    data = {}
+    data_sample = {}
+    data_ISkyLIMS = {}
+    idx = 0
+    headings = fetch_sample_options()
+    sample_columns_names = sample_table_columns_names()
 
-    else:
-        sample_recorded["process"] = "Error"
-        sample_recorded["wrong_rows"] = wrong_rows
-        sample_recorded["sample"] = fetch_sample_options()
+    # submittin_lab_sequencing_id => not found
+    for heading in headings:
+        if heading["Property"] in sample_columns_names:
+            data_sample[heading["Property"]] = row[idx]
+            idx += 1
+        if heading["Label"] in HEADINGS_FOR_ISkyLIMS:
+            data_ISkyLIMS[heading["Property"]] = row[idx]
+            idx += 1
+    data["data_sample"] = data_sample
+    data["data_ISkyLIMS"] = data_ISkyLIMS
 
-    return sample_recorded
+    return data
+
+
+def metadata_sample_and_batch_is_completed(request):
+    metadata_is_completed = Sample.objects.filter(
+        user_id=request.user.id,
+    ).last()
+
+    # check if a record about this user exits
+    if metadata_is_completed.get_state() == "pre_record":
+        sample_data_inserted = list(
+            Sample.objects.filter(id=metadata_is_completed.id).values(
+                "collecting_lab_sample_id",
+                "sequencing_sample_id",
+                "biosample_accession_ENA",
+                "virus_name",
+                "gisaid_id",
+                "sequencing_date",
+            )
+        )
+        print(sample_data_inserted)
+        if metadata_is_completed.__sizeof__() > 0:
+            request.session["pending_data_list"] = sample_data_inserted[0]
+            request.session["pending_data_msg"] = "PENDING DATA"
+        else:
+            request.session["pending_data_msg"] = "NOT PENDING DATA"
+
+
+def process_batch_metadata_form(request):
+    # import pdb; pdb.set_trace()
+    samples = {}
+    data = []
+    headings = HEADING_FOR_RECORD_SAMPLES.values()
+    # print(headings)
+    for heading in headings:
+        # print(heading + " : " + request.POST[heading])
+        if heading in request.POST:
+            print(heading + " : " + request.POST[heading])
+    print(request.POST)
 
 
 def process_rows_in_json(na_json_data, request):
@@ -229,33 +230,6 @@ def process_rows_in_json(na_json_data, request):
         process_rows["complete_rows"] = complete_rows
         for complete_row in complete_rows:
             data = get_sample_data(complete_row)
-            execute_query(data, request)
+            execute_query(data)
 
     return wrong_rows
-
-
-def metadata_is_completed(request):
-    metadata_is_completed = MetadataIsCompleted.objects.filter(
-        user=request.user.username,
-        sample_data=True,
-        batch_data=False,
-    ).last()
-
-    # check if a record about this user exits
-    if metadata_is_completed is not None:
-        sample_data_inserted = list(
-            Sample.objects.filter(id=metadata_is_completed.get_sampleID_id()).values(
-                "collecting_lab_sample_id",
-                "sequencing_sample_id",
-                "biosample_accession_ENA",
-                "virus_name",
-                "gisaid_id",
-                "sequencing_date",
-            )
-        )
-
-        if metadata_is_completed.__sizeof__() > 0:
-            request.session["pending_data_list"] = sample_data_inserted[0]
-            request.session["pending_data_msg"] = "PENDING DATA"
-        else:
-            request.session["pending_data_msg"] = "NOT PENDING DATA"
