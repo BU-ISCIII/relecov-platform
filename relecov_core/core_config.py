@@ -57,6 +57,29 @@ HEADINGS_FOR_ISkyLIMS = {
     "Sample ID given if multiple rna-extraction or passages": "isolate_sample_id",
 }
 
+HEADINGS_FOR_ISkyLIMS_BATCH = {
+    "Sequencing Instrument Model": "sequencing_instrument_model",
+    "Biological Sample Storage Condition": "sample_storage_conditions",
+    "Environmental Material": "environmental_material",
+    "Environmental System": "environmental_site",
+    "Collection Device": "collection_device",
+    "Host": "host_common_name",
+    " Commercial All-in-one library kit": "library_kit",
+    "Enrichment Protocol": "enrichment_protocol",
+    "If Enrichment Protocol Is Other, Specify": "if_enrichment_protocol_is_other_specify",
+    "Enrichment panel/assay": "amplicon_protocol",
+    "Enrichment panel/assay version": "amplicon_version",
+    "Number Of Samples In Run": "number_of_samples_in_run",
+    "Flowcell Kit": "flowcell_kit",
+    "RunID": "runID",
+    "Library Preparation Kit": "library_preparation_kit",
+    "Gene Name 1": "gene_name_1",
+    "Diagnostic Pcr Ct Value 1": "diagnostic_pcr_Ct_value_1",
+    "Gene Name 2": "gene_name_2",
+    "Diagnostic Pcr Ct Value 2": "diagnostic_pcr_Ct_value_2",
+    "Source material": "library_source",
+}
+
 HEADING_FOR_LINEAGE_TABLE = {
     "Lineage identification date": "lineage_identification_date",
     "Lineage/clade name": "lineage_name",
@@ -100,6 +123,12 @@ HEADING_FOR_AUTHOR_TABLE = {
     "Analysis Authors": "analysis_authors",
     "Author Submitter": "author_submitter",
     "Authors": "authors",
+}
+
+HEADING_FOR_PUBLICDATABASEFIELDS_TABLE = {
+    "Capture method": "library_selection",
+    "Sequencing technique": "library_strategy",
+    "Library Layout": "library_layout",
 }
 
 HEADING_FOR_QCSTATS_TABLE = {
