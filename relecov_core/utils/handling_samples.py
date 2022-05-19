@@ -208,10 +208,7 @@ def process_batch_metadata_form(request):
     data_public_database_fields = {}
     headings = HEADING_FOR_RECORD_SAMPLES.values()
     for heading in headings:
-        data_dict = {}
         if heading in request.POST:
-            data_dict = {}
-            # print(heading + " : " + request.POST[heading])
             if heading in HEADING_FOR_SAMPLE_TABLE.values():
                 data_sample[heading] = request.POST[heading]
             if heading in HEADING_FOR_AUTHOR_TABLE.values():
