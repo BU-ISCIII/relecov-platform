@@ -675,9 +675,13 @@ class Analysis(models.Model):
 # table Authors
 class AuthorsManager(models.Manager):
     def create_new_authors(self, data):
+        analysis_authors = ""
+        author_submitter = ""
         new_authors = self.create(
-            analysis_authors=data["analysis_authors"],
-            author_submitter=data["author_submitter"],
+            analysis_authors=analysis_authors,
+            author_submitter=author_submitter,
+            # analysis_authors=data["analysis_authors"],
+            # author_submitter=data["author_submitter"],
             authors=data["authors"],
         )
         return new_authors
@@ -842,7 +846,7 @@ class PublicDatabase(models.Model):
 
 # table PublicDatabaseField
 class PublicDatabaseFieldManager(models.Manager):
-    def create_new_public_database(self, data):
+    def create_new_public_database_field(self, data):
         new_public_database_field = self.create(
             fieldName=data["fieldName"],
             fieldDescription=data["fieldDescription"],
