@@ -9,6 +9,8 @@ from relecov_core.core_config import (
 import json
 
 from relecov_core.models import (
+    Authors,
+    PublicDatabaseField,
     SchemaProperties,
     PropertyOptions,
     Schema,
@@ -23,7 +25,7 @@ def analyze_input_samples(request):
     process_rows = process_rows_in_json(na_json_data)
     wrong_rows = process_rows["wrong_rows"]
     insert_complete_rows(process_rows=process_rows)
-    # wrong_rows = process_rows_in_json(na_json_data)
+
     if len(wrong_rows) < 1:
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
@@ -36,6 +38,52 @@ def analyze_input_samples(request):
     return sample_recorded
 
 
+def complete_sample_table_with_data_from_batch(data):
+    id_list = []
+    sample_table_field = data["sample_table"]
+    samples = Sample.objects.filter(user_id=1, state_id=163).values("id")
+    for sample in samples:
+        id_list.append(sample["id"])
+
+    for dat in data["sample_table"].items():
+        print(dat[1])
+
+    for idx in range(len(id_list)):
+        sample_id = int(id_list[idx])
+        sample = Sample.objects.get(id=sample_id)
+        sample.sequencing_date = dat[1]
+        sample.save()
+
+
+def create_metadata_form():
+    sample_recorded = {}
+    sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
+    sample_recorded["batch"] = fetch_batch_options()
+    sample_recorded["samples"] = fetch_sample_options()
+
+    return sample_recorded
+
+
+def execute_query_to_sample_table(data):
+    user = User.objects.get(id=1)
+    data_sample = data["data_sample"]
+    Sample.objects.create_new_sample(data=data_sample, user=user)
+
+    # TODO - query to ISkyLIMS data
+    # data_sample["data_ISkyLIMS"]
+
+
+def execute_query_to_authors_table(data):
+    data_authors = data["authors_table"]
+    Authors.objects.create_new_authors(data_authors)
+
+
+def execute_query_to_public_database_fields_table(data):
+    # data_public_database_field = data["public_database_fields_table"]
+    # PublicDatabaseField.objects.create_public_database_fields_table(data_public_database_field)
+    pass
+
+
 def fetch_batch_options():
     data = []
     headings = list(HEADING_FOR_RECORD_SAMPLES.values())
@@ -45,17 +93,13 @@ def fetch_batch_options():
         schema_name="RELECOV", schema_default=True
     ).last()
 
-    # classification="Bioinformatics and QC metrics"
     properties_objs = SchemaProperties.objects.filter(
         fill_mode="batch",
         schemaID=schema_obj,
-        # classification="Bioinformatics and QC metrics","Contributor Acknowledgement"
     )
 
     for properties_obj in properties_objs:
         data_dict = {}
-        # for idx in range(len(headings)):
-        # if properties_obj.get_property() in headings[idx]:
         if properties_obj.get_property() in headings:
             if properties_obj.has_options():
                 data_dict["Options"] = list(
@@ -66,7 +110,6 @@ def fetch_batch_options():
             data_dict["Label"] = properties_obj.get_label()
             data_dict["Property"] = properties_obj.get_property()
             data_dict["Format"] = properties_obj.get_format()
-            # print(data_dict["Property"])
 
             data.append(data_dict)
 
@@ -95,32 +138,6 @@ def fetch_sample_options():
         data.append(data_dict)
 
     return data
-
-
-def sample_table_columns_names():
-    sample_table_columns_names = []
-    for field in Sample._meta.fields:
-        sample_table_columns_names.append(field.get_attname_column()[1])
-
-    return sample_table_columns_names
-
-
-def create_metadata_form():
-    sample_recorded = {}
-    sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
-    sample_recorded["batch"] = fetch_batch_options()
-    sample_recorded["samples"] = fetch_sample_options()
-
-    return sample_recorded
-
-
-def execute_query_to_sample_table(data):
-    user = User.objects.get(id=1)
-    data_sample = data["data_sample"]
-    Sample.objects.create_new_sample(data=data_sample, user=user)
-
-    # TODO - query to ISkyLIMS data
-    # data_sample["data_ISkyLIMS"]
 
 
 def get_dropdown_options():
@@ -173,6 +190,14 @@ def get_sample_data(row):
     data["data_ISkyLIMS"] = data_ISkyLIMS
 
     return data
+
+
+def insert_complete_rows(process_rows):
+    complete_rows = process_rows["complete_rows"]
+    if complete_rows is not None:
+        for complete_row in complete_rows:
+            data = get_sample_data(complete_row)
+            execute_query_to_sample_table(data)
 
 
 def metadata_sample_and_batch_is_completed(request):
@@ -228,24 +253,6 @@ def process_batch_metadata_form(request):
     return data
 
 
-def complete_sample_table_with_data_from_batch(data):
-    id_list = []
-    sample_table_field = data["sample_table"]
-    samples = Sample.objects.filter(user_id=1, state_id=163).values("id")
-    print(type(sample_table_field))
-    for sample in samples:
-        id_list.append(sample["id"])
-
-    for dat in data["sample_table"].items():
-        print(dat[1])
-
-    for idx in range(len(id_list)):
-        sample_id = int(id_list[idx])
-        sample = Sample.objects.get(id=sample_id)
-        sample.sequencing_date = dat[1]
-        sample.save()
-
-
 def process_rows_in_json(na_json_data):
     wrong_rows = []
     complete_rows = []
@@ -270,9 +277,9 @@ def process_rows_in_json(na_json_data):
     return process_rows
 
 
-def insert_complete_rows(process_rows):
-    complete_rows = process_rows["complete_rows"]
-    if complete_rows is not None:
-        for complete_row in complete_rows:
-            data = get_sample_data(complete_row)
-            execute_query_to_sample_table(data)
+def sample_table_columns_names():
+    sample_table_columns_names = []
+    for field in Sample._meta.fields:
+        sample_table_columns_names.append(field.get_attname_column()[1])
+
+    return sample_table_columns_names

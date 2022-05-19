@@ -8,6 +8,7 @@ from relecov_core.utils.handling_samples import (
     metadata_sample_and_batch_is_completed,
     process_batch_metadata_form,
     complete_sample_table_with_data_from_batch,
+    execute_query_to_authors_table,
 )
 from relecov_core.utils.metadata_handling import upload_excel_file
 
@@ -112,7 +113,8 @@ def metadata_form(request):
         sample_recorded = {}
         data = process_batch_metadata_form(request)
         complete_sample_table_with_data_from_batch(data)
-
+        execute_query_to_authors_table(data)
+        # execute_query_to_public_database_fields_table(data)
         """
         sample_recorded = m_form
         sample_recorded["process"] = "pre_metadata_is_correct"
