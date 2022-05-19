@@ -10,7 +10,7 @@ import json
 
 from relecov_core.models import (
     Authors,
-    PublicDatabaseField,
+    # PublicDatabaseField,
     SchemaProperties,
     PropertyOptions,
     Schema,
@@ -40,7 +40,7 @@ def analyze_input_samples(request):
 
 def complete_sample_table_with_data_from_batch(data):
     id_list = []
-    sample_table_field = data["sample_table"]
+    # sample_table_field = data["sample_table"]
     samples = Sample.objects.filter(user_id=1, state_id=163).values("id")
     for sample in samples:
         id_list.append(sample["id"])
