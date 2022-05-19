@@ -20,7 +20,10 @@ from relecov_core.models import (
 def analyze_input_samples(request):
     sample_recorded = {}
     na_json_data = json.loads(request.POST["table_data"])
-    wrong_rows = process_rows_in_json(na_json_data)
+    process_rows = process_rows_in_json(na_json_data)
+    wrong_rows = process_rows["wrong_rows"]
+    insert_complete_rows(process_rows=process_rows)
+    # wrong_rows = process_rows_in_json(na_json_data)
     if len(wrong_rows) < 1:
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
@@ -81,7 +84,6 @@ def fetch_sample_options():
     for properties_obj in properties_objs:
         data_dict = {}
         if properties_obj.has_options():
-
             data_dict["Options"] = list(
                 PropertyOptions.objects.filter(propertyID_id=properties_obj)
                 .values_list("enums", flat=True)
@@ -222,8 +224,26 @@ def process_batch_metadata_form(request):
     data["authors_table"] = data_authors
     data["public_database_fields_table"] = data_public_database_fields
     data["sample_iskylims"] = data_ISkyLIMS
-    # print(request.POST)
-    print(data)
+
+    return data
+
+
+def complete_sample_table_with_data_from_batch(data):
+    id_list = []
+    sample_table_field = data["sample_table"]
+    samples = Sample.objects.filter(user_id=1, state_id=163).values("id")
+    print(type(sample_table_field))
+    for sample in samples:
+        id_list.append(sample["id"])
+
+    for dat in data["sample_table"].items():
+        print(dat[1])
+
+    for idx in range(len(id_list)):
+        sample_id = int(id_list[idx])
+        sample = Sample.objects.get(id=sample_id)
+        sample.sequencing_date = dat[1]
+        sample.save()
 
 
 def process_rows_in_json(na_json_data):
@@ -246,8 +266,13 @@ def process_rows_in_json(na_json_data):
 
         process_rows["wrong_rows"] = wrong_rows
         process_rows["complete_rows"] = complete_rows
+
+    return process_rows
+
+
+def insert_complete_rows(process_rows):
+    complete_rows = process_rows["complete_rows"]
+    if complete_rows is not None:
         for complete_row in complete_rows:
             data = get_sample_data(complete_row)
             execute_query_to_sample_table(data)
-
-    return wrong_rows
