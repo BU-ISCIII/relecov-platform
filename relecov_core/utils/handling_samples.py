@@ -1,6 +1,10 @@
 from relecov_core.core_config import (
+    HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     HEADING_FOR_RECORD_SAMPLES,
     HEADINGS_FOR_ISkyLIMS,
+    HEADING_FOR_AUTHOR_TABLE,
+    HEADING_FOR_SAMPLE_TABLE,
+    HEADINGS_FOR_ISkyLIMS_BATCH,
 )
 import json
 
@@ -108,7 +112,7 @@ def create_metadata_form():
     return sample_recorded
 
 
-def execute_query(data):
+def execute_query_to_sample_table(data):
     user = User.objects.get(id=1)
     data_sample = data["data_sample"]
     Sample.objects.create_new_sample(data=data_sample, user=user)
@@ -197,11 +201,32 @@ def metadata_sample_and_batch_is_completed(request):
 
 
 def process_batch_metadata_form(request):
+    data = {}
+    data_sample = {}
+    data_ISkyLIMS = {}
+    data_authors = {}
+    data_public_database_fields = {}
     headings = HEADING_FOR_RECORD_SAMPLES.values()
     for heading in headings:
+        data_dict = {}
         if heading in request.POST:
-            print(heading + " : " + request.POST[heading])
-    print(request.POST)
+            data_dict = {}
+            # print(heading + " : " + request.POST[heading])
+            if heading in HEADING_FOR_SAMPLE_TABLE.values():
+                data_sample[heading] = request.POST[heading]
+            if heading in HEADING_FOR_AUTHOR_TABLE.values():
+                data_authors[heading] = request.POST[heading]
+            if heading in HEADING_FOR_PUBLICDATABASEFIELDS_TABLE.values():
+                data_public_database_fields[heading] = request.POST[heading]
+            if heading in HEADINGS_FOR_ISkyLIMS_BATCH.values():
+                data_ISkyLIMS[heading] = request.POST[heading]
+
+    data["sample_table"] = data_sample
+    data["authors_table"] = data_authors
+    data["public_database_fields_table"] = data_public_database_fields
+    data["sample_iskylims"] = data_ISkyLIMS
+    # print(request.POST)
+    print(data)
 
 
 def process_rows_in_json(na_json_data):
@@ -226,6 +251,6 @@ def process_rows_in_json(na_json_data):
         process_rows["complete_rows"] = complete_rows
         for complete_row in complete_rows:
             data = get_sample_data(complete_row)
-            execute_query(data)
+            execute_query_to_sample_table(data)
 
     return wrong_rows
