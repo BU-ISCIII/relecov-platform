@@ -23,37 +23,31 @@ def analyze_input_samples(request):
     sample_recorded = {}
     na_json_data = json.loads(request.POST["table_data"])
     process_rows = process_rows_in_json(na_json_data)
-    wrong_rows = process_rows["wrong_rows"]
-    insert_complete_rows(process_rows=process_rows)
-
-    if len(wrong_rows) < 1:
+    
+    if "wrong_rows" not in process_rows:    
+        insert_complete_rows(process_rows=process_rows)
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
 
     else:
         sample_recorded["process"] = "Error"
-        sample_recorded["wrong_rows"] = wrong_rows
+        sample_recorded["wrong_rows"] = process_rows["wrong_rows"]
         sample_recorded["sample"] = fetch_sample_options()
 
     return sample_recorded
 
 
 def complete_sample_table_with_data_from_batch(data):
-    id_list = []
-    # sample_table_field = data["sample_table"]
-    samples = Sample.objects.filter(user_id=1, state_id=163).values("id")
-    for sample in samples:
-        id_list.append(sample["id"])
+    sample = Sample.objects.filter(user_id=1, state_id=1).last()
+    # sequencing_date = ""
+    
+    for field in data["sample_table"].items():
+        sequencing_date_from_batch = field[1]
 
-    for dat in data["sample_table"].items():
-        print(dat[1])
-
-    for idx in range(len(id_list)):
-        sample_id = int(id_list[idx])
-        sample = Sample.objects.get(id=sample_id)
-        sample.sequencing_date = dat[1]
-        sample.save()
-
+    sample.sequencing_date = sequencing_date_from_batch
+    sample.state_id = 2
+    sample.save()
+        
 
 def create_metadata_form():
     sample_recorded = {}
@@ -198,15 +192,14 @@ def insert_complete_rows(process_rows):
         for complete_row in complete_rows:
             data = get_sample_data(complete_row)
             execute_query_to_sample_table(data)
-
+    
 
 def metadata_sample_and_batch_is_completed(request):
     sample_data_inserted = []
-
+    # Sample.objects.filter(state_id=1).delete()
     metadata_is_completed = Sample.objects.filter(
-        user_id=request.user.id,
+        user_id=request.user.id, state_id=1
     ).last()
-
     # check if a record about this user exits
     if metadata_is_completed is not None:
         if metadata_is_completed.get_state() == "pre_recorded":
@@ -220,9 +213,9 @@ def metadata_sample_and_batch_is_completed(request):
                     "sequencing_date",
                 )
             )
-    if metadata_is_completed.__sizeof__() > 0:
-        request.session["pending_data_list"] = sample_data_inserted
-        request.session["pending_data_msg"] = "PENDING DATA"
+        if metadata_is_completed.__sizeof__() > 0:
+            request.session["pending_data_list"] = sample_data_inserted
+            request.session["pending_data_msg"] = "PENDING DATA"
     else:
         request.session["pending_data_msg"] = "NOT PENDING DATA"
 
@@ -254,6 +247,18 @@ def process_batch_metadata_form(request):
 
 
 def process_rows_in_json(na_json_data):
+    """
+    This function:
+     - checks that the first field is not empty, then
+        - checks that the rest of the fields are not empty:
+            1. If it finds one, it enters it in the "wrong_rows" list.
+            2. If not empty fields, it enters it in the "complete_rows" list
+
+    returns a dictionary: 
+        process_rows["wrong_rows"] = wrong_rows
+        process_rows["complete_rows"] = complete_rows 
+
+    """
     wrong_rows = []
     complete_rows = []
     process_rows = {}
@@ -262,7 +267,6 @@ def process_rows_in_json(na_json_data):
         if row[0] == "":
             continue
 
-        # check if all fields are completed
         for field in range(len(row)):
             if row[field] == "":
                 wrong_rows.append(row)
@@ -270,14 +274,18 @@ def process_rows_in_json(na_json_data):
 
         if "" not in row:
             complete_rows.append(row)
-
-        process_rows["wrong_rows"] = wrong_rows
+        
+        if len(wrong_rows) > 0:
+            process_rows["wrong_rows"] = wrong_rows
         process_rows["complete_rows"] = complete_rows
 
     return process_rows
 
 
 def sample_table_columns_names():
+    """
+    This function returns a list containing the names of the columns of the Sample table 
+    """
     sample_table_columns_names = []
     for field in Sample._meta.fields:
         sample_table_columns_names.append(field.get_attname_column()[1])
