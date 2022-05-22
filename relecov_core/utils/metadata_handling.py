@@ -15,7 +15,7 @@ def upload_excel_file(request):
     user_name = request.user.username
     title = "metadata_{}_{}".format(user_name, date)
     file_path = datetime.date.today().strftime("%Y_%m_%d")
-    
+
     # Fetching the form data
     uploadedFile = request.FILES["samplesExcel"]
     # Create a folder per day if it doesn't exist
@@ -23,11 +23,10 @@ def upload_excel_file(request):
     if not os.path.exists(path):
         path = Path(path)
         path.mkdir(parents=True)
-    
+
     # Saving the information in the database
     document = Document(title=title, file_path=path, uploadedFile=uploadedFile)
     document.save()
-
     sample_recorded["Process"] = "File Upload"
     
     return sample_recorded
