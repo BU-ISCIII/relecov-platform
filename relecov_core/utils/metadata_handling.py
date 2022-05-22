@@ -27,6 +27,6 @@ def upload_excel_file(request):
     # Saving the information in the database
     document = Document(title=title, file_path=path, uploadedFile=uploadedFile)
     document.save()
-    sample_recorded["Process"] = "File Upload"
-    
+    sample_recorded["process"] = "File Upload"
+
     return sample_recorded
