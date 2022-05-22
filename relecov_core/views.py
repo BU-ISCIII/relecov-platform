@@ -2,16 +2,16 @@
 
 # from relecov_core.utils.metadata_handling import upload_excel_file
 
-from relecov_core.core_config import HEADING_FOR_RECORD_SAMPLES
+# from relecov_core.core_config import HEADING_FOR_RECORD_SAMPLES
 from relecov_core.utils.handling_samples import (
     create_metadata_form,
     analyze_input_samples,
-    fetch_sample_options,
+    # fetch_sample_options,
     metadata_sample_and_batch_is_completed,
     process_batch_metadata_form,
     complete_sample_table_with_data_from_batch,
     execute_query_to_authors_table,
-    fetch_batch_options,
+    # fetch_batch_options,
 )
 from relecov_core.utils.metadata_handling import upload_excel_file
 
@@ -137,7 +137,7 @@ def metadata_form(request):
     if request.session["pending_data_msg"] == "PENDING DATA":
         sample_recorded = create_metadata_form()
         sample_recorded["process"] = "SAMPLE RECORD ALREADY EXITS"
-        
+
         return render(
             request,
             "relecov_core/metadataForm2.html",

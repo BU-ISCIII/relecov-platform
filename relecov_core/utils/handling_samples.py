@@ -199,7 +199,7 @@ def metadata_sample_and_batch_is_completed(request):
     metadata_is_completed = Sample.objects.filter(
         user_id=request.user.id, state_id=1
     ).last()
-    
+
     # check if a record about this user exits
     if metadata_is_completed is None:
         print(metadata_is_completed)
