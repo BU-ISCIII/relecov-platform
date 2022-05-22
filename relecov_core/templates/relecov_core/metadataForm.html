@@ -140,28 +140,25 @@
                                                                         <div class="form-floating mb-3">
                                                                             <p>{{fields.Label}}</p>
                                                                             <!--<select class="form-select form-select-sm" aria-label="form-select-sm example" required>-->
-                                                                            <select class="form-select form-select-sm" aria-label="form-select-sm example">    
-                                                                                <option value="">Select One</option>
+                                                                            <select class="form-select form-select-sm" aria-label="form-select-sm example" name={{fields.Property}}>    
+                                                                                <option value="Select One">Select One</option>
                                                                                 {% for field in fields.Options %}
-                                                                                <option value={{fields.Label}}>{{field}}</option>
+                                                                                    <option value={{field}} name={{field}}>{{field}}</option>
                                                                                 {% endfor %}
                                                                             </select>
                                                                         </div>
                                                                     {% elif fields.Format == "date" %}
                                                                         <div class="form-floating mb-3">
-                                                                            <p>{{fields.Label}}</p>
-                                                                            <input type="date" class="form-control" id="floatingInput" name={{fields.Label}} placeholder={{fields.Label}}>
+                                                                            <input type="date" class="form-control" id="floatingInput" name={{fields.Property}} placeholder={{fields.Label}}>
                                                                             <label for="floatingInput">{{fields.Label}}</label>
                                                                         </div>
                                                                     {% else %}
                                                                     <div class="form-floating mb-3">
-                                                                        <input type="text" class="form-control" id="floatingInput" name={{fields.Label}} placeholder={{fields.Label}}>
+                                                                        <input type="text" class="form-control" id="floatingInput" name={{fields.Property}} placeholder={{fields.Label}}>
                                                                         <label for="floatingInput">{{fields.Label}}</label>
                                                                     </div>
                                                                     {% endif %} 
                                                                 {% endfor %}     
-                                                                    
-                                                                
                                                             </div>
                                                             <div class="col-auto">
                                                                 <button type="submit" id="btnSubmit" class="btn btn-primary mb-3">Submit Info</button>
@@ -238,12 +235,12 @@
                                                             <table>
                                                                 <tr>
                                                                 {% for key, value in request.session.pending_data_list.items %}
-                                                                    <th>{{ key }}</th>
+                                                                    <th>{{ key }}</th>d
                                                                 {% endfor %}          
                                                                 </tr>
                                                                 <tr>
                                                                 {% for key, value in request.session.pending_data_list.items %}
-                                                                    <td>{{ value }}</td>
+                                                                    <td>{{ value }}</td>s
                                                                 {% endfor %}          
                                                                 </tr>
                                                             </table>
@@ -413,18 +410,22 @@
                                                 <input type="hidden" name="action" value="pendingDataReturn"/>
                                                 <div  class="card" >
                                                     <div class="card-body" >
-                                                        <div class="card-body overflow-scroll">
+                                                        <div class="card-body overflow-scroll" style="height: 400px;">
                                                             {% if request.session.pending_data_msg == "PENDING DATA"%}
                                                             <br>You entered the data shown below.<br>
                                                             <table>
                                                                 <tr>
-                                                                {% for key, value in request.session.pending_data_list.items %}
-                                                                    <th>{{ key }}</th>
-                                                                {% endfor %}          
-                                                                </tr>
-                                                                <tr>
-                                                                {% for key, value in request.session.pending_data_list.items %}
-                                                                    <td>{{ value }}</td>
+                                                                    
+                                                                {% for item in request.session.pending_data_list %}
+                                                                    <!--<th>{{ key }}</th>-->
+                                                                    {% for key, value in item.items %}
+                                                                        <th>{{ key }}</th>
+                                                                    {% endfor %}          
+                                                                    </tr>
+                                                                    <tr>
+                                                                    {% for key, value in item.items %}
+                                                                        <td>{{ value }}</td>
+                                                                    {% endfor %}          
                                                                 {% endfor %}          
                                                                 </tr>
                                                             </table>

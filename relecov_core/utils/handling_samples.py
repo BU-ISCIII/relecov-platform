@@ -23,14 +23,14 @@ def analyze_input_samples(request):
     sample_recorded = {}
     na_json_data = json.loads(request.POST["table_data"])
     process_rows = process_rows_in_json(na_json_data)
-    
-    if "wrong_rows" not in process_rows:    
+
+    if "wrong_rows" not in process_rows:
         insert_complete_rows(process_rows=process_rows)
         sample_recorded["process"] = "Success"
         sample_recorded["batch"] = fetch_batch_options()
 
     else:
-        sample_recorded["process"] = "Error"
+        sample_recorded["process"] = "ERROR"
         sample_recorded["wrong_rows"] = process_rows["wrong_rows"]
         sample_recorded["sample"] = fetch_sample_options()
 
@@ -39,15 +39,14 @@ def analyze_input_samples(request):
 
 def complete_sample_table_with_data_from_batch(data):
     sample = Sample.objects.filter(user_id=1, state_id=1).last()
-    # sequencing_date = ""
-    
+
     for field in data["sample_table"].items():
         sequencing_date_from_batch = field[1]
 
     sample.sequencing_date = sequencing_date_from_batch
     sample.state_id = 2
     sample.save()
-        
+
 
 def create_metadata_form():
     sample_recorded = {}
@@ -192,7 +191,7 @@ def insert_complete_rows(process_rows):
         for complete_row in complete_rows:
             data = get_sample_data(complete_row)
             execute_query_to_sample_table(data)
-    
+
 
 def metadata_sample_and_batch_is_completed(request):
     sample_data_inserted = []
@@ -200,8 +199,14 @@ def metadata_sample_and_batch_is_completed(request):
     metadata_is_completed = Sample.objects.filter(
         user_id=request.user.id, state_id=1
     ).last()
+    
     # check if a record about this user exits
-    if metadata_is_completed is not None:
+    if metadata_is_completed is None:
+        print(metadata_is_completed)
+        request.session["pending_data_msg"] = "NOT PENDING DATA"
+
+    elif metadata_is_completed is not None:
+        print(metadata_is_completed)
         if metadata_is_completed.get_state() == "pre_recorded":
             sample_data_inserted = list(
                 Sample.objects.filter(id=metadata_is_completed.id).values(
@@ -254,9 +259,9 @@ def process_rows_in_json(na_json_data):
             1. If it finds one, it enters it in the "wrong_rows" list.
             2. If not empty fields, it enters it in the "complete_rows" list
 
-    returns a dictionary: 
+    returns a dictionary:
         process_rows["wrong_rows"] = wrong_rows
-        process_rows["complete_rows"] = complete_rows 
+        process_rows["complete_rows"] = complete_rows
 
     """
     wrong_rows = []
@@ -274,7 +279,7 @@ def process_rows_in_json(na_json_data):
 
         if "" not in row:
             complete_rows.append(row)
-        
+
         if len(wrong_rows) > 0:
             process_rows["wrong_rows"] = wrong_rows
         process_rows["complete_rows"] = complete_rows
@@ -284,7 +289,7 @@ def process_rows_in_json(na_json_data):
 
 def sample_table_columns_names():
     """
-    This function returns a list containing the names of the columns of the Sample table 
+    This function returns a list containing the names of the columns of the Sample table
     """
     sample_table_columns_names = []
     for field in Sample._meta.fields:
