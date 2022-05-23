@@ -1,6 +1,6 @@
 HEADING_FOR_RECORD_SAMPLES = {
     "Sample ID given by the submitting laboratory": "submitting_lab_sample_id",
-    "Originating Laboratory": "collecting_lab_sample_id",
+    "Originating Laboratory": "collecting_institution",
     "Purpose of sampling": "purpose_sampling",
     "Biological Sample Storage Condition ": "sample_storage_conditions",
     "Specimen source": "anatomical_material",

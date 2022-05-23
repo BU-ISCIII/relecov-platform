@@ -24,7 +24,7 @@ from relecov_core.utils.schema_handling import (
 from relecov_core.utils.metadata_json_handling import (
     process_metadata_json_file,
     get_metadata_json_loaded,
-    get_metadata_json_data,
+    # get_metadata_json_data,
 )
 
 from django.shortcuts import render, redirect

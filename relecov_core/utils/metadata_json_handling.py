@@ -1,5 +1,5 @@
 import json
-import re
+# import re
 from django.db import DataError
 from relecov_core.models import (
     Metadata,
@@ -9,11 +9,9 @@ from relecov_core.utils.generic_functions import store_file
 from relecov_core.core_config import (
     METADATA_JSON_SUCCESSFUL_LOAD,
     METADATA_JSON_UPLOAD_FOLDER,
-    SCHEMAS_UPLOAD_FOLDER,
     ERROR_INVALID_JSON,
     ERROR_INVALID_SCHEMA,
     ERROR_SCHEMA_ALREADY_LOADED,
-    SCHEMA_SUCCESSFUL_LOAD,
     ERROR_SCHEMA_ID_NOT_DEFINED,
     HEADING_SCHEMA_DISPLAY,
 )
@@ -62,6 +60,7 @@ def load_metadata_json(json_file):
     except json.decoder.JSONDecodeError:
         return {"ERROR": ERROR_INVALID_JSON}
     data["file_name"] = store_file(json_file, METADATA_JSON_UPLOAD_FOLDER)
+    # print(data)
     return data
 
 
@@ -78,7 +77,7 @@ def check_heading_valid_json(metadata_data, m_structure):
 def store_metadata_properties(metadata_obj, s_properties):  # , required
     """Store the properties defined in the metadata"""
     for prop_key in s_properties.keys():
-        print(prop_key)
+        # print(prop_key)
 
         data = dict(s_properties[prop_key])
         data["metadataID"] = metadata_obj
@@ -90,7 +89,7 @@ def store_metadata_properties(metadata_obj, s_properties):  # , required
             data["options"] = True
         """
         try:
-            new_property = MetadataProperties.objects.create_new_property(data)
+            MetadataProperties.objects.create_new_property(data)
         except (KeyError, DataError) as e:
             print(prop_key, " error ", e)
             # schema_obj.delete()
