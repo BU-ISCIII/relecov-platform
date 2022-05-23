@@ -1,9 +1,19 @@
-from relecov_core.utils.metadata_handling import upload_excel_file
+# from relecov_core.utils.generic_functions import store_file
 
+# from relecov_core.utils.metadata_handling import upload_excel_file
+
+# from relecov_core.core_config import HEADING_FOR_RECORD_SAMPLES
 from relecov_core.utils.handling_samples import (
     create_metadata_form,
     analyze_input_samples,
+    # fetch_sample_options,
+    metadata_sample_and_batch_is_completed,
+    process_batch_metadata_form,
+    complete_sample_table_with_data_from_batch,
+    execute_query_to_authors_table,
+    # fetch_batch_options,
 )
+from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.schema_handling import (
     process_schema_file,
@@ -73,36 +83,73 @@ def documentation(request):
 @login_required()
 def metadata_form(request):
     m_form = create_metadata_form()
-    """
-    if request.method == "POST":
-        print("prime if")
-        sample_recorded["process"] = "pre_metadata_is_correct"
-        return render(
-            request,
-            "relecov_core/metadataForm2.html",
-            {"sample_recorded": sample_recorded},
-        )
-    """
+    metadata_sample_and_batch_is_completed(request)
+
+    # request process
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
-        # import pdb; pdb.set_trace()
+
+        if sample_recorded["process"] == "Success":
+            request.session["pending_data_msg"] = "PENDING DATA"
+
         return render(
             request,
             "relecov_core/metadataForm2.html",
             {"sample_recorded": sample_recorded},
         )
+
     elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
-        print("Fichero recibido")
         sample_recorded = upload_excel_file(request)
 
-    return render(request, "relecov_core/metadataForm2.html", {"m_form": m_form})
+    elif (
+        request.method == "POST"
+        and request.POST["action"] == "sampledefinitionReprocess"
+    ):
+        sample_recorded = analyze_input_samples(request)
+
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": sample_recorded},
+        )
+
+    if request.method == "POST" and request.POST["action"] == "metadata_form_batch":
+        sample_recorded = {}
+        data = process_batch_metadata_form(request)
+        complete_sample_table_with_data_from_batch(data)
+        execute_query_to_authors_table(data)
+
+        request.session["pending_data_msg"] == "NOT PENDING DATA"
+
+        # execute_query_to_public_database_fields_table(data)
+
+        sample_recorded = m_form
+        sample_recorded["process"] = "SAMPLE DATA IS CORRECT"
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": sample_recorded},
+        )
+
+    if request.session["pending_data_msg"] == "NOT PENDING DATA":
+        return render(request, "relecov_core/metadataForm2.html", {"m_form": m_form})
+
+    if request.session["pending_data_msg"] == "PENDING DATA":
+        sample_recorded = create_metadata_form()
+        sample_recorded["process"] = "SAMPLE RECORD ALREADY EXITS"
+
+        return render(
+            request,
+            "relecov_core/metadataForm2.html",
+            {"sample_recorded": sample_recorded},
+        )
 
 
 @login_required()
 def contributor_info(request):
-    if request.method == "POST":
-        print(request.POST["hospital_name"])
-        print(request.POST)
+    # if request.method == "POST":
+    # print(request.POST["hospital_name"])
+    # print(request.POST)
     return render(request, "relecov_core/contributorInfo.html", {})
 
 
