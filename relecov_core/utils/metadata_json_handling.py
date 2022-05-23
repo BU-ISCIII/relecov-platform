@@ -1,4 +1,5 @@
 import json
+
 # import re
 from django.db import DataError
 from relecov_core.models import (
