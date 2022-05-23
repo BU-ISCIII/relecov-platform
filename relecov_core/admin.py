@@ -7,6 +7,7 @@ from relecov_core.models import (
     Authors,
     Caller,
     Chromosome,
+    ConfigSetting,
     Document,
     Effect,
     Gene,
@@ -51,6 +52,10 @@ class DocumentAdmin(admin.ModelAdmin):
 
 class CallerAdmin(admin.ModelAdmin):
     list_display = ["name", "version"]
+
+
+class ConfigSettingAdmin(admin.ModelAdmin):
+    list_display = ["configuration_name", "configuration_value"]
 
 
 class FilterAdmin(admin.ModelAdmin):
@@ -161,6 +166,7 @@ class PropertyOptionsAdmin(admin.ModelAdmin):
 # Register models
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Caller, CallerAdmin)
+admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
 admin.site.register(Lineage, LineageAdmin)

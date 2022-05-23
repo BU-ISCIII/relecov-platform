@@ -10,6 +10,9 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     laboratory = models.CharField(max_length=60, null=True, blank=True)
 
+    class Meta:
+        db_table = "Profile"
+
     def __str__(self):
         return self.user.username
 
@@ -57,6 +60,7 @@ class Schema(models.Model):
     schema_in_use = models.BooleanField(default=True)
     schema_default = models.BooleanField(default=True)
     schema_apps_name = models.CharField(max_length=40, null=True, blank=True)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
         db_table = "Schema"
@@ -887,3 +891,33 @@ class PublicDatabaseField(models.Model):
         return "%s" % (self.fieldInUse)
 
     objects = PublicDatabaseFieldManager()
+
+
+class ConfigSettingManager(models.Manager):
+    def create_config_setting(self, configuration_name, configuration_value):
+        new_config_settings = self.create(
+            configurationName=configuration_name, configurationValue=configuration_value
+        )
+        return new_config_settings
+
+
+class ConfigSetting(models.Model):
+    configuration_name = models.CharField(max_length=80)
+    configuration_value = models.CharField(max_length=255, null=True, blank=True)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "ConfigSetting"
+
+    def __str__(self):
+        return "%s" % (self.configuration_name)
+
+    def get_configuration_value(self):
+        return "%s" % (self.configuration_value)
+
+    def set_configuration_value(self, new_value):
+        self.configuration_value = new_value
+        self.save()
+        return self
+
+    objects = ConfigSettingManager()

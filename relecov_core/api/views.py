@@ -25,6 +25,9 @@ def test(request):
 @permission_classes([IsAuthenticated])
 def create_sample_data(request):
     if request.method == "POST":
+        import pdb
+
+        pdb.set_trace()
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
@@ -47,3 +50,19 @@ def create_sample_data(request):
             )
         sample_serializer.save()
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def analysis_data(request):
+    if request.method == "POST":
+        data = request.data
+        import pdb
+
+        if "long_table" == data["analysis"]:
+            print(data)
+        pdb.set_trace()
+        if "upload_file" in request.FILES:
+            a_file = request.FILES["analysis_file"]
+            print(a_file)
+
+    return Response(status=status.HTTP_201_CREATED)
