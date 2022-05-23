@@ -3,7 +3,11 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER, METADATA_UPLOAD_FOLDER
+from relecov_core.core_config import (
+    METADATA_JSON_UPLOAD_FOLDER,
+    SCHEMAS_UPLOAD_FOLDER,
+    METADATA_UPLOAD_FOLDER,
+)
 
 
 class Profile(models.Model):
@@ -185,6 +189,103 @@ class PropertyOptions(models.Model):
         return "%s" % (self.enums)
 
     objects = PropertyOptionsManager()
+
+
+# Metadata_json
+class MetadataManager(models.Manager):
+    def create_new_metadata(self, data):
+        new_metadata = self.create(
+            file_name=data["file_name"],
+            user_name=data["user_name"],
+            metadata_name=data["metadata_name"],
+            metadata_version=data["metadata_version"],
+            metadata_default=data["metadata_default"],
+            metadata_in_use=True,
+            metadata_apps_name=data["metadata_app_name"],
+        )
+        return new_metadata
+
+
+class Metadata(models.Model):
+    file_name = models.FileField(upload_to=METADATA_JSON_UPLOAD_FOLDER)
+    user_name = models.ForeignKey(User, on_delete=models.CASCADE)
+    metadata_name = models.CharField(max_length=40)
+    metadata_version = models.CharField(max_length=10)
+    metadata_in_use = models.BooleanField(default=True)
+    metadata_default = models.BooleanField(default=True)
+    metadata_apps_name = models.CharField(max_length=40, null=True, blank=True)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "Metadata"
+
+    def __str__(self):
+        return "%s_%s" % (self.metadata_name, self.metadata_version)
+
+    def get_metadata_and_version(self):
+        return "%s_%s" % (self.metadata_name, self.metadata_version)
+
+    def get_metadata_id(self):
+        return "%s" % (self.pk)
+
+    def get_metadata_info(self):
+        data = []
+        data.append(self.pk)
+        data.append(self.metadata_name)
+        data.append(self.metadata_version)
+        data.append(self.metadata_default)
+        data.append(str(self.metadata_in_use))
+        data.append(self.file_name)
+        return data
+
+    def update_default(self, default):
+        self.metadata_default = default
+        self.save()
+
+    objects = MetadataManager()
+
+
+class MetadataPropertiesManager(models.Manager):
+    def create_new_property(self, data):
+        # required = True if "required" in data else False
+        # options = True if "options" in data else False
+        # format = data["format"] if "format" in data else None
+        new_property_obj = self.create(
+            metadataID=data["metadataID"],
+            property=data["property"],
+            label=data["label"],
+            order=data["order"],
+            fill_mode=data["fill_mode"],
+        )
+        return new_property_obj
+
+
+class MetadataProperties(models.Model):
+    metadataID = models.ForeignKey(Metadata, on_delete=models.CASCADE)
+    property = models.CharField(max_length=50)
+    label = models.CharField(max_length=200, null=True, blank=True)
+    order = models.CharField(max_length=20, null=True, blank=True)
+    fill_mode = models.CharField(max_length=50, null=True, blank=True)
+
+    class Meta:
+        db_table = "MetadataProperties"
+
+    def __str__(self):
+        return "%s" % (self.property)
+
+    def get_label(self):
+        return "%s" % (self.label)
+
+    def get_property(self):
+        return "%s" % (self.property)
+
+    def get_order(self):
+        return "%s" % (self.order)
+
+    def get_fill_mode(self):
+        return "%s" % (self.fill_mode)
+
+    objects = MetadataPropertiesManager()
 
 
 # Caller Table
