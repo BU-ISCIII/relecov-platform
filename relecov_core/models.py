@@ -71,6 +71,9 @@ class Schema(models.Model):
     def get_schema_and_version(self):
         return "%s_%s" % (self.schema_name, self.schema_version)
 
+    def get_schema_name(self):
+        return "%s" % (self.schema_name)
+
     def get_schema_id(self):
         return "%s" % (self.pk)
 
@@ -135,6 +138,9 @@ class SchemaProperties(models.Model):
 
     def get_property_name(self):
         return "%s" % (self.property)
+
+    def get_property_id(self):
+        return "%s" % (self.pk)
 
     def get_property_info(self):
         data = []

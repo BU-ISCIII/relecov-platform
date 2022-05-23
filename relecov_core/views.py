@@ -19,6 +19,7 @@ from relecov_core.utils.schema_handling import (
     process_schema_file,
     get_schemas_loaded,
     get_schema_display_data,
+    get_latest_schema,
 )
 
 from django.shortcuts import render, redirect
@@ -82,6 +83,7 @@ def documentation(request):
 
 @login_required()
 def metadata_form(request):
+    schema_obj = get_latest_schema("relecov", __package__)
     m_form = create_metadata_form()
     metadata_sample_and_batch_is_completed(request)
 
