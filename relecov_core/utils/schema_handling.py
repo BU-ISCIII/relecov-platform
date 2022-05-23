@@ -11,8 +11,21 @@ from relecov_core.core_config import (
     SCHEMA_SUCCESSFUL_LOAD,
     ERROR_SCHEMA_ID_NOT_DEFINED,
     HEADING_SCHEMA_DISPLAY,
-    MAIN_SCHEMA_STRUCTURE
+    MAIN_SCHEMA_STRUCTURE,
 )
+
+
+def get_latest_schema(schema_name, apps_name):
+    """Get the latest schema that is defined in database"""
+    if Schema.objects.filter(
+        schema_name__iexact=schema_name, schema_apps_name__exact=apps_name, default=True
+    ).exists():
+        return Schema.objects.filter(
+            schema_name__iexact=schema_name,
+            schema_apps_name__exact=apps_name,
+            default=True,
+        ).last()
+    return None
 
 
 def get_schema_display_data(schema_id):
