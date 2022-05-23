@@ -1,4 +1,3 @@
-from pickle import FALSE
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -147,12 +146,7 @@ class SchemaProperties(models.Model):
         return data
 
     def has_options(self):
-        has_options = FALSE
-        if self.options == 1:
-            has_options = True
-        else:
-            has_options = False
-        return has_options
+        return self.options
 
     def get_label(self):
         return "%s" % (self.label)
@@ -386,7 +380,14 @@ class SampleState(models.Model):
 
 # Sample Table
 class SampleManager(models.Manager):
-    def create_new_sample(self, data):
+    def create_new_sample(self, data, user):
+        state = SampleState.objects.filter(state__exact="pre_recorded").last()
+        metadata_file = Document(
+            title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
+        )
+        metadata_file.save()
+        if "sequencing_date" not in data:
+            data["sequencing_date"] = ""
         new_sample = self.create(
             collecting_lab_sample_id=data["collecting_lab_sample_id"],
             sequencing_sample_id=data["sequencing_sample_id"],
@@ -394,7 +395,9 @@ class SampleManager(models.Manager):
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
-            metadata_file=data["metadata_file"],
+            metadata_file=metadata_file,
+            state=state,
+            user=user,
         )
         return new_sample
 
@@ -438,6 +441,15 @@ class Sample(models.Model):
 
     def get_sequencing_date(self):
         return "%s" % (self.sequencing_date)
+
+    def get_state(self):
+        return "%s" % (self.state)
+
+    def get_user(self):
+        return "%s" % (self.user)
+
+    def get_metadata_file(self):
+        return "%s" % (self.metadata_file)
 
     objects = SampleManager()
 
@@ -667,9 +679,13 @@ class Analysis(models.Model):
 # table Authors
 class AuthorsManager(models.Manager):
     def create_new_authors(self, data):
+        analysis_authors = ""
+        author_submitter = ""
         new_authors = self.create(
-            analysis_authors=data["analysis_authors"],
-            author_submitter=data["author_submitter"],
+            analysis_authors=analysis_authors,
+            author_submitter=author_submitter,
+            # analysis_authors=data["analysis_authors"],
+            # author_submitter=data["author_submitter"],
             authors=data["authors"],
         )
         return new_authors
@@ -834,7 +850,7 @@ class PublicDatabase(models.Model):
 
 # table PublicDatabaseField
 class PublicDatabaseFieldManager(models.Manager):
-    def create_new_public_database(self, data):
+    def create_new_public_database_field(self, data):
         new_public_database_field = self.create(
             fieldName=data["fieldName"],
             fieldDescription=data["fieldDescription"],
