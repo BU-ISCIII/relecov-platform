@@ -7,7 +7,7 @@ from relecov_core.utils.handling_samples import (
     create_metadata_form,
     analyze_input_samples,
     # fetch_sample_options,
-    metadata_sample_and_batch_is_completed,
+    # metadata_sample_and_batch_is_completed,
     process_batch_metadata_form,
     complete_sample_table_with_data_from_batch,
     execute_query_to_authors_table,
