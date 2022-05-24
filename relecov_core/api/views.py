@@ -1,13 +1,13 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser,  FileUploadParser, FormParser
+from rest_framework.parsers import MultiPartParser, FileUploadParser, FormParser
 
 from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
     api_view,
     action,
-    parser_classes
+    parser_classes,
 )
 from rest_framework import status
 from rest_framework.response import Response
@@ -27,11 +27,10 @@ analysis_data = openapi.Parameter(
     type=openapi.TYPE_STRING,
 )
 analysis_file = openapi.Schema(
-    'upload_file',
+    "upload_file",
     in_=openapi.IN_BODY,
     type=openapi.TYPE_FILE,
-    )
-
+)
 
 
 @api_view(["GET"])
@@ -44,9 +43,6 @@ def test(request):
 @permission_classes([IsAuthenticated])
 def create_sample_data(request):
     if request.method == "POST":
-        import pdb
-
-        pdb.set_trace()
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
@@ -70,10 +66,17 @@ def create_sample_data(request):
         sample_serializer.save()
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
-y_param = openapi.Parameter('y',"query", openapi.IN_FORM, type=openapi.TYPE_STRING)
+
+y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
 
 
-@parser_classes((FormParser,MultiPartParser, FileUploadParser,))
+@parser_classes(
+    (
+        FormParser,
+        MultiPartParser,
+        FileUploadParser,
+    )
+)
 @swagger_auto_schema(
     method="post",
     # manual_parameters=[analysis_file],
@@ -86,15 +89,11 @@ y_param = openapi.Parameter('y',"query", openapi.IN_FORM, type=openapi.TYPE_STRI
 )
 # @action(detail=True, methods=['post'], parser_classes=(MultiPartParser, ), name='upload-excel', url_path='upload-excel')
 @api_view(["POST"])
-@action(detail=False, methods=['post'])
+@action(detail=False, methods=["post"])
 def analysis_data(request):
     if request.method == "POST":
         data = request.data
-        import pdb
-        import pdb; pdb.set_trace()
-        # if "long_table" == data["analysis"]:
         print(data)
-        pdb.set_trace()
         # if "upload_file" in request.FILES:
         #     a_file = request.FILES["analysis_file"]
         #    print(a_file)
