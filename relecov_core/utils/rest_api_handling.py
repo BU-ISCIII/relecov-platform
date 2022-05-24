@@ -42,10 +42,10 @@ def get_sample_fields_data():
     iskylims_url = ISKLIMS_REST_API
     request = ISKLIMS_GET_SAMPLE_FIELDS
     r_api = RestApi(iskylims_server, iskylims_url)
-    data = r_api.get_request(request)
+    data = r_api.get_request(request, "", "")
     if "ERROR" in data:
         return {"ERROR": data}
-    return data
+    return data["DATA"]
 
 
 def get_sample_project_fields_data(project):
@@ -54,9 +54,9 @@ def get_sample_project_fields_data(project):
     """
     iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
     iskylims_url = ISKLIMS_REST_API
-    request, param  = ISKLIMS_GET_SAMPLE_PROJECT_FIELDS
+    request, param = ISKLIMS_GET_SAMPLE_PROJECT_FIELDS
     r_api = RestApi(iskylims_server, iskylims_url)
     data = r_api.get_request(request, param, project)
     if "ERROR" in data:
         return {"ERROR": data}
-    return data
+    return data["DATA"]
