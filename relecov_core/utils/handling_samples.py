@@ -10,8 +10,8 @@ import json
 
 from relecov_core.models import (
     Authors,
-    # MetadataForm,
-    # MetadataField,
+    Metadata,
+    MetadataProperties,
     SchemaProperties,
     PropertyOptions,
     Schema,
@@ -54,23 +54,24 @@ def complete_sample_table_with_data_from_batch(data):
     sample.save()
 
 
-def create_metadata_form(schema_obj):
+def create_form_for_sample(schema_obj):
     """Collect information from iSkyLIMS and from metadata table to
-    create the user metadata fom
+    create the metadata form for filling sample data
     """
-    schema_name__iexact = schema_obj.get_schema_name()
+    import pdb; pdb.set_trace()
+    schema_name = schema_obj.get_schema_name()
     m_form = []
-    if not MetadataForm.objects.filter(
-        schema_name__iexact=schema_name__iexact, default=True
+    if not Metadata.objects.filter(
+        metadata_name__iexact=schema_name, metadata_default=True
     ).exists():
         return m_form
-    m_data_obj = MetadataForm.objects.filter(
-        schema_name__iexact=schema_name__iexact, default=True
+    m_data_obj = Metadata.objects.filter(
+        metadata_name__iexact=schema_name, metadata_default=True
     ).last()
-    if not MetadataField.objects.filter(metadata_form=m_data_obj).exists():
+    if not MetadataProperties.objects.filter(metadataID=m_data_obj).exists():
         return m_form
-    m_field_objs = MetadataField.objects.filter(
-        metadata_form=m_data_obj, fill_mode__exact="sample"
+    m_field_objs = MetadataProperties.objects.filter(
+        metadataID=m_data_obj, fill_mode__exact="sample"
     ).order_by("order")
 
     # get the sample fields and sample project fields from iSkyLIMS
@@ -101,6 +102,16 @@ def create_metadata_form(schema_obj):
             else:
                 field["options"] = ""
         m_form.appemd(field)
+    import pdb; pdb.set_trace()
+    return m_form
+
+
+def create_metadata_form(schema_obj):
+    """Collect information from iSkyLIMS and from metadata table to
+    create the user metadata fom
+    """
+    m_form = {}
+    m_form["sample"] = create_form_for_sample(schema_obj)
     return m_form
 
     """ Code from Luis Aranda

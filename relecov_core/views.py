@@ -120,8 +120,9 @@ def documentation(request):
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
-    m_form = create_metadata_form()
-    metadata_sample_and_batch_is_completed(request)
+    m_form = create_metadata_form(schema_obj)
+    import pdb; pdb.set_trace()
+    # metadata_sample_and_batch_is_completed(request)
 
     # request process
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
@@ -136,10 +137,10 @@ def metadata_form(request):
             {"sample_recorded": sample_recorded},
         )
 
-    elif request.method == "POST" and request.POST["action"] == "defineBatchSamples":
+    if request.method == "POST" and request.POST["action"] == "defineBatchSamples":
         sample_recorded = upload_excel_file(request)
 
-    elif (
+    if (
         request.method == "POST"
         and request.POST["action"] == "sampledefinitionReprocess"
     ):
@@ -181,6 +182,8 @@ def metadata_form(request):
             "relecov_core/metadataForm2.html",
             {"sample_recorded": sample_recorded},
         )
+    return render(request, "relecov_core/metadataForm2.html", {"m_form": m_form})
+
 
 
 @login_required()
