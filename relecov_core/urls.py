@@ -28,9 +28,9 @@ urlpatterns = [
         name="uploadStatusToGISAID",
     ),
     path(
-        "metadataJSONHandling/",
+        "metadataHandling/",
         views.metadata_json_handling,
-        name="metadata_json_handling",
+        name="metadata_handling",
     ),
 ]
 if settings.DEBUG:
