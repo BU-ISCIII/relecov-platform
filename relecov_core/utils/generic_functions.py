@@ -17,9 +17,9 @@ def get_configuration_value(parameter_name):
         parameter_value
     """
     parameter_value = "False"
-    if ConfigSetting.objects.filter(configurationName__exact=parameter_name).exists():
+    if ConfigSetting.objects.filter(configuration_name__exact=parameter_name).exists():
         parameter_obj = ConfigSetting.objects.filter(
-            configurationName__exact=parameter_name
+            configuration_name__exact=parameter_name
         ).last()
         parameter_value = parameter_obj.get_configuration_value()
     return parameter_value
