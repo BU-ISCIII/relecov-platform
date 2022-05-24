@@ -88,18 +88,18 @@ def metadata_json_handling(request):
         if "ERROR" in metadata_data:
             return render(
                 request,
-                "relecov_core/metadataJSONHandling.html",
+                "relecov_core/metadataHandling.html",
                 {"ERROR": metadata_data["ERROR"]},
             )
 
         return render(
             request,
-            "relecov_core/metadataJSONHandling.html",
+            "relecov_core/metadataHandling.html",
             {"SUCCESS": metadata_data["SUCCESS"]},
         )
     metadatas = get_metadata_json_loaded(__package__)
     return render(
-        request, "relecov_core/metadataJSONHandling.html", {"metadatas": metadatas}
+        request, "relecov_core/metadataHandling.html", {"metadatas": metadatas}
     )
 
 
