@@ -1,6 +1,6 @@
 HEADING_FOR_RECORD_SAMPLES = {
     "Sample ID given by the submitting laboratory": "submitting_lab_sample_id",
-    "Originating Laboratory": "collecting_lab_sample_id",
+    "Originating Laboratory": "collecting_institution",
     "Purpose of sampling": "purpose_sampling",
     "Biological Sample Storage Condition ": "sample_storage_conditions",
     "Specimen source": "anatomical_material",
@@ -151,9 +151,11 @@ HEADING_FOR_QCSTATS_TABLE = {
 }
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
+METADATA_JSON_UPLOAD_FOLDER = "metadata_json"
 METADATA_UPLOAD_FOLDER = "metadata"
 
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
+METADATA_JSON_SUCCESSFUL_LOAD = "Metadata was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 
 ERROR_INVALID_JSON = "Invalid json file"

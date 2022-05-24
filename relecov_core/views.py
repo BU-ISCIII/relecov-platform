@@ -21,6 +21,12 @@ from relecov_core.utils.schema_handling import (
     get_schema_display_data,
 )
 
+from relecov_core.utils.metadata_json_handling import (
+    process_metadata_json_file,
+    get_metadata_json_loaded,
+    # get_metadata_json_data,
+)
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -64,6 +70,36 @@ def schema_display(request, schema_id):
     schema_data = get_schema_display_data(schema_id)
     return render(
         request, "relecov_core/schemaDisplay.html", {"schema_data": schema_data}
+    )
+
+
+@login_required
+def metadata_json_handling(request):
+    if request.user.username != "admin":
+        return redirect("/")
+    if request.method == "POST" and request.POST["action"] == "uploadMetadata":
+        metadata_data = process_metadata_json_file(
+            request.FILES["metadataFile"],
+            request.POST["metadataVersion"],
+            request.POST["metadataDefault"],
+            request.user,
+            __package__,
+        )
+        if "ERROR" in metadata_data:
+            return render(
+                request,
+                "relecov_core/metadataJSONHandling.html",
+                {"ERROR": metadata_data["ERROR"]},
+            )
+
+        return render(
+            request,
+            "relecov_core/metadataJSONHandling.html",
+            {"SUCCESS": metadata_data["SUCCESS"]},
+        )
+    metadatas = get_metadata_json_loaded(__package__)
+    return render(
+        request, "relecov_core/metadataJSONHandling.html", {"metadatas": metadatas}
     )
 
 

@@ -27,6 +27,11 @@ urlpatterns = [
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
     ),
+    path(
+        "metadataJSONHandling/",
+        views.metadata_json_handling,
+        name="metadata_json_handling",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
