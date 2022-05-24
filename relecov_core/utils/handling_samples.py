@@ -58,7 +58,6 @@ def create_form_for_sample(schema_obj):
     """Collect information from iSkyLIMS and from metadata table to
     create the metadata form for filling sample data
     """
-    import pdb; pdb.set_trace()
     schema_name = schema_obj.get_schema_name()
     m_form = []
     if not Metadata.objects.filter(
@@ -76,11 +75,16 @@ def create_form_for_sample(schema_obj):
 
     # get the sample fields and sample project fields from iSkyLIMS
     iskylims_sample_data = get_sample_fields_data()
-    i_sam_proj_data = get_sample_project_fields_data()
+    i_sam_proj_data = get_sample_project_fields_data(schema_name)
+
     for m_field_obj in m_field_objs:
         field = {"label": m_field_obj.get_label()}
-        if SchemaProperties.objects.filter(schemaID=schema_obj, label__iexact=field["label"]).exists():
-            prop_obj = SchemaProperties.objects.filter(schemaID=schema_obj, label__iexact=field["label"]).last()
+        if SchemaProperties.objects.filter(
+            schemaID=schema_obj, label__iexact=field["label"]
+        ).exists():
+            prop_obj = SchemaProperties.objects.filter(
+                schemaID=schema_obj, label__iexact=field["label"]
+            ).last()
             field["format"] = prop_obj.get_format()
 
         if field["label"] in iskylims_sample_data:
@@ -94,15 +98,19 @@ def create_form_for_sample(schema_obj):
             else:
                 field["options"] = ""
         else:
-            if PropertyOptions.objects.filter(propertyID=prop_obj.get_property_idj()).exists():
-                prop_opt_objs = PropertyOptions.objects.filter(propertyID=prop_obj.get_property_idj())
+            if PropertyOptions.objects.filter(
+                propertyID=prop_obj.get_property_id()
+            ).exists():
+                prop_opt_objs = PropertyOptions.objects.filter(
+                    propertyID=prop_obj.get_property_id()
+                )
                 field["options"] = []
                 for prop_opt_obj in prop_opt_objs:
                     field["options"].append(prop_opt_obj.get_enum())
             else:
                 field["options"] = ""
-        m_form.appemd(field)
-    import pdb; pdb.set_trace()
+
+        m_form.append(field)
     return m_form
 
 
