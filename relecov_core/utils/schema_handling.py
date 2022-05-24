@@ -18,7 +18,9 @@ from relecov_core.core_config import (
 def get_latest_schema(schema_name, apps_name):
     """Get the latest schema that is defined in database"""
     if Schema.objects.filter(
-        schema_name__iexact=schema_name, schema_apps_name__exact=apps_name, schema_default=True
+        schema_name__iexact=schema_name,
+        schema_apps_name__exact=apps_name,
+        schema_default=True,
     ).exists():
         return Schema.objects.filter(
             schema_name__iexact=schema_name,
