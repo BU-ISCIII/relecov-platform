@@ -74,25 +74,12 @@ def schema_display(request, schema_id):
 def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
-    if request.method == "POST" and request.POST["action"] == "uploadMetadata":
-        metadata_data = get_fields_from_latest_schema(
-            request.FILES["metadataFile"],
-            request.POST["metadataVersion"],
-            request.POST["metadataDefault"],
-            request.user,
-            __package__,
-        )
-        if "ERROR" in metadata_data:
-            return render(
-                request,
-                "relecov_core/metadataHandling.html",
-                {"ERROR": metadata_data["ERROR"]},
-            )
-
+    if request.method == "POST" and request.POST["action"] == "selectFields":
+        selected_fields = ""
         return render(
             request,
-            "relecov_core/metadataHandling.html",
-            {"SUCCESS": metadata_data["SUCCESS"]},
+            "relecov_core/metadataVisualization.html",
+            {"selected_fields": selected_fields},
         )
     metadata_obj = get_latest_schema("Relecov", __package__)
     if isinstance(metadata_obj, dict):
