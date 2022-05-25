@@ -157,6 +157,7 @@ METADATA_UPLOAD_FOLDER = "metadata"
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 METADATA_JSON_SUCCESSFUL_LOAD = "Metadata was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
+ERROR_SCHEMA_NOT_DEFINED = "No schemas have been defined yet"
 
 ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
