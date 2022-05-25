@@ -11,7 +11,23 @@ from relecov_core.core_config import (
     SCHEMA_SUCCESSFUL_LOAD,
     ERROR_SCHEMA_ID_NOT_DEFINED,
     HEADING_SCHEMA_DISPLAY,
+    MAIN_SCHEMA_STRUCTURE,
 )
+
+
+def get_latest_schema(schema_name, apps_name):
+    """Get the latest schema that is defined in database"""
+    if Schema.objects.filter(
+        schema_name__iexact=schema_name,
+        schema_apps_name__exact=apps_name,
+        schema_default=True,
+    ).exists():
+        return Schema.objects.filter(
+            schema_name__iexact=schema_name,
+            schema_apps_name__exact=apps_name,
+            schema_default=True,
+        ).last()
+    return None
 
 
 def get_schema_display_data(schema_id):
@@ -124,8 +140,7 @@ def process_schema_file(json_file, version, default, user, apps_name):
     if "ERROR" in schema_data:
         return schema_data
     # store root data of json schema
-    structure = ["schema", "required", "type", "properties"]
-    if not check_heading_valid_json(schema_data["full_schema"], structure):
+    if not check_heading_valid_json(schema_data["full_schema"], MAIN_SCHEMA_STRUCTURE):
         return {"ERROR": ERROR_INVALID_SCHEMA}
     schema_name = schema_data["full_schema"]["schema"]
     if default == "on":

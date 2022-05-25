@@ -10,12 +10,18 @@ import json
 
 from relecov_core.models import (
     Authors,
-    # PublicDatabaseField,
+    Metadata,
+    MetadataProperties,
     SchemaProperties,
     PropertyOptions,
     Schema,
     Sample,
     User,
+)
+
+from relecov_core.utils.rest_api_handling import (
+    get_sample_fields_data,
+    get_sample_project_fields_data,
 )
 
 
@@ -48,13 +54,82 @@ def complete_sample_table_with_data_from_batch(data):
     sample.save()
 
 
-def create_metadata_form():
+def create_form_for_sample(schema_obj):
+    """Collect information from iSkyLIMS and from metadata table to
+    create the metadata form for filling sample data
+    """
+    schema_name = schema_obj.get_schema_name()
+    m_form = []
+    if not Metadata.objects.filter(
+        metadata_name__iexact=schema_name, metadata_default=True
+    ).exists():
+        return m_form
+    m_data_obj = Metadata.objects.filter(
+        metadata_name__iexact=schema_name, metadata_default=True
+    ).last()
+    if not MetadataProperties.objects.filter(metadataID=m_data_obj).exists():
+        return m_form
+    m_field_objs = MetadataProperties.objects.filter(
+        metadataID=m_data_obj, fill_mode__exact="sample"
+    ).order_by("order")
+
+    # get the sample fields and sample project fields from iSkyLIMS
+    iskylims_sample_data = get_sample_fields_data()
+    i_sam_proj_data = get_sample_project_fields_data(schema_name)
+
+    for m_field_obj in m_field_objs:
+        field = {"label": m_field_obj.get_label()}
+        if SchemaProperties.objects.filter(
+            schemaID=schema_obj, label__iexact=field["label"]
+        ).exists():
+            prop_obj = SchemaProperties.objects.filter(
+                schemaID=schema_obj, label__iexact=field["label"]
+            ).last()
+            field["format"] = prop_obj.get_format()
+
+        if field["label"] in iskylims_sample_data:
+            if isinstance(iskylims_sample_data["label"], list):
+                field["options"] = iskylims_sample_data["label"]
+            else:
+                field["options"] = ""
+        elif field["label"] in i_sam_proj_data:
+            if isinstance(iskylims_sample_data["label"], list):
+                field["options"] = iskylims_sample_data["label"]
+            else:
+                field["options"] = ""
+        else:
+            if PropertyOptions.objects.filter(
+                propertyID=prop_obj.get_property_id()
+            ).exists():
+                prop_opt_objs = PropertyOptions.objects.filter(
+                    propertyID=prop_obj.get_property_id()
+                )
+                field["options"] = []
+                for prop_opt_obj in prop_opt_objs:
+                    field["options"].append(prop_opt_obj.get_enum())
+            else:
+                field["options"] = ""
+
+        m_form.append(field)
+    return m_form
+
+
+def create_metadata_form(schema_obj):
+    """Collect information from iSkyLIMS and from metadata table to
+    create the user metadata fom
+    """
+    m_form = {}
+    m_form["sample"] = create_form_for_sample(schema_obj)
+    return m_form
+
+    """ Code from Luis Aranda
     sample_recorded = {}
     sample_recorded["heading"] = [x[0] for x in HEADING_FOR_RECORD_SAMPLES]
     sample_recorded["batch"] = fetch_batch_options()
     sample_recorded["samples"] = fetch_sample_options()
 
     return sample_recorded
+    """
 
 
 def execute_query_to_sample_table(data):
