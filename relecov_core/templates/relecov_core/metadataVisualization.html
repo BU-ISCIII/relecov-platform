@@ -1,0 +1,75 @@
+{% extends "relecov_core/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/intranet2Sidebar.html" %}
+{% include "relecov_core/jexcel_utility.html" %}
+
+<section id="relecov-platform" class="hero-animated d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
+        <div class="container sm-9 offset-2">
+			<br><br><br>
+            {% if ERROR %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-9" >
+                        <div class="card  border-danger mb-3">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when displaying Schema</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{schema_data.ERROR}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% else %}
+                <div class="row mt-4">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header text-center"><h2 style="text-align:center">Select fields to display in Metadata Form</h2> </div>
+                            <form method="post" enctype="multipart/form-data" name="selectFields"  id="selectFields" class="form-horizontal well" style="min-height: 100px;">
+                                <div class="card-body  text-center">
+                                    {% csrf_token %}
+                                    <div class="scrolling-wrapper">
+                                        <input type="hidden" name="action" value="selectFields">
+                                        <div id="spreadsheet"></div>
+                                    </div> <!--  end of scrolling  -->
+                                    <script>
+                                        var data = [{% for values in m_visualization %} [{% for value in values %}'{{value}}',{% endfor %}], {% endfor %}];
+
+                                        var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
+                                            data:data,
+                                            columns: [
+                                            { type: 'hidden'},
+                                            { type: 'text', title:'Label', width:250 ,readOnly:true},
+                                            { type: 'numeric', title:'Order', width:70, mask:' #.##,00' },
+                                            { type: 'checkbox', title:'Used', width:80 },
+                                            { type: 'dropdown' , title: 'Select', width:150 , source: ["Sample", "Batch"] },
+                                           ],
+                                           allowInsertColumn:false,
+                                           allowDeleteColumn:false,
+                                           allowRenameColumn:false,
+                                           search:true,
+                                           pagination:20,
+                                       });
+                                   </script>
+                                   <div class="col-md-9">
+
+                                   </div>
+                               </div> <!-- end card body-->
+                               <div class="card-body">
+                                   <div class="text-left">
+                                       <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                       <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+
+                                   </div>
+                               </div>     <!-- end card body  -->
+                           </form>
+                       </div> <!-- end card  -->
+                    </div> <!-- end col-md-10 -->
+               </div> <!-- end row-->
+            {% endif %}
+        </div>  <!-- end container -->
+    </div>
+</section>
+
+{% endblock %}

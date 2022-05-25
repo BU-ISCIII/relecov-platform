@@ -10,9 +10,19 @@ from relecov_core.core_config import (
     ERROR_SCHEMA_ALREADY_LOADED,
     SCHEMA_SUCCESSFUL_LOAD,
     ERROR_SCHEMA_ID_NOT_DEFINED,
+    ERROR_SCHEMA_NOT_DEFINED,
     HEADING_SCHEMA_DISPLAY,
     MAIN_SCHEMA_STRUCTURE,
 )
+
+
+def get_fields_from_schema(schema_obj):
+    """Get the labels and the property name from the schema"""
+    schema_list = []
+    prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by("label")
+    for prop_obj in prop_objs:
+        schema_list.append([prop_obj.get_property_name(), prop_obj.get_label()])
+    return schema_list
 
 
 def get_latest_schema(schema_name, apps_name):
@@ -27,7 +37,7 @@ def get_latest_schema(schema_name, apps_name):
             schema_apps_name__exact=apps_name,
             schema_default=True,
         ).last()
-    return None
+    return {"ERROR": ERROR_SCHEMA_NOT_DEFINED}
 
 
 def get_schema_display_data(schema_id):
