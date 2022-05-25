@@ -161,9 +161,6 @@ class SchemaProperties(models.Model):
     def get_label(self):
         return "%s" % (self.label)
 
-    def get_property(self):
-        return "%s" % (self.property)
-
     def get_format(self):
         return "%s" % (self.format)
 
