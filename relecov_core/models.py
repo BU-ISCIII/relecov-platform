@@ -561,27 +561,48 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
-# Variant Table
-
-
-class VariantManager(models.Manager):
-    def create_new_variant(self, data):
-        new_variant = self.create(
+# Position table
+class PositionManager(models.Manager):
+    def create_new_position(self, data):
+        new_position = self.create(
             pos=data["pos"],
-            ref=data["ref"],
-            alt=data["alt"],
+        )
+        return new_position
+
+
+class Position(models.Model):
+    pos = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "Position"
+
+    def __str__(self):
+        return "%s" % (self.pos)
+
+    def get_pos(self):
+        return "%s" % (self.pos)
+
+
+# VariantInSample Table
+class VariantInSampleManager(models.Manager):
+    def create_new_variant_in_sample(self, data):
+        new_variant_in_sample = self.create(
+            # pos=data["pos"],
+            # ref=data["ref"],
+            # alt=data["alt"],
             dp=data["dp"],
             alt_dp=data["alt_dp"],
             ref_dp=data["ref_dp"],
             af=data["af"],
+            variantID_id=["variantID_id"],
         )
-        return new_variant
+        return new_variant_in_sample
 
 
-class Variant(models.Model):  # include Foreign Keys
-    pos = models.CharField(max_length=7)
-    ref = models.CharField(max_length=60)
-    alt = models.CharField(max_length=10)
+class VariantInSample(models.Model):  # include Foreign Keys
+    # pos = models.CharField(max_length=7)
+    # ref = models.CharField(max_length=60)
+    # alt = models.CharField(max_length=10)
     dp = models.CharField(max_length=10)
     alt_dp = models.CharField(max_length=5)
     ref_dp = models.CharField(max_length=10)
@@ -590,8 +611,9 @@ class Variant(models.Model):  # include Foreign Keys
     updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
-        db_table = "Variant"
+        db_table = "VariantInSample"
 
+    """
     def get_pos(self):
         return "%s" % (self.pos)
 
@@ -600,6 +622,7 @@ class Variant(models.Model):  # include Foreign Keys
 
     def get_alt(self):
         return "%s" % (self.alt)
+    """
 
     def get_dp(self):
         return "%s" % (self.dp)
@@ -612,6 +635,46 @@ class Variant(models.Model):  # include Foreign Keys
 
     def get_af(self):
         return "%s" % (self.af)
+
+    objects = VariantInSampleManager()
+
+
+# Variant Table
+class VariantManager(models.Manager):
+    def create_new_variant(self, data):
+        new_variant = self.create(
+            ref=data["ref"],
+            sampleID_id=data["sampleID_id"],
+            variant_in_sampleID_id=data["variant_in_sampleID_id"],
+            filterID_id=data["filterID_id"],
+            positionID_id=data["positionID_id"],
+            chromosomeID_id=data["chromosomeID_id"],
+            geneID_id=data["geneID_id"],
+            effectID_id=data["effectID_id"],
+        )
+        return new_variant
+
+
+class Variant(models.Model):
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    variant_in_sampleID_id = models.ForeignKey(
+        VariantInSample, on_delete=models.CASCADE
+    )
+    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
+    positionID_id = models.ForeignKey(Position, on_delete=models.CASCADE)
+    chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
+    geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
+    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+
+    ref = models.CharField(max_length=60)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+
+    class Meta:
+        db_table = "Variant"
+
+    def get_ref(self):
+        return "%s" % (self.ref)
 
     objects = VariantManager()
 
