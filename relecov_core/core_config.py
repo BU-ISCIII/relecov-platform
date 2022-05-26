@@ -171,7 +171,10 @@ HEADING_SCHEMA_DISPLAY = [
     "Classification",
     "Description",
 ]
-ISKLIMS_REST_API = "/wetlab/appi/"
+MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]
+ISKLIMS_REST_API = "/wetlab/api/"
 # REST API TO iSkyLIMS
 ISKLIMS_GET_LABORATORY_PARAMETERS = ["laboratoryData", "laboratory"]
 ISKLIMS_PUT_LABORATORY_PARAMETER = "updateLab"
+ISKLIMS_GET_SAMPLE_FIELDS = "sampleFields"
+ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
