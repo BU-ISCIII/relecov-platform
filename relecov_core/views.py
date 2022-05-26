@@ -152,6 +152,7 @@ def metadata_form(request):
     if request.method == "POST" and request.POST["action"] == "metadata_form_batch":
         sample_recorded = {}
         data = process_batch_metadata_form(request)
+        print(data)
         complete_sample_table_with_data_from_batch(data)
         execute_query_to_authors_table(data)
 
