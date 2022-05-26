@@ -16,11 +16,15 @@ from relecov_core.utils.handling_samples import (
 from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.schema_handling import (
-    process_schema_file,
+    del_metadata_visualization,
+    fetch_info_meta_visualization,
     get_schemas_loaded,
+    get_schema_obj_from_id,
     get_schema_display_data,
     get_latest_schema,
     get_fields_from_schema,
+    process_schema_file,
+    store_fields_metadata_visualization,
 )
 
 
@@ -50,7 +54,6 @@ def schema_handling(request):
                 "relecov_core/schemaHandling.html",
                 {"ERROR": schema_data["ERROR"]},
             )
-
         return render(
             request,
             "relecov_core/schemaHandling.html",
@@ -75,17 +78,40 @@ def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "selectFields":
-        selected_fields = ""
+        selected_fields = store_fields_metadata_visualization(request.POST)
+        if "ERROR" in selected_fields:
+            m_visualization = get_fields_from_schema(
+                get_schema_obj_from_id(request.POST["schemaID"])
+            )
+            return render(
+                request,
+                "relecov_core/metadataVisualization.html",
+                {"ERROR": selected_fields, "m_visualization": m_visualization},
+            )
         return render(
             request,
             "relecov_core/metadataVisualization.html",
             {"selected_fields": selected_fields},
         )
+    if request.method == "POST" and request.POST["action"] == "deleteFields":
+        del_metadata_visualization()
+        return render(
+            request, "relecov_core/metadataVisualization.html", {"DELETE": "DELETE"}
+        )
     metadata_obj = get_latest_schema("Relecov", __package__)
     if isinstance(metadata_obj, dict):
-        request, "relecov_core/metadataVisualization.html", {
-            "ERROR": metadata_obj["ERROR"]
-        }
+        return render(
+            request,
+            "relecov_core/metadataVisualization.html",
+            {"ERROR": metadata_obj["ERROR"]},
+        )
+    data_visualization = fetch_info_meta_visualization(metadata_obj)
+    if isinstance(data_visualization, dict):
+        return render(
+            request,
+            "relecov_core/metadataVisualization.html",
+            {"data_visualization": data_visualization},
+        )
     m_visualization = get_fields_from_schema(metadata_obj)
     return render(
         request,

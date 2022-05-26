@@ -173,6 +173,10 @@ HEADING_SCHEMA_DISPLAY = [
     "Description",
 ]
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]
+NO_SELECTED_LABEL_WAS_DONE = (
+    "No selected label order was done to define Metadata visualization"
+)
+
 ISKLIMS_REST_API = "/wetlab/api/"
 # REST API TO iSkyLIMS
 ISKLIMS_GET_LABORATORY_PARAMETERS = ["laboratoryData", "laboratory"]
