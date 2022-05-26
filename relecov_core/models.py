@@ -4,7 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from relecov_core.core_config import (
-    METADATA_JSON_UPLOAD_FOLDER,
     SCHEMAS_UPLOAD_FOLDER,
     METADATA_UPLOAD_FOLDER,
 )
