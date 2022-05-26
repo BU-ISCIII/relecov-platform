@@ -122,7 +122,7 @@ def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
     m_form = create_metadata_form(schema_obj)
     # metadata_sample_and_batch_is_completed(request)
-    return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
+    # return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
     # request process
     if request.method == "POST" and request.POST["action"] == "sampledefinition":
         sample_recorded = analyze_input_samples(request)
