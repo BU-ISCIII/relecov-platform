@@ -18,6 +18,7 @@ from relecov_core.models import (
     PublicDatabaseField,
     Sample,
     Variant,
+    VariantInSample,
     QcStats,
     SampleState,
     Schema,
@@ -102,7 +103,11 @@ class SampleStateAdmin(admin.ModelAdmin):
 
 
 class VariantAdmin(admin.ModelAdmin):
-    list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
+    list_display = ["ref"]
+
+
+class VariantInSampleAdmin(admin.ModelAdmin):
+    list_display = ["dp", "alt_dp", "ref_dp", "af"]
 
 
 class AnalysisAdmin(admin.ModelAdmin):
