@@ -1,4 +1,9 @@
+import json
+from collections import OrderedDict
+
+
 from relecov_core.core_config import (
+    ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
     HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     HEADING_FOR_RECORD_SAMPLES,
     HEADINGS_FOR_ISkyLIMS,
@@ -6,12 +11,11 @@ from relecov_core.core_config import (
     HEADING_FOR_SAMPLE_TABLE,
     HEADINGS_FOR_ISkyLIMS_BATCH,
 )
-import json
+
 
 from relecov_core.models import (
     Authors,
-    Metadata,
-    MetadataProperties,
+    MetadataVisualization,
     SchemaProperties,
     PropertyOptions,
     Schema,
@@ -59,58 +63,66 @@ def create_form_for_sample(schema_obj):
     create the metadata form for filling sample data
     """
     schema_name = schema_obj.get_schema_name()
-    m_form = []
-    if not Metadata.objects.filter(
-        metadata_name__iexact=schema_name, metadata_default=True
-    ).exists():
-        return m_form
-    m_data_obj = Metadata.objects.filter(
-        metadata_name__iexact=schema_name, metadata_default=True
-    ).last()
-    if not MetadataProperties.objects.filter(metadataID=m_data_obj).exists():
-        return m_form
-    m_field_objs = MetadataProperties.objects.filter(
-        metadataID=m_data_obj, fill_mode__exact="sample"
-    ).order_by("order")
+    m_form = OrderedDict()
+    if not MetadataVisualization.objects.filter(fill_mode="sample").exists():
+        return {"ERROR": ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED}
+    m_sam_objs = MetadataVisualization.objects.filter(fill_mode="sample").order_by(
+        "order"
+    )
+    schema_obj = m_sam_objs[0].get_schema_obj()
+    schema_name = schema_obj.get_schema_name()
+    # Get the properties in schema for mapping
+    s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj)
+    s_prop_dict = {}
+    for s_prop_obj in s_prop_objs:
+        if s_prop_obj.get_ontology() == "0":
+            continue
+        s_prop_dict[s_prop_obj.get_ontology()] = {
+            "label": s_prop_obj.get_label(),
+            "format": s_prop_obj.get_format(),
+        }
 
     # get the sample fields and sample project fields from iSkyLIMS
-    iskylims_sample_data = get_sample_fields_data()
-    i_sam_proj_data = get_sample_project_fields_data(schema_name)
+    iskylims_sample_raw = get_sample_fields_data()
+    i_sam_proj_raw = get_sample_project_fields_data(schema_name)
+    i_sam_proj_data = {}
+    # Format the information from sample Project to have label as key
+    # format of the field and the option list in aa list
+    for item in i_sam_proj_raw:
+        key = item["sampleProjectFieldDescription"]
+        i_sam_proj_data[key] = {}
+        i_sam_proj_data[key]["format"] = item["sampleProjectFieldType"]
+        if item["sampleProjectFieldType"] == "Option List":
+            i_sam_proj_data[key]["options"] = []
+            for opt in item["sampleProjectOptionList"]:
+                i_sam_proj_data[key]["options"].append(opt["optionValue"])
+    # Map fields using ontology
+    iskylims_sample_data = {}
+    for key, values in iskylims_sample_raw.items():
+        if "ontology" in values:
+            try:
+                label = s_prop_dict[values["ontology"]]["label"]
+                if "options" in values:
+                    iskylims_sample_data[label] = {"options": values["options"]}
+            except KeyError as e:
+                print("Error in map ontology ", e)
 
-    for m_field_obj in m_field_objs:
-        field = {"label": m_field_obj.get_label()}
-        if SchemaProperties.objects.filter(
-            schemaID=schema_obj, label__iexact=field["label"]
-        ).exists():
-            prop_obj = SchemaProperties.objects.filter(
-                schemaID=schema_obj, label__iexact=field["label"]
-            ).last()
-            field["format"] = prop_obj.get_format()
-
-        if field["label"] in iskylims_sample_data:
-            if isinstance(iskylims_sample_data["label"], list):
-                field["options"] = iskylims_sample_data["label"]
-            else:
-                field["options"] = ""
-        elif field["label"] in i_sam_proj_data:
-            if isinstance(iskylims_sample_data["label"], list):
-                field["options"] = iskylims_sample_data["label"]
-            else:
-                field["options"] = ""
+    # Prepare for each label the information to show in form
+    for m_sam_obj in m_sam_objs:
+        label = m_sam_obj.get_label()
+        m_form[label] = {}
+        if label in i_sam_proj_data:
+            m_form[label]["format"] = i_sam_proj_data[label]["format"]
+            if "options" in i_sam_proj_data[label]:
+                m_form[label]["options"] = i_sam_proj_data[label]["options"]
+        elif label in iskylims_sample_data:
+            if "options" in iskylims_sample_data[label]:
+                m_form[label]["options"] = iskylims_sample_data[label]["options"]
         else:
-            if PropertyOptions.objects.filter(
-                propertyID=prop_obj.get_property_id()
-            ).exists():
-                prop_opt_objs = PropertyOptions.objects.filter(
-                    propertyID=prop_obj.get_property_id()
-                )
-                field["options"] = []
-                for prop_opt_obj in prop_opt_objs:
-                    field["options"].append(prop_opt_obj.get_enum())
-            else:
-                field["options"] = ""
-
-        m_form.append(field)
+            print(label)
+        if "date" in label.lower():
+            m_form[label]["format"] = "date"
+    # import pdb; pdb.set_trace()
     return m_form
 
 
@@ -118,6 +130,9 @@ def create_metadata_form(schema_obj):
     """Collect information from iSkyLIMS and from metadata table to
     create the user metadata fom
     """
+    # Check if Fields for metadata Form are defiened
+    if not MetadataVisualization.objects.all().exists():
+        return {"ERROR": ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED}
     m_form = {}
     m_form["sample"] = create_form_for_sample(schema_obj)
     return m_form
