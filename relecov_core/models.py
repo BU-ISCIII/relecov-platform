@@ -314,7 +314,7 @@ class Caller(models.Model):
 # Filter Table
 class FilterManager(models.Manager):
     def create_new_filter(self, data):
-        new_filter = self.create(filter=data["filter"])
+        new_filter = self.create(filter=data)
         return new_filter
 
 
@@ -333,13 +333,21 @@ class Filter(models.Model):
 
 
 # Effect Table
+"""
+    fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4),
+    FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10),
+    EFFECT(11), HGVS_C(12), HGVS_P(13), HGVS_P1LETTER(14),
+    CALLER(15), LINEAGE(16)
+    """
+
+
 class EffectManager(models.Manager):
     def create_new_effect(self, data):
         new_effect = self.create(
-            effect=data["effect"],
-            hgvs_c=data["hgvs_c"],
-            hgvs_p=data["hgvs_p"],
-            hgvs_p_1_letter=data["hgvs_p_1_letter"],
+            effect=data[11],
+            hgvs_c=data[12],
+            hgvs_p=data[13],
+            hgvs_p_1_letter=data[14],
         )
         return new_effect
 
@@ -552,8 +560,8 @@ class Sample(models.Model):
 class PositionManager(models.Manager):
     def create_new_position(self, data):
         new_position = self.create(
-            pos=data[2],
-            nucleotide=data["nucleotide"],
+            pos=data,
+            nucleotide="data['nucleotide']",
         )
         return new_position
 
@@ -575,6 +583,8 @@ class Position(models.Model):
     def get_nucleotide(self):
         return "%s" % (self.nucleotide)
 
+    objects = PositionManager()
+
 
 # VariantInSample Table
 class VariantInSampleManager(models.Manager):
@@ -591,7 +601,7 @@ class VariantInSampleManager(models.Manager):
             alt_dp=data[8],
             ref_dp=data[7],
             af=data[9],
-            variantID_id=["variantID_id"],
+            # variantID_id=["variantID_id"],
         )
         return new_variant_in_sample
 
