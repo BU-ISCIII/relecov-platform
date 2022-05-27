@@ -33,7 +33,6 @@ class Document(models.Model):
     file_path = models.CharField(max_length=200)
     uploadedFile = models.FileField(upload_to=METADATA_UPLOAD_FOLDER)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Document"
@@ -299,7 +298,6 @@ class Caller(models.Model):
     name = models.CharField(max_length=60)
     version = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Caller"
@@ -352,7 +350,6 @@ class Effect(models.Model):
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1_letter = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Effect"
@@ -392,7 +389,6 @@ class Lineage(models.Model):
     if_lineage_identification_other = models.CharField(max_length=100)
     lineage_analysis_software_version = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Lineage"
@@ -421,14 +417,13 @@ class Lineage(models.Model):
 # Gene Table
 class GeneManager(models.Manager):
     def create_new_gene(self, data):
-        new_gene = self.create(gene=data["gene"])
+        new_gene = self.create(gene=data)
         return new_gene
 
 
 class Gene(models.Model):
     gene = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Gene"
@@ -449,7 +444,6 @@ class ChromosomeManager(models.Manager):
 class Chromosome(models.Model):
     chromosome = models.CharField(max_length=110)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Chromosome"
@@ -516,7 +510,6 @@ class Sample(models.Model):
     gisaid_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
 
     class Meta:
@@ -555,17 +548,100 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
+# Position table
+class PositionManager(models.Manager):
+    def create_new_position(self, data):
+        new_position = self.create(
+            pos=data[2],
+            nucleotide=data["nucleotide"],
+        )
+        return new_position
+
+
+class Position(models.Model):
+    pos = models.CharField(max_length=100)
+    nucleotide = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+
+    class Meta:
+        db_table = "Position"
+
+    def __str__(self):
+        return "%s" % (self.pos)
+
+    def get_pos(self):
+        return "%s" % (self.pos)
+
+    def get_nucleotide(self):
+        return "%s" % (self.nucleotide)
+
+
+# VariantInSample Table
+class VariantInSampleManager(models.Manager):
+    """
+    fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4),
+    FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10),
+    EFFECT(11), HGVS_C(12), HGVS_P(13), HGVS_P1LETTER(14),
+    CALLER(15), LINEAGE(16)
+    """
+
+    def create_new_variant_in_sample(self, data):
+        new_variant_in_sample = self.create(
+            dp=data[6],
+            alt_dp=data[8],
+            ref_dp=data[7],
+            af=data[9],
+            variantID_id=["variantID_id"],
+        )
+        return new_variant_in_sample
+
+
+class VariantInSample(models.Model):  # include Foreign Keys
+    dp = models.CharField(max_length=10)
+    alt_dp = models.CharField(max_length=5)
+    ref_dp = models.CharField(max_length=10)
+    af = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+
+    class Meta:
+        db_table = "VariantInSample"
+
+    def get_pos(self):
+        return "%s" % (self.pos)
+
+    def get_ref(self):
+        return "%s" % (self.ref)
+
+    def get_alt(self):
+        return "%s" % (self.alt)
+
+    def get_dp(self):
+        return "%s" % (self.dp)
+
+    def get_alt_dp(self):
+        return "%s" % (self.alt_dp)
+
+    def get_ref_dp(self):
+        return "%s" % (self.ref_dp)
+
+    def get_af(self):
+        return "%s" % (self.af)
+
+    objects = VariantInSampleManager()
+
+
 # Variant Table
 class VariantManager(models.Manager):
-    def create_new_variant(self, data):
+    def create_new_variant(self, data, data_ids):
         new_variant = self.create(
-            pos=data["pos"],
-            ref=data["ref"],
-            alt=data["alt"],
-            dp=data["dp"],
-            alt_dp=data["alt_dp"],
-            ref_dp=data["ref_dp"],
-            af=data["af"],
+            ref=data[3],
+            sampleID_id=data_ids["sampleID_id"],
+            variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
+            filterID_id=data_ids["filterID_id"],
+            positionID_id=data_ids["positionID_id"],
+            chromosomeID_id=data_ids["chromosomeID_id"],
+            geneID_id=data_ids["geneID_id"],
+            effectID_id=data_ids["effectID_id"],
         )
         return new_variant
 
@@ -579,7 +655,6 @@ class Variant(models.Model):  # include Foreign Keys
     ref_dp = models.CharField(max_length=10)
     af = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    # updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Variant"
@@ -606,58 +681,6 @@ class Variant(models.Model):  # include Foreign Keys
         return "%s" % (self.af)
 
     objects = VariantManager()
-    
-# VariantSample table
-class VariantSampleManager(models.Manager):
-    def create_new_variant_sample(self, data):
-        new_variant_sample = self.create(
-            ref=data["ref"],
-            alt=data["alt"],
-            dp=data["dp"],
-            alt_dp=data["alt_dp"],
-            ref_dp=data["ref_dp"],
-            af=data["af"],
-        )
-        return new_variant_sample
-
-
-class VariantSample(models.Model):  # include Foreign Keys
-    pos = models.CharField(max_length=7)
-    ref = models.CharField(max_length=60)
-    alt = models.CharField(max_length=10)
-    dp = models.CharField(max_length=10)
-    alt_dp = models.CharField(max_length=5)
-    ref_dp = models.CharField(max_length=10)
-    af = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
-
-    class Meta:
-        db_table = "Variant"
-
-    def get_pos(self):
-        return "%s" % (self.pos)
-
-    def get_ref(self):
-        return "%s" % (self.ref)
-
-    def get_alt(self):
-        return "%s" % (self.alt)
-
-    def get_dp(self):
-        return "%s" % (self.dp)
-
-    def get_alt_dp(self):
-        return "%s" % (self.alt_dp)
-
-    def get_ref_dp(self):
-        return "%s" % (self.ref_dp)
-
-    def get_af(self):
-        return "%s" % (self.af)
-
-    objects = VariantManager()
-
 
 
 # Table Analysis
@@ -731,11 +754,10 @@ class Analysis(models.Model):
     mapping_params = models.CharField(max_length=100)
     reference_genome_accession = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     # Many-to-one relationships
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    # variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Analysis"
@@ -847,7 +869,6 @@ class Authors(models.Model):
     author_submitter = models.CharField(max_length=100)
     authors = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Authors"
@@ -911,7 +932,6 @@ class QcStats(models.Model):
     number_of_variants_AF_greater_75percent = models.CharField(max_length=100)
     number_of_variants_with_effect = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     # One-to-one relationships
     analysis = models.OneToOneField(
@@ -985,7 +1005,6 @@ class PublicDatabaseManager(models.Manager):
 class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     # ManyToOne
     authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
@@ -1018,7 +1037,6 @@ class PublicDatabaseField(models.Model):
     fieldDescription = models.CharField(max_length=400, null=True, blank=True)
     fieldInUse = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     # ManyToOne
     # public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
