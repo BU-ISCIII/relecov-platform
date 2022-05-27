@@ -163,6 +163,9 @@ class SchemaProperties(models.Model):
     def get_format(self):
         return "%s" % (self.format)
 
+    def get_ontology(self):
+        return "%s" % (self.ontology)
+
     objects = SchemaPropertiesManager()
 
 
@@ -200,6 +203,7 @@ class MetadataVisualizationManager(models.Manager):
             schemaID=data["schema_id"],
             property_name=data["property_name"],
             label_name=data["label_name"],
+            order=data["order"],
             in_use=data["in_use"],
             fill_mode=data["fill_mode"],
         )
@@ -210,7 +214,7 @@ class MetadataVisualization(models.Model):
     schemaID = models.ForeignKey(Schema, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
     label_name = models.CharField(max_length=80)
-    order = models.CharField(max_length=5)
+    order = models.IntegerField()
     in_use = models.BooleanField(default=True)
     fill_mode = models.CharField(max_length=40)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -229,6 +233,9 @@ class MetadataVisualization(models.Model):
 
     def get_order(self):
         return "%s" % (self.order)
+
+    def get_schema_obj(self):
+        return self.schemaID
 
     objects = MetadataVisualizationManager()
 
