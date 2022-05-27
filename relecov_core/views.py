@@ -28,11 +28,16 @@ from relecov_core.utils.metadata_json_handling import (
     # get_metadata_json_data,
 )
 
+from relecov_core.utils.parse_files import (
+    parse_csv,
+)
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 
 def index(request):
+    parse_csv("relecov_core/docs/variants_long_table_last.csv")
     return render(request, "relecov_core/index.html", {})
 
 
