@@ -3,17 +3,17 @@
 
 {% block content %}
 {% include "relecov_core/intranet2Sidebar.html" %}
-{% include "relecov_core/jexcel_utility.html" %}
+{% include "relecov_core/JExcelFunctionality.html" %}
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.css"/>
 
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.js"></script>
 
-<section id="relecov-platform" class="hero-animated d-flex align-items-center">
-    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
-        <div class="container sm-9 offset-2">
+<section id="relecov-platform" class="d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" style="width:60%">
+        <div class="container sm-10">
 			<br><br><br>
             {% if ERROR %}
-                <div class="row row-space-2 margin-b-4">
+                <div class="row row-space-2 m-4">
                     <div class="col-sm-9" >
                         <div class="card  border-danger mb-3">
                             <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when selecting fields for Metadata</h3> </div>
@@ -26,13 +26,13 @@
                 </div> <!--// end row -->
             {% endif %}
             {% if SUCCESS %}
-                <div class="row row-space-2 margin-b-4">
+                <div class="row row-space-2 m-4">
                     <div class="col-sm-9" >
                         <div class="card">
                             <div class="card-header text-center"><h3>Sucessful selection for Metadata</h3> </div>
                             <div class="card-body  text-center">
                                 <br>
-                                <p><strong>{{SUCCESS}}</strong></p>
+                                <p><strong>Your fields have been recorded</strong></p>
                             </div> <!-- end card body  -->
                         </div> <!-- end card  -->
                     </div> <!--// end col-sm-9 -->
@@ -54,7 +54,7 @@
                     <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
                        <div class="container-md">
                            <div class="row mt-4">
-                               <div class="col-md-8">
+                               <div class="col-md-10">
                                     <div class="card">
                                         <div class="card-header text-center"><h3 style="text-align:center">Metadata fields classified as Sample</h3> </div>
                                         <div class="card-body  text-center">
@@ -84,7 +84,7 @@
     				<div class="tab-pane fade" id="batch" role="tabpanel" aria-labelledby="grupo-tab">
     					<div class="container-md">
     					    <div class="row mt-5">
-    						  	<div class="col-md-8">
+    						  	<div class="col-md-10">
     						  		<div class="card">
     						  			<div class="card-header"><h3 style="text-align:center">Metadata fields classified as Batch</h3> </div>
     						  			<div class="card-body">
@@ -114,7 +114,7 @@
                     <div class="tab-pane fade" id="delete" role="tabpanel" aria-labelledby="info-tab">
                        <div class="container-md">
                            <div class="row mt-4">
-                               <div class="col-md-8">
+                               <div class="col-md-10">
                                     <div class="card border-danger mb-3">
                                         <div class="card-header text-center"> <h2 class="text-danger">WARNING</h2> </div>
 
@@ -155,7 +155,7 @@
             {% endif %}
             {% if DELETE %}
                 <div class="row row-space-2 margin-b-4">
-                    <div class="col-sm-9" >
+                    <div class="col-sm-10" >
                         <div class="card">
                             <div class="card-header text-center"><h3 style="text-align:center">Sucessful delete</h3> </div>
                             <div class="card-body  text-center">
@@ -172,7 +172,7 @@
             {% endif %}
             {% if m_visualization %}
                 <div class="row mt-4">
-                    <div class="col-md-10">
+                    <div class="col-md-12">
                         <div class="card">
                             <div class="card-header text-center"><h2 style="text-align:center">Select fields to display in Metadata Form</h2> </div>
                             <form method="post" enctype="multipart/form-data" name="selectFields"  id="selectFields" class="form-horizontal well" style="min-height: 100px;">
