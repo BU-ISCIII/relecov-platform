@@ -329,7 +329,7 @@ class FilterManager(models.Manager):
 class Filter(models.Model):
     filter = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
+    # git statusupdated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Filter"
@@ -448,8 +448,8 @@ class Gene(models.Model):
 # Chromosome Table
 class ChromosomeManager(models.Manager):
     def create_new_chromosome(self, data):
-        new_chomosome = self.create(chromosome=data["chromosome"])
-        return new_chomosome
+        new_chromosome = self.create(chromosome=data)
+        return new_chromosome
 
 
 class Chromosome(models.Model):
