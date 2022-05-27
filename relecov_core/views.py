@@ -91,7 +91,7 @@ def metadata_visualization(request):
         return render(
             request,
             "relecov_core/metadataVisualization.html",
-            {"selected_fields": selected_fields},
+            {"SUCCESS": selected_fields},
         )
     if request.method == "POST" and request.POST["action"] == "deleteFields":
         del_metadata_visualization()
@@ -137,6 +137,10 @@ def documentation(request):
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
     m_form = create_metadata_form(schema_obj)
+    if "ERROR" in m_form:
+        return render(
+            request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
+        )
     # metadata_sample_and_batch_is_completed(request)
     return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
     # request process
@@ -145,7 +149,6 @@ def metadata_form(request):
 
         if sample_recorded["process"] == "Success":
             request.session["pending_data_msg"] = "PENDING DATA"
-
         return render(
             request,
             "relecov_core/metadataForm2.html",
