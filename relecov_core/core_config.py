@@ -164,7 +164,9 @@ ERROR_INVALID_SCHEMA = "Invalid Schema"
 ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
 
 ERROR_INTIAL_SETTINGS_NOT_DEFINED = "Relecov Platform is not fully completed"
-ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED = "Fields to display in Metadata form are not defined yet"
+ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED = (
+    "Fields to display in Metadata form are not defined yet"
+)
 
 HEADING_SCHEMA_DISPLAY = [
     "Property",
