@@ -65,7 +65,7 @@ def get_sample_project_fields_data(project):
 
 
 def save_sample_form_data(post_data, credencials):
-    """Send POST API request to iSkyLIMS to save sample data """
+    """Send POST API request to iSkyLIMS to save sample data"""
     iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
     iskylims_url = ISKLIMS_REST_API
     request = ISKLIMS_POST_SAMPLE_DATA
