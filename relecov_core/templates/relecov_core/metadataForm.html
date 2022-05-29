@@ -14,7 +14,7 @@
     }
 </style>
 <section id="metadataForm" class="d-flex align-items-center"style="margin-top: 6%">
-    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
+    <div class="container d-flex flex-column text-center position-relative" style="width:67%">
         <div class="container sm-12">
         {% if ERROR %}
             <div class="row m-5">
@@ -51,7 +51,7 @@
                         <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
                             <div class="container-md">
                                 <div class="row mt-4">
-                                    <div class="col-md-10">
+                                    <div class="col-md-12">
                                         <div class="card">
                                             <div class="card-header text-center"><h2 style="text-align:center">Metadata Form</h2> </div>
                                             <form method="post" enctype="multipart/form-data" name="defineSamples"  id="defineSamples" class="form-horizontal well" style="min-height: 100px;">
@@ -59,6 +59,9 @@
                                                     {% csrf_token %}
                                                     <div class="scrolling-wrapper">
                                                         <input type="hidden" name="action" value="defineSamples">
+                                                        <input type="hidden" name="heading" value="{{m_form.sample.heading}}">
+                                                        <input type="hidden" name="l_iskylims" value="{{m_form.sample.l_iskylims}}">
+                                                        <input type="hidden" name="l_metadata" value="{{m_form.sample.l_metadata}}">
                                                         <div id="spreadsheet"></div>
                                                     </div> <!--  end of scrolling  -->
                                                     <script>
@@ -67,7 +70,7 @@
                                                         var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
                                                             data:data,
                                                             columns: [
-                                                            {% for item, values  in m_form.sample.items %}
+                                                            {% for item, values  in m_form.sample.data.items %}
 
                                                                 {% if values.format == "date" %}
                                                                     { type: 'calendar', title: "{{item}}", width:180 },
