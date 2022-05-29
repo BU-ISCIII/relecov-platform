@@ -4,16 +4,18 @@
 
 # from relecov_core.core_config import HEADING_FOR_RECORD_SAMPLES
 from relecov_core.utils.handling_samples import (
-    create_metadata_form,
     analyze_input_samples,
+    create_metadata_form,
     # fetch_sample_options,
     # metadata_sample_and_batch_is_completed,
-    process_batch_metadata_form,
-    complete_sample_table_with_data_from_batch,
-    execute_query_to_authors_table,
+    # process_batch_metadata_form,
+    # complete_sample_table_with_data_from_batch,
+    # execute_query_to_authors_table,
+    save_sample_from_form,
     # fetch_batch_options,
 )
-from relecov_core.utils.metadata_handling import upload_excel_file
+
+# from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.schema_handling import (
     del_metadata_visualization,
@@ -136,71 +138,34 @@ def documentation(request):
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
-    m_form = create_metadata_form(schema_obj)
-    if "ERROR" in m_form:
-        return render(
-            request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
-        )
-    # metadata_sample_and_batch_is_completed(request)
-    return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
-    # request process
-    if request.method == "POST" and request.POST["action"] == "sampledefinition":
-        sample_recorded = analyze_input_samples(request)
+    m_form = create_metadata_form(schema_obj, request.user)
+    if request.method == "POST" and request.POST["action"] == "defineSamples":
+        res_analyze = analyze_input_samples(request)
+        # empty form
+        if len(res_analyze) == 0:
+            return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
+        if "save_samples" in res_analyze:
+            s_saved = save_sample_from_form(res_analyze["save_samples"])
+            if "ERROR" in s_saved:
+                return render(
+                    request, "relecov_core/metadataForm.html", {"ERROR": s_saved}
+                )
+        if "s_incomplete" in res_analyze:
+            return render(
+                request,
+                "relecov_core/metadataForm.html",
+                {"s_incomplete": res_analyze["s_incomplete"], "m_form": m_form},
+            )
+        return render(request, "relecov_core/metadataForm.html", {"s_saved": s_saved})
+    if request.method == "POST" and request.POST["action"] == "defineBatch":
+        pass
+    else:
 
-        if sample_recorded["process"] == "Success":
-            request.session["pending_data_msg"] = "PENDING DATA"
-        return render(
-            request,
-            "relecov_core/metadataForm2.html",
-            {"sample_recorded": sample_recorded},
-        )
-
-    if request.method == "POST" and request.POST["action"] == "defineBatchSamples":
-        sample_recorded = upload_excel_file(request)
-
-    if (
-        request.method == "POST"
-        and request.POST["action"] == "sampledefinitionReprocess"
-    ):
-        sample_recorded = analyze_input_samples(request)
-
-        return render(
-            request,
-            "relecov_core/metadataForm2.html",
-            {"sample_recorded": sample_recorded},
-        )
-
-    if request.method == "POST" and request.POST["action"] == "metadata_form_batch":
-        sample_recorded = {}
-        data = process_batch_metadata_form(request)
-        complete_sample_table_with_data_from_batch(data)
-        execute_query_to_authors_table(data)
-
-        request.session["pending_data_msg"] == "NOT PENDING DATA"
-
-        # execute_query_to_public_database_fields_table(data)
-
-        sample_recorded = m_form
-        sample_recorded["process"] = "SAMPLE DATA IS CORRECT"
-        return render(
-            request,
-            "relecov_core/metadataForm2.html",
-            {"sample_recorded": sample_recorded},
-        )
-
-    if request.session["pending_data_msg"] == "NOT PENDING DATA":
-        return render(request, "relecov_core/metadataForm2.html", {"m_form": m_form})
-
-    if request.session["pending_data_msg"] == "PENDING DATA":
-        sample_recorded = create_metadata_form()
-        sample_recorded["process"] = "SAMPLE RECORD ALREADY EXITS"
-
-        return render(
-            request,
-            "relecov_core/metadataForm2.html",
-            {"sample_recorded": sample_recorded},
-        )
-    return render(request, "relecov_core/metadataForm2.html", {"m_form": m_form})
+        if "ERROR" in m_form:
+            return render(
+                request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
+            )
+        return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
 
 
 @login_required()
