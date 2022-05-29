@@ -468,7 +468,6 @@ class Sample(models.Model):
     gisaid_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_date = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
     # analysis = models.ForeignKey(Analysis, on_delete=models.CASCADE)
 
     class Meta:
@@ -508,8 +507,6 @@ class Sample(models.Model):
 
 
 # Variant Table
-
-
 class VariantManager(models.Manager):
     def create_new_variant(self, data):
         new_variant = self.create(
