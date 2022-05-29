@@ -1,3 +1,4 @@
+import json
 from relecov_tools.rest_api import RestApi
 from relecov_core.utils.generic_functions import get_configuration_value
 from relecov_core.core_config import (
@@ -6,6 +7,7 @@ from relecov_core.core_config import (
     ISKLIMS_REST_API,
     ISKLIMS_GET_SAMPLE_FIELDS,
     ISKLIMS_GET_SAMPLE_PROJECT_FIELDS,
+    ISKLIMS_POST_SAMPLE_DATA,
 )
 
 
@@ -59,4 +61,17 @@ def get_sample_project_fields_data(project):
     data = r_api.get_request(request, param, project)
     if "ERROR" in data:
         return {"ERROR": data}
+    return data["DATA"]
+
+
+def save_sample_form_data(post_data, credencials):
+    """Send POST API request to iSkyLIMS to save sample data """
+    iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
+    iskylims_url = ISKLIMS_REST_API
+    request = ISKLIMS_POST_SAMPLE_DATA
+    r_api = RestApi(iskylims_server, iskylims_url)
+
+    data = r_api.post_request(json.dumps(post_data), credencials, request)
+    if "ERROR" in data:
+        return data
     return data["DATA"]
