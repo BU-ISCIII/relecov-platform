@@ -183,7 +183,7 @@ def save_sample_from_form(samples):
     Sample tabel at relecov core
     """
     s_list = []
-    error_samples = []
+    # error_samples = []
     credencials = {"user": "admin", "pass": "Apple@123"}
     for sample in samples:
         sample["sampleProject"] = "Relecov"
