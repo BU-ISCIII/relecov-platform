@@ -175,6 +175,8 @@ HEADING_SCHEMA_DISPLAY = [
     "Classification",
     "Description",
 ]
+FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
+
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]
 NO_SELECTED_LABEL_WAS_DONE = (
     "No selected label order was done to define Metadata visualization"
