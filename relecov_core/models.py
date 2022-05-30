@@ -74,6 +74,9 @@ class Schema(models.Model):
     def get_schema_and_version(self):
         return "%s_%s" % (self.schema_name, self.schema_version)
 
+    def get_schema_name(self):
+        return "%s" % (self.schema_name)
+
     def get_schema_id(self):
         return "%s" % (self.pk)
 
@@ -138,6 +141,9 @@ class SchemaProperties(models.Model):
 
     def get_property_name(self):
         return "%s" % (self.property)
+
+    def get_property_id(self):
+        return "%s" % (self.pk)
 
     def get_property_info(self):
         data = []
@@ -321,7 +327,6 @@ class FilterManager(models.Manager):
 class Filter(models.Model):
     filter = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-    # git statusupdated_at = models.DateTimeField(auto_now=True, verbose_name=("updated at"))
 
     class Meta:
         db_table = "Filter"
@@ -331,9 +336,8 @@ class Filter(models.Model):
 
     objects = FilterManager()
 
-
-# Effect Table
-"""
+    # Effect Table
+    """
     fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4),
     FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10),
     EFFECT(11), HGVS_C(12), HGVS_P(13), HGVS_P1LETTER(14),
@@ -560,8 +564,8 @@ class Sample(models.Model):
 class PositionManager(models.Manager):
     def create_new_position(self, data):
         new_position = self.create(
-            pos=data,
-            nucleotide="data['nucleotide']",
+            pos=data[2],
+            nucleotide=data[3],
         )
         return new_position
 
@@ -601,7 +605,6 @@ class VariantInSampleManager(models.Manager):
             alt_dp=data[8],
             ref_dp=data[7],
             af=data[9],
-            # variantID_id=["variantID_id"],
         )
         return new_variant_in_sample
 
@@ -615,15 +618,6 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     class Meta:
         db_table = "VariantInSample"
-
-    def get_pos(self):
-        return "%s" % (self.pos)
-
-    def get_ref(self):
-        return "%s" % (self.ref)
-
-    def get_alt(self):
-        return "%s" % (self.alt)
 
     def get_dp(self):
         return "%s" % (self.dp)
@@ -656,39 +650,25 @@ class VariantManager(models.Manager):
         return new_variant
 
 
-class Variant(models.Model):  # include Foreign Keys
-    pos = models.CharField(max_length=7)
+class Variant(models.Model):
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    variant_in_sampleID_id = models.ForeignKey(
+        VariantInSample, on_delete=models.CASCADE
+    )
+    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
+    positionID_id = models.ForeignKey(Position, on_delete=models.CASCADE)
+    chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
+    geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
+    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+
     ref = models.CharField(max_length=60)
-    alt = models.CharField(max_length=10)
-    dp = models.CharField(max_length=10)
-    alt_dp = models.CharField(max_length=5)
-    ref_dp = models.CharField(max_length=10)
-    af = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
         db_table = "Variant"
 
-    def get_pos(self):
-        return "%s" % (self.pos)
-
     def get_ref(self):
         return "%s" % (self.ref)
-
-    def get_alt(self):
-        return "%s" % (self.alt)
-
-    def get_dp(self):
-        return "%s" % (self.dp)
-
-    def get_alt_dp(self):
-        return "%s" % (self.alt_dp)
-
-    def get_ref_dp(self):
-        return "%s" % (self.ref_dp)
-
-    def get_af(self):
-        return "%s" % (self.af)
 
     objects = VariantManager()
 
@@ -767,7 +747,7 @@ class Analysis(models.Model):
 
     # Many-to-one relationships
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    # variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Analysis"
