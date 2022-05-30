@@ -23,8 +23,7 @@ from relecov_core.models import (
     Schema,
     SchemaProperties,
     PropertyOptions,
-    Metadata,
-    MetadataProperties,
+    MetadataVisualization,
 )
 
 
@@ -165,23 +164,12 @@ class PropertyOptionsAdmin(admin.ModelAdmin):
     list_display = ["propertyID", "enums", "ontology"]
 
 
-class MetadataAdmin(admin.ModelAdmin):
+class MetadataVisualizationAdmin(admin.ModelAdmin):
     list_display = [
-        "metadata_name",
-        "metadata_version",
-        "metadata_default",
-        "metadata_in_use",
-        "metadata_apps_name",
-    ]
-
-
-class MetadataPropertiesAdmin(admin.ModelAdmin):
-    list_display = [
-        "metadataID",
-        "property",
-        "label",
-        "order",
+        "property_name",
+        "label_name",
         "fill_mode",
+        "in_use",
     ]
 
 
@@ -205,5 +193,4 @@ admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
-admin.site.register(Metadata, MetadataAdmin)
-admin.site.register(MetadataProperties, MetadataPropertiesAdmin)
+admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
