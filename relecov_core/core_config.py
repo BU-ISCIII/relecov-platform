@@ -157,12 +157,16 @@ METADATA_UPLOAD_FOLDER = "metadata"
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 METADATA_JSON_SUCCESSFUL_LOAD = "Metadata was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
+ERROR_SCHEMA_NOT_DEFINED = "No schemas have been defined yet"
 
 ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
 ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
 
 ERROR_INTIAL_SETTINGS_NOT_DEFINED = "Relecov Platform is not fully completed"
+ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED = (
+    "Fields to display in Metadata form are not defined yet"
+)
 
 HEADING_SCHEMA_DISPLAY = [
     "Property",
@@ -171,10 +175,17 @@ HEADING_SCHEMA_DISPLAY = [
     "Classification",
     "Description",
 ]
+FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
+
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]
+NO_SELECTED_LABEL_WAS_DONE = (
+    "No selected label order was done to define Metadata visualization"
+)
+
 ISKLIMS_REST_API = "/wetlab/api/"
 # REST API TO iSkyLIMS
 ISKLIMS_GET_LABORATORY_PARAMETERS = ["laboratoryData", "laboratory"]
 ISKLIMS_PUT_LABORATORY_PARAMETER = "updateLab"
 ISKLIMS_GET_SAMPLE_FIELDS = "sampleFields"
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
+ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
