@@ -169,7 +169,6 @@ def metadata_form(request):
     if request.method == "POST" and request.POST["action"] == "defineBatch":
         pass
     else:
-
         if "ERROR" in m_form:
             return render(
                 request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
