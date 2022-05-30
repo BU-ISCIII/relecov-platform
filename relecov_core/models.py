@@ -496,12 +496,18 @@ class SampleManager(models.Manager):
         if "sequencing_date" not in data:
             data["sequencing_date"] = ""
         new_sample = self.create(
-            collecting_lab_sample_id=data["collecting_lab_sample_id"],
+            collecting_lab_sample_id=data,
             sequencing_sample_id=data["sequencing_sample_id"],
             biosample_accession_ENA=data["biosample_accession_ENA"],
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
+            # collecting_lab_sample_id=data["collecting_lab_sample_id"]
+            # sequencing_sample_id=data["sequencing_sample_id"],
+            # biosample_accession_ENA=data["biosample_accession_ENA"],
+            # virus_name=data["virus_name"],
+            # gisaid_id=data["gisaid_id"],
+            # sequencing_date=data["sequencing_date"],
             metadata_file=metadata_file,
             state=state,
             user=user,
@@ -564,8 +570,8 @@ class Sample(models.Model):
 class PositionManager(models.Manager):
     def create_new_position(self, data):
         new_position = self.create(
-            pos=data[2],
-            nucleotide=data[3],
+            pos=data["pos"],
+            nucleotide=data["nucleotide"],
         )
         return new_position
 
@@ -601,10 +607,10 @@ class VariantInSampleManager(models.Manager):
 
     def create_new_variant_in_sample(self, data):
         new_variant_in_sample = self.create(
-            dp=data[6],
-            alt_dp=data[8],
-            ref_dp=data[7],
-            af=data[9],
+            dp=data["dp"],
+            alt_dp=data["alt_dp"],
+            ref_dp=data["ref_dp"],
+            af=data["af"],
         )
         return new_variant_in_sample
 
@@ -638,7 +644,7 @@ class VariantInSample(models.Model):  # include Foreign Keys
 class VariantManager(models.Manager):
     def create_new_variant(self, data, data_ids):
         new_variant = self.create(
-            ref=data[3],
+            ref=data,
             sampleID_id=data_ids["sampleID_id"],
             variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
             filterID_id=data_ids["filterID_id"],
