@@ -10,6 +10,11 @@ urlpatterns = [
     path("intranet/", views.intranet, name="intranet"),
     path("metadataForm", views.metadata_form, name="metadataForm"),
     path(
+        "metadataVisualization/",
+        views.metadata_visualization,
+        name="metadataVisualization",
+    ),
+    path(
         "resultsInfoProcessed/",
         views.results_info_processed,
         name="resultsInfoProcessed",
@@ -26,11 +31,6 @@ urlpatterns = [
         "uploadStatusToGISAID/",
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
-    ),
-    path(
-        "metadataHandling/",
-        views.metadata_json_handling,
-        name="metadata_handling",
     ),
 ]
 if settings.DEBUG:
