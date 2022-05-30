@@ -512,7 +512,6 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
-<<<<<<< HEAD
 # Position table
 class PositionManager(models.Manager):
     def create_new_position(self, data):
@@ -554,15 +553,6 @@ class VariantInSampleManager(models.Manager):
 
     def create_new_variant_in_sample(self, data):
         new_variant_in_sample = self.create(
-=======
-# Variant Table
-class VariantManager(models.Manager):
-    def create_new_variant(self, data):
-        new_variant = self.create(
-            pos=data["pos"],
-            ref=data["ref"],
-            alt=data["alt"],
->>>>>>> 0622d1c6fe4857bf4b9fd7580b4a6fafb129c862
             dp=data["dp"],
             alt_dp=data["alt_dp"],
             ref_dp=data["ref_dp"],
