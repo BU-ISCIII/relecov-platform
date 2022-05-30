@@ -13,11 +13,13 @@ from relecov_core.models import (
     Gene,
     Lineage,
     Filter,
+    Position,
     Profile,
     PublicDatabase,
     PublicDatabaseField,
     Sample,
     Variant,
+    VariantInSample,
     QcStats,
     SampleState,
     Schema,
@@ -85,6 +87,10 @@ class ChromosomeAdmin(admin.ModelAdmin):
     list_display = ["chromosome"]
 
 
+class PositionAdmin(admin.ModelAdmin):
+    list_display = ["pos", "nucleotide"]
+
+
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "collecting_lab_sample_id",
@@ -101,7 +107,11 @@ class SampleStateAdmin(admin.ModelAdmin):
 
 
 class VariantAdmin(admin.ModelAdmin):
-    list_display = ["pos", "ref", "alt", "dp", "alt_dp", "ref_dp", "af"]
+    list_display = ["ref"]
+
+
+class VariantInSampleAdmin(admin.ModelAdmin):
+    list_display = ["dp", "alt_dp", "ref_dp", "af"]
 
 
 class AnalysisAdmin(admin.ModelAdmin):
@@ -182,9 +192,11 @@ admin.site.register(Effect, EffectAdmin)
 admin.site.register(Lineage, LineageAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
+admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
+admin.site.register(VariantInSample, VariantInSampleAdmin)
 admin.site.register(Analysis, AnalysisAdmin)
 admin.site.register(QcStats, QcStatsAdmin)
 admin.site.register(Authors, AuthorsAdmin)

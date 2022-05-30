@@ -30,11 +30,16 @@ from relecov_core.utils.schema_handling import (
 )
 
 
+from relecov_core.utils.parse_files import (
+    parse_csv,
+)
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 
 def index(request):
+    parse_csv("relecov_core/docs/variants_long_table_last.csv")
     return render(request, "relecov_core/index.html", {})
 
 
@@ -160,7 +165,6 @@ def metadata_form(request):
     if request.method == "POST" and request.POST["action"] == "defineBatch":
         pass
     else:
-
         if "ERROR" in m_form:
             return render(
                 request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
