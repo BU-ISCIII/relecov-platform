@@ -1,0 +1,239 @@
+{% extends "relecov_core/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/intranet2Sidebar.html" %}
+{% include "relecov_core/JExcelFunctionality.html" %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.js"></script>
+
+<section id="relecov-platform" class="d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" style="width:60%">
+        <div class="container sm-10">
+			<br><br><br>
+            {% if ERROR %}
+                <div class="row row-space-2 m-4">
+                    <div class="col-sm-9" >
+                        <div class="card  border-danger mb-3">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when selecting fields for Metadata</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{ERROR.ERROR}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
+            {% if SUCCESS %}
+                <div class="row row-space-2 m-4">
+                    <div class="col-sm-9" >
+                        <div class="card">
+                            <div class="card-header text-center"><h3>Sucessful selection for Metadata</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>Your fields have been recorded</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
+            {% if data_visualization %}
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="samples" aria-selected="true">Fields for Sample</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab" aria-controls="batch" aria-selected="false">Fields for batch</button>
+                   </li>
+                   <li class="nav-item" role="presentation">
+                       <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#delete" type="button" role="tab" aria-controls="delete" aria-selected="false">Delete Fields</button>
+                  </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
+                       <div class="container-md">
+                           <div class="row mt-4">
+                               <div class="col-md-10">
+                                    <div class="card">
+                                        <div class="card-header text-center"><h3 style="text-align:center">Metadata fields classified as Sample</h3> </div>
+                                        <div class="card-body  text-center">
+                                            <table id="f_sample" class="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr scope="row">
+                                                        <th>Label name</th>
+                                                        <th>Position in the form</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for label, order in data_visualization.sample %}
+                                                        <tr>
+                                                            <td>{{label}}</td>
+                                                            <td>{{order}}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>     <!-- end card body  -->
+                                    </div> <!-- end card  -->
+        					  	</div> <!-- end col-md-10 -->
+        					</div> <!-- end row-->
+                        </div> <!-- end continer-->
+        			</div>  <!-- end tab sample -->
+
+    				<div class="tab-pane fade" id="batch" role="tabpanel" aria-labelledby="grupo-tab">
+    					<div class="container-md">
+    					    <div class="row mt-5">
+    						  	<div class="col-md-10">
+    						  		<div class="card">
+    						  			<div class="card-header"><h3 style="text-align:center">Metadata fields classified as Batch</h3> </div>
+    						  			<div class="card-body">
+                                            <table id="f_batch" class="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr scope="row">
+                                                        <th>Label name</th>
+                                                        <th>Order when displaying the form</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for label, order in data_visualization.batch %}
+                                                        <tr>
+                                                            <td>{{label}}</td>
+                                                            <td>{{order}}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>     <!-- end card body  -->
+                                    </div> <!-- end card  -->
+        					  	</div> <!-- end col-md-8 -->
+        					</div> <!-- end row-->
+                        </div> <!-- end continer-->
+        			</div>  <!-- end tab batch -->
+
+                    <div class="tab-pane fade" id="delete" role="tabpanel" aria-labelledby="info-tab">
+                       <div class="container-md">
+                           <div class="row mt-4">
+                               <div class="col-md-10">
+                                    <div class="card border-danger mb-3">
+                                        <div class="card-header text-center"> <h2 class="text-danger">WARNING</h2> </div>
+
+                                        <div class="card-body  text-center">
+                                            <form method="post" enctype="multipart/form-data" name="deleteFields"  id="deleteFields" class="form-horizontal well" style="min-height: 100px;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="deleteFields">
+                                                <h5 class="text-danger">Fields to display Metadata Form will be deleted when click on DELETE button</h5>
+                                                <br><br>
+                                                <p class="text-danger">There is NOT undo action for deleting the fields for Metadata</p>
+                                                <div>
+                                                    <input class="btn float-end btn-outline-danger" type="submit" id="btnSubmit" value="DELETE">
+                                                </div>
+                                            </form>
+                                        </div> <!-- end card body -->
+                                    </div> <!-- end card  -->
+        					  	</div> <!-- end col-md-8 -->
+        					</div> <!-- end row-->
+                        </div> <!-- end continer-->
+        			</div>  <!-- end tab batch -->
+                </div>  <!-- end myTabContent -->
+
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        $('#f_sample').DataTable({
+                            responsive: true,
+                        });
+                    });
+                </script>
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        $('#f_batch').DataTable({
+                            responsive: true,
+                        });
+                    });
+                </script>
+
+            {% endif %}
+            {% if DELETE %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-10" >
+                        <div class="card">
+                            <div class="card-header text-center"><h3 style="text-align:center">Sucessful delete</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>FIELDS METADATA ARE DELETED</strong></p>
+                            </div> <!-- end card body  -->
+                            <div class="card-body  text-center">
+                                <p>Click on the button below to select new Fields for Metadata Form</p>
+                                <button type="button" class="btn float-end btn-primary" onclick="location.href =/metadataVisualization/;">Create new Fields</button>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
+            {% if m_visualization %}
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header text-center"><h2 style="text-align:center">Select fields to display in Metadata Form</h2> </div>
+                            <form method="post" enctype="multipart/form-data" name="selectFields"  id="selectFields" class="form-horizontal well" style="min-height: 100px;">
+                                <div class="card-body  text-center">
+                                    {% csrf_token %}
+                                    <div class="scrolling-wrapper">
+                                        <input type="hidden" name="action" value="selectFields">
+                                        <input type="hidden" name="schemaID" value="{{m_visualization.schema_id}}">
+                                        <div id="spreadsheet"></div>
+                                    </div> <!--  end of scrolling  -->
+                                    <script>
+                                        var data = [{% for values in m_visualization.fields %} [{% for value in values %}'{{value}}',{% endfor %}], {% endfor %}];
+
+                                        var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
+                                            data:data,
+                                            columns: [
+                                            { type: 'hidden'},
+                                            { type: 'text', title:'Label', width:300 ,readOnly:true},
+                                            { type: 'numeric', title:'Order', width:70, mask:'#.##' },
+                                            { type: 'checkbox', title:'Used', width:80 },
+                                            { type: 'dropdown' , title: 'Select', width:150 , source: ["Sample", "Batch"] },
+                                           ],
+                                           allowInsertColumn:false,
+                                           allowDeleteColumn:false,
+                                           allowRenameColumn:false,
+                                           search:true,
+                                           pagination:20,
+                                       });
+                                   </script>
+                                   <div class="col-md-9">
+
+                                   </div>
+                               </div> <!-- end card body-->
+                               <div class="card-body">
+                                   <div class="text-left">
+                                       <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                       <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+
+                                   </div>
+                               </div>     <!-- end card body  -->
+                           </form>
+                       </div> <!-- end card  -->
+                    </div> <!-- end col-md-10 -->
+               </div> <!-- end row-->
+               <script>
+                   $( document ).ready(function () {
+                       $("#selectFields").submit(function(e){
+                           var table_data = table1.getData();
+                           var data_json = JSON.stringify(table_data);
+                           $("<input />").attr("type", "hidden")
+                               .attr("name", "table_data")
+                               .attr("value", data_json)
+                               .appendTo("#selectFields");
+                           $("#btnSubmit").attr("disabled", true);
+                           return true;
+                           });
+                   });
+               </script>
+            {% endif %}
+        </div>  <!-- end container -->
+    </div>
+</section>
+
+{% endblock %}

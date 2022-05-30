@@ -43,10 +43,9 @@
                     <ul>
                         {% if user.username == "admin" %}
                             <li class="dropdown"><a href="#"><span>Configuration</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
-
                             <ul>
                                 <li><a href="/schemaHandling"><span>Schema Handling</span></a>
-                                <li><a href="/metadataHandling"><span>Metadata Handling</span></a>    
+                                <li><a href="/metadataVisualization"><span>Metadata Visualization</span></a>    
                             </ul>
                         {% endif %}
                         <li><a class="nav-link scrollto" href="#">Relecov Project</a></li>
@@ -58,13 +57,13 @@
                         </li>
                         <li><a class="nav-link scrollto" href="#">Contact</a></li>
                         <li><a class="btn-getstarted scrollto" href="/intranet">Intranet</a></li>
-                
+
                     </ul>
                     <i class="bi bi-list mobile-nav-toggle d-none"></i>
                 </nav><!-- .navbar -->
                 {% if user.is_authenticated %}
                 {% include "registration/login_inline.html" %}
-            {% endif %} 
+            {% endif %}
             </div>
 
         </header><!-- End Header -->
