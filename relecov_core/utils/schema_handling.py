@@ -2,10 +2,12 @@ import json
 import re
 from django.db import DataError
 from relecov_core.models import (
+    BioinfoProcessField,
+    Classification,
+    MetadataVisualization,
+    PropertyOptions,
     Schema,
     SchemaProperties,
-    PropertyOptions,
-    MetadataVisualization,
 )
 from relecov_core.utils.generic_functions import store_file
 from relecov_core.core_config import (
@@ -192,6 +194,36 @@ def store_schema_properties(schema_obj, s_properties, required):
     return {"SUCCESS": ""}
 
 
+def store_bioinfo_fields(schema_obj, s_properties):
+    """Store the fields to be used for saving analysis information"""
+    for prop_key in s_properties.keys():
+        data = dict(s_properties[prop_key])
+        if "classification" in data:
+            match = re.search(r"(\w+) fields", data["classification"])
+            if not match:
+                continue
+            classification = match.group(1).strip()
+            # create new entr in Classification table in not exists
+            if Classification.objects.filter(
+                class_name__iexact=classification
+            ).exists():
+                class_obj = Classification.objects.filter(
+                    class_name__iexact=classification
+                ).last()
+            else:
+                class_obj = Classification.objects.create_new_classification(
+                    classification
+                )
+            fields = {}
+            fields["classificationID"] = class_obj
+            fields["property_name"] = prop_key
+            fields["label_name"] = data["label"]
+            n_field = BioinfoProcessField.objects.create_new_field(fields)
+            n_field.schemaID.add(schema_obj)
+
+    return {"SUCCESS": ""}
+
+
 def remove_existing_default_schema(schema_name, apps_name):
     """Remove the tag for default schema for the given schema name"""
     if Schema.objects.filter(
@@ -242,4 +274,9 @@ def process_schema_file(json_file, version, default, user, apps_name):
     )
     if "ERROR" in result:
         return result
+    s_fields = store_bioinfo_fields(
+        new_schema, schema_data["full_schema"]["properties"]
+    )
+    if "ERROR" in s_fields:
+        return s_fields
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}
