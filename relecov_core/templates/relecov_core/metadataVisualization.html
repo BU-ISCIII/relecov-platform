@@ -184,7 +184,7 @@
                                         <div id="spreadsheet"></div>
                                     </div> <!--  end of scrolling  -->
                                     <script>
-                                        var data = [{% for values in m_visualization.fields %} [{% for value in values %}'{{value}}',{% endfor %}], {% endfor %}];
+                                        var data = [{% for values in m_visualization.fields %} [{% for value in values %} {% if forloop.counter == 3 %}{{value}}{% else %}'{{value}}'{% endif %},{% endfor %}], {% endfor %}];
 
                                         var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
                                             data:data,
