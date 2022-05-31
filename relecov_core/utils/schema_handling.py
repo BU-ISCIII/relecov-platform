@@ -11,10 +11,7 @@ from relecov_core.models import (
     Schema,
     SchemaProperties,
 )
-from relecov_core.utils.generic_functions import (
-    store_file,
-    get_configuration_value
-)
+from relecov_core.utils.generic_functions import store_file, get_configuration_value
 from relecov_core.core_config import (
     SCHEMAS_UPLOAD_FOLDER,
     ERROR_INVALID_JSON,
@@ -59,7 +56,9 @@ def get_fields_if_template():
     exists
     """
     if get_configuration_value("USE_TEMPLATE_FOR_METADATA_FORM") == "TRUE":
-        temp_file_path = os.path.join(settings.BASE_DIR, "conf", "template_for_metadata_form.txt")
+        temp_file_path = os.path.join(
+            settings.BASE_DIR, "conf", "template_for_metadata_form.txt"
+        )
         try:
             with open(temp_file_path, "r") as fh:
                 lines = fh.readlines()
@@ -86,7 +85,9 @@ def get_fields_from_schema(schema_obj):
     for prop_obj in prop_objs:
         label = prop_obj.get_label()
         if f_list and label in f_list:
-            schema_list.append([prop_obj.get_property_name(), label, f_list.index(label), "true"])
+            schema_list.append(
+                [prop_obj.get_property_name(), label, f_list.index(label), "true"]
+            )
         else:
             schema_list.append([prop_obj.get_property_name(), label])
     data["fields"] = schema_list
