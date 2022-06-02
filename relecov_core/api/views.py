@@ -99,3 +99,13 @@ def analysis_data(request):
         #    print(a_file)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def longtable_data(request):
+    if request.method == "POST":
+        data = request.data
+        if isinstance(data, QueryDict):
+            data = data.dict()
+
+        return Response(status=status.HTTP_201_CREATED)
