@@ -139,11 +139,12 @@ def create_form_for_sample(schema_obj):
         if "ontology" in values:
             try:
                 label = s_prop_dict[values["ontology"]]["label"]
+                iskylims_sample_data[label] = {}
                 # Collcct information to send back the values ot iSkyLIMS
                 l_iskylims.append(values["field_name"])
                 l_metadata.append(label)
                 if "options" in values:
-                    iskylims_sample_data[label] = {"options": values["options"]}
+                    iskylims_sample_data[label]["options"] = values["options"]
             except KeyError as e:
                 print("Error in map ontology ", e)
 
@@ -160,6 +161,7 @@ def create_form_for_sample(schema_obj):
                 m_form[label]["options"] = iskylims_sample_data[label]["options"]
         else:
             print("ERROR not found in iSkyLIMS", label)
+            import pdb; pdb.set_trace()
         if "date" in label.lower():
             m_form[label]["format"] = "date"
         # check label belongs to iskylims to get t
