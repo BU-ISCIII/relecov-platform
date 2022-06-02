@@ -1059,6 +1059,29 @@ class PublicDatabaseField(models.Model):
     objects = PublicDatabaseFieldManager()
 
 
+class TemporalSampleStorageManager(models.Manager):
+    def save_temp_data(self, data):
+        new_t_data = self.create(
+            sample=data["sample"],
+            field=data["field"],
+            value=data["value"]
+        )
+        return new_t_data
+
+
+class TemporalSampleStorage(models.Model):
+    sample = models.CharField(max_length=80)
+    field = models.CharField(max_length=80)
+    value = models.CharField(max_length=80)
+    sent = models.BooleanField(default=False)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "%s,%s" % (self.sample, self.field)
+
+    objects = TemporalSampleStorageManager()
+
+
 class ConfigSettingManager(models.Manager):
     def create_config_setting(self, configuration_name, configuration_value):
         new_config_settings = self.create(
