@@ -461,6 +461,9 @@ class Chromosome(models.Model):
     def __str__(self):
         return "%s" % (self.chromosome)
 
+    def get_chromosome_id(self):
+        return "%s" % (self.pk)
+
     objects = ChromosomeManager()
 
 
