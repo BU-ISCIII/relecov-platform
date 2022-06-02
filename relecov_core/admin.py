@@ -3,15 +3,15 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from relecov_core.models import (
-    Analysis,
     Authors,
+    BioinfoProcessField,
     Caller,
+    Classification,
     Chromosome,
     ConfigSetting,
     Document,
     Effect,
     Gene,
-    Lineage,
     Filter,
     Position,
     Profile,
@@ -20,7 +20,6 @@ from relecov_core.models import (
     Sample,
     Variant,
     VariantInSample,
-    QcStats,
     SampleState,
     Schema,
     SchemaProperties,
@@ -45,8 +44,9 @@ class CustomUserAdmin(UserAdmin):
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
 
 
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
+class BioinfoProcessFieldAdmin(admin.ModelAdmin):
+    list_display = ["property_name", "classificationID", "label_name"]
+    search_fields = ("property_name__icontains",)
 
 
 class DocumentAdmin(admin.ModelAdmin):
@@ -55,6 +55,10 @@ class DocumentAdmin(admin.ModelAdmin):
 
 class CallerAdmin(admin.ModelAdmin):
     list_display = ["name", "version"]
+
+
+class ClassificationAdmin(admin.ModelAdmin):
+    list_display = ["class_name"]
 
 
 class ConfigSettingAdmin(admin.ModelAdmin):
@@ -67,16 +71,6 @@ class FilterAdmin(admin.ModelAdmin):
 
 class EffectAdmin(admin.ModelAdmin):
     list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
-
-
-class LineageAdmin(admin.ModelAdmin):
-    list_display = [
-        "lineage_identification_date",
-        "lineage_name",
-        "lineage_analysis_software_name",
-        "if_lineage_identification_other",
-        "lineage_analysis_software_version",
-    ]
 
 
 class GeneAdmin(admin.ModelAdmin):
@@ -112,36 +106,6 @@ class VariantAdmin(admin.ModelAdmin):
 
 class VariantInSampleAdmin(admin.ModelAdmin):
     list_display = ["dp", "alt_dp", "ref_dp", "af"]
-
-
-class AnalysisAdmin(admin.ModelAdmin):
-    list_display = [
-        "raw_sequence_data_processing_method",
-        # "dehosting_method",
-        # "dehosting_software_name",
-        # "dehosting_software_version",
-    ]
-
-
-class QcStatsAdmin(admin.ModelAdmin):
-    list_display = [
-        "quality_control_metrics",
-        "breadth_of_coverage_value",
-        "depth_of_coverage_value",
-        "depth_of_coverage_threshold",
-        "number_of_base_pairs_sequenced",
-        "consensus_genome_length",
-        "ns_per_100_kbp",
-        "per_qc_filtered",
-        "per_reads_host",
-        "per_reads_virus",
-        "per_unmapped",
-        "per_genome_greater_10x",
-        "mean_depth_of_coverage_value",
-        "per_Ns",
-        "number_of_variants_AF_greater_75percent",
-        "number_of_variants_with_effect",
-    ]
 
 
 class AuthorsAdmin(admin.ModelAdmin):
@@ -184,12 +148,15 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 
 
 # Register models
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
+admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
 admin.site.register(Caller, CallerAdmin)
+admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
-admin.site.register(Lineage, LineageAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(Position, PositionAdmin)
@@ -197,8 +164,6 @@ admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
-admin.site.register(Analysis, AnalysisAdmin)
-admin.site.register(QcStats, QcStatsAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
