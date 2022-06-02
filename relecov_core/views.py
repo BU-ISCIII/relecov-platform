@@ -1,3 +1,6 @@
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     create_metadata_form,
@@ -15,18 +18,6 @@ from relecov_core.utils.schema_handling import (
     process_schema_file,
     store_fields_metadata_visualization,
 )
-
-from relecov_core.utils.parse_files import (
-    parse_csv,
-)
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-
-
-def test(request):
-    parse_csv("relecov_core/docs/variants_long_table_last.csv")
-    return render(request, "relecov_core/index.html", {})
 
 
 def index(request):
@@ -145,12 +136,7 @@ def metadata_form(request):
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
             s_saved = save_temp_sample_data(res_analyze["save_samples"])
-            if "ERROR" in s_saved:
-                return render(
-                    request,
-                    "relecov_core/metadataForm.html",
-                    {"ERROR": s_saved["ERROR"]},
-                )
+        import pdb; pdb.set_trace()
         if "s_incomplete" in res_analyze:
             return render(
                 request,
