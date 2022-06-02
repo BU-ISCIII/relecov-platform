@@ -136,7 +136,6 @@ def metadata_form(request):
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
             s_saved = save_temp_sample_data(res_analyze["save_samples"])
-        import pdb; pdb.set_trace()
         if "s_incomplete" in res_analyze:
             return render(
                 request,
