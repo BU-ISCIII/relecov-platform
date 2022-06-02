@@ -132,7 +132,8 @@ class SchemaAdmin(admin.ModelAdmin):
 
 
 class SchemaPropertiesAdmin(admin.ModelAdmin):
-    list_display = ["schemaID", "property", "label", "required"]
+    list_display = ["property", "label", "schemaID", "required"]
+    search_fields = ["property__icontains"]
 
 
 class TemporalSampleStorageAdmin(admin.ModelAdmin):
