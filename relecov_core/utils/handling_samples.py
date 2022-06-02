@@ -5,6 +5,7 @@ from collections import OrderedDict
 from relecov_core.core_config import (
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
     FIELD_FOR_GETTING_SAMPLE_ID,
+    ERROR_ISKYLIMS_NOT_REACHEABLE,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -114,7 +115,11 @@ def create_form_for_sample(schema_obj):
         }
 
     # get the sample fields and sample project fields from iSkyLIMS
-    iskylims_sample_raw = get_sample_fields_data()
+    try:
+        iskylims_sample_raw = get_sample_fields_data()
+    except AttributeError:
+        return {"ERROR": ERROR_ISKYLIMS_NOT_REACHEABLE}
+
     i_sam_proj_raw = get_sample_project_fields_data(schema_name)
     i_sam_proj_data = {}
     # Format the information from sample Project to have label as key
@@ -174,6 +179,8 @@ def create_metadata_form(schema_obj, user_obj):
         return {"ERROR": ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED}
     m_form = {}
     m_form["sample"] = create_form_for_sample(schema_obj)
+    if "ERROR" in m_form["sample"]:
+        return m_form["sample"]
     m_form["batch"] = create_form_for_batch(schema_obj, user_obj)
     return m_form
 
