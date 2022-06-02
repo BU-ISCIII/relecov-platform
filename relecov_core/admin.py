@@ -13,18 +13,19 @@ from relecov_core.models import (
     Effect,
     Gene,
     Filter,
+    MetadataVisualization,
     Position,
     Profile,
+    PropertyOptions,
     PublicDatabase,
     PublicDatabaseField,
     Sample,
-    Variant,
-    VariantInSample,
     SampleState,
     Schema,
     SchemaProperties,
-    PropertyOptions,
-    MetadataVisualization,
+    TemporalSampleStorage,
+    Variant,
+    VariantInSample,
 )
 
 
@@ -134,6 +135,10 @@ class SchemaPropertiesAdmin(admin.ModelAdmin):
     list_display = ["schemaID", "property", "label", "required"]
 
 
+class TemporalSampleStorageAdmin(admin.ModelAdmin):
+    list_display = ["sample_idx", "field", "value", "sent"]
+
+
 class PropertyOptionsAdmin(admin.ModelAdmin):
     list_display = ["propertyID", "enums", "ontology"]
 
@@ -169,5 +174,6 @@ admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
+admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
