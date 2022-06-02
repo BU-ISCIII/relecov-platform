@@ -148,6 +148,10 @@ def documentation(request):
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
     m_form = create_metadata_form(schema_obj, request.user)
+    if "ERROR" in m_form:
+        return render(
+            request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
+        )
     if request.method == "POST" and request.POST["action"] == "defineSamples":
         res_analyze = analyze_input_samples(request)
         # empty form
@@ -157,7 +161,9 @@ def metadata_form(request):
             s_saved = save_sample_from_form(res_analyze["save_samples"])
             if "ERROR" in s_saved:
                 return render(
-                    request, "relecov_core/metadataForm.html", {"ERROR": s_saved}
+                    request,
+                    "relecov_core/metadataForm.html",
+                    {"ERROR": s_saved["ERROR"]},
                 )
         if "s_incomplete" in res_analyze:
             return render(

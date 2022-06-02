@@ -1,13 +1,17 @@
 import json
 import re
+import os
 from django.db import DataError
+from django.conf import settings
 from relecov_core.models import (
+    BioinfoProcessField,
+    Classification,
+    MetadataVisualization,
+    PropertyOptions,
     Schema,
     SchemaProperties,
-    PropertyOptions,
-    MetadataVisualization,
 )
-from relecov_core.utils.generic_functions import store_file
+from relecov_core.utils.generic_functions import store_file, get_configuration_value
 from relecov_core.core_config import (
     SCHEMAS_UPLOAD_FOLDER,
     ERROR_INVALID_JSON,
@@ -45,15 +49,49 @@ def fetch_info_meta_visualization(schema_obj):
     return m_fields
 
 
+def get_fields_if_template():
+    """If config setting USE_TEMPLATE_FOR_METADATA_FORM is TRUE, read the
+    file template "template_for_metadata_form.txt located at conf folder.
+    Return a list with the labels or None if setting is false or file does not
+    exists
+    """
+    if get_configuration_value("USE_TEMPLATE_FOR_METADATA_FORM") == "TRUE":
+        temp_file_path = os.path.join(
+            settings.BASE_DIR, "conf", "template_for_metadata_form.txt"
+        )
+        try:
+            with open(temp_file_path, "r") as fh:
+                lines = fh.readlines()
+        except OSError:
+            return False
+        f_list = []
+        for line in lines:
+            line = line.strip()
+            f_list.append(line)
+        return f_list
+    return False
+
+
 def get_fields_from_schema(schema_obj):
-    """Get the labels and the property name from the schema"""
+    """Get the labels and the property name from the schema.
+    Based on the configuration , use the template to show the order selection
+    and checked the used check checkbox
+    """
+    f_list = get_fields_if_template()
     data = {}
     schema_list = []
     data["schema_id"] = schema_obj.get_schema_id()
     prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by("label")
     for prop_obj in prop_objs:
-        schema_list.append([prop_obj.get_property_name(), prop_obj.get_label()])
+        label = prop_obj.get_label()
+        if f_list and label in f_list:
+            schema_list.append(
+                [prop_obj.get_property_name(), label, f_list.index(label), "true"]
+            )
+        else:
+            schema_list.append([prop_obj.get_property_name(), label])
     data["fields"] = schema_list
+
     return data
 
 
@@ -192,6 +230,36 @@ def store_schema_properties(schema_obj, s_properties, required):
     return {"SUCCESS": ""}
 
 
+def store_bioinfo_fields(schema_obj, s_properties):
+    """Store the fields to be used for saving analysis information"""
+    for prop_key in s_properties.keys():
+        data = dict(s_properties[prop_key])
+        if "classification" in data:
+            match = re.search(r"(\w+) fields", data["classification"])
+            if not match:
+                continue
+            classification = match.group(1).strip()
+            # create new entr in Classification table in not exists
+            if Classification.objects.filter(
+                class_name__iexact=classification
+            ).exists():
+                class_obj = Classification.objects.filter(
+                    class_name__iexact=classification
+                ).last()
+            else:
+                class_obj = Classification.objects.create_new_classification(
+                    classification
+                )
+            fields = {}
+            fields["classificationID"] = class_obj
+            fields["property_name"] = prop_key
+            fields["label_name"] = data["label"]
+            n_field = BioinfoProcessField.objects.create_new_field(fields)
+            n_field.schemaID.add(schema_obj)
+
+    return {"SUCCESS": ""}
+
+
 def remove_existing_default_schema(schema_name, apps_name):
     """Remove the tag for default schema for the given schema name"""
     if Schema.objects.filter(
@@ -242,4 +310,9 @@ def process_schema_file(json_file, version, default, user, apps_name):
     )
     if "ERROR" in result:
         return result
+    s_fields = store_bioinfo_fields(
+        new_schema, schema_data["full_schema"]["properties"]
+    )
+    if "ERROR" in s_fields:
+        return s_fields
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}
