@@ -1062,10 +1062,7 @@ class PublicDatabaseField(models.Model):
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
         new_t_data = self.create(
-            sample_idx=data["sample_idx"],
-            field=data["field"],
-            value=data["value"]
-        )
+            sample_idx=data["sample_idx"], field=data["field"], value=data["value"])
         return new_t_data
 
 
