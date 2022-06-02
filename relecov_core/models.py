@@ -239,6 +239,58 @@ class MetadataVisualization(models.Model):
     objects = MetadataVisualizationManager()
 
 
+class ClassificationManager(models.Manager):
+    def create_new_classification(self, class_name):
+        new_class_obj = self.create(class_name=class_name)
+        return new_class_obj
+
+
+class Classification(models.Model):
+    class_name = models.CharField(max_length=80)
+
+    def __str__(self):
+        return "%s" % (self.class_name)
+
+    def get_classification(self):
+        return "%s" % (self.class_name)
+
+    objects = ClassificationManager()
+
+
+class BioinfoProcessFieldManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            classificationID=data["classificationID"],
+            property_name=data["property_name"],
+            label_name=data["label_name"],
+        )
+        return new_field
+
+
+class BioinfoProcessField(models.Model):
+    schemaID = models.ManyToManyField(Schema)
+    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
+    property_name = models.CharField(max_length=60)
+    label_name = models.CharField(max_length=80)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self):
+        return "%s" % (self.property_name)
+
+    def get_property(self):
+        return "%s" % (self.property_name)
+
+    def get_label(self):
+        return "%s" % (self.label_name)
+
+    def get_classification_name(self):
+        if self.classificationID is not None:
+            return self.classificationID.get_classification()
+        return None
+
+    objects = BioinfoProcessFieldManager()
+
+
 # Caller Table
 class CallerManager(models.Manager):
     def create_new_caller(self, data):
@@ -408,6 +460,9 @@ class Chromosome(models.Model):
 
     def __str__(self):
         return "%s" % (self.chromosome)
+
+    def get_chromosome_id(self):
+        return "%s" % (self.pk)
 
     objects = ChromosomeManager()
 
