@@ -1,21 +1,8 @@
-# from relecov_core.utils.generic_functions import store_file
-
-# from relecov_core.utils.metadata_handling import upload_excel_file
-
-# from relecov_core.core_config import HEADING_FOR_RECORD_SAMPLES
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     create_metadata_form,
-    # fetch_sample_options,
-    # metadata_sample_and_batch_is_completed,
-    # process_batch_metadata_form,
-    # complete_sample_table_with_data_from_batch,
-    # execute_query_to_authors_table,
-    save_sample_from_form,
-    # fetch_batch_options,
+    save_temp_sample_data,
 )
-
-# from relecov_core.utils.metadata_handling import upload_excel_file
 
 from relecov_core.utils.schema_handling import (
     del_metadata_visualization,
@@ -28,7 +15,6 @@ from relecov_core.utils.schema_handling import (
     process_schema_file,
     store_fields_metadata_visualization,
 )
-
 
 from relecov_core.utils.parse_files import (
     parse_csv,
@@ -154,7 +140,7 @@ def metadata_form(request):
         if len(res_analyze) == 0:
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
-            s_saved = save_sample_from_form(res_analyze["save_samples"])
+            s_saved = save_temp_sample_data(res_analyze["save_samples"])
             if "ERROR" in s_saved:
                 return render(
                     request,

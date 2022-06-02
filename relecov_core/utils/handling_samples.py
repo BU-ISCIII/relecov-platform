@@ -185,7 +185,7 @@ def create_metadata_form(schema_obj, user_obj):
     return m_form
 
 
-def save_sample_from_form(samples):
+def save_temp_sample_data(samples):
     """Send the request to iSkyLIMS to save sample data and save sample info in
     Sample tabel at relecov core
     """
