@@ -38,8 +38,12 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 
-def index(request):
+def test(request):
     parse_csv("relecov_core/docs/variants_long_table_last.csv")
+    return render(request, "relecov_core/index.html", {})
+
+
+def index(request):
     return render(request, "relecov_core/index.html", {})
 
 
