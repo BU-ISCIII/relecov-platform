@@ -1062,7 +1062,7 @@ class PublicDatabaseField(models.Model):
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
         new_t_data = self.create(
-            sample=data["sample"],
+            sample_idx=data["sample_idx"],
             field=data["field"],
             value=data["value"]
         )
@@ -1070,14 +1070,22 @@ class TemporalSampleStorageManager(models.Manager):
 
 
 class TemporalSampleStorage(models.Model):
-    sample = models.CharField(max_length=80)
-    field = models.CharField(max_length=80)
-    value = models.CharField(max_length=80)
+    sample_idx = models.IntegerField()
+    field = models.CharField(max_length=100)
+    value = models.CharField(max_length=100)
     sent = models.BooleanField(default=False)
     generated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return "%s,%s" % (self.sample, self.field)
+
+    def get_temp_values(self):
+        return {self.field: self.value}
+
+    def update_sent_status(self, value):
+        self.sent = value
+        self.save()
+        return
 
     objects = TemporalSampleStorageManager()
 
