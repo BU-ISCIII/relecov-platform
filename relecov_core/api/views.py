@@ -17,10 +17,10 @@ from .serializers import (
     CreateSampleSerializer,
     CreateChromosomeSerializer,
     CreateGeneSerializer,
-    # CreateEffectSerializer,
-    # CreateVariantInSampleSerializer,
-    # CreateFilterSerializer,
-    # CreatePositionSerializer,
+    CreateEffectSerializer,
+    CreateVariantInSampleSerializer,
+    CreateFilterSerializer,
+    CreatePositionSerializer,
     # CreateVariantSerializer,
 )
 
@@ -28,10 +28,10 @@ from relecov_core.models import (
     # Sample,
     Chromosome,
     Gene,
-    # Effect,
-    # VariantInSample,
-    # Filter,
-    # Position,
+    Effect,
+    VariantInSample,
+    Filter,
+    Position,
     # Variant,
 )
 
@@ -153,4 +153,76 @@ def longtable_data(request):
                 gene_serializer.save()
                 print("gene_serializer saved")
 
+        if Effect.objects.filter(effect__iexact=data["Effect"]).exists():
+            effect_id = (
+                Effect.objects.filter(effect__iexact=data["Effect"])
+                .last()
+                .get_effect_id()
+            )
+            print(effect_id)
+        else:
+            effect_serializer = CreateEffectSerializer(data=data["Effect"])
+            # print(effect_serializer)
+            if effect_serializer.is_valid():
+                effect_serializer.save()
+                print("effect_serializer saved")
+
+        if VariantInSample.objects.filter(dp__iexact=data["VariantInSample"]).exists():
+            variant_in_sample_id = (
+                VariantInSample.objects.filter(effect__iexact=data["VariantInSample"])
+                .last()
+                .get_variant_in_sample_id()
+            )
+            print(variant_in_sample_id)
+        else:
+            variant_in_sample_serializer = CreateVariantInSampleSerializer(
+                data=data["VariantInSample"]
+            )
+            # print(variant_in_sample_serializer)
+            if variant_in_sample_serializer.is_valid():
+                variant_in_sample_serializer.save()
+                print("variant_in_sample_serializer saved")
+
+        if Filter.objects.filter(filter__iexact=data["Filter"]).exists():
+            filter_id = (
+                Filter.objects.filter(filter__iexact=data["Filter"])
+                .last()
+                .get_filter_id()
+            )
+            print(filter_id)
+        else:
+            filter_serializer = CreateFilterSerializer(data=data["Filter"])
+            # print(filter_serializer)
+            if filter_serializer.is_valid():
+                filter_serializer.save()
+                print("filter_serializer saved")
+
+        if Position.objects.filter(pos__iexact=data["Position"]).exists():
+            position_id = (
+                Gene.objects.filter(pos__iexact=data["Position"])
+                .last()
+                .get_position_id()
+            )
+            print(position_id)
+        else:
+            position_serializer = CreatePositionSerializer(data=data["Position"])
+            # print(position_serializer)
+            if position_serializer.is_valid():
+                position_serializer.save()
+                print("position_serializer saved")
+        """
+        if Variant.objects.filter(dp__iexact=data["Variant"]).exists():
+            variant_id = (
+                Variant.objects.filter(effect__iexact=data["Variant"])
+                .last()
+                .get_variant_id()
+            )
+            print(variant_id)
+        else:
+            variant_serializer = CreateVariantSerializer(data=data["Variant"])
+            # print(variant_serializer)
+            if variant_serializer.is_valid():
+                variant_serializer.save()
+                print("variant_serializer saved")
+        """
         return Response(status=status.HTTP_201_CREATED)
