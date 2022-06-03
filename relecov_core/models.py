@@ -332,6 +332,12 @@ class Filter(models.Model):
     def __str__(self):
         return "%s" % (self.filter)
 
+    def get_filter_id(self):
+        return "%s" % (self.pk)
+
+    def get_filter(self):
+        return "%s" % (self.filter)
+
     objects = FilterManager()
 
     # Effect Table
@@ -365,6 +371,12 @@ class Effect(models.Model):
         db_table = "Effect"
 
     def __str__(self):
+        return "%s" % (self.effect)
+
+    def get_effect_id(self):
+        return "%s" % (self.pk)
+
+    def get_effect(self):
         return "%s" % (self.effect)
 
     def get_hgvs_c(self):
@@ -594,6 +606,9 @@ class Position(models.Model):
     def __str__(self):
         return "%s" % (self.pos)
 
+    def get_position_id(self):
+        return "%s" % (self.pk)
+
     def get_pos(self):
         return "%s" % (self.pos)
 
@@ -631,6 +646,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     class Meta:
         db_table = "VariantInSample"
+
+    def get_variant_in_sample_id(self):
+        return "%s" % (self.pk)
 
     def get_dp(self):
         return "%s" % (self.dp)
@@ -679,6 +697,9 @@ class Variant(models.Model):
 
     class Meta:
         db_table = "Variant"
+
+    def get_variant_id(self):
+        return "%s" % (self.pk)
 
     def get_ref(self):
         return "%s" % (self.ref)
