@@ -40,8 +40,6 @@ from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from relecov_core.models import Chromosome
-
 analysis_data = openapi.Parameter(
     "analysis_name",
     openapi.IN_FORM,
