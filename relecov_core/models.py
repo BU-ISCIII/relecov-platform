@@ -441,6 +441,12 @@ class Gene(models.Model):
     def __str__(self):
         return "%s" % (self.gene)
 
+    def get_gene(self):
+        return "%s" % (self.gene)
+
+    def get_gene_id(self):
+        return "%s" % (self.pk)
+
     objects = GeneManager()
 
 
