@@ -13,7 +13,27 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 
-from .serializers import CreateSampleSerializer, CreateChromosomeSerializer
+from .serializers import (
+    CreateSampleSerializer,
+    CreateChromosomeSerializer,
+    CreateGeneSerializer,
+    # CreateEffectSerializer,
+    # CreateVariantInSampleSerializer,
+    # CreateFilterSerializer,
+    # CreatePositionSerializer,
+    # CreateVariantSerializer,
+)
+
+from relecov_core.models import (
+    # Sample,
+    Chromosome,
+    Gene,
+    # Effect,
+    # VariantInSample,
+    # Filter,
+    # Position,
+    # Variant,
+)
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 
@@ -118,5 +138,21 @@ def longtable_data(request):
             print(chrom_id)
         else:
             chrom_serializer = CreateChromosomeSerializer(data=data["Chrom"])
-            print(chrom_serializer)
+            # print(chrom_serializer)
+            if chrom_serializer.is_valid():
+                chrom_serializer.save()
+                print("chrom_serializer saved")
+
+        if Gene.objects.filter(gene__iexact=data["Gene"]).exists():
+            gene_id = (
+                Gene.objects.filter(gene__iexact=data["Gene"]).last().get_gene_id()
+            )
+            print(gene_id)
+        else:
+            gene_serializer = CreateGeneSerializer(data=data["Gene"])
+            # print(gene_serializer)
+            if gene_serializer.is_valid():
+                gene_serializer.save()
+                print("gene_serializer saved")
+
         return Response(status=status.HTTP_201_CREATED)
