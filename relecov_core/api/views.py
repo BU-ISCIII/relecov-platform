@@ -13,7 +13,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 
-from .serializers import CreateSampleSerializer, CreateChromosmeSerializer
+from .serializers import CreateSampleSerializer, CreateChromosomeSerializer
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 
@@ -117,6 +117,6 @@ def longtable_data(request):
             )
             print(chrom_id)
         else:
-            chrom_serializer = CreateChromosmeSerializer(data=data["Chrom"])
+            chrom_serializer = CreateChromosomeSerializer(data=data["Chrom"])
             print(chrom_serializer)
         return Response(status=status.HTTP_201_CREATED)
