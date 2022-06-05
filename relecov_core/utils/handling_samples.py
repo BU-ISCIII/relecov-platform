@@ -161,7 +161,6 @@ def create_form_for_sample(schema_obj):
                 m_form[label]["options"] = iskylims_sample_data[label]["options"]
         else:
             print("ERROR not found in iSkyLIMS", label)
-            import pdb; pdb.set_trace()
         if "date" in label.lower():
             m_form[label]["format"] = "date"
         # check label belongs to iskylims to get t
