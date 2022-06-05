@@ -1001,7 +1001,7 @@ class PublicDatabaseManager(models.Manager):
 
 class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
-    
+
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     # ManyToOne
@@ -1019,7 +1019,8 @@ class PublicDatabase(models.Model):
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
         new_t_data = self.create(
-            sample_idx=data["sample_idx"], field=data["field"], value=data["value"])
+            sample_idx=data["sample_idx"], field=data["field"], value=data["value"]
+        )
         return new_t_data
 
 
