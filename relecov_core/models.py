@@ -1001,6 +1001,7 @@ class PublicDatabaseManager(models.Manager):
 
 class PublicDatabase(models.Model):
     databaseName = models.CharField(max_length=100)
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     # ManyToOne
@@ -1013,50 +1014,6 @@ class PublicDatabase(models.Model):
         return "%s" % (self.databaseName)
 
     objects = PublicDatabaseManager()
-
-
-# table PublicDatabaseField
-class PublicDatabaseFieldManager(models.Manager):
-    def create_new_public_database_field(self, data):
-        new_public_database_field = self.create(
-            fieldName=data["fieldName"],
-            fieldDescription=data["fieldDescription"],
-            fieldInUse=data["fieldInUse"],
-        )
-        return new_public_database_field
-
-
-class PublicDatabaseField(models.Model):
-    publicDatabaseID = models.ForeignKey(
-        PublicDatabase, on_delete=models.CASCADE, null=True, blank=True
-    )
-    fieldName = models.CharField(max_length=50)
-    fieldDescription = models.CharField(max_length=400, null=True, blank=True)
-    fieldInUse = models.BooleanField()
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    # ManyToOne
-    # public_database = models.ForeignKey(PublicDatabase, on_delete= models.CASCADE)
-
-    class Meta:
-        db_table = "PublicDatabaseField"
-
-    def __str__(self):
-        return "%s" % (self.fieldName)
-
-    def get_public_database_id(self):
-        return "%s" % (self.publicDatabaseID)
-
-    def get_field_name(self):
-        return "%s" % (self.fieldName)
-
-    def get_field_description(self):
-        return "%s" % (self.fieldDescription)
-
-    def get_field_in_use(self):
-        return "%s" % (self.fieldInUse)
-
-    objects = PublicDatabaseFieldManager()
 
 
 class TemporalSampleStorageManager(models.Manager):
