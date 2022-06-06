@@ -13,10 +13,6 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 
-<<<<<<< HEAD
-from .serializers import CreateSampleSerializer, CreateChromosomeSerializer
-from relecov_core.models import Chromosome
-=======
 from .serializers import (
     CreateSampleSerializer,
     CreateChromosomeSerializer,
@@ -38,7 +34,6 @@ from relecov_core.models import (
     Position,
     # Variant,
 )
->>>>>>> 2b304a853d2a6c3006399f5d3bb92900ac39177e
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 
