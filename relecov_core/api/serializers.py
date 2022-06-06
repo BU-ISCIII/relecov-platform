@@ -9,7 +9,7 @@ class CreateSampleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CreateChromosmeSerializer(serializers.ModelSerializer):
+class CreateChromosomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chromosome
         fields = "__all__"

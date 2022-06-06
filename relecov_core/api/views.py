@@ -13,7 +13,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 
-from .serializers import CreateSampleSerializer
+from .serializers import CreateSampleSerializer, CreateChromosomeSerializer
+from relecov_core.models import Chromosome
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 
@@ -99,3 +100,22 @@ def analysis_data(request):
         #    print(a_file)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def longtable_data(request):
+    if request.method == "POST":
+        data = request.data
+        if isinstance(data, QueryDict):
+            data = data.dict()
+        if Chromosome.objects.filter(chromosome__iexact=data["Chrom"]).exists():
+            chrom_id = (
+                Chromosome.objects.filter(chromosome__iexact=data["Chrom"])
+                .last()
+                .get_chromosome_id()
+            )
+            print(chrom_id)
+        else:
+            chrom_serializer = CreateChromosomeSerializer(data=data["Chrom"])
+            print(chrom_serializer)
+        return Response(status=status.HTTP_201_CREATED)
