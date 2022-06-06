@@ -523,7 +523,9 @@ class Sample(models.Model):
         Document, on_delete=models.CASCADE, null=True, blank=True
     )
     bioproject_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    bioproject_umbrella_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
+    bioproject_umbrella_accession_ENA = models.CharField(
+        max_length=80, null=True, blank=True
+    )
     biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
     GenBank_ENA_DDBJ_accession = models.CharField(max_length=80, null=True, blank=True)
     GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
