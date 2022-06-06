@@ -558,6 +558,9 @@ class Sample(models.Model):
     def __str__(self):
         return "%s" % (self.collecting_lab_sample_id)
 
+    def get_sample_id(self):
+        return "%s" % (self.pk)
+
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
 
@@ -710,7 +713,9 @@ class Variant(models.Model):
     objects = VariantManager()
 
 
-# Table Analysis
+0  # Table Analysis
+
+
 class AnalysisManager(models.Manager):
     def create_new_analysis(self, data):
         new_analysis = self.create(
