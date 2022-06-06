@@ -18,7 +18,6 @@ from relecov_core.models import (
     Profile,
     PropertyOptions,
     PublicDatabase,
-    PublicDatabaseField,
     Sample,
     SampleState,
     Schema,
@@ -88,12 +87,9 @@ class PositionAdmin(admin.ModelAdmin):
 
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
-        "collecting_lab_sample_id",
         "sequencing_sample_id",
-        "biosample_accession_ENA",
-        "virus_name",
-        "gisaid_id",
-        "sequencing_date",
+        "submitting_lab_sample_id",
+        "state",
     ]
 
 
@@ -115,10 +111,6 @@ class AuthorsAdmin(admin.ModelAdmin):
 
 class PublicDatabaseAdmin(admin.ModelAdmin):
     list_display = ["databaseName"]
-
-
-class PublicDatabaseFieldAdmin(admin.ModelAdmin):
-    list_display = ["publicDatabaseID", "fieldName", "fieldDescription", "fieldInUse"]
 
 
 class SchemaAdmin(admin.ModelAdmin):
@@ -172,7 +164,6 @@ admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
-admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
