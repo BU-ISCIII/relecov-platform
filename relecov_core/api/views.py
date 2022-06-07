@@ -12,6 +12,7 @@ from rest_framework.decorators import (
 from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
+from relecov_core.api.serializers import CreateSampleSerializer
 
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
