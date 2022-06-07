@@ -26,6 +26,7 @@ urlpatterns = [
     path("resultsDownload/", views.results_download, name="resultsDownload"),
     path("schemaDisplay=<int:schema_id>", views.schema_display, name="schema_display"),
     path("schemaHandling", views.schema_handling, name="schema_handling"),
+    path("bioInfoHandling", views.bio_info_json_handling, name="bioInfo_handling"),
     path("uploadStatus/", views.upload_status, name="uploadStatus"),
     path("uploadStatusToENA/", views.upload_status_to_ENA, name="uploadStatusToENA"),
     path(

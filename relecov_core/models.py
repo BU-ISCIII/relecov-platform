@@ -291,6 +291,23 @@ class BioinfoProcessField(models.Model):
     objects = BioinfoProcessFieldManager()
 
 
+class BioInfoProcessValue(models.Model):
+    value = models.CharField(max_length=240)
+    bioinfo_process_fieldID = models.ForeignKey(
+        BioinfoProcessField, on_delete=models.CASCADE
+    )
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioInfoProcessValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+
 # Caller Table
 class CallerManager(models.Manager):
     def create_new_caller(self, data):
