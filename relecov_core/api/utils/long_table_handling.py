@@ -1,12 +1,11 @@
 from relecov_core.api.serializers import (
-    CreateSampleSerializer,
     CreateChromosomeSerializer,
     CreateGeneSerializer,
     CreateEffectSerializer,
     CreateVariantInSampleSerializer,
     CreateFilterSerializer,
     CreatePositionSerializer,
-    CreateVariantSerializer,
+    # CreateVariantSerializer,
 )
 
 from relecov_core.models import (
