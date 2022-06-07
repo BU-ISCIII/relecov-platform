@@ -5,7 +5,7 @@ from relecov_core.api.serializers import (
     CreateVariantInSampleSerializer,
     CreateFilterSerializer,
     CreatePositionSerializer,
-    CreateLineageSerializer,
+    # CreateLineageSerializer,
     # CreateVariantSerializer,
 )
 
@@ -23,6 +23,7 @@ from relecov_core.models import (
     User,
     SampleState,
 )
+
 
 # "caller" field parsed by Erika
 def fetch_long_table_data(data):
@@ -193,6 +194,7 @@ def set_variant(data, data_ids):
             .last()
             .get_variant_id()
         )
+        return variant_id
     else:
         variant = Variant.objects.create_new_variant(data["Variant"]["ref"], data_ids)
         variant.save()
