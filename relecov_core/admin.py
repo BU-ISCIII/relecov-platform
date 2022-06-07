@@ -13,6 +13,7 @@ from relecov_core.models import (
     Effect,
     Gene,
     Filter,
+    Lineage,
     Position,
     Profile,
     PublicDatabase,
@@ -79,6 +80,10 @@ class GeneAdmin(admin.ModelAdmin):
 
 class ChromosomeAdmin(admin.ModelAdmin):
     list_display = ["chromosome"]
+
+
+class LineageAdmin(admin.ModelAdmin):
+    list_display = ["lineage_name"]
 
 
 class PositionAdmin(admin.ModelAdmin):
@@ -159,6 +164,7 @@ admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
+admin.site.register(Lineage, LineageAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
