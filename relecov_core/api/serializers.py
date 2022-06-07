@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from relecov_core.models import (
+    Lineage,
     Sample,
     Chromosome,
     Gene,
@@ -58,3 +59,9 @@ class CreateVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variant
         fields = "__all__"
+
+
+class CreateLineageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lineage
+        fields = ["lineage_name"]

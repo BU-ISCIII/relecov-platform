@@ -393,7 +393,7 @@ class Effect(models.Model):
 
 # Lineage Table
 class LineageManager(models.Manager):
-    def create_new_Lineage(self, data):
+    def create_new_lineage(self, data):
         new_lineage = self.create(
             lineage_identification_date=data["lineage_identification_date"],
             lineage_name=data["lineage_name"],
@@ -405,11 +405,19 @@ class LineageManager(models.Manager):
 
 
 class Lineage(models.Model):
-    lineage_identification_date = models.CharField(max_length=100)
+    lineage_identification_date = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     lineage_name = models.CharField(max_length=100)
-    lineage_analysis_software_name = models.CharField(max_length=100)
-    if_lineage_identification_other = models.CharField(max_length=100)
-    lineage_analysis_software_version = models.CharField(max_length=100)
+    lineage_analysis_software_name = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    if_lineage_identification_other = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    lineage_analysis_software_version = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -417,6 +425,9 @@ class Lineage(models.Model):
 
     def __str__(self):
         return "%s" % (self.lineage_name)
+
+    def get_lineage_id(self):
+        return "%s" % (self.pk)
 
     def get_lineage_identification_date(self):
         return "%s" % (self.lineage_identification_date)
