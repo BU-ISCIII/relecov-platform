@@ -13,14 +13,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 
-from .serializers import CreateSampleSerializer, CreateChromosmeSerializer
-
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
+from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+
+from .serializers import CreateSampleSerializer
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
-from relecov_core.models import Chromosome
 
 analysis_data = openapi.Parameter(
     "analysis_name",
@@ -109,14 +108,8 @@ def longtable_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
-        if Chromosome.objects.filter(chromosome__iexact=data["Chrom"]).exists():
-            chrom_id = (
-                Chromosome.objects.filter(chromosome__iexact=data["Chrom"])
-                .last()
-                .get_chromosome_id()
-            )
-            print(chrom_id)
-        else:
-            chrom_serializer = CreateChromosmeSerializer(data=data["Chrom"])
-            print(chrom_serializer)
+        stored_data = fetch_long_table_data(data)
+        if "ERROR" in stored_data:
+            return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(status=status.HTTP_201_CREATED)

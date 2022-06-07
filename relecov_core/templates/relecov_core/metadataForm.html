@@ -95,7 +95,7 @@
                                                                 {% if values.format == "date" %}
                                                                     { type: 'calendar', title: "{{item}}", width:180 },
                                                                 {% elif values.options  %}
-                                                                    { type: 'dropdown', title:'{{item}}', width:180 , source: [{% for value in item.option %}"{{value}}",{% endfor %}] },
+                                                                    { type: 'dropdown', title:'{{item}}', width:180 , source: [{% for value in values.options %}"{{value}}",{% endfor %}] },
                                                                 {% else %}
                                                                     { type: 'text', title:'{{item}}', width:180 },
                                                                 {% endif %}
