@@ -57,6 +57,7 @@ def bio_info_json_handling(request):
             request.user,
             __package__,
         )
+        print(bioinfo_data)
         """
         if "ERROR" in schema_data:
             return render(
@@ -64,7 +65,7 @@ def bio_info_json_handling(request):
                 "relecov_core/bioInfoJSONHandling.html",
                 {"ERROR": schema_data["ERROR"]},
             )
-        
+
         return render(
             request,
             "relecov_core/bioInfoJSONHandling.html",
