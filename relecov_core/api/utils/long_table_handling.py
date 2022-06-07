@@ -18,13 +18,15 @@ from relecov_core.models import (
     Filter,
     Position,
     Variant,
-    # Document,
-    # User,
-    # SampleState,
+    Document,
+    User,
+    SampleState,
 )
 
 
 def fetch_long_table_data(data):
+    # create_sample_register()
+
     data_ids = {}
     for idx in range(2):
         chromosomeID_id = set_chromosome(data)
@@ -222,3 +224,25 @@ def set_variant(data, data_ids):
             variant_serializer.save()
             print("variant_serializer saved")
         """
+
+
+# this function creates a new Sample register for testing
+def create_sample_register():
+    new_sample = Sample.objects.create(
+        state=SampleState.objects.create(
+            state="pre-recorded",
+            display_string="display_string",
+            description="description",
+        ),
+        user=User.objects.create(password="appapk", username="tere"),
+        metadata_file=Document.objects.create(
+            title="title", file_path="", uploadedFile=""
+        ),
+        collecting_lab_sample_id="200002",
+        sequencing_sample_id="1234",
+        biosample_accession_ENA="456123",
+        virus_name="ramiro",
+        gisaid_id="09876",
+        sequencing_date="2022/8/2",
+    )
+    new_sample.save()
