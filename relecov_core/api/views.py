@@ -1,6 +1,6 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FileUploadParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from rest_framework.decorators import (
     authentication_classes,
@@ -15,6 +15,7 @@ from django.http import QueryDict
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+from .utils.analysis_handling import process_analysis_data
 
 from .serializers import CreateSampleSerializer
 
@@ -32,11 +33,6 @@ analysis_file = openapi.Schema(
     in_=openapi.IN_BODY,
     type=openapi.TYPE_FILE,
 )
-
-
-@api_view(["GET"])
-def test(request):
-    return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
 @authentication_classes([SessionAuthentication, BasicAuthentication])
@@ -75,7 +71,6 @@ y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STR
     (
         FormParser,
         MultiPartParser,
-        FileUploadParser,
     )
 )
 @swagger_auto_schema(
@@ -94,7 +89,13 @@ y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STR
 def analysis_data(request):
     if request.method == "POST":
         data = request.data
-        print(data)
+        if isinstance(data, QueryDict):
+            data = data.dict()
+        if "analysis" not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        fetched_data = process_analysis_data(data)
+        if "ERROR" in fetched_data:
+            return Response(fetched_data, status=status.HTTP_400_BAD_REQUEST)
         # if "upload_file" in request.FILES:
         #     a_file = request.FILES["analysis_file"]
         #    print(a_file)
