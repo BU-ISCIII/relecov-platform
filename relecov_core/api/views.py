@@ -17,8 +17,6 @@ from relecov_core.api.serializers import CreateSampleSerializer
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 
-from .serializers import CreateSampleSerializer
-
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
