@@ -19,9 +19,43 @@ from relecov_core.utils.schema_handling import (
     store_fields_metadata_visualization,
 )
 
+from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
+
 
 def index(request):
     return render(request, "relecov_core/index.html", {})
+
+
+@login_required
+def bio_info_json_handling(request):
+    if request.method == "POST" and request.POST["action"] == "uploadBioInfo":
+        bioinfo_data = process_bioinfo_file(
+            request.FILES["BioInfoFile"],
+            request.user,
+            __package__,
+        )
+        print(bioinfo_data)
+        """
+        if "ERROR" in schema_data:
+            return render(
+                request,
+                "relecov_core/bioInfoJSONHandling.html",
+                {"ERROR": schema_data["ERROR"]},
+            )
+
+        return render(
+            request,
+            "relecov_core/bioInfoJSONHandling.html",
+            {"SUCCESS": bioinfo_data["SUCCESS"]},
+        )
+        """
+    # schemas = get_schemas_loaded(__package__)
+    """
+    return render(
+        request, "relecov_core/bioInfoJSONHandling.html", {"schemas": schemas}
+    )
+    """
+    return render(request, "relecov_core/bioInfoJSONHandling.html", {})
 
 
 @login_required
