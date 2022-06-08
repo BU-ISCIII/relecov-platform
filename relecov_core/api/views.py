@@ -13,8 +13,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import CreateSampleSerializer
+from relecov_core.models import SampleState
 
-from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from .utils.analysis_handling import process_analysis_data
 
@@ -44,16 +44,10 @@ def create_sample_data(request):
             data = data.dict()
         # if "sample" not in data and "project" not in data:
         #    return Response(status=status.HTTP_400_BAD_REQUEST)
-        split_data = split_sample_data(data)
-        if "ERROR" in split_data:
-            return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
-        s_data = prepare_fields_in_sample(split_data["sample"])
-        if "ERROR" in s_data:
-            return Response(s_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        data["user"] = request.user.pk
 
-        s_data["sampleUser"] = request.user.pk
-
-        sample_serializer = CreateSampleSerializer(data=s_data)
+        data["state"] = SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+        sample_serializer = CreateSampleSerializer(data=data)
 
         if not sample_serializer.is_valid():
             return Response(
