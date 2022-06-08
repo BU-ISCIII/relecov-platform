@@ -291,6 +291,23 @@ class BioinfoProcessField(models.Model):
     objects = BioinfoProcessFieldManager()
 
 
+class BioInfoProcessValue(models.Model):
+    value = models.CharField(max_length=240)
+    bioinfo_process_fieldID = models.ForeignKey(
+        BioinfoProcessField, on_delete=models.CASCADE
+    )
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioInfoProcessValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+
 # Caller Table
 class CallerManager(models.Manager):
     def create_new_caller(self, data):
@@ -332,6 +349,12 @@ class Filter(models.Model):
     def __str__(self):
         return "%s" % (self.filter)
 
+    def get_filter_id(self):
+        return "%s" % (self.pk)
+
+    def get_filter(self):
+        return "%s" % (self.filter)
+
     objects = FilterManager()
 
     # Effect Table
@@ -367,6 +390,12 @@ class Effect(models.Model):
     def __str__(self):
         return "%s" % (self.effect)
 
+    def get_effect_id(self):
+        return "%s" % (self.pk)
+
+    def get_effect(self):
+        return "%s" % (self.effect)
+
     def get_hgvs_c(self):
         return "%s" % (self.hgvs_c)
 
@@ -381,7 +410,7 @@ class Effect(models.Model):
 
 # Lineage Table
 class LineageManager(models.Manager):
-    def create_new_Lineage(self, data):
+    def create_new_lineage(self, data):
         new_lineage = self.create(
             lineage_identification_date=data["lineage_identification_date"],
             lineage_name=data["lineage_name"],
@@ -393,11 +422,19 @@ class LineageManager(models.Manager):
 
 
 class Lineage(models.Model):
-    lineage_identification_date = models.CharField(max_length=100)
+    lineage_identification_date = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     lineage_name = models.CharField(max_length=100)
-    lineage_analysis_software_name = models.CharField(max_length=100)
-    if_lineage_identification_other = models.CharField(max_length=100)
-    lineage_analysis_software_version = models.CharField(max_length=100)
+    lineage_analysis_software_name = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    if_lineage_identification_other = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    lineage_analysis_software_version = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -405,6 +442,9 @@ class Lineage(models.Model):
 
     def __str__(self):
         return "%s" % (self.lineage_name)
+
+    def get_lineage_id(self):
+        return "%s" % (self.pk)
 
     def get_lineage_identification_date(self):
         return "%s" % (self.lineage_identification_date)
@@ -440,6 +480,12 @@ class Gene(models.Model):
 
     def __str__(self):
         return "%s" % (self.gene)
+
+    def get_gene(self):
+        return "%s" % (self.gene)
+
+    def get_gene_id(self):
+        return "%s" % (self.pk)
 
     objects = GeneManager()
 
@@ -545,6 +591,9 @@ class Sample(models.Model):
     def __str__(self):
         return "%s" % (self.collecting_lab_sample_id)
 
+    def get_sample_id(self):
+        return "%s" % (self.pk)
+
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
 
@@ -596,6 +645,9 @@ class Position(models.Model):
     def __str__(self):
         return "%s" % (self.pos)
 
+    def get_position_id(self):
+        return "%s" % (self.pk)
+
     def get_pos(self):
         return "%s" % (self.pos)
 
@@ -633,6 +685,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     class Meta:
         db_table = "VariantInSample"
+
+    def get_variant_in_sample_id(self):
+        return "%s" % (self.pk)
 
     def get_dp(self):
         return "%s" % (self.dp)
@@ -681,6 +736,9 @@ class Variant(models.Model):
 
     class Meta:
         db_table = "Variant"
+
+    def get_variant_id(self):
+        return "%s" % (self.pk)
 
     def get_ref(self):
         return "%s" % (self.ref)
