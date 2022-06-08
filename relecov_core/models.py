@@ -543,18 +543,11 @@ class SampleManager(models.Manager):
         if "sequencing_date" not in data:
             data["sequencing_date"] = ""
         new_sample = self.create(
-            collecting_lab_sample_id=data,
             sequencing_sample_id=data["sequencing_sample_id"],
             biosample_accession_ENA=data["biosample_accession_ENA"],
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
-            # collecting_lab_sample_id=data["collecting_lab_sample_id"]
-            # sequencing_sample_id=data["sequencing_sample_id"],
-            # biosample_accession_ENA=data["biosample_accession_ENA"],
-            # virus_name=data["virus_name"],
-            # gisaid_id=data["gisaid_id"],
-            # sequencing_date=data["sequencing_date"],
             metadata_file=metadata_file,
             state=state,
             user=user,
@@ -589,13 +582,10 @@ class Sample(models.Model):
         db_table = "Sample"
 
     def __str__(self):
-        return "%s" % (self.collecting_lab_sample_id)
+        return "%s" % (self.sequencing_sample_id)
 
     def get_sample_id(self):
         return "%s" % (self.pk)
-
-    def get_collecting_lab_sample_id(self):
-        return "%s" % (self.collecting_lab_sample_id)
 
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
