@@ -46,7 +46,9 @@ def create_sample_data(request):
         #    return Response(status=status.HTTP_400_BAD_REQUEST)
         data["user"] = request.user.pk
 
-        data["state"] = SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+        data["state"] = (
+            SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+        )
         sample_serializer = CreateSampleSerializer(data=data)
 
         if not sample_serializer.is_valid():
