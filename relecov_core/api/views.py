@@ -16,6 +16,7 @@ from relecov_core.api.serializers import CreateSampleSerializer
 
 from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+from relecov_core.api.utils.bioinfo_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -112,3 +113,17 @@ def longtable_data(request):
             return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def bioinfo_data(request):
+    if request.method == "POST":
+        data = request.data
+    if isinstance(data, QueryDict):
+        data = data.dict()
+    fetch_bioinfo_data(data)
+
+    # if "ERROR" in stored_data:
+    #    return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_201_CREATED)
