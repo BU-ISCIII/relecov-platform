@@ -55,7 +55,7 @@ def fetch_bioinfo_data(data):
                 bioinfo_process_field = BioinfoProcessField.objects.get(
                     property_name__iexact=property
                 )
-                # print(bioinfo_process_field.get_id())
+                print(bioinfo_process_field.get_id())
 
             else:
                 data_fields = SchemaProperties.objects.filter(
@@ -64,8 +64,8 @@ def fetch_bioinfo_data(data):
                 # print(data_fields)
                 schema_id = Schema.objects.get(schema_default=1)
                 """
-                schemaID=data_fields[0][0], 
-                label=data_fields[0][1], 
+                schemaID=data_fields[0][0],
+                label=data_fields[0][1],
                 classification=data_fields[0][2]
                 """
                 instance = BioinfoProcessField.objects.create(
