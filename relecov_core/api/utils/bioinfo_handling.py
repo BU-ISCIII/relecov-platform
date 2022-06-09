@@ -1,8 +1,10 @@
 import json
 import re
 from relecov_core.models import (
+    BioInfoProcessValue,
     BioinfoProcessField,
     Classification,
+    Sample,
     # MetadataVisualization,
     # PropertyOptions,
     Schema,
@@ -26,35 +28,46 @@ from relecov_core.core_config import (
 # from django.db import models
 
 
-# "caller" field parsed by Erika
 def fetch_bioinfo_data(data):
-    registers = BioinfoProcessField.objects.all()
-    registers.delete()
+    # registers = BioinfoProcessField.objects.all()
+    # registers.delete()
+    values = BioInfoProcessValue.objects.all()
+    values.delete()
 
     list_of_properties = []
-    # list_of_values = []
     list_of_no_exists = []
-    # number_of_sample = data.keys()
     data_in_sample = data.values()
+    list_of_values = []
+    number_of_sample = list(data.keys())
+    print(type(number_of_sample[0]))
 
-    for dat in data_in_sample:
-        list_of_properties = list(dat.keys())
-        # list_of_values = list(dat.values())
+    for data_sample in data_in_sample:
+        list_of_properties = list(data_sample.keys())
+        list_of_values = list(data_sample.values())
 
     for property in list_of_properties:
         if SchemaProperties.objects.filter(property__iexact=property).exists():
-            print("Exists in Schema")
+            # print("Exists in Schema")
             if BioinfoProcessField.objects.filter(
                 property_name__iexact=property
             ).exists():
-                pass
+                # print("Exists in BioinfoProcessField")
+                bioinfo_process_field = BioinfoProcessField.objects.get(
+                    property_name__iexact=property
+                )
+                # print(bioinfo_process_field.get_id())
+
             else:
                 data_fields = SchemaProperties.objects.filter(
                     property__iexact=property
                 ).values_list("schemaID", "label", "classification")
-                print(data_fields)
+                # print(data_fields)
                 schema_id = Schema.objects.get(schema_default=1)
-
+                """
+                schemaID=data_fields[0][0], 
+                label=data_fields[0][1], 
+                classification=data_fields[0][2]
+                """
                 instance = BioinfoProcessField.objects.create(
                     property_name=property,
                     label_name=data_fields[0][1],
@@ -66,10 +79,29 @@ def fetch_bioinfo_data(data):
                 instance.save()
 
         else:
-            print("Doesn't exist in Schema: " + str(property))
+            # print("Doesn't exist in Schema: " + str(property))
             list_of_no_exists.append(property)
     print(len(list_of_no_exists))
     print(list_of_no_exists)
+
+    for idx in range(len(list_of_properties)):
+        if BioinfoProcessField.objects.filter(
+            property_name__iexact=list_of_properties[idx]
+        ).exists():
+            bioinfo_instance = BioinfoProcessField.objects.get(
+                property_name__iexact=list_of_properties[idx]
+            )
+            bioinfo_process_values = BioInfoProcessValue.objects.create(
+                value=list_of_values[idx],
+                bioinfo_process_fieldID=bioinfo_instance,
+                sampleID_id=Sample.objects.get(
+                    sequencing_sample_id=int(number_of_sample[0]),
+                ),
+            )
+            bioinfo_process_values.save()
+
+        else:
+            pass
 
 
 def load_bioinfo_file(json_file):
