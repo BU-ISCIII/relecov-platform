@@ -121,7 +121,8 @@ def bioinfo_data(request):
         data = request.data
     if isinstance(data, QueryDict):
         data = data.dict()
-    stored_data = fetch_bioinfo_data(data)
+    fetch_bioinfo_data(data)
+
     # if "ERROR" in stored_data:
     #    return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
