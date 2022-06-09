@@ -8,7 +8,7 @@ from relecov_core.models import (
     Schema,
     SchemaProperties,
 )
-from relecov_core.utils.generic_functions import store_file, get_configuration_value
+from relecov_core.utils.generic_functions import store_file
 from relecov_core.core_config import (
     # SCHEMAS_UPLOAD_FOLDER,
     BIOINFO_UPLOAD_FOLDER,
@@ -22,7 +22,8 @@ from relecov_core.core_config import (
     # MAIN_SCHEMA_STRUCTURE,
     # NO_SELECTED_LABEL_WAS_DONE,
 )
-from django.db import models
+
+# from django.db import models
 
 
 # "caller" field parsed by Erika
@@ -69,28 +70,8 @@ def fetch_bioinfo_data(data):
             list_of_no_exists.append(property)
     print(len(list_of_no_exists))
     print(list_of_no_exists)
-    """
-            data_fields = SchemaProperties.objects.filter(
-                property__iexact=property
-            ).values_list("schemaID", "label", "classification")
-
-            schema_id = Schema.objects.get(schema_default=1)
-
-            instance = BioinfoProcessField.objects.create(
-                property_name=property,
-                label_name=data_fields[0][1],
-                classificationID=Classification.objects.get(
-                    class_name=data_fields[0][2]
-                ),
-            )
-            instance.schemaID.add(schema_id)
-            instance.save()
-    """
-    # property_in_schema = SchemaProperties.objects.get(property=property)
-    # print(property_in_schema)
 
 
-####################bioinfo file#####################################
 def load_bioinfo_file(json_file):
     """Store json file in the defined folder and store information in database"""
     data = {}
