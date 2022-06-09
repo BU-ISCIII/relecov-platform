@@ -251,6 +251,9 @@ class Classification(models.Model):
     def __str__(self):
         return "%s" % (self.class_name)
 
+    def get_classification_id(self):
+        return "%s" % (self.pk)
+
     def get_classification(self):
         return "%s" % (self.class_name)
 
