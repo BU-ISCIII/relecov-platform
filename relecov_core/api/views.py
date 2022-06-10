@@ -1,6 +1,6 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FileUploadParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from rest_framework.decorators import (
     authentication_classes,
@@ -13,9 +13,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import CreateSampleSerializer
+from relecov_core.models import SampleState
 
-from .utils.request_handling import split_sample_data, prepare_fields_in_sample
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+from .utils.analysis_handling import process_analysis_data
 from relecov_core.api.utils.bioinfo_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
@@ -34,11 +35,6 @@ analysis_file = openapi.Schema(
 )
 
 
-@api_view(["GET"])
-def test(request):
-    return Response("Successful upload information", status=status.HTTP_201_CREATED)
-
-
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -49,16 +45,12 @@ def create_sample_data(request):
             data = data.dict()
         # if "sample" not in data and "project" not in data:
         #    return Response(status=status.HTTP_400_BAD_REQUEST)
-        split_data = split_sample_data(data)
-        if "ERROR" in split_data:
-            return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
-        s_data = prepare_fields_in_sample(split_data["sample"])
-        if "ERROR" in s_data:
-            return Response(s_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        data["user"] = request.user.pk
 
-        s_data["sampleUser"] = request.user.pk
-
-        sample_serializer = CreateSampleSerializer(data=s_data)
+        data["state"] = (
+            SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+        )
+        sample_serializer = CreateSampleSerializer(data=data)
 
         if not sample_serializer.is_valid():
             return Response(
@@ -75,7 +67,6 @@ y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STR
     (
         FormParser,
         MultiPartParser,
-        FileUploadParser,
     )
 )
 @swagger_auto_schema(
@@ -94,7 +85,13 @@ y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STR
 def analysis_data(request):
     if request.method == "POST":
         data = request.data
-        print(data)
+        if isinstance(data, QueryDict):
+            data = data.dict()
+        if "analysis" not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        fetched_data = process_analysis_data(data)
+        if "ERROR" in fetched_data:
+            return Response(fetched_data, status=status.HTTP_400_BAD_REQUEST)
         # if "upload_file" in request.FILES:
         #     a_file = request.FILES["analysis_file"]
         #    print(a_file)
