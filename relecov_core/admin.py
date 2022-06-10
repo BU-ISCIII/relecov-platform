@@ -13,18 +13,18 @@ from relecov_core.models import (
     Effect,
     Gene,
     Filter,
+    MetadataVisualization,
     Position,
     Profile,
+    PropertyOptions,
     PublicDatabase,
-    PublicDatabaseField,
     Sample,
-    Variant,
-    VariantInSample,
     SampleState,
     Schema,
     SchemaProperties,
-    PropertyOptions,
-    MetadataVisualization,
+    TemporalSampleStorage,
+    Variant,
+    VariantInSample,
 )
 
 
@@ -87,12 +87,9 @@ class PositionAdmin(admin.ModelAdmin):
 
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
-        "collecting_lab_sample_id",
         "sequencing_sample_id",
-        "biosample_accession_ENA",
-        "virus_name",
-        "gisaid_id",
-        "sequencing_date",
+        "submitting_lab_sample_id",
+        "state",
     ]
 
 
@@ -116,10 +113,6 @@ class PublicDatabaseAdmin(admin.ModelAdmin):
     list_display = ["databaseName"]
 
 
-class PublicDatabaseFieldAdmin(admin.ModelAdmin):
-    list_display = ["publicDatabaseID", "fieldName", "fieldDescription", "fieldInUse"]
-
-
 class SchemaAdmin(admin.ModelAdmin):
     list_display = [
         "schema_name",
@@ -131,7 +124,12 @@ class SchemaAdmin(admin.ModelAdmin):
 
 
 class SchemaPropertiesAdmin(admin.ModelAdmin):
-    list_display = ["schemaID", "property", "label", "required"]
+    list_display = ["property", "label", "schemaID", "required"]
+    search_fields = ["property__icontains"]
+
+
+class TemporalSampleStorageAdmin(admin.ModelAdmin):
+    list_display = ["sample_idx", "field", "value", "sent"]
 
 
 class PropertyOptionsAdmin(admin.ModelAdmin):
@@ -166,8 +164,8 @@ admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
-admin.site.register(PublicDatabaseField, PublicDatabaseFieldAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
+admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)

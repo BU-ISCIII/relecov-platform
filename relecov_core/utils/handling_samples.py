@@ -1,6 +1,6 @@
 import json
 from collections import OrderedDict
-
+from django.db.models import Max
 
 from relecov_core.core_config import (
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
@@ -19,6 +19,7 @@ from relecov_core.models import (
     # Authors,
     MetadataVisualization,
     SchemaProperties,
+    TemporalSampleStorage,
     # PropertyOptions,
     # Schema,
     Sample,
@@ -28,7 +29,7 @@ from relecov_core.models import (
 from relecov_core.utils.rest_api_handling import (
     get_sample_fields_data,
     get_sample_project_fields_data,
-    save_sample_form_data,
+    # save_sample_form_data,
 )
 
 
@@ -138,11 +139,12 @@ def create_form_for_sample(schema_obj):
         if "ontology" in values:
             try:
                 label = s_prop_dict[values["ontology"]]["label"]
+                iskylims_sample_data[label] = {}
                 # Collcct information to send back the values ot iSkyLIMS
                 l_iskylims.append(values["field_name"])
                 l_metadata.append(label)
                 if "options" in values:
-                    iskylims_sample_data[label] = {"options": values["options"]}
+                    iskylims_sample_data[label]["options"] = values["options"]
             except KeyError as e:
                 print("Error in map ontology ", e)
 
@@ -158,7 +160,7 @@ def create_form_for_sample(schema_obj):
             if "options" in iskylims_sample_data[label]:
                 m_form[label]["options"] = iskylims_sample_data[label]["options"]
         else:
-            print(label)
+            print("ERROR not found in iSkyLIMS", label)
         if "date" in label.lower():
             m_form[label]["format"] = "date"
         # check label belongs to iskylims to get t
@@ -166,7 +168,6 @@ def create_form_for_sample(schema_obj):
     f_data["data"] = m_form
     f_data["l_iskylims"] = ",".join(l_iskylims)
     f_data["l_metadata"] = ",".join(l_metadata)
-
     return f_data
 
 
@@ -185,18 +186,20 @@ def create_metadata_form(schema_obj, user_obj):
     return m_form
 
 
-def save_sample_from_form(samples):
-    """Send the request to iSkyLIMS to save sample data and save sample info in
-    Sample tabel at relecov core
-    """
-    s_list = []
-    # error_samples = []
-    credencials = {"user": "admin", "pass": "Apple@123"}
+def save_temp_sample_data(samples):
+    """Store the valid sample into the temporary table"""
+    # get the latest value of sample_index
+    last_value = TemporalSampleStorage.objects.aggregate(Max("sample_idx")).get(
+        "sample_idx__max"
+    )
+    if last_value is None:
+        last_value = 0
+
     for sample in samples:
-        sample["sampleProject"] = "Relecov"
-        result = save_sample_form_data(sample, credencials)
-        if "ERROR" in result:
-            return result
-        print(result)
-        s_list.append[FIELD_FOR_GETTING_SAMPLE_ID]
-    return s_list
+        last_value += 1
+        for item, value in sample.items():
+            data = {"sample_idx": last_value}
+            data["field"] = item
+            data["value"] = value
+            TemporalSampleStorage.objects.save_temp_data(data)
+    return
