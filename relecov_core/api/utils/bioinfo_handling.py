@@ -29,8 +29,8 @@ from relecov_core.core_config import (
 
 
 def fetch_bioinfo_data(data):
-    # registers = BioinfoProcessField.objects.all()
-    # registers.delete()
+    registers = BioinfoProcessField.objects.all()
+    registers.delete()
     values = BioInfoProcessValue.objects.all()
     values.delete()
 
