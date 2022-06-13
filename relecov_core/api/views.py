@@ -1,13 +1,14 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+
+# from rest_framework.parsers import MultiPartParser, FormParser
 
 from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
     api_view,
     action,
-    parser_classes,
+    #    parser_classes,
 )
 from rest_framework import status
 from rest_framework.response import Response
@@ -21,6 +22,7 @@ from .utils.analysis_handling import process_analysis_data
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+"""
 analysis_data = openapi.Parameter(
     "analysis_name",
     openapi.IN_FORM,
@@ -32,6 +34,7 @@ analysis_file = openapi.Schema(
     in_=openapi.IN_BODY,
     type=openapi.TYPE_FILE,
 )
+"""
 
 
 @authentication_classes([SessionAuthentication, BasicAuthentication])
@@ -61,7 +64,7 @@ def create_sample_data(request):
 
 y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
 
-
+"""
 @parser_classes(
     (
         FormParser,
@@ -78,6 +81,7 @@ y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STR
         500: "Internal Server Error",
     },
 )
+"""
 # @action(detail=True, methods=['post'], parser_classes=(MultiPartParser, ), name='upload-excel', url_path='upload-excel')
 @api_view(["POST"])
 @action(detail=False, methods=["post"])
