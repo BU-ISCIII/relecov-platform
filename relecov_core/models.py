@@ -251,6 +251,9 @@ class Classification(models.Model):
     def __str__(self):
         return "%s" % (self.class_name)
 
+    def get_classification_id(self):
+        return "%s" % (self.pk)
+
     def get_classification(self):
         return "%s" % (self.class_name)
 
@@ -276,6 +279,9 @@ class BioinfoProcessField(models.Model):
 
     def __str__(self):
         return "%s" % (self.property_name)
+
+    def get_id(self):
+        return "%s" % (self.pk)
 
     def get_property(self):
         return "%s" % (self.property_name)
@@ -393,7 +399,7 @@ class Effect(models.Model):
 
 # Lineage Table
 class LineageManager(models.Manager):
-    def create_new_Lineage(self, data):
+    def create_new_lineage(self, data):
         new_lineage = self.create(
             lineage_identification_date=data["lineage_identification_date"],
             lineage_name=data["lineage_name"],
@@ -405,11 +411,19 @@ class LineageManager(models.Manager):
 
 
 class Lineage(models.Model):
-    lineage_identification_date = models.CharField(max_length=100)
+    lineage_identification_date = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     lineage_name = models.CharField(max_length=100)
-    lineage_analysis_software_name = models.CharField(max_length=100)
-    if_lineage_identification_other = models.CharField(max_length=100)
-    lineage_analysis_software_version = models.CharField(max_length=100)
+    lineage_analysis_software_name = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    if_lineage_identification_other = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    lineage_analysis_software_version = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -417,6 +431,9 @@ class Lineage(models.Model):
 
     def __str__(self):
         return "%s" % (self.lineage_name)
+
+    def get_lineage_id(self):
+        return "%s" % (self.pk)
 
     def get_lineage_identification_date(self):
         return "%s" % (self.lineage_identification_date)
@@ -518,18 +535,11 @@ class SampleManager(models.Manager):
         if "sequencing_date" not in data:
             data["sequencing_date"] = ""
         new_sample = self.create(
-            collecting_lab_sample_id=data,
             sequencing_sample_id=data["sequencing_sample_id"],
             biosample_accession_ENA=data["biosample_accession_ENA"],
             virus_name=data["virus_name"],
             gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
-            # collecting_lab_sample_id=data["collecting_lab_sample_id"]
-            # sequencing_sample_id=data["sequencing_sample_id"],
-            # biosample_accession_ENA=data["biosample_accession_ENA"],
-            # virus_name=data["virus_name"],
-            # gisaid_id=data["gisaid_id"],
-            # sequencing_date=data["sequencing_date"],
             metadata_file=metadata_file,
             state=state,
             user=user,
@@ -564,13 +574,10 @@ class Sample(models.Model):
         db_table = "Sample"
 
     def __str__(self):
-        return "%s" % (self.collecting_lab_sample_id)
+        return "%s" % (self.sequencing_sample_id)
 
     def get_sample_id(self):
         return "%s" % (self.pk)
-
-    def get_collecting_lab_sample_id(self):
-        return "%s" % (self.collecting_lab_sample_id)
 
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
@@ -584,8 +591,8 @@ class Sample(models.Model):
     def get_gisaid_id(self):
         return "%s" % (self.gisaid_id)
 
-    def get_sequencing_date(self):
-        return "%s" % (self.sequencing_date)
+    # def get_sequencing_date(self):
+    #    return "%s" % (self.sequencing_date)
 
     def get_state(self):
         return "%s" % (self.state)
@@ -597,6 +604,24 @@ class Sample(models.Model):
         return "%s" % (self.metadata_file)
 
     objects = SampleManager()
+
+
+class BioInfoProcessValue(models.Model):
+    value = models.CharField(max_length=240)
+    bioinfo_process_fieldID = models.ForeignKey(
+        BioinfoProcessField, on_delete=models.CASCADE
+    )
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioInfoProcessValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
 
 
 # Position table

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from relecov_core.models import (
     Authors,
+    BioInfoProcessValue,
     BioinfoProcessField,
     Caller,
     Classification,
@@ -49,6 +50,11 @@ class BioinfoProcessFieldAdmin(admin.ModelAdmin):
     search_fields = ("property_name__icontains",)
 
 
+class BioinfoProcessValueAdmin(admin.ModelAdmin):
+    list_display = ["value", "bioinfo_process_fieldID", "sampleID_id"]
+    search_fields = ("value__icontains",)
+
+
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["title", "uploadedFile"]
 
@@ -79,6 +85,10 @@ class GeneAdmin(admin.ModelAdmin):
 
 class ChromosomeAdmin(admin.ModelAdmin):
     list_display = ["chromosome"]
+
+
+# class LineageAdmin(admin.ModelAdmin):
+#    list_display = ["lineage_name"]
 
 
 class PositionAdmin(admin.ModelAdmin):
@@ -150,6 +160,7 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
+admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
 admin.site.register(Caller, CallerAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
@@ -157,6 +168,7 @@ admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
+# admin.site.register(Lineage, LineageAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
