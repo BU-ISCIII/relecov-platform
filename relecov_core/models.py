@@ -251,6 +251,9 @@ class Classification(models.Model):
     def __str__(self):
         return "%s" % (self.class_name)
 
+    def get_classification_id(self):
+        return "%s" % (self.pk)
+
     def get_classification(self):
         return "%s" % (self.class_name)
 
@@ -277,6 +280,9 @@ class BioinfoProcessField(models.Model):
     def __str__(self):
         return "%s" % (self.property_name)
 
+    def get_id(self):
+        return "%s" % (self.pk)
+
     def get_property(self):
         return "%s" % (self.property_name)
 
@@ -289,23 +295,6 @@ class BioinfoProcessField(models.Model):
         return None
 
     objects = BioinfoProcessFieldManager()
-
-
-class BioInfoProcessValue(models.Model):
-    value = models.CharField(max_length=240)
-    bioinfo_process_fieldID = models.ForeignKey(
-        BioinfoProcessField, on_delete=models.CASCADE
-    )
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    class Meta:
-        db_table = "BioInfoProcessValue"
-
-    def __str__(self):
-        return "%s" % (self.value)
-
-    def get_id(self):
-        return "%s" % (self.pk)
 
 
 # Caller Table
@@ -599,8 +588,8 @@ class Sample(models.Model):
     def get_gisaid_id(self):
         return "%s" % (self.gisaid_id)
 
-    def get_sequencing_date(self):
-        return "%s" % (self.sequencing_date)
+    # def get_sequencing_date(self):
+    #    return "%s" % (self.sequencing_date)
 
     def get_state(self):
         return "%s" % (self.state)
@@ -612,6 +601,24 @@ class Sample(models.Model):
         return "%s" % (self.metadata_file)
 
     objects = SampleManager()
+
+
+class BioInfoProcessValue(models.Model):
+    value = models.CharField(max_length=240)
+    bioinfo_process_fieldID = models.ForeignKey(
+        BioinfoProcessField, on_delete=models.CASCADE
+    )
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioInfoProcessValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
 
 
 # Position table
