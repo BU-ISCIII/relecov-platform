@@ -84,6 +84,8 @@ y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STR
 )
 """
 # @action(detail=True, methods=['post'], parser_classes=(MultiPartParser, ), name='upload-excel', url_path='upload-excel')
+
+
 @api_view(["POST"])
 @action(detail=False, methods=["post"])
 def analysis_data(request):
