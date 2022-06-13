@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from relecov_core.models import (
     Authors,
+    BioInfoProcessValue,
     BioinfoProcessField,
     Caller,
     Classification,
@@ -47,6 +48,11 @@ class CustomUserAdmin(UserAdmin):
 class BioinfoProcessFieldAdmin(admin.ModelAdmin):
     list_display = ["property_name", "classificationID", "label_name"]
     search_fields = ("property_name__icontains",)
+
+
+class BioinfoProcessValueAdmin(admin.ModelAdmin):
+    list_display = ["value", "bioinfo_process_fieldID", "sampleID_id"]
+    search_fields = ("value__icontains",)
 
 
 class DocumentAdmin(admin.ModelAdmin):
@@ -154,6 +160,7 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
+admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
 admin.site.register(Caller, CallerAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
