@@ -1,15 +1,16 @@
 from relecov_core.api.serializers import (
-    CreateSampleSerializer,
     CreateChromosomeSerializer,
     CreateGeneSerializer,
     CreateEffectSerializer,
     CreateVariantInSampleSerializer,
     CreateFilterSerializer,
     CreatePositionSerializer,
-    CreateVariantSerializer,
+    # CreateLineageSerializer,
+    # CreateVariantSerializer,
 )
 
 from relecov_core.models import (
+    Lineage,
     Sample,
     Chromosome,
     Gene,
@@ -18,13 +19,16 @@ from relecov_core.models import (
     Filter,
     Position,
     Variant,
-    # Document,
-    # User,
-    # SampleState,
+    Document,
+    User,
+    SampleState,
 )
 
 
+# "caller" field parsed by Erika
 def fetch_long_table_data(data):
+
+    # create_sample_register()
     data_ids = {}
     for idx in range(2):
         chromosomeID_id = set_chromosome(data)
@@ -51,29 +55,20 @@ def fetch_long_table_data(data):
         if positionID_id is not None:
             data_ids["positionID_id"] = positionID_id
 
-        # print(chromosomeID_id)
-        # print(geneID_id)
-        print(effectID_id)
-
     sampleID_id = set_sample(data)
     if sampleID_id is not None:
         data_ids["sampleID_id"] = sampleID_id
-
-    print(data_ids)
 
     variantID_id = set_variant(data, data_ids)
     if variantID_id is not None:
         data_ids["variantID_id"] = variantID_id
 
+    lineageID_id = set_lineage(data)
+    print("lineageID_id: " + str(lineageID_id))
+
 
 def set_chromosome(data):
     chrom_id = 0
-    print(
-        Chromosome.objects.filter(
-            chromosome__iexact=data["Chrom"]["chromosome"]
-        ).exists()
-    )
-    print(data["Chrom"]["chromosome"])
     if Chromosome.objects.filter(chromosome=data["Chrom"]["chromosome"]).last():
         chrom_id = (
             Chromosome.objects.filter(chromosome=data["Chrom"]["chromosome"]).last()
@@ -96,11 +91,9 @@ def set_gene(data):
             Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).last()
             # .get_gene_id()
         )
-        # data_ids["geneID_id"] = gene_id
         return gene_id
     else:
         gene_serializer = CreateGeneSerializer(data=data["Gene"]["gene"])
-        # print(gene_serializer)
         if gene_serializer.is_valid():
             gene_serializer.save()
             print("gene_serializer saved")
@@ -113,11 +106,9 @@ def set_effect(data):
             Effect.objects.filter(effect__iexact=data["Effect"]["effect"]).last()
             # .get_effect_id()
         )
-        # data_ids["effectID_id"] = effect_id
         return effect_id
     else:
         effect_serializer = CreateEffectSerializer(data=data["Effect"])
-        # print(effect_serializer)
         if effect_serializer.is_valid():
             effect_serializer.save()
             print("effect_serializer saved")
@@ -134,13 +125,11 @@ def set_variant_in_sample(data):
             ).last()
             # .get_variant_in_sample_id()
         )
-        # data_ids["variant_in_sampleID_id"] = variant_in_sample_id
         return variant_in_sample_id
     else:
         variant_in_sample_serializer = CreateVariantInSampleSerializer(
             data=data["VariantInSample"]
         )
-        # print(variant_in_sample_serializer)
         if variant_in_sample_serializer.is_valid():
             variant_in_sample_serializer.save()
             print("variant_in_sample_serializer saved")
@@ -153,11 +142,9 @@ def set_filter(data):
             Filter.objects.filter(filter__iexact=data["Filter"]["filter"]).last()
             # .get_filter_id()
         )
-        # data_ids["filterID_id"] = filter_id
         return filter_id
     else:
         filter_serializer = CreateFilterSerializer(data=data["Filter"])
-        # print(filter_serializer)
         if filter_serializer.is_valid():
             filter_serializer.save()
             print("filter_serializer saved")
@@ -170,11 +157,9 @@ def set_position(data):
             Position.objects.filter(pos__iexact=data["Position"]["pos"]).last()
             # .get_position_id()
         )
-        # data_ids["positionID_id"] = position_id
         return position_id
     else:
         position_serializer = CreatePositionSerializer(data=data["Position"])
-        # print(position_serializer)
         if position_serializer.is_valid():
             position_serializer.save()
             print("position_serializer saved")
@@ -192,7 +177,6 @@ def set_sample(data):
             # .get_sample_id()
         )
 
-        # data_ids["sampleID_id"] = sample_id
         return sample_id
     """
     else:
@@ -210,7 +194,7 @@ def set_variant(data, data_ids):
             .last()
             .get_variant_id()
         )
-        print(variant_id)
+        return variant_id
     else:
         variant = Variant.objects.create_new_variant(data["Variant"]["ref"], data_ids)
         variant.save()
@@ -222,3 +206,51 @@ def set_variant(data, data_ids):
             variant_serializer.save()
             print("variant_serializer saved")
         """
+
+
+def set_lineage(data):
+    lineage_id = 0
+    if Lineage.objects.filter(
+        lineage_name__iexact=data["Lineage"]["lineage_name"]
+    ).exists():
+        lineage_id = (
+            Lineage.objects.filter(lineage_name__iexact=data["Lineage"]["lineage_name"])
+            .last()
+            .get_lineage_id()
+        )
+        return lineage_id
+    else:
+        new_lineage = Lineage.objects.create(
+            lineage_name=data["Lineage"]["lineage_name"]
+        )
+        new_lineage.save()
+        """
+        lineage_serializer = CreateLineageSerializer(
+            data=data["Lineage"]["lineage_name"]
+        )
+        if lineage_serializer.is_valid():
+            lineage_serializer.save()
+            print("lineage_serializer saved")
+        """
+
+
+# this function creates a new Sample register for testing
+def create_sample_register():
+    new_sample = Sample.objects.create(
+        state=SampleState.objects.create(
+            state="pre-recorded",
+            display_string="display_string",
+            description="description",
+        ),
+        user=User.objects.create(password="appapk", username="tere"),
+        metadata_file=Document.objects.create(
+            title="title", file_path="", uploadedFile=""
+        ),
+        collecting_lab_sample_id="200002",
+        sequencing_sample_id="1234",
+        biosample_accession_ENA="456123",
+        virus_name="ramiro",
+        gisaid_id="09876",
+        sequencing_date="2022/8/2",
+    )
+    new_sample.save()
