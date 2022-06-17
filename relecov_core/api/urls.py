@@ -8,5 +8,5 @@ urlpatterns = [
     path("analysisData", views.analysis_data, name="analysis_data"),
     path("createSampleData", views.create_sample_data, name="create_sample_data"),
     path("longtableData/", views.longtable_data, name="longtable_data"),
-    path("bioinfoData/", views.bioinfo_data, name="bioinfo_data"),
+    path("bioinfoData", views.bioinfo_data, name="bioinfo_data"),
 ]
