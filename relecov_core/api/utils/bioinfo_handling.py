@@ -71,7 +71,7 @@ def fetch_bioinfo_data(data):
 
             if BioinfoProcessField.objects.filter(schemaID=default_schema.get_schema_id(),property_name__iexact=property).exists():
                 print(" Exists in BioinfoProcessField: " + str(property))
- 
+
                 bioinfo_process_field = BioinfoProcessField.objects.get(
                 schemaID=default_schema.get_schema_id(),
                 property_name__iexact=property
@@ -87,13 +87,12 @@ def fetch_bioinfo_data(data):
                     ),
                 )
                 bioinfo_process_values.save()
-      
+
             else:
-   
+
                     print(" Doesn't exist in BioinfoProcessField: " + str(property))
                     list_of_no_exists.append(property)
-    
-        
+
         else:
             print("Error... property: " +str(property) + " ,doesn't exists in Schema: " + default_schema.get_schema_id())
 
@@ -114,7 +113,7 @@ def fetch_bioinfo_data(data):
 
             if BioinfoProcessField.objects.filter(schemaID=default_schema.get_schema_id(),property_name__iexact=property).exists():
                 print(" Exists in BioinfoProcessField: " + str(property))
-    
+
                 bioinfo_process_field = BioinfoProcessField.objects.get(
                 schemaID=default_schema.get_schema_id(),
                 property_name__iexact=property
@@ -130,12 +129,12 @@ def fetch_bioinfo_data(data):
                     ),
                 )
                 bioinfo_process_values.save()
-        
+
             else:
- 
+
                     print(" Doesn't exist in BioinfoProcessField: " + str(property))
                     list_of_no_exists.append(property)
-  
+
         else:
             print("Error... property: " +str(property) + " ,doesn't exists in Schema: " + default_schema.get_schema_id())
 
