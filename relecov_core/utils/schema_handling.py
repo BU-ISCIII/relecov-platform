@@ -235,7 +235,6 @@ def store_bioinfo_fields(schema_obj, s_properties):
 
     for prop_key in s_properties.keys():
         classification = ""
-        classification_valid = ""
         data = dict(s_properties[prop_key])
         if "classification" in data:
             p = re.compile(r"Bioinformatic..*[\w+]")
