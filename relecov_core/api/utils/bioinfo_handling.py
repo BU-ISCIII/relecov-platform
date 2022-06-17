@@ -109,7 +109,7 @@ def fetch_bioinfo_data(data):
     default_schema = Schema.objects.get(schema_default=1)
 
     for property in data:
-        insert_to_lineage_tableif SchemaProperties.objects.filter(
+        if SchemaProperties.objects.filter(
             schemaID=default_schema.get_schema_id(), property__iexact=property
         ).exists():
             print(
