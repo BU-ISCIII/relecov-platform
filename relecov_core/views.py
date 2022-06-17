@@ -21,9 +21,16 @@ from relecov_core.utils.schema_handling import (
 
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 
+from relecov_core.models import Sample
+
 
 def index(request):
-    return render(request, "relecov_core/index.html", {})
+    number_of_samples_received = Sample.objects.count()
+    return render(
+        request,
+        "relecov_core/index.html",
+        {"number_of_samples_received": number_of_samples_received},
+    )
 
 
 @login_required
