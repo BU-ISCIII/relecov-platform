@@ -1,6 +1,6 @@
 HEADING_FOR_RECORD_SAMPLES = {
     "Sample ID given by the submitting laboratory": "submitting_lab_sample_id",
-    "Originating Laboratory": "collecting_institution",
+    "Originating Laboratory": "collecting_lab_sample_id",
     "Purpose of sampling": "purpose_sampling",
     "Biological Sample Storage Condition ": "sample_storage_conditions",
     "Specimen source": "anatomical_material",
@@ -64,7 +64,7 @@ HEADINGS_FOR_ISkyLIMS_BATCH = {
     "Environmental System": "environmental_site",
     "Collection Device": "collection_device",
     "Host": "host_common_name",
-    " Commercial All-in-one library kit": "library_kit",
+    "Commercial All-in-one library kit": "library_kit",
     "Enrichment Protocol": "enrichment_protocol",
     "If Enrichment Protocol Is Other, Specify": "if_enrichment_protocol_is_other_specify",
     "Enrichment panel/assay": "amplicon_protocol",
@@ -178,6 +178,7 @@ HEADING_SCHEMA_DISPLAY = [
     "Classification",
     "Description",
 ]
+
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
 
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]

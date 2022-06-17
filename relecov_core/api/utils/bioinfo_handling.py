@@ -4,6 +4,7 @@ from relecov_core.models import (
     BioInfoProcessValue,
     BioinfoProcessField,
     Classification,
+    Lineage,
     Sample,
     # MetadataVisualization,
     # PropertyOptions,
@@ -27,81 +28,144 @@ from relecov_core.core_config import (
 
 # from django.db import models
 
-
+"""
 def fetch_bioinfo_data(data):
-    registers = BioinfoProcessField.objects.all()
-    registers.delete()
-    values = BioInfoProcessValue.objects.all()
-    values.delete()
+    # list_of_no_exists = []
+    default_schema = Schema.objects.get(schema_default=1)
+    number_of_sample = int(data["microbiology_lab_sample_id"])
+    variant_fields = data["variant"]
 
-    list_of_properties = []
-    list_of_no_exists = []
-    data_in_sample = data.values()
-    list_of_values = []
-    number_of_sample = list(data.keys())
-    print(type(number_of_sample[0]))
+    for variant_field in variant_fields:
+        print(variant_field)
+        print(data["variant"][variant_field])
 
-    for data_sample in data_in_sample:
-        list_of_properties = list(data_sample.keys())
-        list_of_values = list(data_sample.values())
-
-    for property in list_of_properties:
-        if SchemaProperties.objects.filter(property__iexact=property).exists():
-            # print("Exists in Schema")
-            if BioinfoProcessField.objects.filter(
-                property_name__iexact=property
-            ).exists():
-                # print("Exists in BioinfoProcessField")
-                bioinfo_process_field = BioinfoProcessField.objects.get(
-                    property_name__iexact=property
+        if SchemaProperties.objects.filter(
+            schemaID=default_schema.get_schema_id(), property__iexact=variant_field
+        ).exists():
+            print(
+                "field {} , exists in Schema {}".format(
+                    variant_field, default_schema.get_schema_id()
                 )
-                print(bioinfo_process_field.get_id())
+            )
+            if BioinfoProcessField.objects.filter(
+                schemaID=default_schema.get_schema_id(),
+                property_name__iexact=variant_field,
+            ).exists():
+                print(
+                    "field {} , exists in BioinfoProcessField, schemaID {}".format(
+                        variant_field, default_schema.get_schema_id()
+                    )
+                )
+                BioInfoProcessValue.objects.create(
+                    value=data["variant"][variant_field],
+                    bioinfo_process_fieldID=BioinfoProcessField.objects.get(
+                        schemaID=default_schema.get_schema_id(),
+                        property_name__iexact=variant_field,
+                    ),
+                    sampleID_id=Sample.objects.get(
+                        sequencing_sample_id=number_of_sample
+                    ),
+                ).save()
 
-            else:
-                data_fields = SchemaProperties.objects.filter(
-                    property__iexact=property
-                ).values_list("schemaID", "label", "classification")
-                # print(data_fields)
-                schema_id = Schema.objects.get(schema_default=1)
-                """
-                schemaID=data_fields[0][0],
-                label=data_fields[0][1],
-                classification=data_fields[0][2]
-                """
-                instance = BioinfoProcessField.objects.create(
-                    property_name=property,
-                    label_name=data_fields[0][1],
-                    classificationID=Classification.objects.get(
-                        class_name=data_fields[0][2]
+        if SchemaProperties.objects.filter(schemaID=default_schema.get_schema_id(), property__iexact=property).exists():
+            print("property: " +str(property) + " ,exists in Schema: " + default_schema.get_schema_id())
+
+            if BioinfoProcessField.objects.filter(schemaID=default_schema.get_schema_id(),property_name__iexact=property).exists():
+                print(" Exists in BioinfoProcessField: " + str(property))
+
+                bioinfo_process_field = BioinfoProcessField.objects.get(
+                schemaID=default_schema.get_schema_id(),
+                property_name__iexact=property
+                )
+
+                bioinfo_process_values = BioInfoProcessValue.objects.create(
+                    value=data[property],
+                    bioinfo_process_fieldID=BioinfoProcessField.objects.get(
+                    property_name__iexact=property
+                    ),
+                    sampleID_id=Sample.objects.get(
+                        sequencing_sample_id=number_of_sample,
                     ),
                 )
-                instance.schemaID.add(schema_id)
-                instance.save()
+                bioinfo_process_values.save()
+
+            else:
+
+                    print(" Doesn't exist in BioinfoProcessField: " + str(property))
+                    list_of_no_exists.append(property)
 
         else:
-            # print("Doesn't exist in Schema: " + str(property))
-            list_of_no_exists.append(property)
+            print("Error... property: " +str(property) + " ,doesn't exists in Schema: " + default_schema.get_schema_id())
+
     print(len(list_of_no_exists))
     print(list_of_no_exists)
 
-    for idx in range(len(list_of_properties)):
-        if BioinfoProcessField.objects.filter(
-            property_name__iexact=list_of_properties[idx]
+"""
+
+
+def fetch_bioinfo_data(data):
+    list_of_lineage_table_properties = []
+    number_of_sample = int(data["microbiology_lab_sample_id"])
+    default_schema = Schema.objects.get(schema_default=1)
+
+    for property in data:
+        if SchemaProperties.objects.filter(
+            schemaID=default_schema.get_schema_id(), property__iexact=property
         ).exists():
-            bioinfo_instance = BioinfoProcessField.objects.get(
-                property_name__iexact=list_of_properties[idx]
+            print(
+                "property: "
+                + str(property)
+                + " ,exists in Schema: "
+                + default_schema.get_schema_id()
             )
-            bioinfo_process_values = BioInfoProcessValue.objects.create(
-                value=list_of_values[idx],
-                bioinfo_process_fieldID=bioinfo_instance,
-                sampleID_id=Sample.objects.get(
-                    sequencing_sample_id=int(number_of_sample[0]),
-                ),
-            )
-            bioinfo_process_values.save()
+
+            if BioinfoProcessField.objects.filter(
+                schemaID=default_schema.get_schema_id(), property_name__iexact=property
+            ).exists():
+                print(" Exists in BioinfoProcessField: " + str(property))
+
+                bioinfo_process_field = BioinfoProcessField.objects.get(
+                    schemaID=default_schema.get_schema_id(),
+                    property_name__iexact=property,
+                )
+                print(bioinfo_process_field)
+
+                bioinfo_process_values = BioInfoProcessValue.objects.create(
+                    value=data[property],
+                    bioinfo_process_fieldID=BioinfoProcessField.objects.get(
+                        property_name__iexact=property
+                    ),
+                    sampleID_id=Sample.objects.get(
+                        sequencing_sample_id=number_of_sample,
+                    ),
+                )
+                bioinfo_process_values.save()
+
+            else:
+
+                print(" Doesn't exist in BioinfoProcessField: " + str(property))
+                list_of_lineage_table_properties.append(property)
 
         else:
-            pass
+            print(
+                "Error... property: "
+                + str(property)
+                + " ,doesn't exists in Schema: "
+                + default_schema.get_schema_id()
+            )
+    insert_to_lineage_table(list_of_lineage_table_properties)
+    print(len(list_of_lineage_table_properties))
+    print(list_of_lineage_table_properties)
+
+
+def insert_to_lineage_table(data):
+    Lineage.objects.create(
+        lineage_identification_date="2022/03/21",
+        lineage_name=data[4],
+        lineage_analysis_software_name=data[2],
+        if_lineage_identification_other=data[1],
+        lineage_analysis_software_version=data[3],
+    ).save()
 
 
 def load_bioinfo_file(json_file):
