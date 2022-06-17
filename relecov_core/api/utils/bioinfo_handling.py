@@ -66,7 +66,7 @@ def fetch_bioinfo_data(data):
                         sequencing_sample_id=number_of_sample
                     ),
                 ).save()
-       
+
         if SchemaProperties.objects.filter(schemaID=default_schema.get_schema_id(), property__iexact=property).exists():
             print("property: " +str(property) + " ,exists in Schema: " + default_schema.get_schema_id())
 
@@ -109,7 +109,7 @@ def fetch_bioinfo_data(data):
     default_schema = Schema.objects.get(schema_default=1)
 
     for property in data:
-        if SchemaProperties.objects.filter(
+        insert_to_lineage_tableif SchemaProperties.objects.filter(
             schemaID=default_schema.get_schema_id(), property__iexact=property
         ).exists():
             print(
@@ -128,6 +128,7 @@ def fetch_bioinfo_data(data):
                     schemaID=default_schema.get_schema_id(),
                     property_name__iexact=property,
                 )
+                print(bioinfo_process_field)
 
                 bioinfo_process_values = BioInfoProcessValue.objects.create(
                     value=data[property],
