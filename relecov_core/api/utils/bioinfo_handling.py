@@ -29,7 +29,7 @@ from relecov_core.core_config import (
 
 
 def fetch_bioinfo_data(data):
-    list_of_no_exists = []
+    # list_of_no_exists = []
     default_schema = Schema.objects.get(schema_default=1)
     number_of_sample = int(data["microbiology_lab_sample_id"])
     variant_fields = data["variant"]
@@ -71,7 +71,7 @@ def fetch_bioinfo_data(data):
 
             if BioinfoProcessField.objects.filter(schemaID=default_schema.get_schema_id(),property_name__iexact=property).exists():
                 print(" Exists in BioinfoProcessField: " + str(property))
-                
+ 
                 bioinfo_process_field = BioinfoProcessField.objects.get(
                 schemaID=default_schema.get_schema_id(),
                 property_name__iexact=property
@@ -87,16 +87,16 @@ def fetch_bioinfo_data(data):
                     ),
                 )
                 bioinfo_process_values.save()
-                    
+      
             else:
-                
+   
                     print(" Doesn't exist in BioinfoProcessField: " + str(property))
                     list_of_no_exists.append(property)
-                
-                    
+    
+        
         else:
             print("Error... property: " +str(property) + " ,doesn't exists in Schema: " + default_schema.get_schema_id())
-        
+
     print(len(list_of_no_exists))
     print(list_of_no_exists)
         """
@@ -107,16 +107,16 @@ def fetch_bioinfo_data(data):
     list_of_no_exists = []
     number_of_sample = int(data["microbiology_lab_sample_id"])
     default_schema = Schema.objects.get(schema_default = 1)
-    
+
     for property in data:
         if SchemaProperties.objects.filter(schemaID=default_schema.get_schema_id(), property__iexact=property).exists():
             print("property: " +str(property) + " ,exists in Schema: " + default_schema.get_schema_id())
 
             if BioinfoProcessField.objects.filter(schemaID=default_schema.get_schema_id(),property_name__iexact=property).exists():
                 print(" Exists in BioinfoProcessField: " + str(property))
-                
+    
                 bioinfo_process_field = BioinfoProcessField.objects.get(
-                schemaID=default_schema.get_schema_id(),   
+                schemaID=default_schema.get_schema_id(),
                 property_name__iexact=property
                 )
 
@@ -130,16 +130,15 @@ def fetch_bioinfo_data(data):
                     ),
                 )
                 bioinfo_process_values.save()
-                    
+        
             else:
-                
+ 
                     print(" Doesn't exist in BioinfoProcessField: " + str(property))
                     list_of_no_exists.append(property)
-                
-                    
+  
         else:
             print("Error... property: " +str(property) + " ,doesn't exists in Schema: " + default_schema.get_schema_id())
-        
+
     print(len(list_of_no_exists))
     print(list_of_no_exists)
 """
