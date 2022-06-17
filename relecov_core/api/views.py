@@ -21,13 +21,8 @@ from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from .utils.analysis_handling import process_analysis_data
 from relecov_core.api.utils.bioinfo_handling import fetch_bioinfo_data
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 65e4d02365e2f5c835cb9c3059c57e09ebe348e4
 # from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
 """
 analysis_data = openapi.Parameter(
     "analysis_name",
