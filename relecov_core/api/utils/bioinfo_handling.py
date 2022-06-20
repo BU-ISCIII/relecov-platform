@@ -4,7 +4,7 @@ from relecov_core.models import (
     BioInfoProcessValue,
     BioinfoProcessField,
     Classification,
-    Lineage,
+    # Lineage,
     Sample,
     # MetadataVisualization,
     # PropertyOptions,
@@ -104,10 +104,10 @@ def fetch_bioinfo_data(data):
 
 
 def fetch_bioinfo_data(data):
-    list_of_lineage_table_properties = []
+    # list_of_lineage_table_properties = []
     list_no_match = []
     number_of_sample = list(data.keys())
-    sample = int(number_of_sample[0])
+    # sample = int(number_of_sample[0])
     default_schema = Schema.objects.get(schema_default=1)
 
     bioinfo_table_properties = BioinfoProcessField.objects.all()
@@ -116,12 +116,7 @@ def fetch_bioinfo_data(data):
     print(len(bioinfo_table_properties))
     print(len(list_json))
 
-    idx = 0
-
     for prop in bioinfo_table_properties:
-        # print(type(prop))
-        # print(type(list_json[0]))
-        # print("{}, {}".format(prop, list_json[idx]))
         if str(prop) not in data[number_of_sample[0]]:
             list_no_match.append(str(prop))
 
@@ -138,6 +133,7 @@ def fetch_bioinfo_data(data):
                     schemaID=default_schema.get_schema_id(),
                     property_name__iexact=property,
                 )
+                print(bioinfo_process_field)
 
                 bioinfo_process_values = BioInfoProcessValue.objects.create(
                     value=data[number_of_sample[0]][property],
