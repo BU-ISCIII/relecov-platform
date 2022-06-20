@@ -238,9 +238,12 @@ def store_bioinfo_fields(schema_obj, s_properties):
 
         if "classification" in data:
             p = re.compile(r"Bioinformatic?..*[\w+]")
+            p2 = re.compile(r"Lineage.+[\w+]")
             match = p.match(data["classification"])
             if not match:
-                continue
+                match = p2.match(data["classification"])
+                if not match:
+                    continue
             classification = match.group()
             print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
