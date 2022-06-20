@@ -498,7 +498,7 @@ class Chromosome(models.Model):
 
     def get_chromosome_id(self):
         return "%s" % (self.pk)
-    
+
     def get_chromosome(self):
         return "%s" % (self.chromosome)
 
