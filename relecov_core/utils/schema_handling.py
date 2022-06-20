@@ -232,30 +232,46 @@ def store_schema_properties(schema_obj, s_properties, required):
 
 def store_bioinfo_fields(schema_obj, s_properties):
     """Store the fields to be used for saving analysis information"""
+    classification = ""
     for prop_key in s_properties.keys():
         data = dict(s_properties[prop_key])
+
         if "classification" in data:
-            match = re.search(r"(\w+) fields", data["classification"])
-            if not match:
-                continue
-            classification = match.group(1).strip()
-            # create new entr in Classification table in not exists
-            if Classification.objects.filter(
-                class_name__iexact=classification
-            ).exists():
-                class_obj = Classification.objects.filter(
+            # match = re.search(r"(\w+) fields$", data["classification"])
+            #  p = re.compile(r"Bioinformatic[s]? *(\w+)")
+            # match = re.findall(r"Bioinformatic?s\s *(\w+)", data["classification"])
+            match = re.split("\s", data["classification"])
+            print(match)
+            print(match[0])
+            print(match.count("Bioinformatic"))
+            # if not match:
+            #    continue
+            if match.count("Bioinformatic") == "1":
+                classification.join(match)
+                # match = re.search(r"Bioinformatic[s]? *(\w+)", data["classification"])
+                # match = re.search(data["classification"], data["classification"])
+                # print(data["classification"])
+
+                # classification = match.group(1).strip()
+                # classification = match.group()
+                print(classification)
+                # create new entr in Classification table in not exists
+                if Classification.objects.filter(
                     class_name__iexact=classification
-                ).last()
-            else:
-                class_obj = Classification.objects.create_new_classification(
-                    classification
-                )
-            fields = {}
-            fields["classificationID"] = class_obj
-            fields["property_name"] = prop_key
-            fields["label_name"] = data["label"]
-            n_field = BioinfoProcessField.objects.create_new_field(fields)
-            n_field.schemaID.add(schema_obj)
+                ).exists():
+                    class_obj = Classification.objects.filter(
+                        class_name__iexact=classification
+                    ).last()
+                else:
+                    class_obj = Classification.objects.create_new_classification(
+                        classification
+                    )
+                fields = {}
+                fields["classificationID"] = class_obj
+                fields["property_name"] = prop_key
+                fields["label_name"] = data["label"]
+                n_field = BioinfoProcessField.objects.create_new_field(fields)
+                n_field.schemaID.add(schema_obj)
 
     return {"SUCCESS": ""}
 

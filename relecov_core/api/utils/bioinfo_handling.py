@@ -27,19 +27,83 @@ from relecov_core.core_config import (
 
 # from django.db import models
 
+"""
+def fetch_bioinfo_data(data):
+    # testing_bioinfo_process_field_table(data)
+
+    list_of_no_exists = []
+    number_of_sample = int(data["sequencing_sample_id"])
+    default_schema_id = Schema.objects.get(schema_default=True)
+
+    for property in data:
+        if SchemaProperties.objects.filter(
+            schemaID=default_schema_id, property__iexact=property
+        ).exists():
+            # print("Exists in Schema: " + str(property))
+            if BioinfoProcessField.objects.filter(
+                property_name__iexact=property
+            ).exists():
+                # print("Exists in BioinfoProcessField: " + str(property))
+                bioinfo_process_values = (
+                    BioInfoProcessValue.objects.create(
+                        value=data[property],
+                        bioinfo_process_fieldID=BioinfoProcessField.objects.get(
+                            property_name__iexact=property
+                        ),
+                        sampleID_id=Sample.objects.get(
+                            sequencing_sample_id=number_of_sample
+                        ),
+                    ).save(),
+                )
+
+            else:
+                # print("Doesn't exist in BioinfoProcessField: " + str(property))
+                list_of_no_exists.append(property)
+
+        else:
+            pass
+        # print("Doesn't exist in Schema: " + str(property))
+
+    # print(len(list_of_no_exists))
+    # print(list_of_no_exists)
+"""
+
+
+def testing_bioinfo_process_field_table(data):
+    bio_field_list = []
+    list_of_no_exists = []
+    list_of_no_exists_in_bioinfoProcessField = []
+
+    bio_field_properties = BioinfoProcessField.objects.all()
+
+    keys_from_json = data.keys()
+
+    for property in bio_field_properties:
+        bio_field_list.append(property.get_property())
+        if property.get_property() not in keys_from_json:
+            list_of_no_exists.append(property.get_property())
+
+    for prop in keys_from_json:
+        if prop not in bio_field_list:
+            list_of_no_exists_in_bioinfoProcessField.append(prop)
+
+    # print("len(bio_field_list): " + str(len(bio_field_list)))
+    # print("len(keys_from_json): " + str(len(keys_from_json)))
+    """
+    print(
+        "len(list_of_no_exists_in_bioinfoProcessField): "
+        + str(len(list_of_no_exists_in_bioinfoProcessField))
+    )
+    print(list_of_no_exists_in_bioinfoProcessField)
+    """
+
 
 def fetch_bioinfo_data(data):
-    registers = BioinfoProcessField.objects.all()
-    registers.delete()
-    values = BioInfoProcessValue.objects.all()
-    values.delete()
-
     list_of_properties = []
-    list_of_no_exists = []
+    # list_of_no_exists = []
     data_in_sample = data.values()
     list_of_values = []
     number_of_sample = list(data.keys())
-    print(type(number_of_sample[0]))
 
     for data_sample in data_in_sample:
         list_of_properties = list(data_sample.keys())
@@ -63,10 +127,10 @@ def fetch_bioinfo_data(data):
                 ).values_list("schemaID", "label", "classification")
                 # print(data_fields)
                 schema_id = Schema.objects.get(schema_default=1)
-                """
-                schemaID=data_fields[0][0],
-                label=data_fields[0][1],
-                classification=data_fields[0][2]
+
+                # schemaID=data_fields[0][0],
+                # label=data_fields[0][1],
+                # classification=data_fields[0][2]
                 """
                 instance = BioinfoProcessField.objects.create(
                     property_name=property,
@@ -77,12 +141,12 @@ def fetch_bioinfo_data(data):
                 )
                 instance.schemaID.add(schema_id)
                 instance.save()
-
+                """
         else:
-            # print("Doesn't exist in Schema: " + str(property))
-            list_of_no_exists.append(property)
-    print(len(list_of_no_exists))
-    print(list_of_no_exists)
+            print("Doesn't exist in Schema: " + str(property))
+            # list_of_no_exists.append(property)
+    # print(len(list_of_no_exists))
+    # print(list_of_no_exists)
 
     for idx in range(len(list_of_properties)):
         if BioinfoProcessField.objects.filter(
