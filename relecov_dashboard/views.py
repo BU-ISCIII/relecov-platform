@@ -16,7 +16,7 @@ from .utils.graphic_test import create_test_variant_graph, set_dataframe_range_s
 from relecov_dashboard.utils.graphics.lineages_in_time import parse_json_file
 
 
-def index(request):
+def dashboard(request):
     data_json = os.path.join(
         settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
     )
@@ -28,10 +28,10 @@ def index(request):
     # mdata = json.loads(data_json)
     #    print(line)
     # mdata=parse_json_file(data_json)
-    return render(request, "relecov_dashboard/index.html")
+    return render(request, "relecov_dashboard/dashboard.html")
 
 
-def variants(request):
+def lineages_in_time(request):
     variant_data = parse_csv_into_list_of_dicts(
         os.path.join(
             settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv"
@@ -57,14 +57,14 @@ def variants(request):
 
         return fig
 
-    return render(request, "relecov_dashboard/variants.html")
+    return render(request, "relecov_dashboard/lineages_in_time.html")
 
 
 def methodology_index(request):
     return render(request, "relecov_dashboard/methodology.html")
 
 
-def hackaton_group1(request):
+def needle_plot(request):
     app = DjangoDash("needle_plot")
 
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
@@ -93,10 +93,10 @@ def hackaton_group1(request):
     def update_needleplot(show_rangeslider):
         return True if show_rangeslider else False
 
-    return render(request, "relecov_dashboard/hackaton_group1.html")
+    return render(request, "relecov_dashboard/needle_plot.html")
 
 
-def hackaton_group2(request):
+def molecular_3D(request):
     app = DjangoDash("model3D")
 
     parser = PdbParser("https://git.io/4K8X.pdb")
@@ -139,6 +139,14 @@ def hackaton_group2(request):
             for atm in atom_ids
         ]
 
+    return render(request, "relecov_dashboard/molecular_3D.html")
+
+
+def hackaton_group1(request):
+    return render(request, "relecov_dashboard/hackaton_group1.html")
+
+
+def hackaton_group2(request):
     return render(request, "relecov_dashboard/hackaton_group2.html")
 
 
