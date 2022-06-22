@@ -1,15 +1,15 @@
 import json
 import re
 from relecov_core.models import (
-    BioInfoProcessValue,
+    # BioInfoProcessValue,
     BioinfoProcessField,
     Classification,
     # Lineage,
-    Sample,
+    # Sample,
     # MetadataVisualization,
     # PropertyOptions,
     Schema,
-    SchemaProperties,
+    # SchemaProperties,
 )
 from relecov_core.utils.generic_functions import store_file
 from relecov_core.core_config import (
