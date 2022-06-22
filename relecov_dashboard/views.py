@@ -72,18 +72,22 @@ def needle_plot(request):
     mdata = json.loads(data)
 
     app.layout = html.Div(
-        [
+        children=[
             "Show or hide range slider",
             dcc.Dropdown(
                 id="default-needleplot-rangeslider",
                 options=[{"label": "Show", "value": 1}, {"label": "Hide", "value": 0}],
                 clearable=False,
                 multi=False,
-                value=1,
+                value=0,
                 style={"width": "400px"},
             ),
-            dashbio.NeedlePlot(id="dashbio-default-needleplot", mutationData=mdata),
-        ]
+            html.Div(
+                children=dashbio.NeedlePlot(
+                    width="auto", id="dashbio-default-needleplot", mutationData=mdata
+                ),
+            ),
+        ],
     )
 
     @app.callback(
@@ -109,7 +113,10 @@ def molecular_3D(request):
     app.layout = html.Div(
         [
             dashbio.Molecule3dViewer(
-                id="dashbio-default-molecule3d", modelData=data, styles=styles
+                width="1200",
+                id="dashbio-default-molecule3d",
+                modelData=data,
+                styles=styles,
             ),
             "Selection data",
             html.Hr(),
