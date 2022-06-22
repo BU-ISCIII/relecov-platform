@@ -13,9 +13,25 @@ import os
 from django.conf import settings
 from relecov_core.utils.parse_files import parse_csv_into_list_of_dicts
 from .utils.graphic_test import create_test_variant_graph, set_dataframe_range_slider
+from relecov_dashboard.utils.graphics.lineages_in_time import parse_json_file
 
 
 def index(request):
+    data_json = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
+    )
+    mdata = parse_json_file(data_json)
+    print(mdata)
+    # with open(data_json, "r") as fh:
+    #    lines = fh.readlines()
+    # for line in lines:
+    # mdata = json.loads(data_json)
+    #    print(line)
+    # mdata=parse_json_file(data_json)
+    return render(request, "relecov_dashboard/index.html")
+
+
+def variants(request):
     variant_data = parse_csv_into_list_of_dicts(
         os.path.join(
             settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv"
@@ -41,7 +57,7 @@ def index(request):
 
         return fig
 
-    return render(request, "relecov_dashboard/index.html")
+    return render(request, "relecov_dashboard/variants.html")
 
 
 def methodology_index(request):

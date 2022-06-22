@@ -164,6 +164,7 @@ def fetch_bioinfo_data(data):
     print(list_of_lineage_table_properties)
 """
 
+
 def fetch_bioinfo_data(data):
     list_of_lineage_table_properties = []
     print(data)
@@ -223,6 +224,7 @@ def fetch_bioinfo_data(data):
     print(len(list_of_lineage_table_properties))
     print(list_of_lineage_table_properties)
     """
+
 
 """
 def insert_to_lineage_table(data):
