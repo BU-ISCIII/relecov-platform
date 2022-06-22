@@ -232,15 +232,18 @@ def store_schema_properties(schema_obj, s_properties, required):
 
 def store_bioinfo_fields(schema_obj, s_properties):
     """Store the fields to be used for saving analysis information"""
-
     for prop_key in s_properties.keys():
         classification = ""
         data = dict(s_properties[prop_key])
+
         if "classification" in data:
-            p = re.compile(r"Bioinformatic..*[\w+]")
+            p = re.compile(r"Bioinformatic?..*[\w+]")
+            p2 = re.compile(r"Lineage.+[\w+]")
             match = p.match(data["classification"])
             if not match:
-                continue
+                match = p2.match(data["classification"])
+                if not match:
+                    continue
             classification = match.group()
             print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
@@ -250,6 +253,9 @@ def store_bioinfo_fields(schema_obj, s_properties):
             if Classification.objects.filter(
                 class_name__iexact=classification
             ).exists():
+                # class_obj = Classification.objects.filter(
+                #    class_name__iexact=classification
+                # ).exists():
                 class_obj = Classification.objects.filter(
                     class_name__iexact=classification
                 ).last()
