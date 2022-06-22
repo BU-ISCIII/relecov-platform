@@ -4,7 +4,7 @@ from relecov_core.models import (
     BioInfoProcessValue,
     BioinfoProcessField,
     Classification,
-    Lineage,
+    # Lineage,
     Sample,
     # MetadataVisualization,
     # PropertyOptions,
@@ -104,26 +104,31 @@ def fetch_bioinfo_data(data):
 
 """
 def fetch_bioinfo_data(data):
-    list_of_lineage_table_properties = []
-    number_of_sample = int(data["microbiology_lab_sample_id"])
+    # list_of_lineage_table_properties = []
+    list_no_match = []
+    number_of_sample = list(data.keys())
+    # sample = int(number_of_sample[0])
     default_schema = Schema.objects.get(schema_default=1)
 
-    for property in data:
+    bioinfo_table_properties = BioinfoProcessField.objects.all()
+    dict_json = dict(data[number_of_sample[0]])
+    list_json = list(dict_json.keys())
+    print(len(bioinfo_table_properties))
+    print(len(list_json))
+
+    for prop in bioinfo_table_properties:
+        if str(prop) not in data[number_of_sample[0]]:
+            list_no_match.append(str(prop))
+
+    for property in data[number_of_sample[0]]:
+
         if SchemaProperties.objects.filter(
             schemaID=default_schema.get_schema_id(), property__iexact=property
         ).exists():
-            print(
-                "property: "
-                + str(property)
-                + " ,exists in Schema: "
-                + default_schema.get_schema_id()
-            )
 
             if BioinfoProcessField.objects.filter(
                 schemaID=default_schema.get_schema_id(), property_name__iexact=property
             ).exists():
-                print(" Exists in BioinfoProcessField: " + str(property))
-
                 bioinfo_process_field = BioinfoProcessField.objects.get(
                     schemaID=default_schema.get_schema_id(),
                     property_name__iexact=property,
@@ -131,18 +136,19 @@ def fetch_bioinfo_data(data):
                 print(bioinfo_process_field)
 
                 bioinfo_process_values = BioInfoProcessValue.objects.create(
-                    value=data[property],
+                    value=data[number_of_sample[0]][property],
                     bioinfo_process_fieldID=BioinfoProcessField.objects.get(
                         property_name__iexact=property
                     ),
                     sampleID_id=Sample.objects.get(
-                        sequencing_sample_id=number_of_sample,
+                        sequencing_sample_id=number_of_sample[0],
                     ),
                 )
                 bioinfo_process_values.save()
-
             else:
+                print("{} doesn't exists".format(property))
 
+<<<<<<< HEAD
                 print(" Doesn't exist in BioinfoProcessField: " + str(property))
                 list_of_lineage_table_properties.append(property)
 
@@ -199,6 +205,9 @@ def fetch_bioinfo_data(data):
                 bioinfo_process_values.save()
 
             else:
+=======
+    print(list_no_match)
+>>>>>>> c1d112298cc017865120b90d8ce9c92be0315708
 
                 print(" Doesn't exist in BioinfoProcessField: " + str(property))
                 list_of_lineage_table_properties.append(property)
@@ -215,6 +224,7 @@ def fetch_bioinfo_data(data):
     print(list_of_lineage_table_properties)
     """
 
+"""
 def insert_to_lineage_table(data):
     Lineage.objects.create(
         lineage_identification_date="2022/03/21",
@@ -223,6 +233,7 @@ def insert_to_lineage_table(data):
         if_lineage_identification_other=data[1],
         lineage_analysis_software_version=data[3],
     ).save()
+"""
 
 
 def load_bioinfo_file(json_file):
