@@ -1,15 +1,15 @@
 import json
 import re
 from relecov_core.models import (
-    # BioInfoProcessValue,
+    BioInfoProcessValue,
     BioinfoProcessField,
     Classification,
     # Lineage,
-    # Sample,
+    Sample,
     # MetadataVisualization,
     # PropertyOptions,
     Schema,
-    # SchemaProperties,
+    SchemaProperties,
 )
 from relecov_core.utils.generic_functions import store_file
 from relecov_core.core_config import (
@@ -102,9 +102,9 @@ def fetch_bioinfo_data(data):
 
 """
 
-"""
+
 def fetch_bioinfo_data(data):
-    # list_of_lineage_table_properties = []
+    list_of_lineage_table_properties = []
     list_no_match = []
     number_of_sample = list(data.keys())
     # sample = int(number_of_sample[0])
@@ -148,34 +148,10 @@ def fetch_bioinfo_data(data):
             else:
                 print("{} doesn't exists".format(property))
 
-    print(list_no_match)
+    # print(list_no_match)
 
-                print(" Doesn't exist in BioinfoProcessField: " + str(property))
-                list_of_lineage_table_properties.append(property)
-
-        else:
-            print(
-                "Error... property: "
-                + str(property)
-                + " ,doesn't exists in Schema: "
-                + default_schema.get_schema_id()
-            )
-    insert_to_lineage_table(list_of_lineage_table_properties)
-    print(len(list_of_lineage_table_properties))
-    print(list_of_lineage_table_properties)
-    """
-
-
-"""
-def insert_to_lineage_table(data):
-    Lineage.objects.create(
-        lineage_identification_date="2022/03/21",
-        lineage_name=data[4],
-        lineage_analysis_software_name=data[2],
-        if_lineage_identification_other=data[1],
-        lineage_analysis_software_version=data[3],
-    ).save()
-"""
+    print(" Doesn't exist in BioinfoProcessField: " + str(property))
+    list_of_lineage_table_properties.append(property)
 
 
 def load_bioinfo_file(json_file):
