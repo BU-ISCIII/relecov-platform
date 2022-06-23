@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django_plotly_dash import DjangoDash
-import plotly.express as px
 from dash.dependencies import Input, Output
 
 import json
@@ -9,14 +8,8 @@ import dash_bio as dashbio
 import dash_html_components as html
 import dash_core_components as dcc
 from dash_bio.utils import PdbParser, create_mol3d_style
-import os
-from django.conf import settings
-from relecov_core.utils.parse_files import parse_csv_into_list_of_dicts
 from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
     create_lineage_in_time_graph,
-    create_test_variant_graph,
-    get_variant_data,
-    set_dataframe_range_slider,
 )
 
 """
