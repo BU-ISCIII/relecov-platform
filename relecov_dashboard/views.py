@@ -5,15 +5,6 @@ from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
 from relecov_dashboard.utils.graphics.molecule3D_graph import create_molecule3D_graph
 from relecov_dashboard.utils.graphics.needle_plot_graph import create_needle_plot_graph
 
-"""
-from relecov_dashboard.utils.graphics.needle_plot_graph import (
-    parse_json_file,
-    # get_list_of_keys,
-    # parse_csv,
-    # set_dataframe_needle_plot,
-)
-"""
-
 
 def dashboard(request):
     return render(request, "relecov_dashboard/dashboard.html")
