@@ -18,9 +18,9 @@ from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
 )
 from relecov_dashboard.utils.graphics.needle_plot_graph import (
     parse_json_file,
-    get_list_of_keys,
-    parse_csv,
-    set_dataframe_needle_plot,
+    # get_list_of_keys,
+    # parse_csv,
+    # set_dataframe_needle_plot,
 )
 
 
@@ -30,7 +30,7 @@ def dashboard(request):
         settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
     )
     json_data = parse_json_file(data_json)
-    list_keys = get_list_of_keys(json_data)
+    # list_keys = get_list_of_keys(json_data)
     # print(list_keys)
 
     return render(request, "relecov_dashboard/dashboard.html")
