@@ -20,7 +20,7 @@ def methodology_index(request):
 
 
 def needle_plot(request):
-    create_needle_plot_graph()
+    create_needle_plot_graph(sample=None)
     return render(request, "relecov_dashboard/needle_plot.html")
 
 
