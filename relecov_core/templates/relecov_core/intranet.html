@@ -1,0 +1,18 @@
+{% extends "relecov_core/base.html" %}
+
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/intranetSidebar.html" %}
+<section style="margin-top: 4%">
+    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
+        <div class="card d-inline-flex flex-column w-auto p-5 border border-success" style="width: 18rem;">
+            <div class="card-body">
+            <h2 class="card-title">Welcome to the relecov-platform Intranet</h2>
+            <p class="card-text">Some steps to upload your metadata.</p>
+            <a href="/" class="btn btn-primary mt-5">Home</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

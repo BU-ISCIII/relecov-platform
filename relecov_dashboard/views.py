@@ -12,10 +12,34 @@ from dash_bio.utils import PdbParser, create_mol3d_style
 import os
 from django.conf import settings
 from relecov_core.utils.parse_files import parse_csv_into_list_of_dicts
-from .utils.graphic_test import create_test_variant_graph, set_dataframe_range_slider
+from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
+    create_test_variant_graph,
+    set_dataframe_range_slider,
+)
+
+"""
+from relecov_dashboard.utils.graphics.needle_plot_graph import (
+    parse_json_file,
+    # get_list_of_keys,
+    # parse_csv,
+    # set_dataframe_needle_plot,
+)
+"""
 
 
-def index(request):
+def dashboard(request):
+    # PARSE JSON
+    # data_json = os.path.join(
+    #    settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
+    # )
+    # json_data = parse_json_file(data_json)
+    # list_keys = get_list_of_keys(json_data)
+    # print(list_keys)
+
+    return render(request, "relecov_dashboard/dashboard.html")
+
+
+def lineages_in_time(request):
     variant_data = parse_csv_into_list_of_dicts(
         os.path.join(
             settings.BASE_DIR, "relecov_core", "docs", "variantLuisTableCSV.csv"
@@ -41,33 +65,45 @@ def index(request):
 
         return fig
 
-    return render(request, "relecov_dashboard/index.html")
+    return render(request, "relecov_dashboard/lineages_in_time.html")
 
 
 def methodology_index(request):
     return render(request, "relecov_dashboard/methodology.html")
 
 
-def hackaton_group1(request):
+def needle_plot(request):
+    # PARSE CSV
+    # data_long_table = os.path.join(
+    # settings.BASE_DIR,"relecov_core","docs","variants_long_table_last.csv"
+    # )
+    # csv_data= parse_csv(data_long_table)
+    # df = set_dataframe_needle_plot(csv_data)
+
     app = DjangoDash("needle_plot")
 
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
+    # mdata = df
 
     app.layout = html.Div(
-        [
+        children=[
             "Show or hide range slider",
             dcc.Dropdown(
                 id="default-needleplot-rangeslider",
                 options=[{"label": "Show", "value": 1}, {"label": "Hide", "value": 0}],
                 clearable=False,
                 multi=False,
-                value=1,
+                value=0,
                 style={"width": "400px"},
             ),
-            dashbio.NeedlePlot(id="dashbio-default-needleplot", mutationData=mdata),
-        ]
+            html.Div(
+                children=dashbio.NeedlePlot(
+                    width="auto", id="dashbio-default-needleplot", mutationData=mdata
+                ),
+            ),
+        ],
     )
 
     @app.callback(
@@ -77,10 +113,10 @@ def hackaton_group1(request):
     def update_needleplot(show_rangeslider):
         return True if show_rangeslider else False
 
-    return render(request, "relecov_dashboard/hackaton_group1.html")
+    return render(request, "relecov_dashboard/needle_plot.html")
 
 
-def hackaton_group2(request):
+def molecular_3D(request):
     app = DjangoDash("model3D")
 
     parser = PdbParser("https://git.io/4K8X.pdb")
@@ -93,7 +129,10 @@ def hackaton_group2(request):
     app.layout = html.Div(
         [
             dashbio.Molecule3dViewer(
-                id="dashbio-default-molecule3d", modelData=data, styles=styles
+                width="1200",
+                id="dashbio-default-molecule3d",
+                modelData=data,
+                styles=styles,
             ),
             "Selection data",
             html.Hr(),
@@ -123,6 +162,14 @@ def hackaton_group2(request):
             for atm in atom_ids
         ]
 
+    return render(request, "relecov_dashboard/molecular_3D.html")
+
+
+def hackaton_group1(request):
+    return render(request, "relecov_dashboard/hackaton_group1.html")
+
+
+def hackaton_group2(request):
     return render(request, "relecov_dashboard/hackaton_group2.html")
 
 

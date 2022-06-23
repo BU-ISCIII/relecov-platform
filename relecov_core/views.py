@@ -151,7 +151,7 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    return render(request, "relecov_core/intranet2.html")
+    return render(request, "relecov_core/intranet.html")
 
 
 def variants(request):
