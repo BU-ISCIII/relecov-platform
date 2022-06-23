@@ -26,10 +26,10 @@ from relecov_dashboard.utils.graphics.needle_plot_graph import (
 
 def dashboard(request):
     # PARSE JSON
-    data_json = os.path.join(
-        settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
-    )
-    json_data = parse_json_file(data_json)
+    # data_json = os.path.join(
+    #    settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
+    # )
+    # json_data = parse_json_file(data_json)
     # list_keys = get_list_of_keys(json_data)
     # print(list_keys)
 
