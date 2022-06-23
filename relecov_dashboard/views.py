@@ -16,12 +16,14 @@ from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
     create_test_variant_graph,
     set_dataframe_range_slider,
 )
+"""
 from relecov_dashboard.utils.graphics.needle_plot_graph import (
     parse_json_file,
     # get_list_of_keys,
     # parse_csv,
     # set_dataframe_needle_plot,
 )
+"""
 
 
 def dashboard(request):
