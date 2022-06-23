@@ -12,22 +12,27 @@ from dash_bio.utils import PdbParser, create_mol3d_style
 import os
 from django.conf import settings
 from relecov_core.utils.parse_files import parse_csv_into_list_of_dicts
-from .utils.graphic_test import create_test_variant_graph, set_dataframe_range_slider
-from relecov_dashboard.utils.graphics.lineages_in_time import parse_json_file
+from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
+    create_test_variant_graph,
+    set_dataframe_range_slider,
+)
+from relecov_dashboard.utils.graphics.needle_plot_graph import (
+    parse_json_file,
+    get_list_of_keys,
+    parse_csv,
+    set_dataframe_needle_plot,
+)
 
 
 def dashboard(request):
+    # PARSE JSON
     data_json = os.path.join(
         settings.BASE_DIR, "relecov_core", "docs", "bioinfo_metadata.json"
     )
-    mdata = parse_json_file(data_json)
-    print(mdata)
-    # with open(data_json, "r") as fh:
-    #    lines = fh.readlines()
-    # for line in lines:
-    # mdata = json.loads(data_json)
-    #    print(line)
-    # mdata=parse_json_file(data_json)
+    json_data = parse_json_file(data_json)
+    list_keys = get_list_of_keys(json_data)
+    # print(list_keys)
+
     return render(request, "relecov_dashboard/dashboard.html")
 
 
@@ -65,11 +70,19 @@ def methodology_index(request):
 
 
 def needle_plot(request):
+    # PARSE CSV
+    # data_long_table = os.path.join(
+    # settings.BASE_DIR,"relecov_core","docs","variants_long_table_last.csv"
+    # )
+    # csv_data= parse_csv(data_long_table)
+    # df = set_dataframe_needle_plot(csv_data)
+
     app = DjangoDash("needle_plot")
 
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
+    # mdata = df
 
     app.layout = html.Div(
         children=[
