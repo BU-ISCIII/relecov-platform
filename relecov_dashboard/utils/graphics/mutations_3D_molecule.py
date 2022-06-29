@@ -6,19 +6,16 @@ from dash_bio.utils import PdbParser, create_mol3d_style
 from dash import html
 import pandas as pd
 
-app = dash.Dash('model3D')
+app = dash.Dash("model3D")
 
-parser = PdbParser('/home/vhir/Documents/biohackathon_relecov/Hackaton/7bnm.cif')
+parser = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7bnm.cif")
 
 data = parser.mol3d_data()
-styles = create_mol3d_style(
-    data['atoms'], visualization_type='cartoon'
-)
+styles = create_mol3d_style(data["atoms"], visualization_type="cartoon")
 
 df = pd.DataFrame(data["atoms"])
-df.to_csv('./pdb_parser.csv')
 
-df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
+df["positions"] = df["positions"].apply(lambda x: ", ".join(map(str, x)))
 
 app.layout = html.Div(
     [
@@ -30,9 +27,7 @@ app.layout = html.Div(
             page_size=10,
         ),
         dashbio.Molecule3dViewer(
-            id="zooming-specific-molecule3d-zoomto",
-            modelData=data,
-            styles=styles
+            id="zooming-specific-molecule3d-zoomto", modelData=data, styles=styles
         ),
     ]
 )
@@ -42,11 +37,13 @@ app.layout = html.Div(
     Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
     Output("zooming-specific-molecule3d-zoomto", "labels"),
     Input("zooming-specific-residue-table", "selected_rows"),
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def residue(selected_row):
     row = df.iloc[selected_row]
-    row['positions'] = row['positions'].apply(lambda x: [float(x) for x in x.split(',')])
+    row["positions"] = row["positions"].apply(
+        lambda x: [float(x) for x in x.split(",")]
+    )
     return [
         {
             "sel": {"chain": row["chain"], "resi": row["residue_index"]},
@@ -64,4 +61,3 @@ def residue(selected_row):
             }
         ],
     ]
-
