@@ -29,6 +29,12 @@ if __name__ == "__main__":
     end_date = '2021-12-31'
     fissel = select_range_date(start_date, end_date, df)
 
+    # Calculate total lineage frequency, in order to sort the lineage graph in a decreasing order.
+
+
+    
+    # Create empty data.frame, collect samples according to who_name and date
+    dfwho = pd.DataFrame(columns=["Date"] + df.who_name.unique().tolist() + ["nsamples"])
 
     # Color plot (better use scale, with more colors)
     my_colors = [  ## add the standard plotly colors
