@@ -5,10 +5,12 @@ import dash_bio as dashbio
 from dash_bio.utils import PdbParser, create_mol3d_style
 from dash import html
 import pandas as pd
+
 """PDB parser
 This module contains a class that can read PDB files and return a dictionary of structural data"""
 import re
 import parmed as pmd
+
 
 class PdbParser:
     """
@@ -20,7 +22,7 @@ class PdbParser:
 
     def __init__(self, s: str):
 
-        if re.search(r'^[1-9][0-9A-z]{3}$', s):
+        if re.search(r"^[1-9][0-9A-z]{3}$", s):
             # d is PDB id (https://proteopedia.org/wiki/index.php/PDB_code)
             self.structure = pmd.download_PDB(s)
         else:
@@ -35,42 +37,47 @@ class PdbParser:
         Generate input data for Molecule3dViewer component.
         """
 
-        data = {'atoms': [], 'bonds': []}
+        data = {"atoms": [], "bonds": []}
 
         for a in self.atoms:
-            data["atoms"].append({
-                "serial": a.idx,
-                "name": a.name,
-                "elem": a.element_name,
-                "positions": [a.xx, a.xy, a.xz],
-                "mass_magnitude": a.mass,
-                "residue_index": a.residue.idx,
-                "residue_name": a.residue.name,
-                "chain": a.residue.chain,
-                "residue_position": a.residue.number,
-            })
+            data["atoms"].append(
+                {
+                    "serial": a.idx,
+                    "name": a.name,
+                    "elem": a.element_name,
+                    "positions": [a.xx, a.xy, a.xz],
+                    "mass_magnitude": a.mass,
+                    "residue_index": a.residue.idx,
+                    "residue_name": a.residue.name,
+                    "chain": a.residue.chain,
+                    "residue_position": a.residue.number,
+                }
+            )
 
         for b in self.bonds:
-            data["bonds"].append({
-                "atom1_index": b.atom1.idx,
-                "atom2_index": b.atom2.idx,
-                "bond_order": b.order
-            })
+            data["bonds"].append(
+                {
+                    "atom1_index": b.atom1.idx,
+                    "atom2_index": b.atom2.idx,
+                    "bond_order": b.order,
+                }
+            )
 
         return data
 
 
-
 def get_spike_mutations(csv_file):
     df = pd.read_csv(csv_file, sep=",")
-    spike_df = df.loc[df['GENE'] == "S"]
+    spike_df = df.loc[df["GENE"] == "S"]
     return spike_df
+
 
 def get_table_selection(df):
     table_selection = df[["POS", "REF", "ALT", "HGVS_C", "HGVS_P", "HGVS_P_1LETTER"]]
     table_selection = table_selection.drop_duplicates()
-    table_selection = table_selection.sort_values(by=['POS'])
+    table_selection = table_selection.sort_values(by=["POS"])
     return table_selection
+
 
 file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
 
