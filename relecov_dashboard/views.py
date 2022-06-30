@@ -12,6 +12,7 @@ from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_model_
 from relecov_dashboard.utils.graphics.needle_plot_ITER import (
     create_needle_plot_graph_ITER,
 )
+from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
 
 
 def variant_dashboard(request):
@@ -27,30 +28,14 @@ def methodology_dashboard(request):
 def lineages_voc(request):
     create_lineage_in_time_graph()
     create_needle_plot_graph(sample=None)
-    create_molecule3D_graph()
-    # create_molecule3D_zoom_specific_residues()
     return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
 
 
-def hackaton_examples(request):
-    create_needle_plot_graph_ITER(lineage="B.1.177")
-    # create_model_hackaton()
-    return render(
-        request, "relecov_dashboard/dashboard_templates/hackaton_examples.html"
-    )
+def hackaton_graphs(request):
+    # create_needle_plot_graph_ITER(lineage="B.1.177")
+    # create_molecule3D_graph()
+    create_molecule3D_zoom_specific_residues()
+    create_model_hackaton()
+    create_mutation_table(214821)
 
-
-"""
-def main_dashboard(request):
-    return render(request, "relecov_dashboard/dashboard.html")
-
-
-def needle_plot(request):
-    # create_needle_plot_graph(sample=None)
-    return render(request, "relecov_dashboard/needle_plot.html")
-
-
-def molecular_3D_bootstrap(request):
-    create_molecule3D_graph()
-    return render(request, "relecov_dashboard/molecular_3D.html")
-"""
+    return render(request, "relecov_dashboard/dashboard_templates/hackaton_graphs.html")
