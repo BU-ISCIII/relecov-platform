@@ -2,7 +2,7 @@ import dash
 from dash.dependencies import Input, Output
 from dash import dash_table
 import dash_bio as dashbio
-from dash_bio.utils import PdbParser, create_mol3d_style
+from dash_bio.utils import create_mol3d_style
 from dash import html
 import pandas as pd
 
