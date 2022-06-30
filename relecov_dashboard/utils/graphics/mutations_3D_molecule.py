@@ -1,3 +1,14 @@
+import os
+from django_plotly_dash import DjangoDash
+import dash_table
+from dash.dependencies import Input, Output
+import pandas as pd
+import dash_bio as dashbio
+import dash_html_components as html
+from dash_bio.utils import PdbParser, create_mol3d_style
+from relecov_platform import settings
+
+"""
 import dash
 from dash.dependencies import Input, Output
 from dash import dash_table
@@ -5,11 +16,15 @@ import dash_bio as dashbio
 from dash_bio.utils import PdbParser, create_mol3d_style
 from dash import html
 import pandas as pd
+"""
+app = DjangoDash("model3D")
 
-app = dash.Dash("model3D")
-
-parser = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7bnm.cif")
-
+# parser = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7bnm.cif")
+parser = PdbParser(
+    os.path.join(
+        settings.BASE_DIR, "relecov_dashboard", "utils", "pdb_files", "7dwz.pdb"
+    )
+)
 data = parser.mol3d_data()
 styles = create_mol3d_style(data["atoms"], visualization_type="cartoon")
 
