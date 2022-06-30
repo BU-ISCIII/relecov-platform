@@ -8,6 +8,12 @@ from relecov_dashboard.utils.graphics.molecule3D_graph import (
     create_molecule3D_zoom_specific_residues,
 )
 from relecov_dashboard.utils.graphics.needle_plot_graph import create_needle_plot_graph
+from relecov_dashboard.utils.graphics import (
+    needle_plot_ITER,
+    needle_plot_graph,
+    mutation_table,
+    mutations_3D_molecule,
+)
 
 
 def variant_dashboard(request):
@@ -27,6 +33,12 @@ def lineages_voc(request):
     # create_molecule3D_zoom_specific_residues()
     return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
 
+
+def hackaton_examples(request):
+    needle_plot_ITER.create_needle_plot_graph_ITER(lineage="B.1.177")
+    return render(
+        request, "relecov_dashboard/dashboard_templates/hackaton_examples.html"
+    )
 
 """
 def main_dashboard(request):
