@@ -4,14 +4,17 @@ from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
 )
 
 from relecov_dashboard.utils.graphics.molecule3D_graph import (
-    create_molecule3D_graph,
+    # create_molecule3D_graph,
     create_molecule3D_zoom_specific_residues,
 )
 from relecov_dashboard.utils.graphics.needle_plot_graph import create_needle_plot_graph
 from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_graph
+
+"""
 from relecov_dashboard.utils.graphics.needle_plot_ITER import (
     create_needle_plot_graph_ITER,
 )
+"""
 from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
 
 

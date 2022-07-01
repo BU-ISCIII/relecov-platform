@@ -8,9 +8,8 @@ import dash_html_components as html
 from dash_bio.utils import PdbParser, create_mol3d_style
 from relecov_platform import settings
 
-"""PDB parser
-This module contains a class that can read PDB files and return a dictionary of structural data"""
-import re
+# PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
+# import re
 import parmed as pmd
 
 
