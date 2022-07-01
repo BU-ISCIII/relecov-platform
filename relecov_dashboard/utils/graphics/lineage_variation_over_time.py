@@ -133,7 +133,6 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
     # Set x-axis title
     fig.update_xaxes(
         title_text="<b>Date</b>",
-        # No whitespace is displayed in Firefox
         # rangebreaks=[dict(values=dt_breaks)]  # hide dates with no values
     )
 
