@@ -87,7 +87,7 @@ def get_spike_mutations(csv_file):
     df = pd.read_csv(csv_file, sep=",")
     spike_df = df.loc[df["GENE"] == "S"]
     return spike_df
-
+alejandra-gonzalezs/relecov-platform
 
 def get_table_selection(df):
     table_selection = df[["POS", "REF", "ALT", "HGVS_C", "HGVS_P", "HGVS_P_1LETTER"]]
@@ -154,70 +154,48 @@ def create_graph():
                 id="zooming-specific-molecule3d-zoomto", modelData=data, styles=styles
             ),
         ]
-    )
-
+        )
     @app.callback(
         Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
         Output("zooming-specific-molecule3d-zoomto", "labels"),
-        Input("zooming-specific-residue-table", "selected_rows"),
+        Output("zooming-specific-molecule3d-zoomto", "styles"),
+        Input("selecting-specific-spike-residue-table", "selected_rows"),
         prevent_initial_call=True,
     )
     def residue(selected_row):
-        row = spike_mutations.iloc[selected_row]
+        row = df.iloc[selected_row]
         row["positions"] = row["positions"].apply(
             lambda x: [float(x) for x in x.split(",")]
         )
-        data = pdb_file.mol3d_data()
-        styles = create_mol3d_style(data["atoms"], visualization_type="cartoon")
+        # position = row["residue_position"].iloc[0]
+        atoms = df[df["residue_position"] == row["residue_position"].iloc[0]]
+        list_atoms = atoms["serial"].tolist()
+        new_atom_styles = []
+        for a in range(len(styles_data)):
+            if a in list_atoms:
+                new_atom_styles.append(
+                    {"visualization_type": "cartoon", "color": "#ff7d00"}
+                )
+            else:
+                new_atom_styles.append(
+                    {"visualization_type": "cartoon", "color": "#ced4da"}
+                )
 
-        df = pd.DataFrame(data["atoms"])
-
-        df["positions"] = df["positions"].apply(lambda x: ", ".join(map(str, x)))
-
-        app.layout = html.Div(
+        return [
+            {
+                "sel": {"chain": row["chain"], "resi": row["residue_index"]},
+                "animationDuration": 1500,
+                "fixedPath": True,
+            },
             [
-                dash_table.DataTable(
-                    id="zooming-specific-residue-table",
-                    columns=[{"name": i, "id": i} for i in df.columns],
-                    data=df.to_dict("records"),
-                    row_selectable="single",
-                    page_size=10,
-                ),
-                dashbio.Molecule3dViewer(
-                    id="zooming-specific-molecule3d-zoomto",
-                    modelData=data,
-                    styles=styles,
-                ),
-            ]
-        )
-
-        @app.callback(
-            Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
-            Output("zooming-specific-molecule3d-zoomto", "labels"),
-            Input("zooming-specific-residue-table", "selected_rows"),
-            prevent_initial_call=True,
-        )
-        def residue(selected_row):
-            row = df.iloc[selected_row]
-            row["positions"] = row["positions"].apply(
-                lambda x: [float(x) for x in x.split(",")]
-            )
-            return [
                 {
-                    "sel": {"chain": row["chain"], "resi": row["residue_index"]},
-                    "animationDuration": 1500,
-                    "fixedPath": True,
-                },
-                [
-                    {
-                        "text": "Residue Name: {}".format(
-                            row["residue_name"].values[0]
-                        ),
-                        "position": {
-                            "x": row["positions"].values[0][0],
-                            "y": row["positions"].values[0][1],
-                            "z": row["positions"].values[0][2],
-                        },
-                    }
-                ],
-            ]
+                    "text": "Residue Name: {}".format(row["residue_name"].values[0]),
+                    "position": {
+                        "x": row["positions"].values[0][0],
+                        "y": row["positions"].values[0][1],
+                        "z": row["positions"].values[0][2],
+                    },
+                }
+            ],
+            new_atom_styles,
+        ]
