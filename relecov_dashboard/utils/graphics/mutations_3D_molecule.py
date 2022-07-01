@@ -132,7 +132,7 @@ def create_graph():
 
     # file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
 
-    #spike_mutations = get_table_selection(get_spike_mutations(file_csv))
+    # spike_mutations = get_table_selection(get_spike_mutations(file_csv))
 
     app = DjangoDash("model3D")
 
