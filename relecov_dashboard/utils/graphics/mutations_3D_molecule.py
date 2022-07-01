@@ -121,7 +121,7 @@ def create_graph():
         )
     )
     """
-
+    """
     file_csv = os.path.join(
         settings.BASE_DIR,
         "relecov_dashboard",
@@ -129,6 +129,7 @@ def create_graph():
         "csv_files",
         "variants_long_table_last.csv",
     )
+    """
 
     # file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
 
