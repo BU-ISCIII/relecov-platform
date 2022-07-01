@@ -102,6 +102,7 @@ def create_graph():
         "https://proteopedia.org/wiki/index.php/PDB_code"
     )  # PdbParser(
     """
+    """
     file_csv = PdbParser(
         os.path.join(
             settings.BASE_DIR,
@@ -110,6 +111,14 @@ def create_graph():
             "csv_files",
             "variants_long_table_last.csv",
         )
+    )
+    """
+    file_csv = os.path.join(
+        settings.BASE_DIR,
+        "relecov_dashboard",
+        "utils",
+        "csv_files",
+        "variants_long_table_last.csv",
     )
     # file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
 
