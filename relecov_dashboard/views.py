@@ -31,15 +31,17 @@ def methodology_dashboard(request):
 def lineages_voc(request):
     create_lineage_in_time_graph()
     create_needle_plot_graph(sample=None)
+    create_molecule3D_zoom_specific_residues()
+    create_mutation_table(214821)
     return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
 
 
 def hackaton_graphs(request):
     # create_needle_plot_graph_ITER(lineage="B.1.177")
     # create_molecule3D_graph()
-    create_molecule3D_zoom_specific_residues()
+    # create_molecule3D_zoom_specific_residues()
     # create_model_hackaton()
     create_graph()
-    create_mutation_table(214821)
+    # create_mutation_table(214821)
 
     return render(request, "relecov_dashboard/dashboard_templates/hackaton_graphs.html")
