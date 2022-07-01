@@ -1,17 +1,19 @@
+#! /usr/bin/python
+
+"""
+Generate lineage variation over time plot with data selection
+"""
+# ---------------------------------------------------------------
+__author__ = "Alejandro Sanz-Carbonell (FISABIO - RELECOV)"
+__credits__ = ["Alejandro Sanz-Carbonel"]
+__email__ = "vigilancia_genomica@gva.es"
+# ---------------------------------------------------------------
+
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
 
-
-df = px.data.tips()
-# create the bins
-counts, bins = np.histogram(df.total_bill, bins=range(0, 60, 5))
-bins = 0.5 * (bins[:-1] + bins[1:])
-
-fig = px.bar(x=bins, y=counts, labels={"x": "total_bill", "y": "count"})
-fig.show()
+# from dash import dcc
 
 
 def select_range_date(start_date, end_date, df):
@@ -23,7 +25,7 @@ def select_range_date(start_date, end_date, df):
         df["sample_collection_date"] <= end_date
     )
     df2 = df.loc[mask]
-    return df
+    return df2
 
 
 def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowSize):
@@ -40,25 +42,20 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
     # start_date = '2021-01-01'
     # end_date = '2021-12-31'
     # windowSize = 14
-    # Color plot (in future better use scale or color palette, with more colors)
-    my_colors = [  ## add the standard plotly colors
-        "#bab7bd",  # //
-        "#be78fe",  # //
-        "#ff3333",  # // brick red
-        "#2ca02c",  # // cooked asparagus green
-        "#ffdc1c",  # // safety orange
-        "#2d8bcc",  # // muted blue
-        "#12b22d",  # // add 1
-        "#896dc9",  # // add 2
-        "#89d9cd",  # // add 3
-        "#dbb55c",  # // add 4
-    ]
     # Load data and add date format to sample_collection_date
     df = pd.read_csv(data)
     df["sample_collection_date"] = pd.to_datetime(
         df["sample_collection_date"], format="%Y-%m-%d"
     )
-    if select_range == True:
+
+    # Remove white gaps dates (No whitespace is displayed in Firefox)
+    # dt_all = pd.date_range(start=df['sample_collection_date'].iloc[0], end=df['sample_collection_date'].iloc[-1])
+    # dt_obs = [d.strftime("%Y-%m-%d") for d in df['sample_collection_date']]
+    # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+
+    # rangebreaks=[dict(values=dt_breaks)] # hide dates with no values
+
+    if select_range is True:
         df = select_range_date(start_date, end_date, df)
 
     # Create two empty data.frame, collect samples according to who_name and date and percentage
@@ -66,10 +63,13 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
     who = pd.DataFrame(
         columns=["Date"] + df["who_name"].value_counts().index.to_list() + ["nsamples"]
     )
-    if select_range == True:
+    if select_range is True:
         who["Date"] = pd.date_range(start=start_date, end=end_date)
     else:
-        who["Date"] = pd.date_range(start=min(who["Date"]), end=max(who["Date"]))
+        who["Date"] = pd.date_range(
+            start=min(df["sample_collection_date"]),
+            end=max(df["sample_collection_date"]),
+        )
     whoNum = who
     whoPer = who
 
@@ -96,7 +96,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
             whoPer.at[i, "nsamples"] = windowCount.sum()
 
     # Get values by data and nsamples
-    whoPerMelted = pd.melt(whoPer, id_vars=["Date", "nsamples"]).dropna()
+    # whoPerMelted = pd.melt(whoPer, id_vars=["Date", "nsamples"]).dropna()
 
     # Fill NaN with 0 in order to avoid errors
     whoPer = whoPer.fillna(0)
@@ -122,11 +122,26 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
         secondary_y=True,
     )
 
+    countLin = 0
     for LIN in LINEAGES:
         fig.add_trace(
             go.Bar(x=whoPer["Date"], y=whoPer[LIN], name=LIN, opacity=0.7),
             secondary_y=False,
         )
+        countLin += 1
+
+    # Set x-axis title
+    fig.update_xaxes(
+        title_text="<b>Date</b>",
+        # No whitespace is displayed in Firefox
+        # rangebreaks=[dict(values=dt_breaks)]  # hide dates with no values
+    )
+
+    # Set y-axes titles
+    fig.update_yaxes(
+        range=[0, 100], title_text="<b>Lineage % relative", secondary_y=False
+    )
+    fig.update_yaxes(title_text="<b>Number of samples processed</b>", secondary_y=True)
 
     # Add figure title
     fig.update_layout(
@@ -146,15 +161,6 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
         margin_t=50,
     )
 
-    # Set x-axis title
-    fig.update_xaxes(title_text="<b>Date</b>")
-
-    # Set y-axes titles
-    fig.update_yaxes(
-        range=[0, 100], title_text="<b>Lineage % relative", secondary_y=False
-    )
-    fig.update_yaxes(title_text="<b>Number of samples processed</b>", secondary_y=True)
-
     return fig
 
 
@@ -163,8 +169,8 @@ if __name__ == "__main__":
     plot = make_lineage_variaton_plot(
         data,
         start_date="2021-01-01",
-        end_date="2021-12-31",
-        select_range=True,
+        end_date="2022-03-13",
+        select_range=True,  # False, need changes
         windowSize=14,
     )
-    plot.show()
+    plot.write_html("lineage_variation_over_time.html")
