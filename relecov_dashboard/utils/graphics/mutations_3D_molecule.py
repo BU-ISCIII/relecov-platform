@@ -1,6 +1,7 @@
 import os
 from django_plotly_dash import DjangoDash
-#import dash
+
+# import dash
 import dash_table
 from dash.dependencies import Input, Output
 import pandas as pd
@@ -83,22 +84,26 @@ class PdbParser:
 
         return data
 
+
 def create_mol3d_style(atoms):
     atom_styles = []
     for a in atoms:
         atom_styles.append({"visualization_type": "cartoon", "color": "#ced4da"})
     return atom_styles
 
+
 def get_spike_mutations(csv_file):
     df = pd.read_csv(csv_file, sep=",")
     spike_df = df.loc[df["GENE"] == "S"]
     return spike_df
+
 
 def get_table_selection(df):
     table_selection = df[["POS", "REF", "ALT", "HGVS_C", "HGVS_P", "HGVS_P_1LETTER"]]
     table_selection = table_selection.drop_duplicates()
     table_selection = table_selection.sort_values(by=["POS"])
     return table_selection
+
 
 def create_graph():
     """
@@ -126,7 +131,7 @@ def create_graph():
         "variants_long_table_last.csv",
     )
 
-    #file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
+    # file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
 
     spike_mutations = get_table_selection(get_spike_mutations(file_csv))
 
@@ -138,8 +143,7 @@ def create_graph():
         )
     )
 
-
-    #pdb_file = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
+    # pdb_file = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
     # structure = pmd.load_file("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
     # import pdb; pdb.set_trace()
     data = pdb_file.mol3d_data()
@@ -212,8 +216,8 @@ def create_graph():
             new_atom_styles,
         ]
 
-    #app.runserver()
+    # app.runserver()
 
-#if __name__ == "__main__":
+
+# if __name__ == "__main__":
 #    create_graph()
-
