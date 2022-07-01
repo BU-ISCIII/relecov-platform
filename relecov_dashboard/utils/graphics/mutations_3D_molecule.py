@@ -7,7 +7,6 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import dash_bio as dashbio
 from dash import html
-from dash_bio.utils import create_mol3d_style
 from relecov_platform import settings
 
 # PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
