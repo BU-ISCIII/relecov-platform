@@ -38,9 +38,12 @@ def preprocess_json_data_with_csv(json_data, csv_data):
     This function counts the number of samples for each CCAA for a certain lineage.
     """
     lineage_dict = dict()
-    for sample_data in json_data["data"]:
+    # for sample_data in json_data["data"]:
+    for sample_data in json_data:
         if not csv_data[
-            csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])
+            # csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])
+            csv_data.SAMPLE
+            == int(sample_data[0])
         ].empty:
             lineage = (
                 csv_data[csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])]
@@ -108,6 +111,7 @@ def set_dataframe_geo_plot(df, lineage):
         lineage = first_line.at[0, "Lineage"]
 
     filter_df = df[df.Lineage == lineage]
+    print(filter_df)
 
     return filter_df
 
@@ -130,7 +134,7 @@ def plot_geomap(lineage):
     Create a map with lineage frequency by CCAA.
     """
     csv_file = os.path.join(
-        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table.csv"
+        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
     )
     with open(csv_file) as f:
         csv_data = parse_csv(f)
@@ -147,10 +151,13 @@ def plot_geomap(lineage):
         "processed_metadata_lab_20220208_20220613.json",
     )
 
+    print(preprocess_json_data_with_csv(json_data, csv_data))
+
+    """
     ldata = set_dataframe_geo_plot(
         preprocess_json_data_with_csv(json_data, csv_data), lineage
     )
-
+    
     fig = px.choropleth_mapbox(
         ldata,
         geojson=geojson_data,
@@ -194,3 +201,4 @@ def plot_geomap(lineage):
         lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
         ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
         return ldata
+    """

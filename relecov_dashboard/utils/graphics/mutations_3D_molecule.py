@@ -1,29 +1,16 @@
 import os
 from django_plotly_dash import DjangoDash
 
-# import dash
 import dash_table
 from dash.dependencies import Input, Output
 import pandas as pd
 import dash_bio as dashbio
-from dash import html
+import dash_html_components as html
 from relecov_platform import settings
 
 # PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
 # import re
 import parmed as pmd
-
-
-"""
-import dash
-from dash.dependencies import Input, Output
-from dash import dash_table
-import dash_bio as dashbio
-from dash_bio.utils import create_mol3d_style
-from dash import html
-import pandas as pd
-"""
-
 
 # def create_model_hackaton():
 #    app = DjangoDash("model3D")

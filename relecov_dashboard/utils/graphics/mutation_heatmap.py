@@ -12,29 +12,40 @@ Mutation heatmap
 
 
 # Dash libs
+import os
 import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
+from django_plotly_dash import DjangoDash
 
 # Other libs
 import pandas as pd
 
 # Custom functions
-from mutation_table import (  # TODO: Fix this bad import
+from relecov_dashboard.utils.graphics.mutation_table import (  # TODO: Fix this bad import
     read_mutation_data,
     process_mutation_df,
 )
+from relecov_platform import settings
 
 
-def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> dash.Dash:
+# def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> DjangoDash:
+def create_mutation_heatmap() -> DjangoDash:
     """
     Create mutation heatmap, where each row is a sample and each column a mutation
     The color is based on the allele frequency of the mutation
     """
     # ---- Set up ----
     # Read some extra values
+    input_file = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
+    )
+    sample_ids = [214821, 220685, 214826, 214825]
+    df = read_mutation_data(input_file, file_extension="csv")
+    df = process_mutation_df(df)
+
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
 
@@ -81,7 +92,7 @@ def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> dash.Dash:
         return fig
 
     # ---- Dash app ----
-    app = dash.Dash(__name__)
+    app = DjangoDash("mutation_heatmap")
 
     app.layout = html.Div(
         children=[
@@ -145,6 +156,7 @@ def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> dash.Dash:
 
 if __name__ == "__main__":
     # Input
+    """
     input_file = (
         "/home/usuario/Proyectos/relecov/relecov-platform/data/variants_long_table.csv"
     )
@@ -153,7 +165,7 @@ if __name__ == "__main__":
     # Read data
     df = read_mutation_data(input_file, file_extension="csv")
     df = process_mutation_df(df)
-
+    """
     # App
-    app = create_mutation_heatmap(df, sample_ids)
-    app.run_server(debug=True)
+    # app = create_mutation_heatmap(df, sample_ids)
+    # app.run_server(debug=True)
