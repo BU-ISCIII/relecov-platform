@@ -12,7 +12,10 @@ Mutation heatmap
 
 
 # Dash libs
-import dash
+# import dash
+# DjangoDash lib
+import os
+from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -26,6 +29,7 @@ from mutation_table import (  # TODO: Fix this bad import
     read_mutation_data,
     process_mutation_df,
 )
+from relecov_platform import settings
 
 
 def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> dash.Dash:
@@ -81,72 +85,89 @@ def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> dash.Dash:
         return fig
 
     # ---- Dash app ----
-    app = dash.Dash(__name__)
+    # app = dash.Dash(__name__)
 
-    app.layout = html.Div(
-        children=[
-            html.Div(
-                style={
-                    "display": "flex",
-                    "justify-content": "start",
-                    "align-items": "flex-start",
-                },
-                children=[
-                    dcc.Dropdown(
-                        id="mutation_heatmap-select_sample",
-                        options=[{"label": i, "value": i} for i in all_sample_ids],
-                        clearable=False,
-                        multi=True,
-                        value=sample_ids,
-                        style={"width": "500px", "margin-right": "30px"},
-                    ),
-                    dcc.Dropdown(
-                        id="mutation_heatmap-gene_dropdown",
-                        options=[{"label": i, "value": i} for i in all_genes],
-                        clearable=False,
-                        multi=True,
-                        value=None,
-                        style={"width": "400px", "margin-right": "30px"},
-                        placeholder="Filter genes",
-                    ),
-                ],
-            ),
-            dcc.Graph(
-                id="mutation_heatmap",
-                figure=get_figure(df, sample_ids),
-                style={"width": "1500px", "height": "700px"},
-            ),
-        ]
-    )
+    # DjangoDash app
+    def create_hot_map():
+        app = DjangoDash("mutation_heatmap")
 
-    def update_selected_sample(data: pd.DataFrame, selected_sample: int):
-        if selected_sample and type(selected_sample) == int:
-            data = data[data["SAMPLE"].isin([selected_sample])]
-        return data
+        app.layout = html.Div(
+            children=[
+                html.Div(
+                    style={
+                        "display": "flex",
+                        "justify-content": "start",
+                        "align-items": "flex-start",
+                    },
+                    children=[
+                        dcc.Dropdown(
+                            id="mutation_heatmap-select_sample",
+                            options=[{"label": i, "value": i} for i in all_sample_ids],
+                            clearable=False,
+                            multi=True,
+                            value=sample_ids,
+                            style={"width": "500px", "margin-right": "30px"},
+                        ),
+                        dcc.Dropdown(
+                            id="mutation_heatmap-gene_dropdown",
+                            options=[{"label": i, "value": i} for i in all_genes],
+                            clearable=False,
+                            multi=True,
+                            value=None,
+                            style={"width": "400px", "margin-right": "30px"},
+                            placeholder="Filter genes",
+                        ),
+                    ],
+                ),
+                dcc.Graph(
+                    id="mutation_heatmap",
+                    figure=get_figure(df, sample_ids),
+                    style={"width": "1500px", "height": "700px"},
+                ),
+            ]
+        )
 
-    def update_selected_genes(data: pd.DataFrame, selected_genes: int):
-        if selected_genes and type(selected_genes) == list and len(selected_genes) >= 1:
-            data = data[data["GENE"].isin(selected_genes)]
-        return data
+        def update_selected_sample(data: pd.DataFrame, selected_sample: int):
+            if selected_sample and type(selected_sample) == int:
+                data = data[data["SAMPLE"].isin([selected_sample])]
+            return data
 
-    @app.callback(
-        Output("mutation_heatmap", "figure"),
-        Input("mutation_heatmap-select_sample", "value"),
-        Input("mutation_heatmap-gene_dropdown", "value"),
-    )
-    def update_graph(
-        sample_ids: str, genes: list
-    ):  # Order of arguments MUST be the same as in the callback function
-        fig = get_figure(df, sample_ids, genes)
-        return fig
+        def update_selected_genes(data: pd.DataFrame, selected_genes: int):
+            if (
+                selected_genes
+                and type(selected_genes) == list
+                and len(selected_genes) >= 1
+            ):
+                data = data[data["GENE"].isin(selected_genes)]
+            return data
 
-    return app
+        @app.callback(
+            Output("mutation_heatmap", "figure"),
+            Input("mutation_heatmap-select_sample", "value"),
+            Input("mutation_heatmap-gene_dropdown", "value"),
+        )
+        def update_graph(
+            sample_ids: str, genes: list
+        ):  # Order of arguments MUST be the same as in the callback function
+            fig = get_figure(df, sample_ids, genes)
+            return fig
+
+        return app
 
 
 if __name__ == "__main__":
     # Input
+    """
     input_file = (
         "/home/usuario/Proyectos/relecov/relecov-platform/data/variants_long_table.csv"
+    )
+    """
+    input_file = os.path.join(
+        settings.BASE_DIR,
+        "relecov_dashboard",
+        "utils",
+        "csv_files",
+        "variants_long_table_last.csv",
     )
     sample_ids = [214821, 220685, 214826, 214825]
 
