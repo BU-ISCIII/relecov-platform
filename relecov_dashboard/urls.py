@@ -14,6 +14,7 @@ urlpatterns = [
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
     path("lineagesVOC", views.lineages_voc, name="lineages_voc"),
     path("hackatonGraphs", views.hackaton_graphs, name="hackaton_graphs"),
+    path("needleIter", views.needle_iter, name="needle_iter"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
