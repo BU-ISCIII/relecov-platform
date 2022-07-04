@@ -1,11 +1,12 @@
 import os
 from django_plotly_dash import DjangoDash
+
+# import dash
 import dash_table
 from dash.dependencies import Input, Output
 import pandas as pd
 import dash_bio as dashbio
-import dash_html_components as html
-from dash_bio.utils import create_mol3d_style
+from dash import html
 from relecov_platform import settings
 
 # PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
@@ -83,6 +84,13 @@ class PdbParser:
         return data
 
 
+def create_mol3d_style(atoms):
+    atom_styles = []
+    for a in atoms:
+        atom_styles.append({"visualization_type": "cartoon", "color": "#ced4da"})
+    return atom_styles
+
+
 def get_spike_mutations(csv_file):
     df = pd.read_csv(csv_file, sep=",")
     spike_df = df.loc[df["GENE"] == "S"]
@@ -113,6 +121,7 @@ def create_graph():
         )
     )
     """
+    """
     file_csv = os.path.join(
         settings.BASE_DIR,
         "relecov_dashboard",
@@ -120,22 +129,25 @@ def create_graph():
         "csv_files",
         "variants_long_table_last.csv",
     )
+    """
+
     # file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
 
-    spike_mutations = get_table_selection(get_spike_mutations(file_csv))
+    # spike_mutations = get_table_selection(get_spike_mutations(file_csv))
 
     app = DjangoDash("model3D")
+
     pdb_file = PdbParser(
         os.path.join(
             settings.BASE_DIR, "relecov_dashboard", "utils", "pdb_files", "7dwz.pdb"
         )
     )
 
-    # parser = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
+    # pdb_file = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
     # structure = pmd.load_file("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
     # import pdb; pdb.set_trace()
     data = pdb_file.mol3d_data()
-    styles = create_mol3d_style(data["atoms"], visualization_type="cartoon")
+    styles = create_mol3d_style(data["atoms"])
 
     df = pd.DataFrame(data["atoms"])
 
@@ -144,14 +156,17 @@ def create_graph():
     app.layout = html.Div(
         [
             dash_table.DataTable(
-                id="zooming-specific-residue-table",
-                columns=[{"name": i, "id": i} for i in spike_mutations.columns],
-                data=spike_mutations.to_dict("records"),
+                id="selecting-specific-spike-residue-table",
+                columns=[{"name": i, "id": i} for i in df.columns],
+                data=df.to_dict("records"),
                 row_selectable="single",
                 page_size=10,
             ),
             dashbio.Molecule3dViewer(
-                id="zooming-specific-molecule3d-zoomto", modelData=data, styles=styles
+                id="zooming-specific-molecule3d-zoomto",
+                modelData=data,
+                styles=styles,
+                selectionType="residue",
             ),
         ]
     )
@@ -159,65 +174,50 @@ def create_graph():
     @app.callback(
         Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
         Output("zooming-specific-molecule3d-zoomto", "labels"),
-        Input("zooming-specific-residue-table", "selected_rows"),
+        Output("zooming-specific-molecule3d-zoomto", "styles"),
+        Input("selecting-specific-spike-residue-table", "selected_rows"),
         prevent_initial_call=True,
     )
     def residue(selected_row):
-        row = spike_mutations.iloc[selected_row]
+        row = df.iloc[selected_row]
         row["positions"] = row["positions"].apply(
             lambda x: [float(x) for x in x.split(",")]
         )
-        data = pdb_file.mol3d_data()
-        styles = create_mol3d_style(data["atoms"], visualization_type="cartoon")
+        # position = row["residue_position"].iloc[0]
+        atoms = df[df["residue_position"] == row["residue_position"].iloc[0]]
+        list_atoms = atoms["serial"].tolist()
+        new_atom_styles = []
+        for a in range(len(styles)):
+            if a in list_atoms:
+                new_atom_styles.append(
+                    {"visualization_type": "cartoon", "color": "#ff7d00"}
+                )
+            else:
+                new_atom_styles.append(
+                    {"visualization_type": "cartoon", "color": "#ced4da"}
+                )
 
-        df = pd.DataFrame(data["atoms"])
-
-        df["positions"] = df["positions"].apply(lambda x: ", ".join(map(str, x)))
-
-        app.layout = html.Div(
+        return [
+            {
+                "sel": {"chain": row["chain"], "resi": row["residue_index"]},
+                "animationDuration": 1500,
+                "fixedPath": True,
+            },
             [
-                dash_table.DataTable(
-                    id="zooming-specific-residue-table",
-                    columns=[{"name": i, "id": i} for i in df.columns],
-                    data=df.to_dict("records"),
-                    row_selectable="single",
-                    page_size=10,
-                ),
-                dashbio.Molecule3dViewer(
-                    id="zooming-specific-molecule3d-zoomto",
-                    modelData=data,
-                    styles=styles,
-                ),
-            ]
-        )
-
-        @app.callback(
-            Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
-            Output("zooming-specific-molecule3d-zoomto", "labels"),
-            Input("zooming-specific-residue-table", "selected_rows"),
-            prevent_initial_call=True,
-        )
-        def residue(selected_row):
-            row = df.iloc[selected_row]
-            row["positions"] = row["positions"].apply(
-                lambda x: [float(x) for x in x.split(",")]
-            )
-            return [
                 {
-                    "sel": {"chain": row["chain"], "resi": row["residue_index"]},
-                    "animationDuration": 1500,
-                    "fixedPath": True,
-                },
-                [
-                    {
-                        "text": "Residue Name: {}".format(
-                            row["residue_name"].values[0]
-                        ),
-                        "position": {
-                            "x": row["positions"].values[0][0],
-                            "y": row["positions"].values[0][1],
-                            "z": row["positions"].values[0][2],
-                        },
-                    }
-                ],
-            ]
+                    "text": "Residue Name: {}".format(row["residue_name"].values[0]),
+                    "position": {
+                        "x": row["positions"].values[0][0],
+                        "y": row["positions"].values[0][1],
+                        "z": row["positions"].values[0][2],
+                    },
+                }
+            ],
+            new_atom_styles,
+        ]
+
+    # app.runserver()
+
+
+# if __name__ == "__main__":
+#    create_graph()
