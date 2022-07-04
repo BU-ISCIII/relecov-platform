@@ -8,7 +8,7 @@ import dash_html_components as html
 from django.conf import settings
 from collections import Counter
 import plotly.express as px
-import plotly.graph_objects as go
+# import plotly.graph_objects as go
 import pandas as pd
 import json
 import os
@@ -128,7 +128,7 @@ def get_list_of_dict_of_lineages_from_long_table(df):
 
 
 def plot_geomap(lineage):
-
+    
     # Create a map with lineage frequency by CCAA.
 
     csv_file = os.path.join(
@@ -240,15 +240,13 @@ def plot_geomap(lineage):
     )
     json_data = parse_json_file(json_file)
     geojson_data= parse_json_file(geojson_file)
-    
 
     df = set_dataframe_geo_plot(
         preprocess_json_data_with_csv(json_data, csv_data), lineage
     )
-    
-    
+
     fig = go.Figure(go.Choroplethmapbox(geojson=geojson_data,locations=df.ID,z=df.ID, colorscale="Viridis",zmin=0,zmax=df.Count.max(),marker_opacity=0.5, marker_line_width=0))
-    fig.show()                                  
+    fig.show()                              
     fig.update_layout(mapbox_style="cartro-positron",mapbox_zoom=3, mapbox_center={"lat": 35.9, "lon": -5.3})
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     app = DjangoDash("geomap_plot")
