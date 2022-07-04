@@ -38,12 +38,9 @@ def preprocess_json_data_with_csv(json_data, csv_data):
     This function counts the number of samples for each CCAA for a certain lineage.
     """
     lineage_dict = dict()
-    # for sample_data in json_data["data"]:
-    for sample_data in json_data:
+    for sample_data in json_data["data"]:
         if not csv_data[
-            # csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])
-            csv_data.SAMPLE
-            == int(sample_data[0])
+            csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])
         ].empty:
             lineage = (
                 csv_data[csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])]
@@ -144,13 +141,22 @@ def plot_geomap(lineage):
         settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
     )
 
+    json_file = os.path.join(
+        settings.BASE_DIR,
+        "relecov_core",
+        "docs",
+        "processed_metadata_lab_20220208_20220613.json",
+    )
+    json_data = parse_json_file(json_file)
+    """
     json_data = os.path.join(
         settings.BASE_DIR,
         "relecov_core",
         "docs",
         "processed_metadata_lab_20220208_20220613.json",
     )
-    print(preprocess_json_data_with_csv(json_data, csv_data))
+    """
+
     ldata = set_dataframe_geo_plot(
         preprocess_json_data_with_csv(json_data, csv_data), lineage
     )
@@ -169,7 +175,7 @@ def plot_geomap(lineage):
         labels={"Count": "Number of samples"},
     )
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-    fig.show()
+    # fig.show()
 
     app = DjangoDash("geomap_plot")
     app.layout = html.Div(
