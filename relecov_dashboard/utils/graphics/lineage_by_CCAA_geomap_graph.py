@@ -150,9 +150,7 @@ def plot_geomap(lineage):
         "docs",
         "processed_metadata_lab_20220208_20220613.json",
     )
-
     print(preprocess_json_data_with_csv(json_data, csv_data))
-    
     ldata = set_dataframe_geo_plot(
         preprocess_json_data_with_csv(json_data, csv_data), lineage
     )
