@@ -8,6 +8,7 @@ import dash_html_components as html
 from django.conf import settings
 from collections import Counter
 import plotly.express as px
+
 # import plotly.graph_objects as go
 import pandas as pd
 import json
