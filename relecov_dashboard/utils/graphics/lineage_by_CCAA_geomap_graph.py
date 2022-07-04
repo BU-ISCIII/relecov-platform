@@ -153,11 +153,11 @@ def plot_geomap(lineage):
 
     print(preprocess_json_data_with_csv(json_data, csv_data))
 
-    """
+    
     ldata = set_dataframe_geo_plot(
         preprocess_json_data_with_csv(json_data, csv_data), lineage
     )
-    
+
     fig = px.choropleth_mapbox(
         ldata,
         geojson=geojson_data,
@@ -201,4 +201,3 @@ def plot_geomap(lineage):
         lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
         ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
         return ldata
-    """
