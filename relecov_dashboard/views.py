@@ -10,6 +10,7 @@ from relecov_dashboard.utils.graphics.molecule3D_graph import (
 from relecov_dashboard.utils.graphics.needle_plot_graph import create_needle_plot_graph
 from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_graph
 from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
+
 # from relecov_dashboard.utils.graphics.lineage_by_CCAA_geomap_graph import plot_geomap
 from relecov_dashboard.utils.graphics.mutation_heatmap import create_mutation_heatmap
 
