@@ -39,8 +39,14 @@ def preprocess_json_data_with_csv(json_data, csv_data):
     """
     lineage_dict = dict()
     for sample_data in json_data["data"]:
-        if not csv_data[csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])].empty:
-            lineage = csv_data[csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])].iloc[0].at["LINEAGE"]
+        if not csv_data[
+            csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])
+        ].empty:
+            lineage = (
+                csv_data[csv_data.SAMPLE == int(sample_data["sequencing_sample_id"])]
+                .iloc[0]
+                .at["LINEAGE"]
+            )
             if lineage_dict.get(lineage) is None:
                 lineage_dict[lineage] = [sample_data["geo_loc_state"]]
             else:
@@ -51,36 +57,44 @@ def preprocess_json_data_with_csv(json_data, csv_data):
         lineage_count_dict[lineage] = dict(Counter(lineage_dict[lineage]))
 
     # Modify CCAA dictionary to values in JSON file
-    ccaa_dict = {"Unassigned": 0,
-                 "Andalucía": 1,
-                 "Aragón": 2,
-                 "Islas Baleares": 3,
-                 "Islas Canarias": 4,
-                 "Cantabria": 5,
-                 "Castilla-La Mancha": 6,
-                 "Castilla y León": 7,
-                 "Cataluña": 8,
-                 "Ceuta": 9,
-                 "Extremadura": 10,
-                 "Galicia": 11,
-                 "La Rioja": 12,
-                 "Madrid": 13,
-                 "Melilla": 14,
-                 "Murcia": 15,
-                 "Navarra": 16,
-                 "País Vasco": 17,
-                 "Asturias": 18,
-                 "Comunidad Valenciana": 19}
+    ccaa_dict = {
+        "Unassigned": 0,
+        "Andalucía": 1,
+        "Aragón": 2,
+        "Islas Baleares": 3,
+        "Islas Canarias": 4,
+        "Cantabria": 5,
+        "Castilla-La Mancha": 6,
+        "Castilla y León": 7,
+        "Cataluña": 8,
+        "Ceuta": 9,
+        "Extremadura": 10,
+        "Galicia": 11,
+        "La Rioja": 12,
+        "Madrid": 13,
+        "Melilla": 14,
+        "Murcia": 15,
+        "Navarra": 16,
+        "País Vasco": 17,
+        "Asturias": 18,
+        "Comunidad Valenciana": 19,
+    }
 
-    lineage_by_ccaa_df = pd.DataFrame(columns=['ID', 'CCAA', 'Lineage', 'Count']).astype(dtype={'Count': 'int32'})
+    lineage_by_ccaa_df = pd.DataFrame(
+        columns=["ID", "CCAA", "Lineage", "Count"]
+    ).astype(dtype={"Count": "int32"})
 
     for lineage in lineage_count_dict:
         for ccaa in lineage_count_dict[lineage]:
-            lineage_by_ccaa_df = lineage_by_ccaa_df.append({'ID': ccaa_dict[ccaa],
-                                                            'CCAA': ccaa,
-                                                            'Lineage': lineage,
-                                                            'Count': int(lineage_count_dict[lineage][ccaa])},
-                                                           ignore_index=True)
+            lineage_by_ccaa_df = lineage_by_ccaa_df.append(
+                {
+                    "ID": ccaa_dict[ccaa],
+                    "CCAA": ccaa,
+                    "Lineage": lineage,
+                    "Count": int(lineage_count_dict[lineage][ccaa]),
+                },
+                ignore_index=True,
+            )
     return lineage_by_ccaa_df
 
 
@@ -127,19 +141,29 @@ def plot_geomap(lineage):
     )
 
     json_data = os.path.join(
-        settings.BASE_DIR, "relecov_core", "docs", "processed_metadata_lab_20220208_20220613.json"
+        settings.BASE_DIR,
+        "relecov_core",
+        "docs",
+        "processed_metadata_lab_20220208_20220613.json",
     )
 
-    ldata = set_dataframe_geo_plot(preprocess_json_data_with_csv(json_data, csv_data), lineage)
+    ldata = set_dataframe_geo_plot(
+        preprocess_json_data_with_csv(json_data, csv_data), lineage
+    )
 
-    fig = px.choropleth_mapbox(ldata, geojson=geojson_data, locations='ID', color='Count',
-                               color_continuous_scale="Viridis",
-                               range_color=(0, ldata.Count.max()),
-                               mapbox_style="carto-positron",
-                               zoom=5, center={"lat": 35.9, "lon": -5.3},
-                               opacity=0.5,
-                               labels={'Count': 'Number of samples'}
-                               )
+    fig = px.choropleth_mapbox(
+        ldata,
+        geojson=geojson_data,
+        locations="ID",
+        color="Count",
+        color_continuous_scale="Viridis",
+        range_color=(0, ldata.Count.max()),
+        mapbox_style="carto-positron",
+        zoom=5,
+        center={"lat": 35.9, "lon": -5.3},
+        opacity=0.5,
+        labels={"Count": "Number of samples"},
+    )
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     fig.show()
 
@@ -156,8 +180,7 @@ def plot_geomap(lineage):
                 # style={"width": "400px"},
             ),
             html.Div(
-                children=dcc.Graph(figure=fig,
-                                   id="geomap-per-lineage"),
+                children=dcc.Graph(figure=fig, id="geomap-per-lineage"),
             ),
         ],
     )
