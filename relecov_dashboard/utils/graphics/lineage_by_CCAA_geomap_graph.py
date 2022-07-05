@@ -19,7 +19,7 @@ def parse_csv(file_path):
     """
     This function loads a CSV file and returns a DataFrame.
     """
-    df = pd.read_csv(file_path, sep=",")
+    df = pd.read_csv(file_path, sep=",", dtype={"com_id": "int64"})
 
     return df
 
@@ -84,7 +84,7 @@ def preprocess_json_data_with_csv(json_data, csv_data):
 
     lineage_by_ccaa_df = pd.DataFrame(
         columns=["ID", "CCAA", "Lineage", "Count"]
-    ).astype(dtype={"Count": "int32"})
+    ).astype(dtype={"Count": "int64"})
 
     for lineage in lineage_count_dict:
         for ccaa in lineage_count_dict[lineage]:
@@ -110,7 +110,7 @@ def set_dataframe_geo_plot(df, lineage):
         lineage = first_line.at[0, "Lineage"]
 
     filter_df = df[df.Lineage == lineage]
-    print(filter_df)
+    # print(filter_df)
 
     return filter_df
 
@@ -159,14 +159,21 @@ def plot_geomap(lineage):
     )
 
     print(ldata)
-
+    """
+    csv_fileTest = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "test_1.csv"
+    )
+    with open(csv_fileTest) as f2:
+        csv_dataTest = parse_csv(f2)
+    """
+    df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
     fig = px.choropleth_mapbox(
-        data_frame=ldata,
+        data_frame=df,
         geojson=geojson_data,
-        locations="ID",
-        color=ldata.Count,
+        locations=df.id,
+        color=df.Count,
         color_continuous_scale="Viridis",
-        range_color=(0, ldata.Count.max()),
+        range_color=(0, df.Count.max()),
         mapbox_style="carto-positron",
         zoom=5,
         center={"lat": 35.9, "lon": -5.3},
@@ -199,20 +206,22 @@ def plot_geomap(lineage):
         Input("geomap-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
-        # plot_geomap(selected_lineage)
+        plot_geomap(selected_lineage)
         lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
         ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
+        df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
+        print("df: {}".format(df))
         fig = px.choropleth_mapbox(
-            data_frame=ldata,
+            data_frame=df,
             geojson=geojson_data,
-            locations="ID",
-            color="Count",
+            locations=df.id,
+            color=df.Count,
             color_continuous_scale="Viridis",
-            range_color=(0, ldata.Count.max()),
+            range_color=(0, df.Count.max()),
             mapbox_style="carto-positron",
             zoom=5,
             center={"lat": 35.9, "lon": -5.3},
-            opacity=0.8,
+            opacity=0.5,
             labels={"Count": "Number of samples"},
         )
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
