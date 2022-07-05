@@ -8,6 +8,8 @@ import dash_html_components as html
 from django.conf import settings
 from collections import Counter
 import plotly.express as px
+
+# import plotly.graph_objects as go
 import pandas as pd
 import json
 import os
@@ -17,7 +19,7 @@ def parse_csv(file_path):
     """
     This function loads a CSV file and returns a DataFrame.
     """
-    df = pd.read_csv(file_path, sep=",")
+    df = pd.read_csv(file_path, sep=",", dtype={"com_id": "int64"})
 
     return df
 
@@ -82,7 +84,7 @@ def preprocess_json_data_with_csv(json_data, csv_data):
 
     lineage_by_ccaa_df = pd.DataFrame(
         columns=["ID", "CCAA", "Lineage", "Count"]
-    ).astype(dtype={"Count": "int32"})
+    ).astype(dtype={"Count": "int64"})
 
     for lineage in lineage_count_dict:
         for ccaa in lineage_count_dict[lineage]:
@@ -108,6 +110,7 @@ def set_dataframe_geo_plot(df, lineage):
         lineage = first_line.at[0, "Lineage"]
 
     filter_df = df[df.Lineage == lineage]
+    # print(filter_df)
 
     return filter_df
 
@@ -126,38 +129,51 @@ def get_list_of_dict_of_lineages_from_long_table(df):
 
 
 def plot_geomap(lineage):
-    """
-    Create a map with lineage frequency by CCAA.
-    """
+    # Create a map with lineage frequency by CCAA.
+
     csv_file = os.path.join(
-        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table.csv"
+        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
     )
     with open(csv_file) as f:
         csv_data = parse_csv(f)
     dict_of_samples = get_list_of_dict_of_lineages_from_long_table(csv_data)
 
-    geojson_data = os.path.join(
+    geojson_file = os.path.join(
         settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
     )
+    # geojson_data = os.path.join(
+    #    settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
+    # )
 
-    json_data = os.path.join(
+    json_file = os.path.join(
         settings.BASE_DIR,
         "relecov_core",
         "docs",
         "processed_metadata_lab_20220208_20220613.json",
     )
+    json_data = parse_json_file(json_file)
+    geojson_data = parse_json_file(geojson_file)
 
     ldata = set_dataframe_geo_plot(
         preprocess_json_data_with_csv(json_data, csv_data), lineage
     )
 
+    print(ldata)
+    """
+    csv_fileTest = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "test_1.csv"
+    )
+    with open(csv_fileTest) as f2:
+        csv_dataTest = parse_csv(f2)
+    """
+    df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
     fig = px.choropleth_mapbox(
-        ldata,
+        data_frame=df,
         geojson=geojson_data,
-        locations="ID",
-        color="Count",
+        locations=df.id,
+        color=df.Count,
         color_continuous_scale="Viridis",
-        range_color=(0, ldata.Count.max()),
+        range_color=(0, df.Count.max()),
         mapbox_style="carto-positron",
         zoom=5,
         center={"lat": 35.9, "lon": -5.3},
@@ -165,7 +181,6 @@ def plot_geomap(lineage):
         labels={"Count": "Number of samples"},
     )
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-    fig.show()
 
     app = DjangoDash("geomap_plot")
     app.layout = html.Div(
@@ -186,11 +201,93 @@ def plot_geomap(lineage):
     )
 
     @app.callback(
-        Output("geomap-per-lineage", "value"),
+        # Output("geomap-per-lineage", "value"),
+        Output("geomap-per-lineage", "figure"),
+        Input("geomap-select-lineage", "value"),
+    )
+    def update_sample(selected_lineage):
+        plot_geomap(selected_lineage)
+        # lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
+        # ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
+        df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
+        print("df: {}".format(df))
+        fig = px.choropleth_mapbox(
+            data_frame=df,
+            geojson=geojson_data,
+            locations=df.id,
+            color=df.Count,
+            color_continuous_scale="Viridis",
+            range_color=(0, df.Count.max()),
+            mapbox_style="carto-positron",
+            zoom=5,
+            center={"lat": 35.9, "lon": -5.3},
+            opacity=0.5,
+            labels={"Count": "Number of samples"},
+        )
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        return fig
+
+    """
+def plot_geomap(lineage):
+    #Create a map with lineage frequency by CCAA.
+    csv_file = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
+    )
+    with open(csv_file) as f:
+        csv_data = parse_csv(f)
+    dict_of_samples = get_list_of_dict_of_lineages_from_long_table(csv_data)
+
+    geojson_file = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
+    )
+
+    json_file = os.path.join(
+        settings.BASE_DIR,
+        "relecov_core",
+        "docs",
+        "processed_metadata_lab_20220208_20220613.json",
+    )
+    json_data = parse_json_file(json_file)
+    geojson_data= parse_json_file(geojson_file)
+
+    df = set_dataframe_geo_plot(
+        preprocess_json_data_with_csv(json_data, csv_data), lineage
+    )
+
+    fig = go.Figure(go.Choroplethmapbox(geojson=geojson_data,locations=df.ID,z=df.ID, colorscale="Viridis",zmin=0,zmax=df.Count.max(),marker_opacity=0.5, marker_line_width=0))
+    fig.update_layout(mapbox_style="cartro-positron",mapbox_zoom=3, mapbox_center={"lat": 35.9, "lon": -5.3})
+    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    app = DjangoDash("geomap_plot")
+    app.layout = html.Div(
+        children=[
+            "Select a Lineage",
+            dcc.Dropdown(
+                id="geomap-select-lineage",
+                options=dict_of_samples,
+                clearable=False,
+                multi=False,
+                value=lineage,
+                # style={"width": "400px"},
+            ),
+            html.Div(
+                children=dcc.Graph(figure=fig, id="geomap-per-lineage"),
+            ),
+        ],
+    )
+
+    @app.callback(
+        # Output("geomap-per-lineage", "value"),
+        Output("geomap-per-lineage", "figure"),
         Input("geomap-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
         plot_geomap(selected_lineage)
         lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
         ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
-        return ldata
+        # data_frame = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
+        # fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        fig = go.Figure(go.Choroplethmapbox(geojson=geojson_data,locations=df.ID,z=df.ID, colorscale="Viridis",zmin=0,zmax=df.Count.max(),marker_opacity=0.5, marker_line_width=1))
+        fig.update_layout(mapbox_style="cartro-positron",mapbox_zoom=3, mapbox_center={"lat": 35.9, "lon": -5.3})
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        return fig
+"""
