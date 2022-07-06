@@ -9,17 +9,12 @@ Mutation heatmap
     - Color represents allele frequency
 
 """
-
-
-# Dash libs
 import os
-
-# import dash
+from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
-from django_plotly_dash import DjangoDash
 
 # Other libs
 import pandas as pd
@@ -32,12 +27,12 @@ from relecov_dashboard.utils.graphics.mutation_table import (  # TODO: Fix this 
 from relecov_platform import settings
 
 
-# def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> DjangoDash:
-def create_mutation_heatmap() -> DjangoDash:
-    """
-    Create mutation heatmap, where each row is a sample and each column a mutation
-    The color is based on the allele frequency of the mutation
-    """
+"""
+def create_mutation_heatmap(): # -> DjangoDash:
+
+    # Create mutation heatmap, where each row is a sample and each column a mutation
+    # The color is based on the allele frequency of the mutation
+
     # ---- Set up ----
     # Read some extra values
     input_file = os.path.join(
@@ -49,50 +44,66 @@ def create_mutation_heatmap() -> DjangoDash:
 
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
+"""
 
-    # ---- Figure ----
-    def get_figure(data: pd.DataFrame, sample_ids: list, genes: list = None):
-        # Filter
-        filter = {"SAMPLE": sample_ids, "GENE": genes}
-        for col, filter in filter.items():
-            if filter and type(filter) == list:
-                data = data[data[col].isin(filter)]
 
-        # Order by position
-        data = data.sort_values(by=["POS"])
+def get_figure(data: pd.DataFrame, sample_ids: list, genes: list = None):
+    # Filter
+    filter = {"SAMPLE": sample_ids, "GENE": genes}
+    for col, filter in filter.items():
+        if filter and type(filter) == list:
+            data = data[data[col].isin(filter)]
 
-        # Add gene name and mutation into one column
-        data["G_MUT"] = data["GENE"] + " - " + data["MUTATION"]
+    # Order by position
+    data = data.sort_values(by=["POS"])
 
-        # Pivot table
-        pivot_df = pd.pivot_table(
-            data, values="AF", index=["SAMPLE"], columns=["G_MUT"], fill_value=None
-        )
+    # Add gene name and mutation into one column
+    data["G_MUT"] = data["GENE"] + " - " + data["MUTATION"]
 
-        # Order
-        pivot_df = pivot_df.sort_index()
-        pivot_df.index = pivot_df.index.astype(str)
+    # Pivot table
+    pivot_df = pd.pivot_table(
+        data, values="AF", index=["SAMPLE"], columns=["G_MUT"], fill_value=None
+    )
 
-        # Heatmap
-        fig = px.imshow(
-            pivot_df,
-            aspect="auto",
-            labels=dict(x="Mutation", y="Sample", color="AF"),
-            color_continuous_scale="RdYlGn",
-            range_color=[0, 1],
-        )
-        fig.update(layout_coloraxis_showscale=True, layout_showlegend=False)
-        fig.update_layout(
-            yaxis={"title": "Samples"},
-            xaxis={"title": "Mutations", "tickangle": 45},
-            yaxis_nticks=len(pivot_df) if len(pivot_df) <= 50 else 50,
-            xaxis_nticks=len(pivot_df.columns) if len(pivot_df.columns) <= 100 else 100,
-        )
-        fig.update_traces(xgap=1)
+    # Order
+    pivot_df = pivot_df.sort_index()
+    pivot_df.index = pivot_df.index.astype(str)
 
-        return fig
+    # Heatmap
+    fig = px.imshow(
+        pivot_df,
+        aspect="auto",
+        labels=dict(x="Mutation", y="Sample", color="AF"),
+        color_continuous_scale="RdYlGn",
+        range_color=[0, 1],
+    )
+    fig.update(layout_coloraxis_showscale=True, layout_showlegend=False)
+    fig.update_layout(
+        yaxis={"title": "Samples"},
+        xaxis={"title": "Mutations", "tickangle": 45},
+        yaxis_nticks=len(pivot_df) if len(pivot_df) <= 50 else 50,
+        xaxis_nticks=len(pivot_df.columns) if len(pivot_df.columns) <= 100 else 100,
+    )
+    fig.update_traces(xgap=1)
+
+    return fig
 
     # ---- Dash app ----
+    # app = dash.Dash(__name__)
+
+
+# DjangoDash app
+def create_hot_map():
+    input_file = os.path.join(
+        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
+    )
+    sample_ids = [214821, 220685, 214826, 214825]
+    df = read_mutation_data(input_file, file_extension="csv")
+    df = process_mutation_df(df)
+
+    all_genes = list(df["GENE"].unique())
+    all_sample_ids = list(df["SAMPLE"].unique())
+
     app = DjangoDash("mutation_heatmap")
 
     app.layout = html.Div(
@@ -155,18 +166,28 @@ def create_mutation_heatmap() -> DjangoDash:
     return app
 
 
+"""
 if __name__ == "__main__":
     # Input
-    """
-    input_file = (
-        "/home/usuario/Proyectos/relecov/relecov-platform/data/variants_long_table.csv"
+
+    # input_file = (
+    #    "/home/usuario/Proyectos/relecov/relecov-platform/data/variants_long_table.csv"
+    # )
+
+    input_file = os.path.join(
+        settings.BASE_DIR,
+        "relecov_dashboard",
+        "utils",
+        "csv_files",
+        "variants_long_table_last.csv",
     )
     sample_ids = [214821, 220685, 214826, 214825]
 
     # Read data
     df = read_mutation_data(input_file, file_extension="csv")
     df = process_mutation_df(df)
-    """
+
     # App
     # app = create_mutation_heatmap(df, sample_ids)
     # app.run_server(debug=True)
+"""
