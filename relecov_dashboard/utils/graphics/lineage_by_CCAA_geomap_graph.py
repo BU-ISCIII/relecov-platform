@@ -19,7 +19,7 @@ def parse_csv(file_path):
     """
     This function loads a CSV file and returns a DataFrame.
     """
-    df = pd.read_csv(file_path, sep=",", dtype={"com_id": "int64"})
+    df = pd.read_csv(file_path, sep=",")
 
     return df
 
@@ -166,7 +166,7 @@ def plot_geomap(lineage):
     with open(csv_fileTest) as f2:
         csv_dataTest = parse_csv(f2)
     """
-    df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
+    df = pd.read_csv("relecov_core/docs/test_1.csv", sep=",", dtype={"id": "int32"})
     fig = px.choropleth_mapbox(
         data_frame=df,
         geojson=geojson_data,
@@ -180,7 +180,8 @@ def plot_geomap(lineage):
         opacity=0.5,
         labels={"Count": "Number of samples"},
     )
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    fig.update()
+    # fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
     app = DjangoDash("geomap_plot")
     app.layout = html.Div(
@@ -209,12 +210,12 @@ def plot_geomap(lineage):
         # plot_geomap(selected_lineage)
         # lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
         # ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
-        df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
+        df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int32"})
         print("df: {}".format(df))
         fig = px.choropleth_mapbox(
             data_frame=df,
             geojson=geojson_data,
-            locations=df.id,
+            locations=id,
             color=df.Count,
             color_continuous_scale="Viridis",
             range_color=(0, df.Count.max()),
@@ -224,7 +225,8 @@ def plot_geomap(lineage):
             opacity=0.5,
             labels={"Count": "Number of samples"},
         )
-        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        fig.update()
+        # fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
         return fig
 
     """

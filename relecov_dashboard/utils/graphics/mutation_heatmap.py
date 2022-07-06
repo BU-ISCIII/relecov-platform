@@ -12,9 +12,10 @@ Mutation heatmap
 
 
 # Dash libs
-import os
-
 # import dash
+# DjangoDash lib
+import os
+from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -93,6 +94,11 @@ def create_mutation_heatmap() -> DjangoDash:
         return fig
 
     # ---- Dash app ----
+    # app = dash.Dash(__name__)
+
+
+# DjangoDash app
+def create_hot_map():
     app = DjangoDash("mutation_heatmap")
 
     app.layout = html.Div(
@@ -161,12 +167,20 @@ if __name__ == "__main__":
     input_file = (
         "/home/usuario/Proyectos/relecov/relecov-platform/data/variants_long_table.csv"
     )
+    """
+    input_file = os.path.join(
+        settings.BASE_DIR,
+        "relecov_dashboard",
+        "utils",
+        "csv_files",
+        "variants_long_table_last.csv",
+    )
     sample_ids = [214821, 220685, 214826, 214825]
 
     # Read data
     df = read_mutation_data(input_file, file_extension="csv")
     df = process_mutation_df(df)
-    """
+
     # App
     # app = create_mutation_heatmap(df, sample_ids)
     # app.run_server(debug=True)
