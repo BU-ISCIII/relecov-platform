@@ -15,7 +15,6 @@ from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
-from django_plotly_dash import DjangoDash
 
 # Other libs
 import pandas as pd
@@ -30,10 +29,10 @@ from relecov_platform import settings
 
 """
 def create_mutation_heatmap(): # -> DjangoDash:
-    
+
     # Create mutation heatmap, where each row is a sample and each column a mutation
     # The color is based on the allele frequency of the mutation
-    
+
     # ---- Set up ----
     # Read some extra values
     input_file = os.path.join(
