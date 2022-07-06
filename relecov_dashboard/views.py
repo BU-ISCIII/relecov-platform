@@ -33,7 +33,17 @@ def lineages_voc(request):
     return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
 
 
-def hackaton_graphs(request):
+def lineages(request):
     create_graph()
     create_json("BA.1.1.1")
-    return render(request, "relecov_dashboard/dashboard_templates/hackaton_graphs.html")
+    return render(request, "relecov_dashboard/dashboard_templates/lineages.html")
+
+
+def mutations_in_lineages(request):
+    return render(
+        request, "relecov_dashboard/dashboard_templates/mutations_in_lineages.html"
+    )
+
+
+def spike_mutations(request):
+    return render(request, "relecov_dashboard/dashboard_templates/spike_mutations.html")

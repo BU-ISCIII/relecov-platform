@@ -16,35 +16,13 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
 
-# Other libs
 import pandas as pd
 
-# Custom functions
-from relecov_dashboard.utils.graphics.mutation_table import (  # TODO: Fix this bad import
+from relecov_dashboard.utils.graphics.mutation_table import (
     read_mutation_data,
     process_mutation_df,
 )
 from relecov_platform import settings
-
-
-"""
-def create_mutation_heatmap(): # -> DjangoDash:
-
-    # Create mutation heatmap, where each row is a sample and each column a mutation
-    # The color is based on the allele frequency of the mutation
-
-    # ---- Set up ----
-    # Read some extra values
-    input_file = os.path.join(
-        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
-    )
-    sample_ids = [214821, 220685, 214826, 214825]
-    df = read_mutation_data(input_file, file_extension="csv")
-    df = process_mutation_df(df)
-
-    all_genes = list(df["GENE"].unique())
-    all_sample_ids = list(df["SAMPLE"].unique())
-"""
 
 
 def get_figure(data: pd.DataFrame, sample_ids: list, genes: list = None):
@@ -88,11 +66,7 @@ def get_figure(data: pd.DataFrame, sample_ids: list, genes: list = None):
 
     return fig
 
-    # ---- Dash app ----
-    # app = dash.Dash(__name__)
 
-
-# DjangoDash app
 def create_hot_map():
     input_file = os.path.join(
         settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
@@ -157,37 +131,8 @@ def create_hot_map():
         Input("mutation_heatmap-select_sample", "value"),
         Input("mutation_heatmap-gene_dropdown", "value"),
     )
-    def update_graph(
-        sample_ids: str, genes: list
-    ):  # Order of arguments MUST be the same as in the callback function
+    def update_graph(sample_ids: str, genes: list):
         fig = get_figure(df, sample_ids, genes)
         return fig
 
     return app
-
-
-"""
-if __name__ == "__main__":
-    # Input
-
-    # input_file = (
-    #    "/home/usuario/Proyectos/relecov/relecov-platform/data/variants_long_table.csv"
-    # )
-
-    input_file = os.path.join(
-        settings.BASE_DIR,
-        "relecov_dashboard",
-        "utils",
-        "csv_files",
-        "variants_long_table_last.csv",
-    )
-    sample_ids = [214821, 220685, 214826, 214825]
-
-    # Read data
-    df = read_mutation_data(input_file, file_extension="csv")
-    df = process_mutation_df(df)
-
-    # App
-    # app = create_mutation_heatmap(df, sample_ids)
-    # app.run_server(debug=True)
-"""
