@@ -163,7 +163,7 @@ def plot_geomap(lineage):
     with open(csv_fileTest) as f2:
         csv_dataTest = parse_csv(f2)
     """
-    df = pd.read_csv("relecov_core/docs/test_1.csv", sep=",", dtype={"id": "int32"})
+    # df = pd.read_csv("relecov_core/docs/test_1.csv", sep=",", dtype={"id": "int32"})
     fig = px.choropleth_mapbox(
         # data_frame=df,
         data_frame=ldata,
