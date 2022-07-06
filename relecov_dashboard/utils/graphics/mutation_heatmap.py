@@ -9,11 +9,6 @@ Mutation heatmap
     - Color represents allele frequency
 
 """
-
-
-# Dash libs
-# import dash
-# DjangoDash lib
 import os
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
@@ -33,12 +28,12 @@ from relecov_dashboard.utils.graphics.mutation_table import (  # TODO: Fix this 
 from relecov_platform import settings
 
 
-# def create_mutation_heatmap(df: pd.DataFrame, sample_ids: list) -> DjangoDash:
+"""
 def create_mutation_heatmap(): # -> DjangoDash:
-    """
-    Create mutation heatmap, where each row is a sample and each column a mutation
-    The color is based on the allele frequency of the mutation
-    """
+    
+    # Create mutation heatmap, where each row is a sample and each column a mutation
+    # The color is based on the allele frequency of the mutation
+    
     # ---- Set up ----
     # Read some extra values
     input_file = os.path.join(
@@ -50,6 +45,7 @@ def create_mutation_heatmap(): # -> DjangoDash:
 
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
+"""
 
 
 def get_figure(data: pd.DataFrame, sample_ids: list, genes: list = None):
@@ -108,7 +104,7 @@ def create_hot_map():
 
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
-    
+
     app = DjangoDash("mutation_heatmap")
 
     app.layout = html.Div(
@@ -169,6 +165,7 @@ def create_hot_map():
         return fig
 
     return app
+
 
 """
 if __name__ == "__main__":
