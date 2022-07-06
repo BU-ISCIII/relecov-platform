@@ -206,7 +206,7 @@ def plot_geomap(lineage):
         Input("geomap-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
-        plot_geomap(selected_lineage)
+        # plot_geomap(selected_lineage)
         # lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
         # ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
         df = pd.read_csv("relecov_core/docs/test_1.csv", dtype={"id": "int64"})
