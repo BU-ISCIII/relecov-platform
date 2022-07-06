@@ -141,9 +141,6 @@ def plot_geomap(lineage):
     geojson_file = os.path.join(
         settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
     )
-    # geojson_data = os.path.join(
-    #    settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
-    # )
 
     json_file = os.path.join(
         settings.BASE_DIR,
@@ -168,12 +165,16 @@ def plot_geomap(lineage):
     """
     df = pd.read_csv("relecov_core/docs/test_1.csv", sep=",", dtype={"id": "int32"})
     fig = px.choropleth_mapbox(
-        data_frame=df,
+        # data_frame=df,
+        data_frame=ldata,
         geojson=geojson_data,
-        locations=df.id,
-        color=df.Count,
+        # locations=df.id,
+        locations=ldata.ID,
+        # color=df.Count,
+        color=ldata.Count,
         color_continuous_scale="Viridis",
-        range_color=(0, df.Count.max()),
+        # range_color=(0, df.Count.max()),
+        range_color=(0, ldata.Count.max()),
         mapbox_style="carto-positron",
         zoom=5,
         center={"lat": 35.9, "lon": -5.3},
