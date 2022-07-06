@@ -10,7 +10,7 @@ from relecov_dashboard.utils.graphics.needle_plot_graph import create_needle_plo
 from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_graph
 from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
 
-from relecov_dashboard.utils.graphics.lineage_by_CCAA_geomap_graph import plot_geomap
+# from relecov_dashboard.utils.graphics.lineage_by_CCAA_geomap_graph import plot_geomap
 from relecov_dashboard.utils.graphics.mutation_heatmap import create_hot_map
 
 from relecov_dashboard.utils.graphics.geo_json import create_json
@@ -30,7 +30,6 @@ def lineages_voc(request):
     create_molecule3D_zoom_specific_residues()
     create_mutation_table(214821)
     create_hot_map()
-    plot_geomap("B.1.177")
     return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
 
 
