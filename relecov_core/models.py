@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from relecov_core.core_config import (
     SCHEMAS_UPLOAD_FOLDER,
     METADATA_UPLOAD_FOLDER,
+    BIOINFO_METADATA_UPLOAD_FOLDER,
 )
 
 
@@ -38,6 +39,28 @@ class Document(models.Model):
 
     def __str__(self):
         return "%s" % (self.title)
+
+
+class BioinfoMetadataFile(models.Model):
+    title = models.CharField(max_length=200)
+    file_path = models.CharField(max_length=200)
+    uploadedFile = models.FileField(upload_to=BIOINFO_METADATA_UPLOAD_FOLDER)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+
+    class Meta:
+        db_table = "BioinfoMetadataFile"
+
+    def __str__(self):
+        return "%s" % (self.title)
+
+    def get_title(self):
+        return "%s" % (self.title)
+
+    def get_file_path(self):
+        return "%s" % (self.file_path)
+
+    def get_uploaded_file(self):
+        return "%s" % (self.uploadedFile)
 
 
 class SchemaManager(models.Manager):
