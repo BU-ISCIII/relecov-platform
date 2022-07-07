@@ -1,5 +1,6 @@
 import json
-import re
+# import re
+"""
 from relecov_core.models import (
     BioInfoProcessValue,
     BioinfoProcessField,
@@ -11,7 +12,10 @@ from relecov_core.models import (
     Schema,
     SchemaProperties,
 )
-from relecov_core.utils.generic_functions import store_file
+"""
+
+# from relecov_core.utils.generic_functions import store_file
+"""
 from relecov_core.core_config import (
     # SCHEMAS_UPLOAD_FOLDER,
     BIOINFO_UPLOAD_FOLDER,
@@ -25,16 +29,16 @@ from relecov_core.core_config import (
     # MAIN_SCHEMA_STRUCTURE,
     # NO_SELECTED_LABEL_WAS_DONE,
 )
-
-from relecov_core.models import BioinfoMetadataFile
-from django.core.files.uploadedfile import InMemoryUploadedFile
+"""
+# from relecov_core.models import BioinfoMetadataFile
+# from django.core.files.uploadedfile import InMemoryUploadedFile
 
 """
 - receive file bioinfo_metadata.json
 - parse file
 - extract each sample, iterate by sample
 - insert each sample into database
-- 
+-
 """
 
 

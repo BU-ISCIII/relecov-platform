@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from relecov_dashboard.utils.graphics.iter_plot import create_needle_plot_graph_ITER
+"""
 from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
     create_lineage_in_time_graph,
 )
-
+"""
 from relecov_dashboard.utils.graphics.molecule3D_graph import (
     create_molecule3D_zoom_specific_residues,
 )
