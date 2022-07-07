@@ -1,3 +1,5 @@
+# from io import StringIO
+# import json
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -19,10 +21,15 @@ from relecov_core.models import SampleState
 
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from .utils.analysis_handling import process_analysis_data
-from relecov_core.api.utils.bioinfo_handling import fetch_bioinfo_data
+
+# from relecov_core.api.utils.bioinfo_handling import fetch_bioinfo_data
+from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 # from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
+# from django.core.files.uploadedfile import InMemoryUploadedFile
+
 
 """
 analysis_data = openapi.Parameter(
@@ -120,12 +127,15 @@ def longtable_data(request):
 
 
 @api_view(["POST"])
-def bioinfo_data(request):
+def bioinfo_metadata_file(request):
     if request.method == "POST":
         data = request.data
+        file_received = request.FILES.get("data")
+
     if isinstance(data, QueryDict):
         data = data.dict()
-    fetch_bioinfo_data(data)
+
+    fetch_bioinfo_data(file_received, data)
 
     # if "ERROR" in stored_data:
     #    return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)

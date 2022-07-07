@@ -152,11 +152,13 @@ HEADING_FOR_QCSTATS_TABLE = {
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
 BIOINFO_UPLOAD_FOLDER = "bioinfo"
+BIOINFO_METADATA_UPLOAD_FOLDER = "bioinfo_metadata"
 METADATA_JSON_UPLOAD_FOLDER = "metadata_json"
 METADATA_UPLOAD_FOLDER = "metadata"
 
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 BIOINFO_SUCCESSFUL_LOAD = "Bioinfo file was successfully loaded"
+BIOINFO_METADATA_SUCCESSFUL_LOAD = "Bioinfo metadata file was successfully loaded"
 METADATA_JSON_SUCCESSFUL_LOAD = "Metadata was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 ERROR_SCHEMA_NOT_DEFINED = "No schemas have been defined yet"
