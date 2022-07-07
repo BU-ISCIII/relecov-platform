@@ -1,5 +1,5 @@
-from io import StringIO
-import json
+# from io import StringIO
+# import json
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -27,7 +27,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 # from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.core.files.uploadedfile import InMemoryUploadedFile
+# from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 """

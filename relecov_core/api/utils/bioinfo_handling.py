@@ -81,12 +81,12 @@ def fetch_bioinfo_data(data):
                 schemaID=default_schema.get_schema_id(), property_name__iexact=property
             ).exists():
                 print(" Exists in BioinfoProcessField: " + str(property))
-
+                """
                 bioinfo_process_field = BioinfoProcessField.objects.get(
                     schemaID=default_schema.get_schema_id(),
                     property_name__iexact=property,
                 )
-
+                """
                 bioinfo_process_values = BioInfoProcessValue.objects.create(
                     value=data[property],
                     bioinfo_process_fieldID=BioinfoProcessField.objects.get(
@@ -247,7 +247,7 @@ def fetch_bioinfo_data(data):
     insert_to_lineage_table(list_of_lineage_table_properties)
     print(len(list_of_lineage_table_properties))
     print(list_of_lineage_table_properties)
-    
+
 """
 """
 def insert_to_lineage_table(data):
