@@ -1,6 +1,5 @@
 import os
 from django_plotly_dash import DjangoDash
-
 import dash_table
 from dash.dependencies import Input, Output
 import pandas as pd
@@ -9,11 +8,7 @@ import dash_html_components as html
 from relecov_platform import settings
 
 # PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
-# import re
 import parmed as pmd
-
-# def create_model_hackaton():
-#    app = DjangoDash("model3D")
 
 
 class PdbParser:
@@ -92,35 +87,6 @@ def get_table_selection(df):
 
 
 def create_graph():
-    """
-    my_pdb_parser = PdbParser(
-        "https://proteopedia.org/wiki/index.php/PDB_code"
-    )  # PdbParser(
-    """
-    """
-    file_csv = PdbParser(
-        os.path.join(
-            settings.BASE_DIR,
-            "relecov_dashboard",
-            "utils",
-            "csv_files",
-            "variants_long_table_last.csv",
-        )
-    )
-    """
-    """
-    file_csv = os.path.join(
-        settings.BASE_DIR,
-        "relecov_dashboard",
-        "utils",
-        "csv_files",
-        "variants_long_table_last.csv",
-    )
-    """
-
-    # file_csv = "/home/vhir/Documents/biohackathon_relecov/Hackaton/variants_long_table.csv"
-
-    # spike_mutations = get_table_selection(get_spike_mutations(file_csv))
 
     app = DjangoDash("model3D")
 
@@ -130,9 +96,6 @@ def create_graph():
         )
     )
 
-    # pdb_file = PdbParser("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
-    # structure = pmd.load_file("/home/vhir/Documents/biohackathon_relecov/Hackaton/7dwz.pdb")
-    # import pdb; pdb.set_trace()
     data = pdb_file.mol3d_data()
     styles = create_mol3d_style(data["atoms"])
 
@@ -170,7 +133,6 @@ def create_graph():
         row["positions"] = row["positions"].apply(
             lambda x: [float(x) for x in x.split(",")]
         )
-        # position = row["residue_position"].iloc[0]
         atoms = df[df["residue_position"] == row["residue_position"].iloc[0]]
         list_atoms = atoms["serial"].tolist()
         new_atom_styles = []
@@ -202,9 +164,3 @@ def create_graph():
             ],
             new_atom_styles,
         ]
-
-    # app.runserver()
-
-
-# if __name__ == "__main__":
-#    create_graph()
