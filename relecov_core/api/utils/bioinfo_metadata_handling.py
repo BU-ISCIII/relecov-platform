@@ -15,7 +15,9 @@ from relecov_core.models import (
 )
 """
 
-# from relecov_core.utils.generic_functions import store_file
+from relecov_core.utils.generic_functions import store_file
+from relecov_core.core_config import BIOINFO_METADATA_UPLOAD_FOLDER
+
 """
 from relecov_core.core_config import (
     # SCHEMAS_UPLOAD_FOLDER,
@@ -45,6 +47,8 @@ from relecov_core.core_config import (
 
 def fetch_bioinfo_data(file_received, data):
     print(data["data"].read())
+    file_name = store_file(file_received, folder=BIOINFO_METADATA_UPLOAD_FOLDER)
+    print(file_name)
     # my_file = InMemoryUploadedFile(file=file_received,field_name="file1",name=None,content_type=file_received.read(),size=None, charset="utf-8")
     # BioinfoMetadataFile.objects.create(title="file")
 
