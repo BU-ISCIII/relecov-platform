@@ -28,10 +28,67 @@ from relecov_core.models import (
     SchemaProperties,
 )
 
-from relecov_core.utils.generic_functions import store_file
-from relecov_core.core_config import BIOINFO_METADATA_UPLOAD_FOLDER
+
+def fetch_bioinfo_data(data):
+    insert_data_into_db(data)
 
 
+def get_list_of_samples_from_parsed_json(data):
+    list_of_samples = list(data.keys())
+    return list_of_samples
+
+
+def insert_data_into_db(data):
+    list_of_no_exists = []
+    default_schema = Schema.objects.get(schema_default=1)
+    number_of_sample = data["sample_name"]
+    print(number_of_sample)
+
+    for field in data:
+        print(field)
+
+        if SchemaProperties.objects.filter(
+            schemaID=default_schema.get_schema_id(), property__iexact=field
+        ).exists():
+            print(
+                "field {} , exists in Schema {}".format(
+                    field, default_schema.get_schema_id()
+                )
+            )
+            if BioinfoProcessField.objects.filter(
+                schemaID=default_schema.get_schema_id(),
+                property_name__iexact=field,
+            ).exists():
+                print(
+                    "field {} , exists in BioinfoProcessField, schemaID {}".format(
+                        field, default_schema.get_schema_id()
+                    )
+                )
+                BioInfoProcessValue.objects.create(
+                    value=data[field],
+                    bioinfo_process_fieldID=BioinfoProcessField.objects.get(
+                        schemaID=default_schema.get_schema_id(),
+                        property_name__iexact=field,
+                    ),
+                    sampleID_id=Sample.objects.get(
+                        sequencing_sample_id__iexact=number_of_sample
+                    ),
+                ).save()
+
+            else:
+                print(" Doesn't exist in BioinfoProcessField: " + str(property))
+                list_of_no_exists.append(property)
+
+        else:
+            print(
+                "Error... property: "
+                + str(property)
+                + " ,doesn't exists in Schema: "
+                + default_schema.get_schema_id()
+            )
+
+
+"""
 def fetch_bioinfo_data(received_file, data):
     file_name = store_file(
         user_file=received_file, folder=BIOINFO_METADATA_UPLOAD_FOLDER
@@ -100,3 +157,4 @@ def insert_data_into_db(parsed_file, list_of_samples):
                     + " ,doesn't exists in Schema: "
                     + default_schema.get_schema_id()
                 )
+"""
