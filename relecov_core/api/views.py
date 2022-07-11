@@ -17,8 +17,6 @@ from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import CreateSampleSerializer
 from relecov_core.models import SampleState
-
-
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from .utils.analysis_handling import process_analysis_data
 
@@ -27,8 +25,6 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 # from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
-# from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 """
@@ -128,14 +124,16 @@ def longtable_data(request):
 
 @api_view(["POST"])
 def bioinfo_metadata_file(request):
+    # bioinfo_data = BioInfoProcessValue.objects.all()
+    # bioinfo_data.delete()
     if request.method == "POST":
         data = request.data
-        file_received = request.FILES.get("data")
+        # file_received = request.FILES.get("data")
 
     if isinstance(data, QueryDict):
         data = data.dict()
-
-    fetch_bioinfo_data(file_received, data)
+        print(data)
+    fetch_bioinfo_data(data)
 
     # if "ERROR" in stored_data:
     #    return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
