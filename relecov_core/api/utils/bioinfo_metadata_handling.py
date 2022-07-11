@@ -8,22 +8,10 @@
 
 """
 
-import json
-import os
-
-from django.conf import settings
-
-
-# import re
-
 from relecov_core.models import (
     BioInfoProcessValue,
     BioinfoProcessField,
-    # Classification,
-    # Lineage,
     Sample,
-    # MetadataVisualization,
-    # PropertyOptions,
     Schema,
     SchemaProperties,
 )
