@@ -630,7 +630,7 @@ class Sample(models.Model):
 
 
 class BioInfoProcessValue(models.Model):
-    value = models.CharField(max_length=240, null=True, blank=True)
+    value = models.CharField(max_length=240)
     bioinfo_process_fieldID = models.ForeignKey(
         BioinfoProcessField, on_delete=models.CASCADE
     )
