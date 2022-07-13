@@ -4,8 +4,8 @@ import os
 from django.db import DataError
 from django.conf import settings
 from relecov_core.models import (
-    BioinfoProcessField,
-    Classification,
+    # BioinfoProcessField,
+    # Classification,
     MetadataVisualization,
     PropertyOptions,
     Schema,
@@ -232,18 +232,16 @@ def store_schema_properties(schema_obj, s_properties, required):
 
 def store_bioinfo_fields(schema_obj, s_properties):
     """Store the fields to be used for saving analysis information"""
+    # p = re.compile(r"Bioinformatic?..*[\w+]")
+    # p2 = re.compile(r"Lineage.+[\w+]")
     for prop_key in s_properties.keys():
         classification = ""
         data = dict(s_properties[prop_key])
 
         if "classification" in data:
-            p = re.compile(r"Bioinformatic?..*[\w+]")
-            p2 = re.compile(r"Lineage.+[\w+]")
-            match = p.match(data["classification"])
+            match = re.search(r'^Bioinformatic.*', data["classification"])
             if not match:
-                match = p2.match(data["classification"])
-                if not match:
-                    continue
+                continue
             classification = match.group()
             print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])

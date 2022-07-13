@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from relecov_core.models import (
+    # BioInfoProcessValue,
     Lineage,
     Sample,
     Chromosome,
@@ -12,6 +13,12 @@ from relecov_core.models import (
     Variant,
 )
 
+"""
+class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BioInfoProcessValue
+        fields = "__all__"
+"""
 
 class CreateSampleSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,148 +1,69 @@
-"""
-- receive file bioinfo_metadata.json (InMemoryUploadedFile) -> fetch_bioinfo_data()
-- save this file into relecov_platform/documents/bioinfo_metadata -> fetch_bioinfo_data()
-- parse file ->  parse_bioinfo_file()
-- get a list of samples from parsed json file -> get_list_of_samples_from_parsed_json()
-- insert each sample into database:
-    - extract each sample, (iterate by sample)
-
-"""
-
 from relecov_core.models import (
-    BioInfoProcessValue,
-    BioinfoProcessField,
+    # BioinfoProcessField,
     Sample,
-    Schema,
-    SchemaProperties,
+    Schema
 )
+from relecov_core.core_config import (
+    ERROR_SCHEMA_NOT_DEFINED,
+    ERROR_FIELD_NOT_DEFINED,
+    ERROR_SAMPLE_NOT_DEFINED,
+    ERROR_SAMPLE_NAME_NOT_INCLUDED,
+    ERROR_SAMPLE_NOT_IN_DEFINED_STATE,
+    ERROR_UNABLE_TO_STORE_IN_DATABASE
+)
+# from relecov_core.api.serializers import CreateBioInfoProcessValueSerializer
+
+
+def check_valid_data(data, schema_id):
+    """Check if all fields in the request are defined in database"""
+    for field in data:
+        if field == "sample_name":
+            continue
+        if not BioinfoProcessField.objects.filter(
+            schemaID=schema_id, property_name__iexact=field
+        ).exists():
+            return {"ERROR" : str(field + " " + ERROR_FIELD_NOT_DEFINED)}
+    return True
+
+
+def store_field(field, value, sample_obj, schema_id):
+    """Save the new field data in database"""
+    data = {"value": value, "sampleID_id": sample_obj}
+    data["bioinfo_process_fieldID"] = BioinfoProcessField.objects.filter(
+        schemaID=schema_id,
+        property_name__iexact=field).last()
+
+    bio_value_serializer = CreateBioInfoProcessValueSerializer(data=data)
+    if not bio_value_serializer.is_valid():
+        return False
+    bio_value_serializer.save()
+    return True
 
 
 def fetch_bioinfo_data(data):
-    insert_data_into_db(data)
+    if "sample_name" not in data:
+        return {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED}
+    sample_obj = Sample.objects.filter(sequencing_sample_id__iexact=data["sample_name"]).last()
+    if not Sample.objects.filter(sequencing_sample_id__iexact=data["sample_name"]):
+        return {"ERROR": str(data["sample_name"] + " " + ERROR_SAMPLE_NOT_DEFINED)}
+    if sample_obj.get_state() != "Defined":
+        return {"ERROR": ERROR_SAMPLE_NOT_IN_DEFINED_STATE}
 
+    if not Schema.objects.filter(schema_apps_name="relecov_core", schema_default=True).exists():
+        return {"ERROR": ERROR_SCHEMA_NOT_DEFINED}
+    schema_obj = Schema.objects.filter(schema_apps_name="relecov_core", schema_default=True).last()
 
-def get_list_of_samples_from_parsed_json(data):
-    list_of_samples = list(data.keys())
-    return list_of_samples
+    valid_data = check_valid_data(data, schema_obj)
+    if isinstance(valid_data, dict):
+        return valid_data
 
+    for field, value in data.items():
+        if field == "sample_name":
+            continue
+        import pdb; pdb.set_trace()
+        if not store_field(field, data[field], sample_obj, schema_obj):
+            return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
+        import pdb; pdb.set_trace()
+    sample_obj.update_state("Bioinfo")
 
-def insert_data_into_db(data):
-    list_of_no_exists = []
-    default_schema = Schema.objects.get(schema_default=1)
-    number_of_sample = data["sample_name"]
-    print(number_of_sample)
-
-    for field in data:
-        print(field)
-
-        if SchemaProperties.objects.filter(
-            schemaID=default_schema.get_schema_id(), property__iexact=field
-        ).exists():
-            print(
-                "field {} , exists in Schema {}".format(
-                    field, default_schema.get_schema_id()
-                )
-            )
-            if BioinfoProcessField.objects.filter(
-                schemaID=default_schema.get_schema_id(),
-                property_name__iexact=field,
-            ).exists():
-                print(
-                    "field {} , exists in BioinfoProcessField, schemaID {}".format(
-                        field, default_schema.get_schema_id()
-                    )
-                )
-                BioInfoProcessValue.objects.create(
-                    value=data[field],
-                    bioinfo_process_fieldID=BioinfoProcessField.objects.get(
-                        schemaID=default_schema.get_schema_id(),
-                        property_name__iexact=field,
-                    ),
-                    sampleID_id=Sample.objects.get(
-                        sequencing_sample_id__iexact=number_of_sample
-                    ),
-                ).save()
-
-            else:
-                print(" Doesn't exist in BioinfoProcessField: " + str(property))
-                list_of_no_exists.append(property)
-
-        else:
-            print(
-                "Error... property: "
-                + str(property)
-                + " ,doesn't exists in Schema: "
-                + default_schema.get_schema_id()
-            )
-
-
-"""
-def fetch_bioinfo_data(received_file, data):
-    file_name = store_file(
-        user_file=received_file, folder=BIOINFO_METADATA_UPLOAD_FOLDER
-    )
-    bioinfo_metadata_file = os.path.join(settings.BASE_DIR, "documents", file_name)
-    parsed_file = parse_bioinfo_file(received_file=bioinfo_metadata_file)
-    list_of_samples = get_list_of_samples_from_parsed_json(parsed_file=parsed_file)
-    insert_data_into_db(parsed_file=parsed_file, list_of_samples=list_of_samples)
-
-
-def parse_bioinfo_file(received_file):
-    with open(received_file) as f:
-        parse_json = json.load(f)
-    return parse_json
-
-
-def get_list_of_samples_from_parsed_json(parsed_file):
-    list_of_samples = list(parsed_file.keys())
-    return list_of_samples
-
-
-def insert_data_into_db(parsed_file, list_of_samples):
-    list_of_no_exists = []
-    default_schema = Schema.objects.get(schema_default=1)
-
-    for sample in list_of_samples:
-        print(sample)
-        data_in_sample = parsed_file[sample]
-        for prop_obj in data_in_sample:
-            print(prop_obj)
-
-            if SchemaProperties.objects.filter(
-                schemaID=default_schema.get_schema_id(), property__iexact=prop_obj
-            ).exists():
-                print(
-                    "field {} , exists in Schema {}".format(
-                        prop_obj, default_schema.get_schema_id()
-                    )
-                )
-                if BioinfoProcessField.objects.filter(
-                    schemaID=default_schema.get_schema_id(),
-                    property_name__iexact=prop_obj,
-                ).exists():
-                    print(
-                        "field {} , exists in BioinfoProcessField, schemaID {}".format(
-                            prop_obj, default_schema.get_schema_id()
-                        )
-                    )
-                    BioInfoProcessValue.objects.create(
-                        value=parsed_file[sample][prop_obj],
-                        bioinfo_process_fieldID=BioinfoProcessField.objects.get(
-                            schemaID=default_schema.get_schema_id(),
-                            property_name__iexact=prop_obj,
-                        ),
-                        sampleID_id=Sample.objects.get(sequencing_sample_id=sample),
-                    ).save()
-
-                else:
-                    print(" Doesn't exist in BioinfoProcessField: " + str(property))
-                    list_of_no_exists.append(property)
-
-            else:
-                print(
-                    "Error... property: "
-                    + str(property)
-                    + " ,doesn't exists in Schema: "
-                    + default_schema.get_schema_id()
-                )
-"""
+    return
