@@ -325,6 +325,7 @@ class BioinfoProcessField(models.Model):
     objects = BioinfoProcessFieldManager()
 """
 
+
 # Caller Table
 class CallerManager(models.Manager):
     def create_new_caller(self, data):
@@ -682,6 +683,7 @@ class BioInfoProcessValue(models.Model):
     def get_id(self):
         return "%s" % (self.pk)
 """
+
 
 # Position table
 class PositionManager(models.Manager):
