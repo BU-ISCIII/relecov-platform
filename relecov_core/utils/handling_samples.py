@@ -19,7 +19,8 @@ from relecov_core.models import (
     # Authors,
     MetadataVisualization,
     SchemaProperties,
-    TemporalSampleStorage,
+    #
+    # TemporalSampleStorage,
     # PropertyOptions,
     # Schema,
     Sample,

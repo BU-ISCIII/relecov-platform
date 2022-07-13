@@ -150,7 +150,8 @@ class SchemaProperties(models.Model):
     format = models.CharField(max_length=20, null=True, blank=True)
     description = models.CharField(max_length=250, null=True, blank=True)
     label = models.CharField(max_length=200, null=True, blank=True)
-    classification = models.CharField(max_length=80, null=True, blank=True)
+    #
+    # classification = models.CharField(max_length=80, null=True, blank=True)
     required = models.BooleanField(default=False)
     options = models.BooleanField(default=False)
     fill_mode = models.CharField(max_length=50, null=True, blank=True)
@@ -261,7 +262,7 @@ class MetadataVisualization(models.Model):
 
     objects = MetadataVisualizationManager()
 
-
+"""
 class ClassificationManager(models.Manager):
     def create_new_classification(self, class_name):
         new_class_obj = self.create(class_name=class_name)
@@ -269,6 +270,7 @@ class ClassificationManager(models.Manager):
 
 
 class Classification(models.Model):
+    # schema_id = models.ForeignKey(Schema, on_delete=models.CASCADE)
     class_name = models.CharField(max_length=80)
 
     def __str__(self):
@@ -281,8 +283,9 @@ class Classification(models.Model):
         return "%s" % (self.class_name)
 
     objects = ClassificationManager()
+"""
 
-
+"""
 class BioinfoProcessFieldManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
@@ -295,7 +298,8 @@ class BioinfoProcessFieldManager(models.Manager):
 
 class BioinfoProcessField(models.Model):
     schemaID = models.ManyToManyField(Schema)
-    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
+    #
+    # classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
     label_name = models.CharField(max_length=80)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -318,7 +322,7 @@ class BioinfoProcessField(models.Model):
         return None
 
     objects = BioinfoProcessFieldManager()
-
+"""
 
 # Caller Table
 class CallerManager(models.Manager):
@@ -419,13 +423,29 @@ class Effect(models.Model):
 
     objects = EffectManager()
 
+"""
+class LineageNames(models.Model):
+    lineage_name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-# Lineage Table
+    class Meta:
+        db_table = "LineageNames"
+
+    def __str__(self):
+        return "%s" % (self.lineage_name)
+
+    def get_lineage_name(self):
+        return "%s" % (self.lineage_name)
+
+    def get_lineage_id(self):
+        return "%s" % (self.pk)
+"""
+
 class LineageManager(models.Manager):
     def create_new_lineage(self, data):
         new_lineage = self.create(
             lineage_identification_date=data["lineage_identification_date"],
-            lineage_name=data["lineage_name"],
+            lineage_name=data["lineage_name_id"],
             lineage_analysis_software_name=data["lineage_analysis_software_name"],
             if_lineage_identification_other=data["if_lineage_identification_other"],
             lineage_analysis_software_version=data["lineage_analysis_software_version"],
@@ -434,10 +454,12 @@ class LineageManager(models.Manager):
 
 
 class Lineage(models.Model):
+    # lineage_name_id = models.ForeignKey(
+    # LineageNames, on_delete=models.CASCADE, null=True, blank=True
+    # )
     lineage_identification_date = models.CharField(
         max_length=100, null=True, blank=True
     )
-    lineage_name = models.CharField(max_length=100)
     lineage_analysis_software_name = models.CharField(
         max_length=100, null=True, blank=True
     )
@@ -445,6 +467,9 @@ class Lineage(models.Model):
         max_length=100, null=True, blank=True
     )
     lineage_analysis_software_version = models.CharField(
+        max_length=100, null=True, blank=True
+    )
+    lineage_name = models.CharField(
         max_length=100, null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
@@ -541,7 +566,7 @@ class SampleState(models.Model):
         return "%s" % (self.state)
 
     def get_state(self):
-        return "%s" % (self.description)
+        return "%s" % (self.state)
 
     def get_state_id(self):
         return "%s" % (self.pk)
@@ -618,7 +643,9 @@ class Sample(models.Model):
     #    return "%s" % (self.sequencing_date)
 
     def get_state(self):
-        return "%s" % (self.state)
+        if self.state:
+            return "%s" % (self.state.get_state())
+        return None
 
     def get_user(self):
         return "%s" % (self.user)
@@ -626,9 +653,16 @@ class Sample(models.Model):
     def get_metadata_file(self):
         return "%s" % (self.metadata_file)
 
+    def update_state(self, state):
+        if not SampleState.object.filter(state__exact=state).exists():
+            return False
+        self.state = SampleState.object.filter(state__exact=state).last()
+        self.save()
+        return self
+
     objects = SampleManager()
 
-
+"""
 class BioInfoProcessValue(models.Model):
     value = models.CharField(max_length=240)
     bioinfo_process_fieldID = models.ForeignKey(
@@ -645,7 +679,7 @@ class BioInfoProcessValue(models.Model):
 
     def get_id(self):
         return "%s" % (self.pk)
-
+"""
 
 # Position table
 class PositionManager(models.Manager):
@@ -831,7 +865,7 @@ class PublicDatabase(models.Model):
 
     objects = PublicDatabaseManager()
 
-
+"""
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
         new_t_data = self.create(
@@ -859,7 +893,7 @@ class TemporalSampleStorage(models.Model):
         return
 
     objects = TemporalSampleStorageManager()
-
+"""
 
 class ConfigSettingManager(models.Manager):
     def create_config_setting(self, configuration_name, configuration_value):
