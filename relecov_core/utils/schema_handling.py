@@ -246,7 +246,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
             print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
-
+            """
             # create new entr in Classification table in not exists
             if Classification.objects.filter(
                 class_name__iexact=classification
@@ -267,7 +267,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
             fields["label_name"] = data["label"]
             n_field = BioinfoProcessField.objects.create_new_field(fields)
             n_field.schemaID.add(schema_obj)
-
+            """
     return {"SUCCESS": ""}
 
 

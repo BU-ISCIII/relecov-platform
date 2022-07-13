@@ -1,6 +1,6 @@
 import json
 from collections import OrderedDict
-from django.db.models import Max
+# from django.db.models import Max
 
 from relecov_core.core_config import (
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
@@ -190,6 +190,7 @@ def create_metadata_form(schema_obj, user_obj):
 def save_temp_sample_data(samples):
     """Store the valid sample into the temporary table"""
     # get the latest value of sample_index
+    """
     last_value = TemporalSampleStorage.objects.aggregate(Max("sample_idx")).get(
         "sample_idx__max"
     )
@@ -203,4 +204,5 @@ def save_temp_sample_data(samples):
             data["field"] = item
             data["value"] = value
             TemporalSampleStorage.objects.save_temp_data(data)
+    """
     return
