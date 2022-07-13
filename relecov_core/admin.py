@@ -97,7 +97,7 @@ class LineageAdmin(admin.ModelAdmin):
     list_display = [
         "lineage_name",
         "lineage_analysis_software_name",
-        "lineage_analysis_software_version"
+        "lineage_analysis_software_version",
     ]
 
 
