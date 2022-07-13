@@ -20,6 +20,7 @@ class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
         fields = "__all__"
 """
 
+
 class CreateSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample

@@ -239,7 +239,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
         data = dict(s_properties[prop_key])
 
         if "classification" in data:
-            match = re.search(r'^Bioinformatic.*', data["classification"])
+            match = re.search(r"^Bioinformatic.*", data["classification"])
             if not match:
                 continue
             classification = match.group()

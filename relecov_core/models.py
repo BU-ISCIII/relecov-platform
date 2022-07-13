@@ -262,6 +262,7 @@ class MetadataVisualization(models.Model):
 
     objects = MetadataVisualizationManager()
 
+
 """
 class ClassificationManager(models.Manager):
     def create_new_classification(self, class_name):
@@ -423,6 +424,7 @@ class Effect(models.Model):
 
     objects = EffectManager()
 
+
 """
 class LineageNames(models.Model):
     lineage_name = models.CharField(max_length=100)
@@ -440,6 +442,7 @@ class LineageNames(models.Model):
     def get_lineage_id(self):
         return "%s" % (self.pk)
 """
+
 
 class LineageManager(models.Manager):
     def create_new_lineage(self, data):
@@ -469,9 +472,7 @@ class Lineage(models.Model):
     lineage_analysis_software_version = models.CharField(
         max_length=100, null=True, blank=True
     )
-    lineage_name = models.CharField(
-        max_length=100, null=True, blank=True
-    )
+    lineage_name = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -661,6 +662,7 @@ class Sample(models.Model):
         return self
 
     objects = SampleManager()
+
 
 """
 class BioInfoProcessValue(models.Model):
@@ -865,6 +867,7 @@ class PublicDatabase(models.Model):
 
     objects = PublicDatabaseManager()
 
+
 """
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
@@ -894,6 +897,7 @@ class TemporalSampleStorage(models.Model):
 
     objects = TemporalSampleStorageManager()
 """
+
 
 class ConfigSettingManager(models.Manager):
     def create_config_setting(self, configuration_name, configuration_value):
