@@ -1,5 +1,6 @@
 import json
 from collections import OrderedDict
+
 # from django.db.models import Max
 
 from relecov_core.core_config import (
