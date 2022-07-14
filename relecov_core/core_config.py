@@ -162,6 +162,9 @@ BIOINFO_METADATA_SUCCESSFUL_LOAD = "Bioinfo metadata file was successfully loade
 METADATA_JSON_SUCCESSFUL_LOAD = "Metadata was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 ERROR_SCHEMA_NOT_DEFINED = "No schemas have been defined yet"
+ERROR_SAMPLE_NAME_NOT_INCLUDED = "Sample name field is not included in the request"
+ERROR_SAMPLE_NOT_DEFINED = "Sample id is not defined"
+ERROR_SAMPLE_NOT_IN_DEFINED_STATE = "Sample is not in Defined state"
 
 ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
@@ -172,6 +175,9 @@ ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED = (
     "Fields to display in Metadata form are not defined yet"
 )
 ERROR_ISKYLIMS_NOT_REACHEABLE = "iSkyLIMS server is not accessible"
+ERROR_FIELD_NOT_DEFINED = "Field is not defined in database"
+
+ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
 
 HEADING_SCHEMA_DISPLAY = [
     "Property",

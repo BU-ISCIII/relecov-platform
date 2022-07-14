@@ -131,10 +131,9 @@ def bioinfo_metadata_file(request):
 
     if isinstance(data, QueryDict):
         data = data.dict()
-        # print(data)
-    fetch_bioinfo_data(data)
+    stored_data = fetch_bioinfo_data(data)
 
-    # if "ERROR" in stored_data:
-    #    return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+    if "ERROR" in stored_data:
+        return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
