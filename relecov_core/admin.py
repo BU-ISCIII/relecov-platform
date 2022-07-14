@@ -4,10 +4,10 @@ from django.contrib.auth.models import User
 
 from relecov_core.models import (
     Authors,
-    BioInfoProcessValue,
-    BioinfoProcessField,
+    # BioInfoProcessValue,
+    # BioinfoProcessField,
     Caller,
-    Classification,
+    # Classification,
     Chromosome,
     ConfigSetting,
     Document,
@@ -15,6 +15,7 @@ from relecov_core.models import (
     Gene,
     Filter,
     Lineage,
+    # LineageNames,
     MetadataVisualization,
     Position,
     Profile,
@@ -24,10 +25,21 @@ from relecov_core.models import (
     SampleState,
     Schema,
     SchemaProperties,
-    TemporalSampleStorage,
+    # TemporalSampleStorage,
     Variant,
     VariantInSample,
+    MarkDownModel,
 )
+
+# from markdownx.admin import MarkdownxModelAdmin
+from markdownx.widgets import AdminMarkdownxWidget
+from django.db import models
+
+
+class MarkDownModelAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.TextField: {"widget": AdminMarkdownxWidget},
+    }
 
 
 class ProfileInLine(admin.StackedInline):
@@ -88,8 +100,16 @@ class ChromosomeAdmin(admin.ModelAdmin):
     list_display = ["chromosome"]
 
 
-class LineageAdmin(admin.ModelAdmin):
+class LineageNamesAdmin(admin.ModelAdmin):
     list_display = ["lineage_name"]
+
+
+class LineageAdmin(admin.ModelAdmin):
+    list_display = [
+        "lineage_name",
+        "lineage_analysis_software_name",
+        "lineage_analysis_software_version",
+    ]
 
 
 class PositionAdmin(admin.ModelAdmin):
@@ -160,16 +180,17 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
-admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
-admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
+# admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
+# admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
 admin.site.register(Caller, CallerAdmin)
-admin.site.register(Classification, ClassificationAdmin)
+# admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(Lineage, LineageAdmin)
+# admin.site.register(LineageNames, LineageNamesAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
@@ -179,6 +200,7 @@ admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
-admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
+# admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
+admin.site.register(MarkDownModel, MarkDownModelAdmin)
