@@ -123,12 +123,8 @@ def longtable_data(request):
 
 @api_view(["POST"])
 def bioinfo_metadata_file(request):
-<<<<<<< HEAD
-    print("received")
-=======
     # bioinfo_data = BioInfoProcessValue.objects.all()
     # bioinfo_data.delete()
->>>>>>> 8d4e47d90dd514c7936edb86709c5c96f1564655
     if request.method == "POST":
         data = request.data
         # file_received = request.FILES.get("data")
