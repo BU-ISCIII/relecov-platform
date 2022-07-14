@@ -23,6 +23,7 @@ from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 
 from relecov_core.models import Sample, MarkDownModel
 from django.views.generic import DetailView
+
 # from .forms import MarkedDownExampleForm
 
 
