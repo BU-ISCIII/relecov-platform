@@ -31,7 +31,7 @@ from relecov_core.models import (
     MarkDownModel,
 )
 
-from markdownx.admin import MarkdownxModelAdmin
+# from markdownx.admin import MarkdownxModelAdmin
 from markdownx.widgets import AdminMarkdownxWidget
 from django.db import models
 
