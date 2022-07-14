@@ -167,12 +167,17 @@ def variants(request):
 def documentation(request):
     return render(request, "relecov_core/documentation.html", {})
 
+
 def markdown_example(request):
-    #markdowns = MarkDownModel.objects.all()
+    # markdowns = MarkDownModel.objects.all()
     # return render(request, "relecov_core/markdown_example.html", {"markdowns": markdowns})
     markeddownexample = MarkdownDetailView()
     print(markeddownexample)
-    return render(request, "relecov_core/markdown_example.html", {"markeddownexample": markeddownexample})
+    return render(
+        request,
+        "relecov_core/markdown_example.html",
+        {"markeddownexample": markeddownexample},
+    )
 
 
 @login_required()

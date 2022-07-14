@@ -35,9 +35,10 @@ from markdownx.admin import MarkdownxModelAdmin
 from markdownx.widgets import AdminMarkdownxWidget
 from django.db import models
 
+
 class MarkDownModelAdmin(admin.ModelAdmin):
     formfield_overrides = {
-        models.TextField: {'widget': AdminMarkdownxWidget},
+        models.TextField: {"widget": AdminMarkdownxWidget},
     }
 
 
