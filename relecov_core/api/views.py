@@ -128,6 +128,7 @@ def longtable_data(request):
 
 @api_view(["POST"])
 def bioinfo_metadata_file(request):
+    print("received")
     if request.method == "POST":
         data = request.data
         file_received = request.FILES.get("data")
