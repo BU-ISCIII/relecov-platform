@@ -2,14 +2,34 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 
 from relecov_core.core_config import (
     SCHEMAS_UPLOAD_FOLDER,
     METADATA_UPLOAD_FOLDER,
     BIOINFO_METADATA_UPLOAD_FOLDER,
 )
+# markdownx
+from markdownx.models import MarkdownxField
+from markdownx.utils import markdownify
 
+class MarkDownModel(models.Model):
+    title = models.CharField(max_length=200)
+    markdown_description = MarkdownxField()
+    
+    # Create a property that returns the markdown 
+    @property
+    def formatted_markdown(self):
+        return markdownify(self.markdown_description)
+    def get_absolute_url(self):
+        return reverse('markdown-detail', kwargs={'pk': self.pk})
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        db_table = "Markdown"
 
+        
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     laboratory = models.CharField(max_length=60, null=True, blank=True)
