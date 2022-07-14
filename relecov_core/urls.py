@@ -3,6 +3,8 @@ from django.conf import settings
 from relecov_core import views
 from django.conf.urls.static import static
 
+from django.urls import include
+
 urlpatterns = [
     path("", views.index, name="index"),
     path("contributorInfo/", views.contributor_info, name="contributorInfo"),
@@ -33,6 +35,8 @@ urlpatterns = [
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
     ),
+    path("markdownExample", views.markdown_example, name="markdown_example"),
+    path("markdownx/", include("markdownx.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
