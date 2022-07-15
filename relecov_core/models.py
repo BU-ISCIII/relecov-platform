@@ -10,15 +10,22 @@ from relecov_core.core_config import (
 )
 
 # markdownx
-from markdownx.models import MarkdownxField
+# from markdownx.models import MarkdownxField
 
-
-class MarkdownTest(models.Model):
+"""
+class MarkdownDocument(models.Model):
     title = models.CharField(max_length=250)
+    abstract = MarkdownxField() 
     content = MarkdownxField()
 
+    class Meta:
+        db_table = "MarkdownDocuments"
+    
+    def __str__(self):
+        return self.title
 
 # Note: background_image is just for my header background, not MarkdownX
+"""
 
 
 class Profile(models.Model):

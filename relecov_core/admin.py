@@ -28,11 +28,11 @@ from relecov_core.models import (
     # TemporalSampleStorage,
     Variant,
     VariantInSample,
+    # MarkdownDocument
 )
 
 # from markdownx.admin import MarkdownxModelAdmin
 # from markdownx.admin import MarkdownxModelAdmin
-from .models import MarkdownTest
 
 
 class ProfileInLine(admin.StackedInline):
@@ -169,21 +169,26 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
     ]
 
 
+"""   
+class MarkdownDocumentAdmin(admin.ModelAdmin):
+    list_display = [
+        "title",
+        "abstract",
+        "content",
+        ]
+"""
+
 # Register models
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
-# admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
-# admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
 admin.site.register(Caller, CallerAdmin)
-# admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(Lineage, LineageAdmin)
-# admin.site.register(LineageNames, LineageNamesAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
@@ -193,7 +198,12 @@ admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
-# admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
-admin.site.register(MarkdownTest)
+# admin.site.register(MarkdownDocument, MarkdownDocumentAdmin)
+
+# admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
+# admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
+# admin.site.register(Classification, ClassificationAdmin)
+# admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
+# admin.site.register(LineageNames, LineageNamesAdmin)

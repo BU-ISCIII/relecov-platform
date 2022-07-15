@@ -17,3 +17,4 @@ pandas==1.4.1
 Werkzeug==2.0.3
 xlrd==1.2.0
 # Successfully installed Markdown-3.3.7 django-markdownx-3.0.1
+Markdown==3.3.7

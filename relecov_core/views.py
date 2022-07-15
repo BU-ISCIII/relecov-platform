@@ -21,18 +21,20 @@ from relecov_core.utils.schema_handling import (
 
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 
-from relecov_core.models import MarkdownTest, Sample
+from relecov_core.models import Sample
 
 # from django.views.generic import DetailView
 
 # from .forms import MarkedDownExampleForm
-from markdownx.utils import markdownify
+# from markdownx.utils import markdownify
+# from relecov_core.utils.markdown_documents import get_all_documents, get_documents_by_id
 
 
 def markdown_test(request):
-    markdown_test = MarkdownTest.objects.get(title__iexact="Title 1")
-    markdown_test.content = markdownify(markdown_test.content)
-    context = {"markdown_test": markdown_test}
+    # markdown_test = MarkdownDocument.objects.get(title__iexact="Title 1")
+    # markdown_test.content = markdownify(markdown_test.content)
+    # context = {"markdown_test": markdown_test}
+    context = {}
     return render(request, "relecov_core/markdown_example.html", context)
 
 
@@ -170,7 +172,16 @@ def variants(request):
     return render(request, "relecov_core/variants.html", {})
 
 
+# @login_required
 def documentation(request):
+    """
+    documents = get_all_documents()
+    print(type(documents))
+    print(documents)
+    for document in documents:
+        print(type(document.id))
+        print(document.id)
+    """
     return render(request, "relecov_core/documentation.html", {})
 
 
