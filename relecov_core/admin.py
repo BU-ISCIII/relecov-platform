@@ -169,7 +169,7 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
     ]
 
 
-"""   
+"""
 class MarkdownDocumentAdmin(admin.ModelAdmin):
     list_display = [
         "title",

@@ -15,12 +15,12 @@ from relecov_core.core_config import (
 """
 class MarkdownDocument(models.Model):
     title = models.CharField(max_length=250)
-    abstract = MarkdownxField() 
+    abstract = MarkdownxField()
     content = MarkdownxField()
 
     class Meta:
         db_table = "MarkdownDocuments"
-    
+
     def __str__(self):
         return self.title
 
