@@ -31,7 +31,7 @@ from relecov_core.models import (
 )
 
 # from markdownx.admin import MarkdownxModelAdmin
-from markdownx.admin import MarkdownxModelAdmin
+# from markdownx.admin import MarkdownxModelAdmin
 from .models import MarkdownTest
 
 
