@@ -21,14 +21,18 @@ from relecov_core.utils.schema_handling import (
 
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 
-from relecov_core.models import Sample, MarkDownModel
+from relecov_core.models import MarkdownTest, Sample
 from django.views.generic import DetailView
 
 # from .forms import MarkedDownExampleForm
+from markdownx.utils import markdownify
 
 
-class MarkdownDetailView(DetailView):
-    model = MarkDownModel
+def markdown_test(request):
+    markdown_test = MarkdownTest.objects.get(title__iexact="Title 1")
+    markdown_test.content = markdownify(markdown_test.content)
+    context = {"markdown_test": markdown_test}
+    return render(request, "relecov_core/markdown_example.html", context)
 
 
 def index(request):
@@ -172,12 +176,10 @@ def documentation(request):
 def markdown_example(request):
     # markdowns = MarkDownModel.objects.all()
     # return render(request, "relecov_core/markdown_example.html", {"markdowns": markdowns})
-    markeddownexample = MarkdownDetailView()
-    print(markeddownexample)
     return render(
         request,
         "relecov_core/markdown_example.html",
-        {"markeddownexample": markeddownexample},
+        {},
     )
 
 

@@ -28,18 +28,11 @@ from relecov_core.models import (
     # TemporalSampleStorage,
     Variant,
     VariantInSample,
-    MarkDownModel,
 )
 
 # from markdownx.admin import MarkdownxModelAdmin
-from markdownx.widgets import AdminMarkdownxWidget
-from django.db import models
-
-
-class MarkDownModelAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        models.TextField: {"widget": AdminMarkdownxWidget},
-    }
+from markdownx.admin import MarkdownxModelAdmin
+from .models import MarkdownTest
 
 
 class ProfileInLine(admin.StackedInline):
@@ -203,4 +196,4 @@ admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 # admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
-admin.site.register(MarkDownModel, MarkDownModelAdmin)
+admin.site.register(MarkdownTest)
