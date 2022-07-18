@@ -18,3 +18,8 @@ Werkzeug==2.0.3
 xlrd==1.2.0
 # Successfully installed Markdown-3.3.7 django-markdownx-3.0.1
 Markdown==3.3.7
+# pip install django-pagedown
+# Successfully installed django-pagedown-2.2.1
+# pip install django-markdown-deux
+# Successfully installed django-markdown-deux-1.0.5 markdown2-2.4.3
+

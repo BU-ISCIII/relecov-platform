@@ -28,11 +28,7 @@ from relecov_core.models import (
     # TemporalSampleStorage,
     Variant,
     VariantInSample,
-    # MarkdownDocument
 )
-
-# from markdownx.admin import MarkdownxModelAdmin
-# from markdownx.admin import MarkdownxModelAdmin
 
 
 class ProfileInLine(admin.StackedInline):
@@ -169,15 +165,6 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
     ]
 
 
-"""
-class MarkdownDocumentAdmin(admin.ModelAdmin):
-    list_display = [
-        "title",
-        "abstract",
-        "content",
-        ]
-"""
-
 # Register models
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
@@ -200,7 +187,6 @@ admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
-# admin.site.register(MarkdownDocument, MarkdownDocumentAdmin)
 
 # admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
 # admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)

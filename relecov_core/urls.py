@@ -35,9 +35,7 @@ urlpatterns = [
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
     ),
-    path("markdownExample", views.markdown_example, name="markdown_example"),
     path("markdownx/", include("markdownx.urls")),
-    path("markdownTest", views.markdown_test, name="markdown_test"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

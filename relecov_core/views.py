@@ -1,3 +1,5 @@
+import os
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -23,11 +25,13 @@ from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 
 from relecov_core.models import Sample
 
+from relecov_core.utils.markdown_handling import generate_html_from_markdown_file
+
 # from django.views.generic import DetailView
 
-# from .forms import MarkedDownExampleForm
+# from markdown import markdown
+# import markdown
 # from markdownx.utils import markdownify
-# from relecov_core.utils.markdown_documents import get_all_documents, get_documents_by_id
 
 
 def markdown_test(request):
@@ -172,17 +176,14 @@ def variants(request):
     return render(request, "relecov_core/variants.html", {})
 
 
-# @login_required
 def documentation(request):
-    """
-    documents = get_all_documents()
-    print(type(documents))
-    print(documents)
-    for document in documents:
-        print(type(document.id))
-        print(document.id)
-    """
-    return render(request, "relecov_core/documentation.html", {})
+    html_visualization_from_markdown = generate_html_from_markdown_file()
+
+    return render(
+        request,
+        "relecov_core/documentation.html",
+        {"html_visualization": html_visualization_from_markdown},
+    )
 
 
 def markdown_example(request):
