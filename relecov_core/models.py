@@ -9,24 +9,6 @@ from relecov_core.core_config import (
     BIOINFO_METADATA_UPLOAD_FOLDER,
 )
 
-# markdownx
-# from markdownx.models import MarkdownxField
-
-"""
-class MarkdownDocument(models.Model):
-    title = models.CharField(max_length=250)
-    abstract = MarkdownxField()
-    content = MarkdownxField()
-
-    class Meta:
-        db_table = "MarkdownDocuments"
-
-    def __str__(self):
-        return self.title
-
-# Note: background_image is just for my header background, not MarkdownX
-"""
-
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

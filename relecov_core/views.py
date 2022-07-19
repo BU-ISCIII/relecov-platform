@@ -23,22 +23,6 @@ from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 
 from relecov_core.models import Sample
 
-from relecov_core.utils.markdown_handling import generate_html_from_markdown_file
-
-# from django.views.generic import DetailView
-
-# from markdown import markdown
-# import markdown
-# from markdownx.utils import markdownify
-
-
-def markdown_test(request):
-    # markdown_test = MarkdownDocument.objects.get(title__iexact="Title 1")
-    # markdown_test.content = markdownify(markdown_test.content)
-    # context = {"markdown_test": markdown_test}
-    context = {}
-    return render(request, "relecov_core/markdown_example.html", context)
-
 
 def index(request):
     number_of_samples_received = Sample.objects.count()
@@ -172,26 +156,6 @@ def intranet(request):
 
 def variants(request):
     return render(request, "relecov_core/variants.html", {})
-
-
-def documentation(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file()
-
-    return render(
-        request,
-        "relecov_core/documentation.html",
-        {"html_visualization": html_visualization_from_markdown},
-    )
-
-
-def markdown_example(request):
-    # markdowns = MarkDownModel.objects.all()
-    # return render(request, "relecov_core/markdown_example.html", {"markdowns": markdowns})
-    return render(
-        request,
-        "relecov_core/markdown_example.html",
-        {},
-    )
 
 
 @login_required()
