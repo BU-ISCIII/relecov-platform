@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render # , redirect
 
 # from django.contrib.auth.decorators import login_required
 from relecov_documentation.utils.markdown_handling import (
