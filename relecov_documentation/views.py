@@ -24,10 +24,7 @@ def documentation(request):
 
 def documentation_login(request):
     html_visualization_from_markdown = generate_html_from_markdown_file("login.md")
-    # if html_visualization_from_markdown == "ERROR FILE NOT FOUND":
-    #     raise Http404("File does not exist")
 
-    
     return render(
         request,
         "relecov_documentation/documentation.html",

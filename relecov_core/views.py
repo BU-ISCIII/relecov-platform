@@ -195,7 +195,7 @@ def metadata_form(request):
 def contributor_info(request):
     if request.method == "POST":
         contributor_info_dict = get_data_from_form(request)
-    print(contributor_info_dict)    
+    print(contributor_info_dict)
     return render(request, "relecov_core/contributorInfo.html", {})
 
 
@@ -231,12 +231,13 @@ def results_download(request):
 
 # @login_required()
 
+
 def contact(request):
     return render(request, "relecov_core/contact.html", {})
 
+
 # @login_required()
+
 
 def relecov_project(request):
     return render(request, "relecov_core/relecov_project.html", {})
-
-
