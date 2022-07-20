@@ -6,8 +6,6 @@ from relecov_documentation.utils.markdown_handling import (
     generate_html_from_markdown_file,
 )
 
-from django.http import Http404
-
 
 # Create your views here.
 def documentation(request):
