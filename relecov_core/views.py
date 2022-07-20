@@ -20,24 +20,9 @@ from relecov_core.utils.schema_handling import (
 )
 
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
+from relecov_core.utils.contributor_info_handling import get_data_from_form
 
 from relecov_core.models import Sample
-
-from relecov_core.utils.markdown_handling import generate_html_from_markdown_file
-
-# from django.views.generic import DetailView
-
-# from markdown import markdown
-# import markdown
-# from markdownx.utils import markdownify
-
-
-def markdown_test(request):
-    # markdown_test = MarkdownDocument.objects.get(title__iexact="Title 1")
-    # markdown_test.content = markdownify(markdown_test.content)
-    # context = {"markdown_test": markdown_test}
-    context = {}
-    return render(request, "relecov_core/markdown_example.html", context)
 
 
 def index(request):
@@ -174,26 +159,6 @@ def variants(request):
     return render(request, "relecov_core/variants.html", {})
 
 
-def documentation(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file()
-
-    return render(
-        request,
-        "relecov_core/documentation.html",
-        {"html_visualization": html_visualization_from_markdown},
-    )
-
-
-def markdown_example(request):
-    # markdowns = MarkDownModel.objects.all()
-    # return render(request, "relecov_core/markdown_example.html", {"markdowns": markdowns})
-    return render(
-        request,
-        "relecov_core/markdown_example.html",
-        {},
-    )
-
-
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
@@ -228,9 +193,9 @@ def metadata_form(request):
 
 @login_required()
 def contributor_info(request):
-    # if request.method == "POST":
-    # print(request.POST["hospital_name"])
-    # print(request.POST)
+    if request.method == "POST":
+        contributor_info_dict = get_data_from_form(request)
+    print(contributor_info_dict)
     return render(request, "relecov_core/contributorInfo.html", {})
 
 
@@ -262,3 +227,17 @@ def results_info_processed(request):
 @login_required()
 def results_download(request):
     return render(request, "relecov_core/resultsDownload.html", {})
+
+
+# @login_required()
+
+
+def contact(request):
+    return render(request, "relecov_core/contact.html", {})
+
+
+# @login_required()
+
+
+def relecov_project(request):
+    return render(request, "relecov_core/relecov_project.html", {})
