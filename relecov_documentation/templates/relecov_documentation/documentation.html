@@ -1,7 +1,13 @@
 {% extends "relecov_core/base.html" %}
 {% load static %}
 
-{% block content %}b
+{% block content %}
+
+<style>
+    red { color: red }
+    yellow { color: yellow }
+</style>
+
 <br><br><br>
 {% include "relecov_documentation/documentationSidebar.html" %}
 
@@ -10,14 +16,9 @@
         <div class="col py-3">
             <!--content-->
             <section id="relecov-platform" class="hero-animated d-flex align-items-center">
-                <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+                <!--<div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">-->
+                <div>
                     {{ html_visualization|safe}}
-                    <div class="card bg-dark text-white" style="text-align: center;">
-                        <div class="card-img-overlay">
-                            <h3 class="card-title"></h3>
-                            <h4 class="card-subtitle"></h4>
-                        </div>
-                    </div>
                 </div>
             </section>
             <!--end of content-->
