@@ -1,7 +1,6 @@
 import os
 
 from django.conf import settings
-from django.shortcuts import render
 
 from markdownx.utils import markdownify
 
