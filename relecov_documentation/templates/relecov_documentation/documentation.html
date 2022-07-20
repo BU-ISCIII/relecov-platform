@@ -1,23 +1,26 @@
 {% extends "relecov_core/base.html" %}
 {% load static %}
+<link href="{% static 'relecov_documentation/css/relecov_documentation.css' %}" rel="stylesheet">
 
 {% block content %}
+<link href="{% static 'relecov_documentation/css/relecov_documentation.css' %}" rel="stylesheet">
 
 <style>
     red { color: red }
     yellow { color: yellow }
+    img_long { width: 100px }
 </style>
 
 <br><br><br>
 {% include "relecov_documentation/documentationSidebar.html" %}
 
-<div class="container-fluid" style="width:60%">
+<div class="container-fluid" style="width:75%">
     <div class="row flex-nowrap">
         <div class="col py-3">
             <!--content-->
-            <section id="relecov-platform" class="hero-animated d-flex align-items-center">
+            <section id="relecov-platform" >
                 <!--<div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">-->
-                <div>
+                <div >
                     {{ html_visualization|safe}}
                 </div>
             </section>
