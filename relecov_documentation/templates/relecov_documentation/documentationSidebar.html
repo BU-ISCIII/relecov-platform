@@ -1,0 +1,91 @@
+{% load static %}
+
+<!-- Template Sidebars CSS File -->
+<link href="{% static 'intranet/css/style_mod2.css' %}" rel="stylesheet">
+
+{% block content %}
+<aside id="sidebar" class="sidebar" style="">
+    <span class="fs-5 d-none d-sm-inline">Documentation</span>
+    <ul class="sidebar-nav" id="sidebar-nav">
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#metadata-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
+                <i class="bi bi-menu-button-wide"></i><span>Intranet</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="metadata-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
+                <li>
+                    <a href="/documentation/Login">
+                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-cloud-upload"></i><span>Login</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/documentation/AccessTo">
+                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-info-circle"></i><span>Access to intranet</span>
+                    </a>
+                </li>
+                <li>
+                    <div class="dropdown">
+                        <a class="dropdown-toggle" type="button" id="dropdownIntranetTools" data-bs-toggle="dropdown" aria-expanded="false">
+                          Intranet tools
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownIntranetTools">
+                          <li><a href="#" class="dropdown-item" type="button">Form Metadata Labs</a></li>
+                          <li><a href="#"  class="dropdown-item" type="button">Upload Status</a></li>
+                          <li><a href="#"  class="dropdown-item" type="button">Results Info</a></li>
+                          <li><a href="#"  class="dropdown-item" type="button">Downloads</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </li><!--End VOCs/VUIs Nav -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#upload_status-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
+                <i class="bi bi-cloud-arrow-up"></i><span>Upload Status</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="upload_status-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
+                <li>
+                    <a href="/uploadStatusToENA">
+                        <!--<i class="bi bi-circle"></i>--><span>Upload to ENA</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/uploadStatusToGISAID">
+                        <!--<i class="bi bi-circle"></i>--><span>Upload to GISAID</span>
+                    </a>
+                </li>
+                
+            </ul>
+        </li> <!--End VOCs/VUIs Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
+                <!--<i class="bi bi-menu-button-wide"></i>--><i class="bi bi-clipboard-data"></i><span>Results Info</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
+                <li>
+                    <a href="/resultsInfoReceived">
+                        <!--<i class="bi bi-circle"></i>--><span>Received</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/resultsInfoProcessed">
+                        <!--<i class="bi bi-circle"></i>--><span>Processed</span>
+                    </a>
+                </li>
+            </ul>
+        </li> <!--End VOC Spike Structure Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#downloads-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
+                <i class="bi bi-cloud-arrow-down"></i><span>Downloads</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="downloads-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
+                <li>
+                    <a href="/resultsDownload">
+                        <!--<i class="bi bi-circle"></i>--><span>Results Download</span>
+                    </a>
+                </li>
+            </ul>
+    </ul>
+</aside>
+
+{% endblock %}

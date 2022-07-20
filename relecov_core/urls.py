@@ -3,12 +3,11 @@ from django.conf import settings
 from relecov_core import views
 from django.conf.urls.static import static
 
-from django.urls import include
+# from django.urls import include
 
 urlpatterns = [
     path("", views.index, name="index"),
     path("contributorInfo/", views.contributor_info, name="contributorInfo"),
-    path("documentation", views.documentation, name="documentation"),
     path("intranet/", views.intranet, name="intranet"),
     path("metadataForm", views.metadata_form, name="metadataForm"),
     path(
@@ -35,7 +34,9 @@ urlpatterns = [
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
     ),
-    path("markdownx/", include("markdownx.urls")),
+    path("Contact", views.contact, name="contact"),
+    path("relecovProject", views.relecov_project, name="relecov_project"),
+    # path("markdownx/", include("markdownx.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
