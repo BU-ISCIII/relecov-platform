@@ -36,9 +36,7 @@ urlpatterns = [
     ),
     path("Contact", views.contact, name="contact"),
     path("relecovProject", views.relecov_project, name="relecov_project"),
-    
     # path("markdownx/", include("markdownx.urls")),
-    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

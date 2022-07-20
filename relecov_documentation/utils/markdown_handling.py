@@ -18,5 +18,5 @@ def generate_html_from_markdown_file(markdown_file):
     except FileNotFoundError:
         print("File doesn't exists")
         return "ERROR FILE NOT FOUND"
-        
+
     return html
