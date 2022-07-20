@@ -8,7 +8,7 @@ from django.urls import include
 urlpatterns = [
     path("", views.documentation, name="documentation"),
     path("Login/", views.documentation_login, name="login"),
-    path("AccessTo", views.documentation_access_to_intranet, name="access_to"),
+    path("AccessTo/", views.documentation_access_to_intranet, name="access_to"),
     path("markdownx/", include("markdownx.urls")),
 ]
 if settings.DEBUG:
