@@ -20,6 +20,7 @@ from relecov_core.utils.schema_handling import (
 )
 
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
+from relecov_core.utils.contributor_info_handling import get_data_from_form
 
 from relecov_core.models import Sample
 
@@ -158,10 +159,6 @@ def variants(request):
     return render(request, "relecov_core/variants.html", {})
 
 
-def documentation(request):
-    return render(request, "relecov_core/documentation.html", {})
-
-
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
@@ -196,9 +193,9 @@ def metadata_form(request):
 
 @login_required()
 def contributor_info(request):
-    # if request.method == "POST":
-    # print(request.POST["hospital_name"])
-    # print(request.POST)
+    if request.method == "POST":
+        contributor_info_dict = get_data_from_form(request)
+    print(contributor_info_dict)
     return render(request, "relecov_core/contributorInfo.html", {})
 
 
@@ -230,3 +227,17 @@ def results_info_processed(request):
 @login_required()
 def results_download(request):
     return render(request, "relecov_core/resultsDownload.html", {})
+
+
+# @login_required()
+
+
+def contact(request):
+    return render(request, "relecov_core/contact.html", {})
+
+
+# @login_required()
+
+
+def relecov_project(request):
+    return render(request, "relecov_core/relecov_project.html", {})
