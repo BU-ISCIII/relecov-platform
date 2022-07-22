@@ -119,11 +119,45 @@ class Schema(models.Model):
     objects = SchemaManager()
 
 
+"""
+class ClassificationManager(models.Manager):
+    def create_new_classification(self, classification_name):
+        new_class_obj = self.create(
+            classification_name="classification_name")
+        return new_class_obj
+
+
+class Classification(models.Model):
+    classification_name = models.CharField(max_length=100)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "Classification"
+
+    def __str__(self):
+        return "%s" % (self.classification_name)
+
+    def get_classification_id(self):
+        return "%s" % (self.pk)
+
+    def get_classification_nameself):
+        return "%s" % (self.classification_name)
+
+    objects = ClassificationManager()
+"""
+
+
 class SchemaPropertiesManager(models.Manager):
     def create_new_property(self, data):
         required = True if "required" in data else False
         options = True if "options" in data else False
         format = data["format"] if "format" in data else None
+        """
+        if Classification.objects.filter(classification_name=data["classification"]).exists():
+            classification_id = Classification.objects.filter(classification_name=data["classification"]).last()
+        else:
+            classification_id = Classification.objects.create_new_classification(data["classification"])
+        """
         new_property_obj = self.create(
             schemaID=data["schemaID"],
             property=data["property"],
@@ -132,7 +166,7 @@ class SchemaPropertiesManager(models.Manager):
             type=data["type"],
             description=data["description"],
             label=data["label"],
-            classification=data["classification"],
+            #  classificationID=classification_id,
             fill_mode=data["fill_mode"],
             required=required,
             options=options,
@@ -143,6 +177,9 @@ class SchemaPropertiesManager(models.Manager):
 
 class SchemaProperties(models.Model):
     schemaID = models.ForeignKey(Schema, on_delete=models.CASCADE)
+    """
+    classificationID = models.ForeignKey(Classification, null=True, blank=True)
+    """
     property = models.CharField(max_length=50)
     examples = models.CharField(max_length=200, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
@@ -150,8 +187,6 @@ class SchemaProperties(models.Model):
     format = models.CharField(max_length=20, null=True, blank=True)
     description = models.CharField(max_length=250, null=True, blank=True)
     label = models.CharField(max_length=200, null=True, blank=True)
-    #
-    # classification = models.CharField(max_length=80, null=True, blank=True)
     required = models.BooleanField(default=False)
     options = models.BooleanField(default=False)
     fill_mode = models.CharField(max_length=50, null=True, blank=True)
@@ -264,29 +299,6 @@ class MetadataVisualization(models.Model):
 
 
 """
-class ClassificationManager(models.Manager):
-    def create_new_classification(self, class_name):
-        new_class_obj = self.create(class_name=class_name)
-        return new_class_obj
-
-
-class Classification(models.Model):
-    # schema_id = models.ForeignKey(Schema, on_delete=models.CASCADE)
-    class_name = models.CharField(max_length=80)
-
-    def __str__(self):
-        return "%s" % (self.class_name)
-
-    def get_classification_id(self):
-        return "%s" % (self.pk)
-
-    def get_classification(self):
-        return "%s" % (self.class_name)
-
-    objects = ClassificationManager()
-"""
-
-"""
 class BioinfoProcessFieldManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
@@ -299,11 +311,13 @@ class BioinfoProcessFieldManager(models.Manager):
 
 class BioinfoProcessField(models.Model):
     schemaID = models.ManyToManyField(Schema)
-    #
-    # classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
+    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
     label_name = models.CharField(max_length=80)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioinfoProcessField"
 
     def __str__(self):
         return "%s" % (self.property_name)
@@ -323,6 +337,25 @@ class BioinfoProcessField(models.Model):
         return None
 
     objects = BioinfoProcessFieldManager()
+"""
+
+"""
+class BioInfoProcessValue(models.Model):
+    value = models.CharField(max_length=240)
+    bioinfo_process_fieldID = models.ForeignKey(
+        BioinfoProcessField, on_delete=models.CASCADE
+    )
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioInfoProcessValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
 """
 
 
@@ -427,12 +460,15 @@ class Effect(models.Model):
 
 
 """
-class LineageNames(models.Model):
+class LineageInfo(models.Model):
     lineage_name = models.CharField(max_length=100)
+    pango_lineages = models.CharField(max_length=100)
+    variant_name = models.CharField(max_length=100)
+    nextclade = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "LineageNames"
+        db_table = "LineageInfo"
 
     def __str__(self):
         return "%s" % (self.lineage_name)
@@ -458,8 +494,8 @@ class LineageManager(models.Manager):
 
 
 class Lineage(models.Model):
-    # lineage_name_id = models.ForeignKey(
-    # LineageNames, on_delete=models.CASCADE, null=True, blank=True
+    # lineage_infoID = models.ForeignKey(
+    # LineageInfo, on_delete=models.CASCADE, null=True, blank=True
     # )
     lineage_identification_date = models.CharField(
         max_length=100, null=True, blank=True
@@ -665,26 +701,6 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
-"""
-class BioInfoProcessValue(models.Model):
-    value = models.CharField(max_length=240)
-    bioinfo_process_fieldID = models.ForeignKey(
-        BioinfoProcessField, on_delete=models.CASCADE
-    )
-    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    class Meta:
-        db_table = "BioInfoProcessValue"
-
-    def __str__(self):
-        return "%s" % (self.value)
-
-    def get_id(self):
-        return "%s" % (self.pk)
-"""
-
-
 # Position table
 class PositionManager(models.Manager):
     def create_new_position(self, data):
@@ -885,6 +901,9 @@ class TemporalSampleStorage(models.Model):
     value = models.CharField(max_length=100)
     sent = models.BooleanField(default=False)
     generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "TemporalSampleStorage"
 
     def __str__(self):
         return "%s,%s" % (self.sample, self.field)
