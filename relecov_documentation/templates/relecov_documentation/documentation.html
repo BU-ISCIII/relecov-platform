@@ -1,9 +1,9 @@
 {% extends "relecov_core/base.html" %}
 {% load static %}
-<link href="{% static 'relecov_documentation/css/relecov_documentation.css' %}" rel="stylesheet">
+
 
 {% block content %}
-<link href="{% static 'relecov_documentation/css/relecov_documentation.css' %}" rel="stylesheet">
+<!--<link href="{% static 'relecov_documentation/css/relecov_documentation.css' %}" rel="stylesheet">-->
 
 <style>
     red { color: red }
@@ -15,7 +15,7 @@
 {% include "relecov_documentation/documentationSidebar.html" %}
 <br><br><br>
 
-<div class="card" style="width:75%; margin-left: 15%;">
+<div class="card" style="width:75%; margin-left: 17%;">
     <div class="card-header">{{ html_visualization.title|safe }}</div>
     <div class="card-body">
       <h5 class="card-title"></h5>
@@ -25,29 +25,5 @@
     
   </div>
 
-<!--
-<div class="card row flex-nowrap" style="width:75%; margin-left: 15%;">
-    <div class="card-body">
-        {{ html_visualization|safe}}
-    </div>
-  </div>
-  <br><br><br>
--->  
-<!--
-<div class="container-fluid" style="width:75%">
-    <div class="row flex-nowrap">
-        <div class="col py-3">
-            
-            <section id="relecov-platform" >
-            
-                <div >
-                    {{ html_visualization|safe}}
-                </div>
-            </section>
-            
-        </div>
-    </div>
-</div>
--->
 {% endblock%}
 
