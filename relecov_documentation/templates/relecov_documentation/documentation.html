@@ -8,26 +8,46 @@
 <style>
     red { color: red }
     yellow { color: yellow }
-    img_long { width: 100px }
+    image_width {width: 10px;}
 </style>
 
 <br><br><br>
 {% include "relecov_documentation/documentationSidebar.html" %}
+<br><br><br>
 
+<div class="card" style="width:75%; margin-left: 15%;">
+    <div class="card-header">{{ html_visualization.title|safe }}</div>
+    <div class="card-body">
+      <h5 class="card-title"></h5>
+      <h6 class="card-subtitle mb-2 text-muted">{{ html_visualization.sub_title|safe }}</h6>
+      <p class="card-text">{{ html_visualization.body|safe }}</p>
+    </div>
+    
+  </div>
+
+<!--
+<div class="card row flex-nowrap" style="width:75%; margin-left: 15%;">
+    <div class="card-body">
+        {{ html_visualization|safe}}
+    </div>
+  </div>
+  <br><br><br>
+-->  
+<!--
 <div class="container-fluid" style="width:75%">
     <div class="row flex-nowrap">
         <div class="col py-3">
-            <!--content-->
+            
             <section id="relecov-platform" >
-                <!--<div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">-->
+            
                 <div >
                     {{ html_visualization|safe}}
                 </div>
             </section>
-            <!--end of content-->
+            
         </div>
     </div>
 </div>
-
+-->
 {% endblock%}
 

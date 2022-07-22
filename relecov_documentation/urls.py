@@ -7,7 +7,11 @@ from django.urls import include
 
 urlpatterns = [
     path("", views.documentation, name="documentation"),
-    path("Login/", views.documentation_login, name="login"),
+    path(
+        "createUserAccount/",
+        views.documentation_create_user_account,
+        name="create_user_account",
+    ),
     path("AccessTo/", views.documentation_access_to_intranet, name="access_to"),
     path("markdownx/", include("markdownx.urls")),
 ]
