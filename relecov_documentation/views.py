@@ -32,10 +32,18 @@ def documentation_create_user_account(request):
     )
 
 
-def documentation_access_to_intranet(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file(
-        "access_to_intranet.md"
+def documentation_intranet(request):
+    html_visualization_from_markdown = generate_html_from_markdown_file("intranet.md")
+
+    return render(
+        request,
+        "relecov_documentation/documentation.html",
+        {"html_visualization": html_visualization_from_markdown},
     )
+
+
+def documentation_dashboard(request):
+    html_visualization_from_markdown = generate_html_from_markdown_file("dashboard.md")
 
     return render(
         request,
