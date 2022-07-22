@@ -121,7 +121,7 @@ class Schema(models.Model):
 
 class ClassificationManager(models.Manager):
     def create_new_classification(self, classification_name):
-        new_class_obj = self.create(classification_name="classification_name")
+        new_class_obj = self.create(classification_name=classification_name)
         return new_class_obj
 
 
@@ -150,7 +150,7 @@ class SchemaPropertiesManager(models.Manager):
         options = True if "options" in data else False
         format = data["format"] if "format" in data else None
         if Classification.objects.filter(
-            classification_name=data["classification"]
+            classification_name__iexact=data["classification"]
         ).exists():
             classification_id = Classification.objects.filter(
                 classification_name=data["classification"]
@@ -206,11 +206,15 @@ class SchemaProperties(models.Model):
         return "%s" % (self.pk)
 
     def get_property_info(self):
+        if self.classificationID:
+            classification = self.classificationID.get_classification_name()
+        else:
+            classification = ""
         data = []
         data.append(self.property)
         data.append(self.label)
         data.append(self.required)
-        data.append(self.classification)
+        data.append(classification)
         data.append(self.description)
         return data
 
@@ -225,6 +229,9 @@ class SchemaProperties(models.Model):
 
     def get_ontology(self):
         return "%s" % (self.ontology)
+
+    def get_fill_mode(self):
+        return "%s" % (self.fill_mode)
 
     objects = SchemaPropertiesManager()
 
