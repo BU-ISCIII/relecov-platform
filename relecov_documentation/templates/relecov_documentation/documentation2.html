@@ -1,0 +1,16 @@
+{% extends "relecov_core/base.html" %}
+
+{% block content %}
+
+<br><br><br>
+{% include "relecov_documentation/documentationSidebar.html" %}
+<br><br><br>
+
+<div class="card" style="width:75%; margin-left: 17%;">
+    <div class="card-body">
+        <p class="card-text">{{ html|safe }}</p>
+    </div>
+
+</div>
+
+{% endblock%}

@@ -4,11 +4,12 @@ from django.shortcuts import render  # , redirect
 
 from relecov_documentation.utils.markdown_handling import (
     generate_html_from_markdown_file,
+    markdown_to_html,
 )
 
 
 # Create your views here.
-def documentation(request):
+def index(request):
     html_visualization_from_markdown = generate_html_from_markdown_file(
         "documentation.md"
     )
@@ -20,7 +21,18 @@ def documentation(request):
     )
 
 
-def documentation_create_user_account(request):
+def initial_configuration(request):
+    converted_to_html = markdown_to_html("initial_configuration.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    return render(
+        request,
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
+    )
+
+
+def create_user_account(request):
     html_visualization_from_markdown = generate_html_from_markdown_file(
         "create_user_account.md"
     )
@@ -32,7 +44,7 @@ def documentation_create_user_account(request):
     )
 
 
-def documentation_intranet(request):
+def intranet(request):
     html_visualization_from_markdown = generate_html_from_markdown_file("intranet.md")
 
     return render(
@@ -42,7 +54,7 @@ def documentation_intranet(request):
     )
 
 
-def documentation_dashboard(request):
+def dashboard(request):
     html_visualization_from_markdown = generate_html_from_markdown_file("dashboard.md")
 
     return render(
