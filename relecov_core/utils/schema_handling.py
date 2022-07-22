@@ -4,8 +4,8 @@ import os
 from django.db import DataError
 from django.conf import settings
 from relecov_core.models import (
-    # BioinfoProcessField,
-    # Classification,
+    BioinfoProcessField,
+    Classification,
     MetadataVisualization,
     PropertyOptions,
     Schema,
@@ -84,12 +84,13 @@ def get_fields_from_schema(schema_obj):
     prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by("label")
     for prop_obj in prop_objs:
         label = prop_obj.get_label()
+        fill_mode = prop_obj.get_fill_mode()
+        values = [prop_obj.get_property_name(), label, "", "false", fill_mode]
         if f_list and label in f_list:
-            schema_list.append(
-                [prop_obj.get_property_name(), label, f_list.index(label), "true"]
-            )
-        else:
-            schema_list.append([prop_obj.get_property_name(), label])
+            values[3] = "true"
+            values[2] = f_list.index(label)
+        schema_list.append(values)
+
     data["fields"] = schema_list
 
     return data
@@ -244,13 +245,13 @@ def store_bioinfo_fields(schema_obj, s_properties):
             if not match:
                 continue
             classification = data["classification"]
-            print(classification)
+            # print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
-            """
+
             # fetch the Classification instance
             class_obj = Classification.objects.filter(
-                class_name__iexact=classification
+                classification_name__iexact=classification
             ).last()
             fields = {}
             fields["classificationID"] = class_obj
@@ -258,7 +259,6 @@ def store_bioinfo_fields(schema_obj, s_properties):
             fields["label_name"] = data["label"]
             n_field = BioinfoProcessField.objects.create_new_field(fields)
             n_field.schemaID.add(schema_obj)
-            """
     return {"SUCCESS": ""}
 
 
