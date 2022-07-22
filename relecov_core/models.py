@@ -121,8 +121,7 @@ class Schema(models.Model):
 
 class ClassificationManager(models.Manager):
     def create_new_classification(self, classification_name):
-        new_class_obj = self.create(
-            classification_name="classification_name")
+        new_class_obj = self.create(classification_name="classification_name")
         return new_class_obj
 
 
@@ -150,10 +149,16 @@ class SchemaPropertiesManager(models.Manager):
         required = True if "required" in data else False
         options = True if "options" in data else False
         format = data["format"] if "format" in data else None
-        if Classification.objects.filter(classification_name=data["classification"]).exists():
-            classification_id = Classification.objects.filter(classification_name=data["classification"]).last()
+        if Classification.objects.filter(
+            classification_name=data["classification"]
+        ).exists():
+            classification_id = Classification.objects.filter(
+                classification_name=data["classification"]
+            ).last()
         else:
-            classification_id = Classification.objects.create_new_classification(data["classification"])
+            classification_id = Classification.objects.create_new_classification(
+                data["classification"]
+            )
 
         new_property_obj = self.create(
             schemaID=data["schemaID"],
@@ -174,7 +179,9 @@ class SchemaPropertiesManager(models.Manager):
 
 class SchemaProperties(models.Model):
     schemaID = models.ForeignKey(Schema, on_delete=models.CASCADE)
-    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE, null=True, blank=True)
+    classificationID = models.ForeignKey(
+        Classification, on_delete=models.CASCADE, null=True, blank=True
+    )
     property = models.CharField(max_length=50)
     examples = models.CharField(max_length=200, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
