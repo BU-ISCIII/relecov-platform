@@ -12,7 +12,8 @@ urlpatterns = [
         views.documentation_create_user_account,
         name="create_user_account",
     ),
-    path("AccessTo/", views.documentation_access_to_intranet, name="access_to"),
+    path("Intranet/", views.documentation_intranet, name="intranet"),
+    path("Dashboard/", views.documentation_dashboard, name="dashboard"),
     path("markdownx/", include("markdownx.urls")),
 ]
 if settings.DEBUG:
