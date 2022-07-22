@@ -237,30 +237,21 @@ def store_bioinfo_fields(schema_obj, s_properties):
     for prop_key in s_properties.keys():
         classification = ""
         data = dict(s_properties[prop_key])
-
+        if "sample_name" in data:
+            continue
         if "classification" in data:
             match = re.search(r"^Bioinformatic.*", data["classification"])
             if not match:
                 continue
-            classification = match.group()
+            classification = data["classification"]
             print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
             """
-            # create new entr in Classification table in not exists
-            if Classification.objects.filter(
+            # fetch the Classification instance
+            class_obj = Classification.objects.filter(
                 class_name__iexact=classification
-            ).exists():
-                # class_obj = Classification.objects.filter(
-                #    class_name__iexact=classification
-                # ).exists():
-                class_obj = Classification.objects.filter(
-                    class_name__iexact=classification
-                ).last()
-            else:
-                class_obj = Classification.objects.create_new_classification(
-                    classification
-                )
+            ).last()
             fields = {}
             fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
