@@ -196,7 +196,7 @@ def metadata_form(request):
 def contributor_info(request):
     if request.method == "POST":
         contributor_info_dict = get_data_from_form(request)
-    print(contributor_info_dict)
+        print(contributor_info_dict)
     return render(request, "relecov_core/contributorInfo.html", {})
 
 
