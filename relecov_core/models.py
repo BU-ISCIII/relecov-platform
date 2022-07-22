@@ -393,7 +393,6 @@ class Effect(models.Model):
     objects = EffectManager()
 
 
-"""
 class LineageInfo(models.Model):
     lineage_name = models.CharField(max_length=100)
     pango_lineages = models.CharField(max_length=100)
@@ -412,7 +411,6 @@ class LineageInfo(models.Model):
 
     def get_lineage_id(self):
         return "%s" % (self.pk)
-"""
 
 
 class LineageManager(models.Manager):
@@ -428,9 +426,9 @@ class LineageManager(models.Manager):
 
 
 class Lineage(models.Model):
-    # lineage_infoID = models.ForeignKey(
-    # LineageInfo, on_delete=models.CASCADE, null=True, blank=True
-    # )
+    lineage_infoID = models.ForeignKey(
+        LineageInfo, on_delete=models.CASCADE, null=True, blank=True
+    )
     lineage_identification_date = models.CharField(
         max_length=100, null=True, blank=True
     )
@@ -633,6 +631,7 @@ class Sample(models.Model):
         return self
 
     objects = SampleManager()
+
 
 class BioinfoProcessFieldManager(models.Manager):
     def create_new_field(self, data):
