@@ -4,10 +4,10 @@ from django.contrib.auth.models import User
 
 from relecov_core.models import (
     Authors,
-    # BioInfoProcessValue,
-    # BioinfoProcessField,
+    BioInfoProcessValue,
+    BioinfoProcessField,
     Caller,
-    # Classification,
+    Classification,
     Chromosome,
     ConfigSetting,
     Document,
@@ -15,7 +15,7 @@ from relecov_core.models import (
     Gene,
     Filter,
     Lineage,
-    # LineageNames,
+    LineageInfo,
     MetadataVisualization,
     Position,
     Profile,
@@ -25,7 +25,7 @@ from relecov_core.models import (
     SampleState,
     Schema,
     SchemaProperties,
-    # TemporalSampleStorage,
+    TemporalSampleStorage,
     Variant,
     VariantInSample,
 )
@@ -66,7 +66,7 @@ class CallerAdmin(admin.ModelAdmin):
 
 
 class ClassificationAdmin(admin.ModelAdmin):
-    list_display = ["class_name"]
+    list_display = ["classification_name"]
 
 
 class ConfigSettingAdmin(admin.ModelAdmin):
@@ -89,7 +89,7 @@ class ChromosomeAdmin(admin.ModelAdmin):
     list_display = ["chromosome"]
 
 
-class LineageNamesAdmin(admin.ModelAdmin):
+class LineageInfoAdmin(admin.ModelAdmin):
     list_display = ["lineage_name"]
 
 
@@ -188,8 +188,8 @@ admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
 
-# admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
-# admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
-# admin.site.register(Classification, ClassificationAdmin)
-# admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
-# admin.site.register(LineageNames, LineageNamesAdmin)
+admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
+admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
+admin.site.register(Classification, ClassificationAdmin)
+admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
+admin.site.register(LineageInfo, LineageInfoAdmin)
