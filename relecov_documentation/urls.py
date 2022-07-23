@@ -12,7 +12,11 @@ urlpatterns = [
         views.create_user_account,
         name="create_user_account",
     ),
-    path("initialConfiguration", views.initial_configuration, name="initial_configuration"),
+    path(
+        "initialConfiguration",
+        views.initial_configuration,
+        name="initial_configuration",
+    ),
     path("Intranet/", views.intranet, name="intranet"),
     path("Dashboard/", views.dashboard, name="dashboard"),
     path("markdownx/", include("markdownx.urls")),

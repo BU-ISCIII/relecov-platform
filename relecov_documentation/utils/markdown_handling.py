@@ -47,4 +47,4 @@ def markdown_to_html(m_file):
         return {"ERROR": "FILE NOT FOUND"}
     with open(m_path, "r") as fh:
         text = fh.read()
-    return markdown.markdown(text,  extensions=['toc'])
+    return markdown.markdown(text, extensions=["toc"])
