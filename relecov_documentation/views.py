@@ -5,6 +5,7 @@ from django.shortcuts import render  # , redirect
 from relecov_documentation.utils.markdown_handling import (
     generate_html_from_markdown_file,
     markdown_to_html,
+    fix_img_folder,
 )
 
 
@@ -25,6 +26,7 @@ def initial_configuration(request):
     converted_to_html = markdown_to_html("initial_configuration.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
         "relecov_documentation/documentation2.html",
