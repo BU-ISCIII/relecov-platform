@@ -637,9 +637,10 @@ class VirusName(models.Model):
 
 class GisaidInfo(models.Model):
     virus_id = models.ForeignKey(VirusName, on_delete=models.CASCADE, null=True, blank=True)
-    GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
+    # GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
     gisaid_id = models.CharField(max_length=80, null=True, blank=True)
     submission_data = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    length = models.CharField(max_length=20, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
