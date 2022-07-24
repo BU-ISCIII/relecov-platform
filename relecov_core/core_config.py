@@ -224,6 +224,7 @@ FIELDS_ON_ENA_TABLE = [
     "study_title",
     "study_type",
     "experiment_alias",
-    "experiment_title"]
-FIELDS_ON_GISAID_TABLE = ["GISAID_accession", "gisaid_id"]
+    "experiment_title"
+]
+FIELDS_ON_GISAID_TABLE = ["gisaid_id"]
 FIELDS_ON_AUTHOR_TABLE = ["analysis_authors", "author_submitter", "authors"]
