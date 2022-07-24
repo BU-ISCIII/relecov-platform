@@ -1,9 +1,5 @@
-# from io import StringIO
-# import json
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-
-# from rest_framework.parsers import MultiPartParser, FormParser
 
 from rest_framework.decorators import (
     authentication_classes,
@@ -15,11 +11,18 @@ from rest_framework.decorators import (
 from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
-from relecov_core.api.serializers import CreateSampleSerializer
-from relecov_core.models import SampleState
+from relecov_core.api.serializers import (
+    CreateSampleSerializer,
+    CreateAuthorSerializer,
+    CreateGisaidSerializer,
+    CreateEnaSerializer
+)
+
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from .utils.analysis_handling import process_analysis_data
-
+from relecov_core.api.utils.sample_handling import (
+    check_if_sample_exists,
+    split_sample_data)
 from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 # from drf_yasg.utils import swagger_auto_schema
@@ -49,15 +52,42 @@ def create_sample_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
-        # if "sample" not in data and "project" not in data:
-        #    return Response(status=status.HTTP_400_BAD_REQUEST)
+        # check if sample is alrady defined
+        if "sequencing_sample_id" not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if check_if_sample_exists(data["sequencing_sample_id"]):
+            error = {"ERROR": "sample already defined"}
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         data["user"] = request.user.pk
+        split_data = split_sample_data(data)
+        if "ERROR" in split_data:
+            return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
 
-        data["state"] = (
-            SampleState.objects.filter(state__exact="Defined").last().get_state_id()
-        )
-        sample_serializer = CreateSampleSerializer(data=data)
-
+        author_serializer = CreateAuthorSerializer(data=split_data["author"])
+        if not author_serializer.is_valid():
+            return Response(
+                author_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        import pdb
+        pdb.set_trace()
+        gisaid_serializer = CreateGisaidSerializer(data=split_data["gisaid"])
+        if not gisaid_serializer.is_valid():
+            return Response(
+                gisaid_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        ena_serializer = CreateEnaSerializer(data=split_data["ena"])
+        if not ena_serializer.is_valid():
+            return Response(
+                ena_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        # Store authors, gisaid, ena in ddbb to get the references
+        author_serializer.save()
+        gisaid_serializer.save()
+        ena_serializer.save()
+        split_data["sample"]["author_obj"] = author_serializer
+        split_data["sample"]["gisaid_obj"] = gisaid_serializer
+        split_data["sample"]["ena_obj"] = ena_serializer
+        sample_serializer = CreateSampleSerializer(data=split_data["sample"])
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
