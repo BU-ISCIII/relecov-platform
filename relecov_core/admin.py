@@ -12,7 +12,9 @@ from relecov_core.models import (
     ConfigSetting,
     Document,
     Effect,
+    EnaInfo,
     Gene,
+    GisaidInfo,
     Filter,
     Lineage,
     LineageInfo,
@@ -20,7 +22,6 @@ from relecov_core.models import (
     Position,
     Profile,
     PropertyOptions,
-    PublicDatabase,
     Sample,
     SampleState,
     Schema,
@@ -73,16 +74,24 @@ class ConfigSettingAdmin(admin.ModelAdmin):
     list_display = ["configuration_name", "configuration_value"]
 
 
-class FilterAdmin(admin.ModelAdmin):
-    list_display = ["filter"]
-
-
 class EffectAdmin(admin.ModelAdmin):
     list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
 
 
+class EnaInfoAdmin(admin.ModelAdmin):
+    list_display = ["biosample_accession_ENA", "SRA_accession"]
+
+
+class FilterAdmin(admin.ModelAdmin):
+    list_display = ["filter"]
+
+
 class GeneAdmin(admin.ModelAdmin):
     list_display = ["gene"]
+
+
+class GisaidInfoAdmin(admin.ModelAdmin):
+    list_display = ["gisaid_id", "submission_data"]
 
 
 class ChromosomeAdmin(admin.ModelAdmin):
@@ -129,10 +138,6 @@ class AuthorsAdmin(admin.ModelAdmin):
     list_display = ["analysis_authors", "author_submitter", "authors"]
 
 
-class PublicDatabaseAdmin(admin.ModelAdmin):
-    list_display = ["databaseName"]
-
-
 class SchemaAdmin(admin.ModelAdmin):
     list_display = [
         "schema_name",
@@ -173,7 +178,9 @@ admin.site.register(Caller, CallerAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
+admin.site.register(EnaInfo, EnaInfoAdmin)
 admin.site.register(Gene, GeneAdmin)
+admin.site.register(GisaidInfo, GisaidInfoAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(Lineage, LineageAdmin)
 admin.site.register(Position, PositionAdmin)
@@ -182,7 +189,6 @@ admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
 admin.site.register(Authors, AuthorsAdmin)
-admin.site.register(PublicDatabase, PublicDatabaseAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
