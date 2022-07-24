@@ -45,6 +45,7 @@ HEADING_FOR_SAMPLE_TABLE = {
     "Sequencing Date": "sequencing_date",
 }
 
+
 HEADINGS_FOR_ISkyLIMS = {
     "Originating Laboratory": "collecting_institution",
     "Submitting Institution": "submitting_institution",
@@ -179,6 +180,8 @@ ERROR_FIELD_NOT_DEFINED = "Field is not defined in database"
 
 ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
 
+ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
+
 HEADING_SCHEMA_DISPLAY = [
     "Property",
     "Label",
@@ -201,3 +204,26 @@ ISKLIMS_PUT_LABORATORY_PARAMETER = "updateLab"
 ISKLIMS_GET_SAMPLE_FIELDS = "sampleFields"
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
 ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
+
+# API requested information
+FIELDS_ON_SAMPLE_TABLE = [
+    "user",
+    "microbiology_lab_sample_id",
+    "sequencing_sample_id",
+    "submitting_lab_sample_id",
+    "sequence_file_R1_fastq",
+    "sequence_file_R2_fastq",
+    "fastq_r1_md5",
+    "fastq_r2_md5",
+    "r1_fastq_filepath",
+    "r2_fastq_filepath"
+]
+FIELDS_ON_ENA_TABLE = [
+    "study_alias",
+    "study_id",
+    "study_title",
+    "study_type",
+    "experiment_alias",
+    "experiment_title"]
+FIELDS_ON_GISAID_TABLE = ["GISAID_accession", "gisaid_id"]
+FIELDS_ON_AUTHOR_TABLE = ["analysis_authors", "author_submitter", "authors"]
