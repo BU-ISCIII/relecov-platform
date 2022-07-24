@@ -20,6 +20,7 @@ urlpatterns = [
     path("Intranet/", views.intranet, name="intranet"),
     path("Dashboard/", views.dashboard, name="dashboard"),
     path("markdownx/", include("markdownx.urls")),
+    path("UploadMetadataLab/", views.upload_metadata_lab, name="upload_metadata_lab"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
