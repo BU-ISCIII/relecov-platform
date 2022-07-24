@@ -25,7 +25,7 @@ from relecov_core.api.utils.sample_handling import (
     split_sample_data)
 from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
-# from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 
@@ -44,6 +44,81 @@ analysis_file = openapi.Schema(
 """
 
 
+@swagger_auto_schema(
+    method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "analysis_authors": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Author of the analysis"
+            ),
+            "author_submitter": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Submitter author to GISAID"
+            ),
+            "authors": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Authors involved in the analysis"
+            ),
+            "experiment_alias": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Experiment alias used for uploading to ENA",
+            ),
+            "experiment_title": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Experiment title for uploading to ENA"
+            ),
+            "fastq_r1_md5": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="MD5 for fastq R1 file",
+            ),
+            "fastq_r2_md5": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="MD5 for fastq R2 file",
+            ),
+            "gisaid_id": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Id given by GISAID",
+            ),
+            "microbiology_lab_sample_id": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Sample name ID given by the microbiology lab ",
+            ),
+            "r1_fastq_filepath": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Path where fastq R1 is stored"
+            ),
+            "r2_fastq_filepath": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Path where fastq R2 is stored"
+            ),
+            "sequence_file_R1_fastq": openapi.Schema(
+                type=openapi.TYPE_STRING, description="File name of fastq R1"
+            ),
+            "sequence_file_R2_fastq": openapi.Schema(
+                type=openapi.TYPE_STRING, description="File name of fastq R2"
+            ),
+            "sequencing_sample_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Project name"
+            ),
+            "study_alias": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Study alias used for uplading to ENA"
+            ),
+            "study_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Study ID for uploading to ENA"
+            ),
+            "study_title": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Study title for uploading to ENA"
+            ),
+            "study_type": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Study type for uploading to ENA"
+            ),
+            "submitting_lab_sample_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="sample name id given by the submitted lab"
+            ),
+        },
+    ),
+    responses={
+        201: "Successful create information",
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+)
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
