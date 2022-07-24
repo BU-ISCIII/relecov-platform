@@ -556,6 +556,102 @@ class SampleState(models.Model):
         return "%s" % (self.pk)
 
 
+# table Authors
+class AuthorsManager(models.Manager):
+    def create_new_authors(self, data):
+        analysis_authors = ""
+        author_submitter = ""
+        new_authors = self.create(
+            analysis_authors=analysis_authors,
+            author_submitter=author_submitter,
+            # analysis_authors=data["analysis_authors"],
+            # author_submitter=data["author_submitter"],
+            authors=data["authors"],
+        )
+        return new_authors
+
+
+class Authors(models.Model):
+    analysis_authors = models.CharField(max_length=100)
+    author_submitter = models.CharField(max_length=100)
+    authors = models.CharField(max_length=600)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+
+    class Meta:
+        db_table = "Authors"
+
+    def __str__(self):
+        return "%s" % (self.analysis_authors)
+
+    def get_analysis_author(self):
+        return "%s" % (self.analysis_authors)
+
+    def get_author_submitter(self):
+        return "%s" % (self.author_submitter)
+
+    def get_authors(self):
+        return "%s" % (self.authors)
+
+    objects = AuthorsManager()
+
+
+class EnaInfo(models.Model):
+    bioproject_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
+    bioproject_umbrella_accession_ENA = models.CharField(
+        max_length=80, null=True, blank=True
+    )
+    biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
+    GenBank_ENA_DDBJ_accession = models.CharField(max_length=80, null=True, blank=True)
+    SRA_accession = models.CharField(max_length=80, null=True, blank=True)
+    study_alias = models.CharField(max_length=80, null=True, blank=True)
+    study_id = models.CharField(max_length=80, null=True, blank=True)
+    study_title = models.CharField(max_length=100, null=True, blank=True)
+    study_type = models.CharField(max_length=80, null=True, blank=True)
+    experiment_alias = models.CharField(max_length=80, null=True, blank=True)
+    experiment_title = models.CharField(max_length=80, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "EnaInfo"
+
+    def __str__(self):
+        return "%s" % (self.GenBank_ENA_DDBJ_accession)
+
+    def get_genebank(self):
+        return "%s" % (self.GenBank_ENA_DDBJ_accession)
+
+
+class VirusName(models.Model):
+    virus_name = models.CharField(max_length=80, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "VirusName"
+
+    def __str__(self):
+        return "%s" % (self.virus_name)
+
+    def get_virus_name(self):
+        return "%s" % (self.virus_name)
+
+
+class GisaidInfo(models.Model):
+    virus_id = models.ForeignKey(VirusName, on_delete=models.CASCADE, null=True, blank=True)
+    GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
+    gisaid_id = models.CharField(max_length=80, null=True, blank=True)
+    submission_data = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "GisaidInfo"
+
+    def __str__(self):
+        return "%s" % (self.gisaid_id)
+
+    def get_gisaid_id(self):
+        return "%s" % (self.gisaid_id)
+
+
 # Sample Table
 class SampleManager(models.Manager):
     def create_new_sample(self, data, user):
@@ -568,9 +664,9 @@ class SampleManager(models.Manager):
             data["sequencing_date"] = ""
         new_sample = self.create(
             sequencing_sample_id=data["sequencing_sample_id"],
-            biosample_accession_ENA=data["biosample_accession_ENA"],
-            virus_name=data["virus_name"],
-            gisaid_id=data["gisaid_id"],
+            # biosample_accession_ENA=data["biosample_accession_ENA"],
+            # virus_name=data["virus_name"],
+            # gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
             metadata_file=metadata_file,
             state=state,
@@ -585,21 +681,31 @@ class Sample(models.Model):
     metadata_file = models.ForeignKey(
         Document, on_delete=models.CASCADE, null=True, blank=True
     )
-    bioproject_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    bioproject_umbrella_accession_ENA = models.CharField(
-        max_length=80, null=True, blank=True
-    )
-    biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    GenBank_ENA_DDBJ_accession = models.CharField(max_length=80, null=True, blank=True)
-    GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
-    gisaid_id = models.CharField(max_length=80, null=True, blank=True)
-    host_specimen_voucher = models.CharField(max_length=80, null=True, blank=True)
-    isolate_sample_id = models.CharField(max_length=80, null=True, blank=True)
+
+    # bioproject_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
+    # bioproject_umbrella_accession_ENA = models.CharField(
+    # max_length=80, null=True, blank=True
+    # )
+    # biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
+    # GenBank_ENA_DDBJ_accession = models.CharField(max_length=80, null=True, blank=True)
+    # GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
+    # gisaid_id = models.CharField(max_length=80, null=True, blank=True)
+
+    # autors_obj = models.ForeignKey(Authors, on_delete=models.CASCADE, null=True, blank=True)
+    # gisaid_obj = models.ForeignKey(GisaidInfo, on_delete=models.CASCADE, null=True, blank=True)
+    # ena_obj = models.ForeignKey(EnaInfo, on_delete=models.CASCADE, null=True, blank=True)
+
+    # host_specimen_voucher = models.CharField(max_length=80, null=True, blank=True)
+    # isolate_sample_id = models.CharField(max_length=80, null=True, blank=True)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
-    SRA_accession = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
-    virus_name = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R2_fastq = models.CharField(max_length=80, null=True, blank=True)
+    fastq_r1_md5 = models.CharField(max_length=80, null=True, blank=True)
+    fastq_r2_md5 = models.CharField(max_length=80, null=True, blank=True)
+    r1_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
+    r2_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -614,17 +720,15 @@ class Sample(models.Model):
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
 
-    def get_biosample_accession_ENA(self):
-        return "%s" % (self.biosample_accession_ENA)
+    def get_virus_obj(self):
+        if self.virus_obj:
+            return "%s" % (self.virus_obj)
+        return None
 
-    def get_virus_name(self):
-        return "%s" % (self.virus_name)
-
-    def get_gisaid_id(self):
-        return "%s" % (self.gisaid_id)
-
-    # def get_sequencing_date(self):
-    #    return "%s" % (self.sequencing_date)
+    def get_gisaid_obj(self):
+        if self.gisaid_obj:
+            return "%s" % (self.gisaid_obj)
+        return None
 
     def get_state(self):
         if self.state:
@@ -823,69 +927,6 @@ class Variant(models.Model):
         return "%s" % (self.ref)
 
     objects = VariantManager()
-
-
-# table Authors
-class AuthorsManager(models.Manager):
-    def create_new_authors(self, data):
-        analysis_authors = ""
-        author_submitter = ""
-        new_authors = self.create(
-            analysis_authors=analysis_authors,
-            author_submitter=author_submitter,
-            # analysis_authors=data["analysis_authors"],
-            # author_submitter=data["author_submitter"],
-            authors=data["authors"],
-        )
-        return new_authors
-
-
-class Authors(models.Model):
-    analysis_authors = models.CharField(max_length=100)
-    author_submitter = models.CharField(max_length=100)
-    authors = models.CharField(max_length=600)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "Authors"
-
-    def __str__(self):
-        return "%s" % (self.analysis_authors)
-
-    def get_analysis_author(self):
-        return "%s" % (self.analysis_authors)
-
-    def get_author_submitter(self):
-        return "%s" % (self.author_submitter)
-
-    def get_authors(self):
-        return "%s" % (self.authors)
-
-    objects = AuthorsManager()
-
-
-# table PublicDatabase
-class PublicDatabaseManager(models.Manager):
-    def create_new_public_database(self, data):
-        new_public_database = self.create(databaseName=data["databaseName"])
-        return new_public_database
-
-
-class PublicDatabase(models.Model):
-    databaseName = models.CharField(max_length=100)
-
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    # ManyToOne
-    authors = models.ForeignKey(Authors, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = "PublicDatabase"
-
-    def __str__(self):
-        return "%s" % (self.databaseName)
-
-    objects = PublicDatabaseManager()
 
 
 class TemporalSampleStorageManager(models.Manager):
