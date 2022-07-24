@@ -1,14 +1,19 @@
 from relecov_core.core_config import (
-    HEADING_FOR_SAMPLE_TABLE,
-    HEADING_FOR_AUTHOR_TABLE,
-    HEADING_FOR_ANALYSIS_TABLE,
-    HEADING_FOR_QCSTATS_TABLE,
-    HEADING_FOR_LINEAGE_TABLE,
+    FIELDS_ON_SAMPLE_TABLE,
+    FIELDS_ON_AUTHOR_TABLE,
+    FIELDS_ON_GISAID_TABLE,
+    FIELDS_ON_ENA_TABLE,
     ERROR_INTIAL_SETTINGS_NOT_DEFINED,
+    ERROR_MISSING_SAMPLE_DATA,
 )
-from relecov_core.models import SampleState
+from relecov_core.models import SampleState, Sample
 
-# from datetime import datetime# not used
+
+def check_if_sample_exists(sequencing_sample_id):
+    """Check if sequencing_sample_id is already defined in database"""
+    if Sample.objects.filter(sequencing_sample_id__iexact=sequencing_sample_id).exists():
+        return True
+    return False
 
 
 def split_sample_data(data):
@@ -16,34 +21,31 @@ def split_sample_data(data):
     split_data = {
         "sample": {},
         "autor": {},
-        "qstats": {},
-        "analysis": {},
-        "lineage": {},
+        "gisaid": {},
+        "ena": {}
     }
-    sample_fields = list(HEADING_FOR_SAMPLE_TABLE.values())
-    author_fields = list(HEADING_FOR_AUTHOR_TABLE.values())
-    qstats_fields = list(HEADING_FOR_QCSTATS_TABLE.values())
-    analysis_fields = list(HEADING_FOR_ANALYSIS_TABLE.values())
-    lineage_fields = list(HEADING_FOR_LINEAGE_TABLE.values())
 
     for item, value in data.items():
-        if item in sample_fields:
+        if item in FIELDS_ON_SAMPLE_TABLE:
             split_data["sample"][item] = value
             continue
-        if item in author_fields:
+        if item in FIELDS_ON_AUTHOR_TABLE:
             split_data["author"][item] = value
             continue
-        if item in qstats_fields:
-            split_data["qstats"][item] = value
+        if item in FIELDS_ON_GISAID_TABLE:
+            split_data["gisaid"][item] = value
             continue
-        if item in analysis_fields:
-            split_data["analysis"][item] = value
-            continue
-        if item in lineage_fields:
-            split_data["lineage"][item] = value
+        if item in FIELDS_ON_ENA_TABLE:
+            split_data["ena"][item] = value
             continue
         print("Not match ", item)
+    # add user and state to sample data
+    split_data["sample"]["state"] = (
+        SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+    )
     # import pdb; pdb.set_trace()
+    if len(split_data["sample"]) < len(FIELDS_ON_SAMPLE_TABLE):
+        return {"ERROR": ERROR_MISSING_SAMPLE_DATA}
     return split_data
 
 
