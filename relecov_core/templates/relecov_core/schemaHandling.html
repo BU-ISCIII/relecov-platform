@@ -111,9 +111,17 @@
                                                         <tr>
                                                             <td><a href="/schemaDisplay={{id}}">{{name}}</a></td>
                                                             <td>{{version}}</td>
-                                                            <td>{{default}}</td>
-                                                            <td>{{used}}</td>
-                                                            <td><a href=/documents/{{file}}>Download</a></td>
+                                                            {% if default == True %}
+                                                                <td class="text-center"><i class="bi bi-check-circle"  style="color:green"></i></td>
+                                                            {% else%}
+                                                                <td class="text-center"><i class="bi bi-x-circle"  style="color:red"></i></td>
+                                                            {% endif %}
+                                                            {% if used == "True" %}
+                                                                <td class="text-center"><i class="bi bi-check-circle"  style="color:green"></i></td>
+                                                            {% else%}
+                                                                <td class="text-center"><i class="bi bi-x-circle"  style="color:red"></i></td>
+                                                            {% endif %}
+                                                            <td><a href=/documents/{{file}}>Download <i class="bi bi-download"></i></a></td>
                                                         </tr>
                                                     {% endfor %}
                                                 </tbody>

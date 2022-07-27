@@ -4,8 +4,8 @@ import os
 from django.db import DataError
 from django.conf import settings
 from relecov_core.models import (
-    # BioinfoProcessField,
-    # Classification,
+    BioinfoProcessField,
+    Classification,
     MetadataVisualization,
     PropertyOptions,
     Schema,
@@ -84,12 +84,13 @@ def get_fields_from_schema(schema_obj):
     prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj).order_by("label")
     for prop_obj in prop_objs:
         label = prop_obj.get_label()
+        fill_mode = prop_obj.get_fill_mode()
+        values = [prop_obj.get_property_name(), label, "", "false", fill_mode]
         if f_list and label in f_list:
-            schema_list.append(
-                [prop_obj.get_property_name(), label, f_list.index(label), "true"]
-            )
-        else:
-            schema_list.append([prop_obj.get_property_name(), label])
+            values[3] = "true"
+            values[2] = f_list.index(label)
+        schema_list.append(values)
+
     data["fields"] = schema_list
 
     return data
@@ -237,37 +238,27 @@ def store_bioinfo_fields(schema_obj, s_properties):
     for prop_key in s_properties.keys():
         classification = ""
         data = dict(s_properties[prop_key])
-
+        if "sample_name" in data:
+            continue
         if "classification" in data:
             match = re.search(r"^Bioinformatic.*", data["classification"])
             if not match:
                 continue
-            classification = match.group()
-            print(classification)
+            classification = data["classification"]
+            # print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
-            """
-            # create new entr in Classification table in not exists
-            if Classification.objects.filter(
-                class_name__iexact=classification
-            ).exists():
-                # class_obj = Classification.objects.filter(
-                #    class_name__iexact=classification
-                # ).exists():
-                class_obj = Classification.objects.filter(
-                    class_name__iexact=classification
-                ).last()
-            else:
-                class_obj = Classification.objects.create_new_classification(
-                    classification
-                )
+
+            # fetch the Classification instance
+            class_obj = Classification.objects.filter(
+                classification_name__iexact=classification
+            ).last()
             fields = {}
             fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
             n_field = BioinfoProcessField.objects.create_new_field(fields)
             n_field.schemaID.add(schema_obj)
-            """
     return {"SUCCESS": ""}
 
 
