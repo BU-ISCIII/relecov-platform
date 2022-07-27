@@ -8,6 +8,26 @@
     <span class="fs-5 d-none d-sm-inline">Documentation</span>
     <ul class="sidebar-nav" id="sidebar-nav">
         <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#installation-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
+                <i class="bi bi-boxes"></i><span>Installation</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="installation-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
+                <li>
+                    <a href="/documentation/installation">
+                        <i class="bi bi-cloud-upload"></i><span>Installation steps</span>
+                    </a>
+                </li>
+            </ul>
+            <a class="nav-link collapsed" data-bs-target="#initial-config-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
+                <i class="bi bi-gear"></i><span>Configuration</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="initial-config-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
+                <li>
+                    <a href="/documentation/initialConfiguration">
+                        <i class="bi bi-cloud-upload"></i><span>Initial Configuration</span>
+                    </a>
+                </li>
+            </ul>
             <a class="nav-link collapsed" data-bs-target="#metadata-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
                 <i class="bi bi-menu-button-wide"></i><span>Intranet</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
@@ -18,14 +38,22 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/documentation/Intranet">
-                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-info-circle"></i><span>Intranet</span>
+                    <a href="/documentation/AccessTo">
+                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-info-circle"></i><span>Access to intranet</span>
                     </a>
                 </li>
                 <li>
-                    <a href="/documentation/Dashboard">
-                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-info-circle"></i><span>Dashboard</span>
-                    </a>
+                    <div class="dropdown">
+                        <a class="dropdown-toggle" type="button" id="dropdownIntranetTools" data-bs-toggle="dropdown" aria-expanded="false">
+                          Intranet tools
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownIntranetTools">
+                          <li><a href="#" class="dropdown-item" type="button">Form Metadata Labs</a></li>
+                          <li><a href="#"  class="dropdown-item" type="button">Upload Status</a></li>
+                          <li><a href="#"  class="dropdown-item" type="button">Results Info</a></li>
+                          <li><a href="#"  class="dropdown-item" type="button">Downloads</a></li>
+                        </ul>
+                    </div>
                 </li>
             </ul>
         </li><!--End VOCs/VUIs Nav -->
@@ -44,7 +72,7 @@
                         <!--<i class="bi bi-circle"></i>--><span>Upload to GISAID</span>
                     </a>
                 </li>
-                
+
             </ul>
         </li> <!--End VOCs/VUIs Nav -->
 

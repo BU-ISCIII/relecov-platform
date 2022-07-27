@@ -84,10 +84,11 @@ def schema_handling(request):
                 "relecov_core/schemaHandling.html",
                 {"ERROR": schema_data["ERROR"]},
             )
+        schemas = get_schemas_loaded(__package__)
         return render(
             request,
             "relecov_core/schemaHandling.html",
-            {"SUCCESS": schema_data["SUCCESS"]},
+            {"SUCCESS": schema_data["SUCCESS"], "schemas": schemas},
         )
     schemas = get_schemas_loaded(__package__)
     return render(request, "relecov_core/schemaHandling.html", {"schemas": schemas})
