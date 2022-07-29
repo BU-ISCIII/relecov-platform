@@ -120,6 +120,8 @@ class SampleAdmin(admin.ModelAdmin):
         "submitting_lab_sample_id",
         "state",
     ]
+    search_fields = ["sequencing_sample_id__icontains"]
+    list_filter = ["created_at"]
 
 
 class SampleStateAdmin(admin.ModelAdmin):
