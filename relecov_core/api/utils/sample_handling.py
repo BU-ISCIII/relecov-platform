@@ -11,19 +11,16 @@ from relecov_core.models import SampleState, Sample
 
 def check_if_sample_exists(sequencing_sample_id):
     """Check if sequencing_sample_id is already defined in database"""
-    if Sample.objects.filter(sequencing_sample_id__iexact=sequencing_sample_id).exists():
+    if Sample.objects.filter(
+        sequencing_sample_id__iexact=sequencing_sample_id
+    ).exists():
         return True
     return False
 
 
 def split_sample_data(data):
     """Split the json request into dictionnaries with the right fields"""
-    split_data = {
-        "sample": {},
-        "autor": {},
-        "gisaid": {},
-        "ena": {}
-    }
+    split_data = {"sample": {}, "author": {}, "gisaid": {}, "ena": {}}
 
     for item, value in data.items():
         if item in FIELDS_ON_SAMPLE_TABLE:
@@ -43,7 +40,6 @@ def split_sample_data(data):
     split_data["sample"]["state"] = (
         SampleState.objects.filter(state__exact="Defined").last().get_state_id()
     )
-    # import pdb; pdb.set_trace()
     if len(split_data["sample"]) < len(FIELDS_ON_SAMPLE_TABLE):
         return {"ERROR": ERROR_MISSING_SAMPLE_DATA}
     return split_data
