@@ -216,15 +216,19 @@ FIELDS_ON_SAMPLE_TABLE = [
     "fastq_r1_md5",
     "fastq_r2_md5",
     "r1_fastq_filepath",
-    "r2_fastq_filepath"
+    "r2_fastq_filepath",
 ]
 FIELDS_ON_ENA_TABLE = [
+    "bioproject_accession_ENA",
+    "bioproject_umbrella_accession_ENA",
+    "biosample_accession_ENA",
+    "GenBank_ENA_DDBJ_accession",
     "study_alias",
     "study_id",
     "study_title",
     "study_type",
     "experiment_alias",
-    "experiment_title"
+    "experiment_title",
 ]
-FIELDS_ON_GISAID_TABLE = ["gisaid_id"]
+FIELDS_ON_GISAID_TABLE = ["gisaid_id", "GISAID_accession", "virus_name"]
 FIELDS_ON_AUTHOR_TABLE = ["analysis_authors", "author_submitter", "authors"]
