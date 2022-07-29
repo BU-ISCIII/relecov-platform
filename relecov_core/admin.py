@@ -79,7 +79,7 @@ class EffectAdmin(admin.ModelAdmin):
 
 
 class EnaInfoAdmin(admin.ModelAdmin):
-    list_display = ["biosample_accession_ENA", "SRA_accession"]
+    list_display = ["biosample_accession_ENA", "SRA_accession", "study_title"]
 
 
 class FilterAdmin(admin.ModelAdmin):
