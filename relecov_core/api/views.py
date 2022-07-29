@@ -15,14 +15,15 @@ from relecov_core.api.serializers import (
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
-    CreateEnaSerializer
+    CreateEnaSerializer,
 )
 
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from .utils.analysis_handling import process_analysis_data
 from relecov_core.api.utils.sample_handling import (
     check_if_sample_exists,
-    split_sample_data)
+    split_sample_data,
+)
 from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
@@ -63,7 +64,8 @@ analysis_file = openapi.Schema(
                 description="Experiment alias used for uploading to ENA",
             ),
             "experiment_title": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Experiment title for uploading to ENA"
+                type=openapi.TYPE_STRING,
+                description="Experiment title for uploading to ENA",
             ),
             "fastq_r1_md5": openapi.Schema(
                 type=openapi.TYPE_STRING,
@@ -97,7 +99,8 @@ analysis_file = openapi.Schema(
                 type=openapi.TYPE_STRING, description="Project name"
             ),
             "study_alias": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Study alias used for uplading to ENA"
+                type=openapi.TYPE_STRING,
+                description="Study alias used for uplading to ENA",
             ),
             "study_id": openapi.Schema(
                 type=openapi.TYPE_STRING, description="Study ID for uploading to ENA"
@@ -109,7 +112,8 @@ analysis_file = openapi.Schema(
                 type=openapi.TYPE_STRING, description="Study type for uploading to ENA"
             ),
             "submitting_lab_sample_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="sample name id given by the submitted lab"
+                type=openapi.TYPE_STRING,
+                description="sample name id given by the submitted lab",
             ),
         },
     ),
@@ -143,22 +147,28 @@ def create_sample_data(request):
             return Response(
                 author_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-        import pdb
-        pdb.set_trace()
-        gisaid_serializer = CreateGisaidSerializer(data=split_data["gisaid"])
-        if not gisaid_serializer.is_valid():
-            return Response(
-                gisaid_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-        ena_serializer = CreateEnaSerializer(data=split_data["ena"])
-        if not ena_serializer.is_valid():
-            return Response(
-                ena_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+        if split_data["gisaid"]["gisaid_id"] != "":
+            gisaid_serializer = CreateGisaidSerializer(data=split_data["gisaid"])
+            if not gisaid_serializer.is_valid():
+                return Response(
+                    gisaid_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            gisaid_serializer = None
+        if split_data["ena"]["biosample_accession_ENA"] != "":
+            ena_serializer = CreateEnaSerializer(data=split_data["ena"])
+            if not ena_serializer.is_valid():
+                return Response(
+                    ena_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            ena_serializer = None
         # Store authors, gisaid, ena in ddbb to get the references
         author_serializer.save()
-        gisaid_serializer.save()
-        ena_serializer.save()
+        if gisaid_serializer:
+            gisaid_serializer.save()
+        if ena_serializer:
+            ena_serializer.save()
         split_data["sample"]["author_obj"] = author_serializer
         split_data["sample"]["gisaid_obj"] = gisaid_serializer
         split_data["sample"]["ena_obj"] = ena_serializer
