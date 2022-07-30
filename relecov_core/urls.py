@@ -27,6 +27,7 @@ urlpatterns = [
         "resultsInfoReceived/", views.results_info_received, name="resultsInfoReceived"
     ),
     path("resultsDownload/", views.results_download, name="resultsDownload"),
+    path("sampleDisplay=<int:sample_id>", views.sample_display, name="sample_display"),
     path("schemaDisplay=<int:schema_id>", views.schema_display, name="schema_display"),
     path("schemaHandling", views.schema_handling, name="schema_handling"),
     path("searchSample", views.search_sample, name="search_sample"),
