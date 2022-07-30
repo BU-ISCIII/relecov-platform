@@ -197,6 +197,7 @@ HEADING_SCHEMA_DISPLAY = [
     "Description",
 ]
 
+HEADING_FOR_SAMPLE_LIST = ["Sequencing Sample ID", "State", "Recorded date"]
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
 
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]

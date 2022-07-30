@@ -30,6 +30,7 @@ from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
     ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
+    HEADING_FOR_SAMPLE_LIST,
 )
 
 
@@ -159,6 +160,13 @@ def search_sample(request):
                     "search_data": search_data,
                     "warning": ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
                 },
+            )
+        if len(sample_list) == 1:
+            return redirect("display_sample", sample_id=sample_list)
+        else:
+            sample = {"s_data": sample_list, "heading": HEADING_FOR_SAMPLE_LIST}
+            return render(
+                request, "relecov_core/searchSample.html", {"list_display": sample}
             )
     # import pdb; pdb.set_trace()
     if "ERROR" in search_data:
