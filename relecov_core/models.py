@@ -744,6 +744,15 @@ class Sample(models.Model):
     def get_metadata_file(self):
         return "%s" % (self.metadata_file)
 
+    def get_info_for_searching(self):
+        recorded_date = self.created_at.strftime("%d , %B , %Y")
+        data = []
+        data.append(self.pk)
+        data.append(self.sequencing_sample_id)
+        data.append(self.get_state())
+        data.append(recorded_date)
+        return data
+
     def update_state(self, state):
         if not SampleState.object.filter(state__exact=state).exists():
             return False
