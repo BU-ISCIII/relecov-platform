@@ -33,7 +33,7 @@
                         <tbody>
                             {% for pk, s_name, state, r_date in list_display.s_data %}
                                 <tr>
-                                    <td><a href="displaySample={{pk}}">{{s_name}}</a></td>
+                                    <td><a href="sampleDisplay={{pk}}">{{s_name}}</a></td>
                                     <td>{{state}}</td>
                                     <td>{{r_date}}</td>
 
@@ -58,7 +58,6 @@
                     });
                 });
             </script>
-
         {% else %}
             {% if warning %}
                 <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
@@ -68,7 +67,6 @@
                     </div>
 
                 </div>
-
             {% endif %}
             {% if not_result %}
                 <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
@@ -78,7 +76,6 @@
                 </div>
             {% else %}
             {% load user_groups %}
-
                 <div class="card d-inline-flex flex-column w-auto p-5 border border-success">
                     <div class="card-body">
                         <h2 class="card-title">Search sample</h2>
