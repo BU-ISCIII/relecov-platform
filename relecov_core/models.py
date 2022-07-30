@@ -753,6 +753,26 @@ class Sample(models.Model):
         data.append(recorded_date)
         return data
 
+    def get_sample_basic_data(self):
+        recorded_date = self.created_at.strftime("%d , %B , %Y")
+        data = []
+        data.append(self.sequencing_sample_id)
+        data.append(self.microbiology_lab_sample_id)
+        data.append(self.submitting_lab_sample_id)
+        data.append(self.get_state())
+        data.append(recorded_date)
+        return data
+
+    def get_fastq_data(self):
+        data = []
+        data.append(self.sequence_file_R1_fastq)
+        data.append(self.sequence_file_R2_fastq)
+        data.append(self.r1_fastq_filepath)
+        data.append(self.r2_fastq_filepath)
+        data.append(self.fastq_r1_md5)
+        data.append(self.fastq_r2_md5)
+        return data
+
     def update_state(self, state):
         if not SampleState.object.filter(state__exact=state).exists():
             return False
