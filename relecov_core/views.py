@@ -105,6 +105,14 @@ def schema_display(request, schema_id):
 
 
 @login_required
+def search_sample(request):
+    search_data = ""
+    return render(
+        request, "relecov_core/searchSample.html", {"search_data": search_data}
+    )
+
+
+@login_required
 def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
