@@ -1,5 +1,6 @@
 import json
 from collections import OrderedDict
+from django.contrib.auth.models import User
 
 # from django.db.models import Max
 
@@ -7,6 +8,8 @@ from relecov_core.core_config import (
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
     FIELD_FOR_GETTING_SAMPLE_ID,
     ERROR_ISKYLIMS_NOT_REACHEABLE,
+    ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
+    ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -25,6 +28,7 @@ from relecov_core.models import (
     # PropertyOptions,
     # Schema,
     Sample,
+    SampleState,
     # User,
 )
 
@@ -186,6 +190,75 @@ def create_metadata_form(schema_obj, user_obj):
         return m_form["sample"]
     m_form["batch"] = create_form_for_batch(schema_obj, user_obj)
     return m_form
+
+
+def get_friend_list(user_name):
+    friend_list = []
+    user_groups = user_name.groups.values_list("name", flat=True)
+    if len(user_groups) > 0:
+        for user in user_groups:
+            if User.objects.filter(username__exact=user).exists():
+                # friend_list.append(User.objects.get(username__exact = user).id)
+                friend_list.append(User.objects.get(username__exact=user))
+
+    friend_list.append(user_name)
+    return friend_list
+
+
+def get_search_data():
+    """Fetch data to show in form"""
+
+    if Sample.objects.count() == 0:
+        return {"ERROR": ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
+    s_state_objs = SampleState.objects.all()
+    if len(s_state_objs) == 0:
+        return {"ERROR": ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED}
+    s_data = {"s_state": []}
+    for s_state_obj in s_state_objs:
+        s_data["s_state"].append(s_state_obj.get_state())
+    return s_data
+
+
+def search_samples(sample_name, user_name, sample_state, s_date):
+    """Search the samples that match with the query conditions"""
+    sample_list = []
+    sample_objs = Sample.objects.all()
+    if user_name != "":
+        if User.objects.filter(username__exact=user_name).exists():
+            user_name_obj = User.objects.filter(username__exact=user_name).last()
+            user_friend_list = get_friend_list(user_name_obj)
+            if not sample_objs.filter(user__in=user_friend_list).exists():
+                return sample_list
+            else:
+                sample_objs = sample_objs.filter(user__in=user_friend_list)
+        else:
+            return sample_list
+    if sample_name != "":
+        if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
+            sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)
+            if len(sample_objs) == 1:
+                sample_list.append(sample_objs[0].get_sample_id())
+                return sample_list
+
+        elif sample_objs.filter(sequencing_sample_id__icontains=sample_name).exists():
+            sample_objs = sample_objs.filter(
+                sequencing_sample_id__icontains=sample_name
+            )
+            if len(sample_objs) == 1:
+                sample_list.append(sample_objs[0].get_sample_id())
+                return sample_list
+        else:
+            return sample_list
+    if sample_state != "":
+        sample_objs = sample_objs.filter(
+            sampleState__sampleStateName__exact=sample_state
+        )
+
+    if s_date != "":
+        sample_objs = sample_objs.filter(created_at__exact=s_date)
+    for sample_obj in sample_objs:
+        sample_list.append(sample_obj.get_info_for_searching())
+    return sample_list
 
 
 def save_temp_sample_data(samples):

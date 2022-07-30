@@ -7,24 +7,42 @@
 <br><br>
 <section style="margin-top: 4%">
     <div class="container d-flex flex-column text-center position-relative" style="width:60%">
-        {% if list_display %}
+        {% if ERROR %}
+            <div class="card d-inline-flex flex-column w-auto p-5 border border-danger" style="width: 18rem;">
+                <div class="card-body">
+                    <h2 class="card-title">Search form is not available</h2>
+                    <p class="card-text">{{ERROR}}</p>
+                </div>
+            </div>
+        {% elif list_display %}
             <div class="card d-inline-flex flex-column w-auto p-5 border border-success" style="width: 18rem;">
                 <div class="card-body">
                 <h2 class="card-title">Search sample</h2>
                 <p class="card-text">Some steps to upload your metadata.</p>
-                <a href="/" class="btn btn-primary mt-5">Home</a>
+
                 </div>
             </div>
         {% else %}
-            {% if no_samples %}
-                <div class="card d-inline-flex flex-column w-auto p-5 border border-warning" style="width: 18rem;">
+            {% if warning %}
+                <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
+                    <h2 class="card-title">Not matched found</h2>
+                    <div class="card-body">
+                        <p>{{warning}}</p>
+                    </div>
+
+                </div>
+
+            {% endif %}
+            {% if not_result %}
+                <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
                     <div class="card-body">
 
                     </div>
                 </div>
             {% else %}
             {% load user_groups %}
-                <div class="card d-inline-flex flex-column w-auto p-5 border border-success" style="width: 18rem;">
+
+                <div class="card d-inline-flex flex-column w-auto p-5 border border-success">
                     <div class="card-body">
                         <h2 class="card-title">Search sample</h2>
                         <br><br>
@@ -43,14 +61,12 @@
                                         </select>
                                    </div>  <!-- end select input -->
                                 </div>  <!-- end from-group   -->
-
                                 <div class="row mb-3">
                                     <label for="sampleName" class="col-sm-4 col-form-label">Search by Name</label>
                                     <div class="col-sm-7">
-                                        <input class="form-control" type="text" required id="sampleName", name="sampleName"  placeholder="Search by Name">
+                                        <input class="form-control" type="text" id="sampleName", name="sampleName"  placeholder="Search by Name">
                                     </div>  <!-- end text input -->
                                 </div>
-                                <br><br>
                                 <div class="row mb-3">
                                     <label class="col-sm-4 control-label" for="sDate" >Sample defined Date</label>
                                     <div class="col-sm-7">
@@ -68,7 +84,7 @@
                                     {% else %}
 
                                         <label class="col-sm-8 col-form-label col-form-label-lg text-info" for="username" >Samples are filtered by user {{user.get_username}} </label>
-                                        <input type="hidden" name="username" value="{{user.get_username}}">
+                                        <input type="hidden" name="userName" value="{{user.get_username}}">
 
                                     {% endif %}
                                 </div>  <!-- end from-group   -->
@@ -78,7 +94,6 @@
                                     <div class="text-left">
                                         <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
                                         <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
-
                                     </div>
                                 </div>     <!-- end card body  -->
                             </div>  <!-- end card body   -->
