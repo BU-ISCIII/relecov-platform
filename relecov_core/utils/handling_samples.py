@@ -256,6 +256,9 @@ def search_samples(sample_name, user_name, sample_state, s_date):
 
     if s_date != "":
         sample_objs = sample_objs.filter(created_at__exact=s_date)
+    if len(sample_objs) == 1:
+        sample_list.append(sample_objs[0].get_sample_id())
+        return sample_list
     for sample_obj in sample_objs:
         sample_list.append(sample_obj.get_info_for_searching())
     return sample_list
