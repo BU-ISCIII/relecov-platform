@@ -1,6 +1,6 @@
 import json
 from collections import OrderedDict
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 # from django.db.models import Max
 
@@ -8,8 +8,12 @@ from relecov_core.core_config import (
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
     FIELD_FOR_GETTING_SAMPLE_ID,
     ERROR_ISKYLIMS_NOT_REACHEABLE,
+    ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE,
     ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
     ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
+    ERROR_SAMPLE_DOES_NOT_EXIST,
+    HEADING_FOR_BASIC_SAMPLE_DATA,
+    HEADING_FOR_FASTQ_SAMPLE_DATA,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -203,6 +207,31 @@ def get_friend_list(user_name):
 
     friend_list.append(user_name)
     return friend_list
+
+
+def get_sample_display_data(sample_id, user):
+    """Check if user is allow to see the data and if true collect all info
+    from sample to display
+    """
+    if not Sample.objects.filter(pk__exact=sample_id).exists():
+        return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
+    group = Group.objects.get(name="RelecovManager")
+    if group not in user.groups.all():
+        if not Sample.objects.filter(pk__exact=sample_id, user=user).exists():
+            f_list = get_friend_list(user)
+            if not Sample.objects.filter(pk__exact=sample_id, user__in=f_list).exists():
+                return {"ERROR": ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
+    sample_obj = Sample.objects.filter(pk__exact=sample_id).last()
+    s_data = {}
+
+    s_data["basic"] = list(
+        zip(HEADING_FOR_BASIC_SAMPLE_DATA, sample_obj.get_sample_basic_data())
+    )
+    s_data["fastq"] = list(
+        zip(HEADING_FOR_FASTQ_SAMPLE_DATA, sample_obj.get_fastq_data())
+    )
+
+    return s_data
 
 
 def get_search_data():
