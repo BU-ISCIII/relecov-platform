@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     create_metadata_form,
+    get_search_data,
     save_temp_sample_data,
+    search_samples,
 )
 
 from relecov_core.utils.schema_handling import (
@@ -21,8 +23,14 @@ from relecov_core.utils.schema_handling import (
 
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.contributor_info_handling import get_data_from_form
+from relecov_core.utils.generic_functions import check_valid_date_format
 
 from relecov_core.models import Sample
+from relecov_core.core_config import (
+    ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
+    ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
+    ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
+)
 
 
 def index(request):
@@ -106,7 +114,57 @@ def schema_display(request, schema_id):
 
 @login_required
 def search_sample(request):
-    search_data = ""
+    """Search sample using the filter in the form"""
+    search_data = get_search_data()
+    if request.method == "POST" and request.POST["action"] == "searchSample":
+        sample_name = request.POST["sampleName"]
+        s_date = request.POST["sDate"]
+        user_name = request.POST["userName"]
+        sample_state = request.POST["sampleState"]
+        # check that some values are in the request if not return the form
+        if (
+            user_name == ""
+            and s_date == ""
+            and sample_name == ""
+            and sample_state == ""
+        ):
+            return render(
+                request, "relecov_core/searchSample.html", {"search_data": search_data}
+            )
+        if user_name != "" and len(user_name) < 5:
+            return render(
+                request,
+                "relecov_core/searchSample.html",
+                {
+                    "search_data": search_data,
+                    "warning": ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
+                },
+            )
+        # check the right format of s_date
+        if s_date != "" and not check_valid_date_format(s_date):
+            return render(
+                request,
+                "relecov_core/searchSample.html",
+                {
+                    "search_data": search_data,
+                    "warning": ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
+                },
+            )
+        sample_list = search_samples(sample_name, user_name, sample_state, s_date)
+        if len(sample_list) == 0:
+            return render(
+                request,
+                "relecov_core/searchSample.html",
+                {
+                    "search_data": search_data,
+                    "warning": ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
+                },
+            )
+    # import pdb; pdb.set_trace()
+    if "ERROR" in search_data:
+        return render(
+            request, "relecov_core/searchSample.html", {"ERROR": search_data["ERROR"]}
+        )
     return render(
         request, "relecov_core/searchSample.html", {"search_data": search_data}
     )
