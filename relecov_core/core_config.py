@@ -174,6 +174,9 @@ ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS = (
 ERROR_INVALID_DEFINED_SAMPLE_FORMAT = "The format for the defined Date is incorrect"
 ERROR_NOT_MATCHED_ITEMS_IN_SEARCH = "Your query does not return any match"
 
+ERROR_SAMPLE_DOES_NOT_EXIST = "The Sample you request does not exist"
+ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE = "You are not allowed to see the sample"
+
 ERROR_INVALID_JSON = "Invalid json file"
 ERROR_INVALID_SCHEMA = "Invalid Schema"
 ERROR_SCHEMA_ALREADY_LOADED = "Schema is already loaded"
@@ -189,6 +192,21 @@ ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
 
 ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
 
+HEADING_FOR_BASIC_SAMPLE_DATA = [
+    "Sample ID given for sequencing",
+    "Sample ID given in the microbiology lab",
+    "Sample ID given by the submitting laboratory",
+    "Sample State",
+    "Recorded Date",
+]
+HEADING_FOR_FASTQ_SAMPLE_DATA = [
+    "Sequence file R1 fastq",
+    "Sequence file R2 fastq",
+    "Filepath R1 fastq",
+    "Filepath R2 fastq",
+    "Fastq md5 r1",
+    "Fastq md5 r2",
+]
 HEADING_SCHEMA_DISPLAY = [
     "Property",
     "Label",
