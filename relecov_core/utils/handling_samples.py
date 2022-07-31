@@ -279,9 +279,7 @@ def search_samples(sample_name, user_name, sample_state, s_date):
         else:
             return sample_list
     if sample_state != "":
-        sample_objs = sample_objs.filter(
-            state__state__exact=sample_state
-        )
+        sample_objs = sample_objs.filter(state__state__exact=sample_state)
 
     if s_date != "":
         sample_objs = sample_objs.filter(created_at__exact=s_date)
