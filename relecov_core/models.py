@@ -617,7 +617,7 @@ class EnaInfo(models.Model):
     def __str__(self):
         return "%s" % (self.GenBank_ENA_DDBJ_accession)
 
-    def get_genebank(self):
+    def get_genbank(self):
         return "%s" % (self.GenBank_ENA_DDBJ_accession)
 
 
