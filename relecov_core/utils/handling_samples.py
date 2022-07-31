@@ -280,7 +280,7 @@ def search_samples(sample_name, user_name, sample_state, s_date):
             return sample_list
     if sample_state != "":
         sample_objs = sample_objs.filter(
-            sampleState__sampleStateName__exact=sample_state
+            state__state__exact=sample_state
         )
 
     if s_date != "":
