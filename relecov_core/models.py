@@ -697,22 +697,15 @@ class Sample(models.Model):
     metadata_file = models.ForeignKey(
         Document, on_delete=models.CASCADE, null=True, blank=True
     )
-
-    # bioproject_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    # bioproject_umbrella_accession_ENA = models.CharField(
-    # max_length=80, null=True, blank=True
-    # )
-    # biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    # GenBank_ENA_DDBJ_accession = models.CharField(max_length=80, null=True, blank=True)
-    # GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
-    # gisaid_id = models.CharField(max_length=80, null=True, blank=True)
-
-    # autors_obj = models.ForeignKey(Authors, on_delete=models.CASCADE, null=True, blank=True)
-    # gisaid_obj = models.ForeignKey(GisaidInfo, on_delete=models.CASCADE, null=True, blank=True)
-    # ena_obj = models.ForeignKey(EnaInfo, on_delete=models.CASCADE, null=True, blank=True)
-
-    # host_specimen_voucher = models.CharField(max_length=80, null=True, blank=True)
-    # isolate_sample_id = models.CharField(max_length=80, null=True, blank=True)
+    autors_obj = models.ForeignKey(
+        Authors, on_delete=models.CASCADE, null=True, blank=True
+    )
+    gisaid_obj = models.ForeignKey(
+        GisaidInfo, on_delete=models.CASCADE, null=True, blank=True
+    )
+    ena_obj = models.ForeignKey(
+        EnaInfo, on_delete=models.CASCADE, null=True, blank=True
+    )
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
