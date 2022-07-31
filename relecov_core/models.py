@@ -655,11 +655,16 @@ class GisaidInfo(models.Model):
         return "%s" % (self.gisaid_id)
 
     def get_gisaid_data(self):
+        if self.virus_id is not None:
+            v_name = self.virus_id.get_virus_name()
+        else:
+            v_name = None
         date = self.submission_data.strftime("%d , %B , %Y")
         data = []
         data.append(self.gisaid_id)
         data.append(date)
         data.append(self.length)
+        data.append(v_name)
         return data
 
 
