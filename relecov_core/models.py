@@ -654,6 +654,14 @@ class GisaidInfo(models.Model):
     def get_gisaid_id(self):
         return "%s" % (self.gisaid_id)
 
+    def get_gisaid_data(self):
+        date = self.submission_data.strftime("%d , %B , %Y")
+        data = []
+        data.append(self.gisaid_id)
+        data.append(date)
+        data.append(self.length)
+        return data
+
 
 # Sample Table
 class SampleManager(models.Manager):
