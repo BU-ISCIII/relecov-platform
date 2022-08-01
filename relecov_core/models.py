@@ -846,6 +846,9 @@ class BioInfoProcessValue(models.Model):
     def get_id(self):
         return "%s" % (self.pk)
 
+    def get_b_process_field_id(self):
+        return "%s" % (self.bioinfo_process_fieldID)
+
 
 class PositionManager(models.Manager):
     def create_new_position(self, data):
