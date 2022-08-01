@@ -53,6 +53,7 @@ def bio_info_json_handling(request):
             __package__,
         )
         print(bioinfo_data)
+
         """
         if "ERROR" in schema_data:
             return render(
