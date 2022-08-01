@@ -81,7 +81,6 @@ def bio_info_json_handling(request):
 @login_required
 def sample_display(request, sample_id):
     sample_data = get_sample_display_data(sample_id, request.user)
-
     if "ERROR" in sample_data:
         return render(
             request, "relecov_core/sampleDisplay.html", {"ERROR": sample_data["ERROR"]}
