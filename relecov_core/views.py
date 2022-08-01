@@ -124,7 +124,9 @@ def schema_display(request, schema_id):
         return redirect("/")
     schema_data = get_schema_display_data(schema_id)
     return render(
-        request, "relecov_core/schemaDisplay.html", {"schema_data": schema_data}
+        request,
+        "relecov_core/schemaDisplay.html",
+        {"schema_data": schema_data}
     )
 
 
