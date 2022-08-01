@@ -3,4 +3,4 @@ def process_analysis_data(data):
 
 
 def process_ena_data(data):
-    return
+    return None
