@@ -138,7 +138,6 @@ def search_sample(request):
         user_name = request.POST["userName"]
         sample_state = request.POST["sampleState"]
         # check that some values are in the request if not return the form
-
         if (
             user_name == ""
             and s_date == ""
