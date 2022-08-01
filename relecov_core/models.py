@@ -925,6 +925,14 @@ class VariantInSample(models.Model):  # include Foreign Keys
     def get_af(self):
         return "%s" % (self.af)
 
+    def get_variant_in_sample_data(self):
+        data = []
+        data.append(self.dp)
+        data.append(self.alt)
+        data.append(self.ref)
+        data.append(self.af)
+        return data
+
     objects = VariantInSampleManager()
 
 
