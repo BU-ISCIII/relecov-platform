@@ -73,6 +73,7 @@ def bio_info_json_handling(request):
         request, "relecov_core/bioInfoJSONHandling.html", {"schemas": schemas}
     )
     """
+
     return render(request, "relecov_core/bioInfoJSONHandling.html", {})
 
 
