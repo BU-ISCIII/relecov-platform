@@ -74,7 +74,7 @@ def bio_info_json_handling(request):
         request, "relecov_core/bioInfoJSONHandling.html", {"schemas": schemas}
     )
     """
-    # test flake
+    # test flake new test
     return render(request, "relecov_core/bioInfoJSONHandling.html", {})
 
 
