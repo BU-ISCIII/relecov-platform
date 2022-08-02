@@ -4,9 +4,7 @@
 {% block content %}
 {% include "relecov_core/intranetSidebar.html" %}
 {% include "relecov_core/JExcelFunctionality.html" %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.css"/>
-
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.js"></script>
+{% include "relecov_core/cdn_table_functionality.html" %}
 
 <section id="relecov-platform" class="d-flex align-items-center">
     <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" style="width:60%">

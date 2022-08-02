@@ -1,0 +1,125 @@
+{% extends "relecov_core/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/intranetSidebar.html" %}
+{% include "relecov_core/cdn_table_functionality.html" %}
+<br><br>
+<section style="margin-top: 4%">
+    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
+        {% if ERROR %}
+            <div class="card d-inline-flex flex-column w-auto p-5 border border-danger" style="width: 18rem;">
+                <div class="card-body">
+                    <h2 class="card-title">Unable to display Sample information</h2>
+                    <p class="card-text">{{ERROR}}</p>
+                </div>
+            </div>
+        {% else %}
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Data</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#database" type="button" role="tab" aria-controls="database" aria-selected="false">Upload Databases</button>
+               </li>
+               <li class="nav-item" role="presentation">
+                   <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#delete" type="button" role="tab" aria-controls="delete" aria-selected="false">Delete Fields</button>
+              </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="info-tab">
+                   <div class="container-md">
+                       <div class="row mt-4">
+                           <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header text-center"><h3 style="text-align:center">IDs defined for the sample</h3> </div>
+                                    <div class="card-body  text-center">
+                                        <table id="f_sample" class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr scope="row">
+                                                    <th>Field Name</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for name, value in sample_data.basic %}
+                                                    <tr>
+                                                        <td>{{name}}</td>
+                                                        <td>{{value}}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>     <!-- end card body  -->
+                                </div> <!-- end card  -->
+                            </div> <!-- end col-md-10 -->
+                        </div> <!-- end row-->
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                 <div class="card">
+                                     <div class="card-header text-center"><h3 style="text-align:center">Fastq information for the sample</h3> </div>
+                                     <div class="card-body  text-center">
+                                         <table id="f_sample" class="table table-striped table-bordered">
+                                             <thead>
+                                                 <tr scope="row">
+                                                     <th>Field Name</th>
+                                                     <th>Value</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody>
+                                                    {% for name, value in sample_data.fastq %}
+                                                        <tr>
+                                                            <td>{{name}}</td>
+                                                            <td>
+                                                                {% if value == None %}
+                                                                    Not Provided
+                                                                {% else %}
+                                                                    {{value}}
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                     {% endfor %}
+                                             </tbody>
+                                         </table>
+                                     </div>     <!-- end card body  -->
+                                 </div> <!-- end card  -->
+                             </div> <!-- end col-md-10 -->
+                         </div> <!-- end row-->
+                    </div> <!-- end continer-->
+                </div>  <!-- end tab basic -->
+
+                <div class="tab-pane fade" id="database" role="tabpanel" aria-labelledby="grupo-tab">
+                    <div class="container-md">
+                        <div class="row mt-5">
+                            <div class="col-md-10">
+                                <div class="card">
+                                    <div class="card-header"><h3 style="text-align:center">Metadata fields classified as Batch</h3> </div>
+                                    <div class="card-body">
+                                        <table id="f_batch" class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr scope="row">
+                                                    <th>Label name</th>
+                                                    <th>Order when displaying the form</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for label, order in data_visualization.batch %}
+                                                    <tr>
+                                                        <td>{{label}}</td>
+                                                        <td>{{order}}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>     <!-- end card body  -->
+                                </div> <!-- end card  -->
+                            </div> <!-- end col-md-8 -->
+                        </div> <!-- end row-->
+                    </div> <!-- end continer-->
+                </div>  <!-- end tab database -->
+            </div>  <!-- end myTabContent -->
+        {% endif %}
+    </div>  <!-- end container -->
+</section>
+
+{% endblock %}
