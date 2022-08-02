@@ -35,7 +35,7 @@ sudo git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platfor
 
 Copy the initial setting template into a file named install_settings.txt
 ```bash
-cp template_initial_settings.txt initial_settings.txt
+cp conf/template_initial_settings.txt initial_settings.txt
 ```
 
 Open with your favourite editor the configuration file to set your own values for
