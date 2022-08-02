@@ -166,11 +166,6 @@ sed -i "s/djangopass/${DB_PASS}/g" relecov_platform/settings.py
 sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
 sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
-sed -i "s/emailhostserver/${EMAIL_HOST_SERVER}/g" relecov_platform/settings.py
-sed -i "s/emailport/${EMAIL_PORT}/g" relecov_platform/settings.py
-sed -i "s/emailhostuser/${EMAIL_HOST_USER}/g" relecov_platform/settings.py
-sed -i "s/emailhostpassword/${EMAIL_HOST_PASSWORD}/g" relecov_platform/settings.py
-sed -i "s/emailhosttls/${EMAIL_USE_TLS}/g" relecov_platform/settings.py
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
 
@@ -199,6 +194,9 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     ln -s /etc/apache2/mods-available/iskylims.load /etc/apache2/mods-enabled/
     ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
 fi
+
+if [[ $linux_distribution == "Centos" ]]; then
+    cp conf/apache2.conf /etc/apache2/sites-available/000-default.conf
 echo "Creating super user "
 python3 manage.py createsuperuser
 
