@@ -33,6 +33,11 @@ sudo git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platfor
 
 #### Configuration settings
 
+Copy the initial setting template into a file named install_settings.txt
+```bash
+cp template_initial_settings.txt initial_settings.txt
+```
+
 Open with your favourite editor the configuration file to set your own values for
 database ,email settings and the local IP of the server where relecov-platform will run.
 ```bash
