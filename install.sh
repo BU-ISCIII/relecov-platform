@@ -136,7 +136,6 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     pip3 install virtualenv
     virtualenv --python=/usr/bin/python3 virtualenv
 
-
 fi
 
 if [[ $linux_distribution == "Centos" ]]; then
@@ -144,7 +143,6 @@ if [[ $linux_distribution == "Centos" ]]; then
     cd /opt/python/3.6.4/bin
     ./pip3 install virtualenv
     virtualenv --python=/usr/bin/python3 virtualenv
-
 
 fi
 
@@ -189,23 +187,18 @@ chown -R www-data:www-data /opt/relecov-platform
 #echo "Loading in database initial data"
 #python3 manage.py loaddata conf/new_installation_loading_tables.json
 
-echo "Running crontab"
-#python3 manage.py crontab add
-#mv /var/spool/cron/crontabs/root /var/spool/cron/crontabs/www-data
-#chown www-data /var/spool/cron/crontabs/www-data
-
-
 
 echo "Updating Apache configuration"
-cp conf/apache2.conf /etc/apache2/sites-available/000-default.conf
-echo  'LoadModule wsgi_module "/opt/relecov-platform/virtualenv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so"' >/etc/apache2/mods-available/iskylims.load
-cp conf/iskylims.conf /etc/apache2/mods-available/iskylims.conf
+if [[ $linux_distribution == "Ubuntu" ]]; then
+    cp conf/apache2.conf /etc/apache2/sites-available/000-default.conf
+    echo  'LoadModule wsgi_module "/opt/relecov-platform/virtualenv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so"' >/etc/apache2/mods-available/iskylims.load
+    cp conf/iskylims.conf /etc/apache2/mods-available/iskylims.conf
 
-# Create needed symbolic links to enable the configurations:
+    # Create needed symbolic links to enable the configurations:
 
-ln -s /etc/apache2/mods-available/iskylims.load /etc/apache2/mods-enabled/
-ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
-
+    ln -s /etc/apache2/mods-available/iskylims.load /etc/apache2/mods-enabled/
+    ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
+fi
 echo "Creating super user "
 python3 manage.py createsuperuser
 
@@ -217,5 +210,3 @@ printf "%s"
 printf "${BLUE}------------------${NC}\n\n"
 
 echo "Installation completed"
-
-
