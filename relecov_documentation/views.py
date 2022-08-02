@@ -64,3 +64,15 @@ def dashboard(request):
         "relecov_documentation/documentation.html",
         {"html_visualization": html_visualization_from_markdown},
     )
+
+
+def upload_metadata_lab(request):
+    converted_to_html = markdown_to_html("upload_metadata_lab.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
+    )

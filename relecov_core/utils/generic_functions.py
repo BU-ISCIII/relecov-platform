@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from relecov_core.models import ConfigSetting
@@ -16,6 +17,7 @@ def get_configuration_value(parameter_name):
     Return:
         parameter_value
     """
+
     parameter_value = "False"
     if ConfigSetting.objects.filter(configuration_name__exact=parameter_name).exists():
         parameter_obj = ConfigSetting.objects.filter(
@@ -42,3 +44,12 @@ def store_file(user_file, folder):
     fs = FileSystemStorage()
     fs.save(saved_file, user_file)
     return path_file
+
+
+def check_valid_date_format(date):
+    """check it date has a valid format"""
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
