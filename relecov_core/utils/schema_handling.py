@@ -4,7 +4,7 @@ import os
 from django.db import DataError
 from django.conf import settings
 from relecov_core.models import (
-    BioinfoProcessField,
+    BioinfoAnalysisField,
     Classification,
     MetadataVisualization,
     PropertyOptions,
@@ -257,7 +257,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
             fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
-            n_field = BioinfoProcessField.objects.create_new_field(fields)
+            n_field = BioinfoAnalysisField.objects.create_new_field(fields)
             n_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
 
