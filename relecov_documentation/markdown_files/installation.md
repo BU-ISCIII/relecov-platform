@@ -1,3 +1,3 @@
-# relecov-platform Intranet
+# relecov-platform
 
 ### Installation Steps
