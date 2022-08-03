@@ -16,9 +16,11 @@ The third option is using the REST API defined in relecov to upload your data.
 
 ## Table of Contents
 
-1. [Metadata Form](#metadata-form)
-2. [Metadata Batch](#metadata-bath)
-3. [REST API](#rest-api)
+- [Upload Metadata Lab](#upload-metadata-lab)
+  - [Table of Contents](#table-of-contents)
+- [Metadata Form](#metadata-form)
+- [Metadata Batch](#metadata-batch)
+- [REST API](#rest-api)
 
 # Metadata Form
 
