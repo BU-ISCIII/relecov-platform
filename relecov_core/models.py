@@ -426,7 +426,7 @@ class LineageInfo(models.Model):
     def get_lineage_id(self):
         return "%s" % (self.pk)
 
-
+"""
 class LineageManager(models.Manager):
     def create_new_lineage(self, data):
         new_lineage = self.create(
@@ -483,6 +483,7 @@ class Lineage(models.Model):
         return "%s" % (self.lineage_analysis_software_version)
 
     objects = LineageManager()
+"""
 
 
 # Gene Table
