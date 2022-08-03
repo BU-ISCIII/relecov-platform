@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 
 from relecov_core.models import (
     Authors,
-    BioInfoProcessValue,
-    BioinfoProcessField,
+    BioInfoAnalysisValue,
+    BioinfoAnalysisField,
     Caller,
     Classification,
     Chromosome,
@@ -48,13 +48,13 @@ class CustomUserAdmin(UserAdmin):
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
 
 
-class BioinfoProcessFieldAdmin(admin.ModelAdmin):
+class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
     list_display = ["property_name", "classificationID", "label_name"]
     search_fields = ("property_name__icontains",)
 
 
-class BioinfoProcessValueAdmin(admin.ModelAdmin):
-    list_display = ["value", "bioinfo_process_fieldID", "sampleID_id"]
+class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
+    list_display = ["value", "bioinfo_analysis_fieldID", "sampleID_id"]
     search_fields = ("value__icontains",)
 
 
@@ -196,8 +196,8 @@ admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
 
-admin.site.register(BioinfoProcessField, BioinfoProcessFieldAdmin)
-admin.site.register(BioInfoProcessValue, BioinfoProcessValueAdmin)
+admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
+admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(LineageInfo, LineageInfoAdmin)
