@@ -123,7 +123,7 @@ def results_info_processed(request):
         "relecov_documentation/documentation2.html",
         {"html": converted_to_html},
     )
-    
+
 
 def results_info_received(request):
     converted_to_html = markdown_to_html("results_info_received.md")
@@ -137,7 +137,6 @@ def results_info_received(request):
     )
 
 
-
 def upload_metadata_lab(request):
     converted_to_html = markdown_to_html("upload_metadata_lab.md")
     if isinstance(converted_to_html, dict):
@@ -149,6 +148,7 @@ def upload_metadata_lab(request):
         {"html": converted_to_html},
     )
 
+
 def upload_to_ena(request):
     converted_to_html = markdown_to_html("upload_to_ena.md")
     if isinstance(converted_to_html, dict):
@@ -159,7 +159,7 @@ def upload_to_ena(request):
         "relecov_documentation/documentation2.html",
         {"html": converted_to_html},
     )
-    
+
 
 def upload_to_gisaid(request):
     converted_to_html = markdown_to_html("upload_to_gisaid.md")
