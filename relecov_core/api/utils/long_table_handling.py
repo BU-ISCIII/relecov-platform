@@ -10,7 +10,6 @@ from relecov_core.api.serializers import (
 )
 
 from relecov_core.models import (
-    Lineage,
     Sample,
     Chromosome,
     Gene,
@@ -62,9 +61,6 @@ def fetch_long_table_data(data):
     variantID_id = set_variant(data, data_ids)
     if variantID_id is not None:
         data_ids["variantID_id"] = variantID_id
-
-    lineageID_id = set_lineage(data)
-    print("lineageID_id: " + str(lineageID_id))
 
 
 def set_chromosome(data):
@@ -205,32 +201,6 @@ def set_variant(data, data_ids):
         if variant_serializer.is_valid():
             variant_serializer.save()
             print("variant_serializer saved")
-        """
-
-
-def set_lineage(data):
-    lineage_id = 0
-    if Lineage.objects.filter(
-        lineage_name__iexact=data["Lineage"]["lineage_name"]
-    ).exists():
-        lineage_id = (
-            Lineage.objects.filter(lineage_name__iexact=data["Lineage"]["lineage_name"])
-            .last()
-            .get_lineage_id()
-        )
-        return lineage_id
-    else:
-        new_lineage = Lineage.objects.create(
-            lineage_name=data["Lineage"]["lineage_name"]
-        )
-        new_lineage.save()
-        """
-        lineage_serializer = CreateLineageSerializer(
-            data=data["Lineage"]["lineage_name"]
-        )
-        if lineage_serializer.is_valid():
-            lineage_serializer.save()
-            print("lineage_serializer saved")
         """
 
 
