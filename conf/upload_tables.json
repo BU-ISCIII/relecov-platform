@@ -1,0 +1,38 @@
+[
+{
+    "model": "relecov_core.configsetting",
+    "pk": 1,
+    "fields": {
+        "configuration_name": "ISKYLIMS_SERVER",
+        "configuration_value": "http://localhost:8001",
+        "generated_at": "2022-05-11T21:06:25.825"
+    }
+},
+{
+    "model": "relecov_core.configsetting",
+    "pk": 2,
+    "fields": {
+        "configuration_name": "USE_TEMPLATE_FOR_METADATA_FORM",
+        "configuration_value": "TRUE",
+        "generated_at": "2022-05-30T20:27:34.667"
+    }
+},
+{
+    "model": "relecov_core.samplestate",
+    "pk": 1,
+    "fields": {
+        "state": "Defined",
+        "display_string": "Sample Defined",
+        "description": "Sample is just defined"
+    }
+},
+{
+    "model": "relecov_core.samplestate",
+    "pk": 2,
+    "fields": {
+        "state": "Bioinfo",
+        "display_string": "Recorded Bioinfo Metadata",
+        "description": "Sample contains the bioinfo metadata"
+    }
+}
+]
