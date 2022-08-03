@@ -52,7 +52,6 @@ def generate_html_from_markdown_file(markdown_file):
 
 def fix_img_folder(text):
     """Change the image folder inside the markdown_files to the the static"""
-
     new_text = text.replace("img/", "../../static/relecov_documentation/img/")
     return new_text
 
