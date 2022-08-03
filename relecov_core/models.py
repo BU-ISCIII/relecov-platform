@@ -789,7 +789,7 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
-class BioinfoProcessFieldManager(models.Manager):
+class BioinfoAnalysisFieldManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
             classificationID=data["classificationID"],
@@ -799,7 +799,7 @@ class BioinfoProcessFieldManager(models.Manager):
         return new_field
 
 
-class BioinfoProcessField(models.Model):
+class BioinfoAnalysisField(models.Model):
     schemaID = models.ManyToManyField(Schema)
     classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
@@ -807,7 +807,7 @@ class BioinfoProcessField(models.Model):
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
-        db_table = "BioinfoProcessField"
+        db_table = "BioinfoAnalysisField"
 
     def __str__(self):
         return "%s" % (self.property_name)
@@ -826,19 +826,19 @@ class BioinfoProcessField(models.Model):
             return self.classificationID.get_classification()
         return None
 
-    objects = BioinfoProcessFieldManager()
+    objects = BioinfoAnalysisFieldManager()
 
 
-class BioInfoProcessValue(models.Model):
+class BioInfoAnalysisValue(models.Model):
     value = models.CharField(max_length=240)
-    bioinfo_process_fieldID = models.ForeignKey(
-        BioinfoProcessField, on_delete=models.CASCADE
+    bioinfo_analysis_fieldID = models.ForeignKey(
+        BioinfoAnalysisField, on_delete=models.CASCADE
     )
     sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
-        db_table = "BioInfoProcessValue"
+        db_table = "BioInfoAnalysisValue"
 
     def __str__(self):
         return "%s" % (self.value)
@@ -847,7 +847,7 @@ class BioInfoProcessValue(models.Model):
         return "%s" % (self.pk)
 
     def get_b_process_field_id(self):
-        return "%s" % (self.bioinfo_process_fieldID)
+        return "%s" % (self.bioinfo_analysis_fieldID)
 
 
 class PositionManager(models.Manager):
