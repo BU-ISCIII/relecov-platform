@@ -36,11 +36,11 @@ In the central part of the screen, a table will be displayed showing us all the 
 at the moment only the administrator, recently created in the previous step.
 To add a new user we will click on the ADD USER button.
 
-![relecov-platform admin add user 2](../../static/relecov_documentation/img/admin_panel_add_user2.png)
+![relecov-platform admin add user 2](img/admin_panel_add_user2.png)
 
 Fill username and password fields correctly and click on SAVE button.
 
-![relecov-platform admin add user 3](../../static/relecov_documentation/img/admin_panel_add_user3.png)
+![relecov-platform admin add user 3](img/admin_panel_add_user3.png)
 
 After clicking on the SAVE button, we will see another form where we can enter more detailed information about the user, in addition to managing the permissions that the user will have.
 

@@ -5,6 +5,24 @@ from django.conf import settings
 from markdownx.utils import markdownify
 import markdown
 
+from django import template
+from django.utils.safestring import mark_safe
+from django.utils.html import format_html
+
+
+register = template.Library()
+
+
+@register.filter
+def do_something(title, content):
+    something = "<h1>%s</h1><p>%s</p>" % (title, content)
+    return mark_safe(something)
+
+
+def testing():
+    html = format_html("<h1>Hello</h1>")
+    return html
+
 
 def generate_html_from_markdown_file(markdown_file):
     html_dict = {}
@@ -34,7 +52,6 @@ def generate_html_from_markdown_file(markdown_file):
 
 def fix_img_folder(text):
     """Change the image folder inside the markdown_files to the the static"""
-
     new_text = text.replace("img/", "../../static/relecov_documentation/img/")
     return new_text
 
