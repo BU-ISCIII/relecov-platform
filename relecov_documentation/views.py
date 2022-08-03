@@ -1,4 +1,4 @@
-from django.shortcuts import render 
+from django.shortcuts import render
 
 from relecov_documentation.utils.markdown_handling import (
     do_something,
@@ -78,8 +78,8 @@ def test(request):
         "relecov_documentation/test.html",
         {"html": html},
     )
-    
-    
+
+
 def test2(request):
     html = format_html("<h1>Hello</h1>")
     return render(

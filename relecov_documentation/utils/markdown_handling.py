@@ -12,10 +12,10 @@ from django.utils.html import format_html
 
 register = template.Library()
 
+
 @register.filter
 def do_something(title, content):
-
-    something = '<h1>%s</h1><p>%s</p>' % (title, content)
+    something = "<h1>%s</h1><p>%s</p>" % (title, content)
     return mark_safe(something)
 
 
@@ -66,4 +66,3 @@ def markdown_to_html(m_file):
     with open(m_path, "r") as fh:
         text = fh.read()
     return markdown.markdown(text, extensions=["toc", "tables"])
-
