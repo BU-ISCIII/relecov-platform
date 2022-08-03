@@ -75,6 +75,7 @@ python_check(){
         echo -e "${RED}ERROR : Python3 is not found in your system ${NC}"
         echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
         exit 1
+    fi
     p_version=$(echo $python_version | cut -d"." -f2)
     if (( $p_version < 7 )); then
         echo -e "${RED}ERROR : Application requieres at least the version 3.7.x of Python3  ${NC}"
