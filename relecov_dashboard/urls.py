@@ -18,6 +18,7 @@ urlpatterns = [
         "mutationsInLineages", views.mutations_in_lineages, name="mutations_in_lineages"
     ),
     path("spikeMutations", views.spike_mutations, name="spike_mutations"),
+    path("Gauge", views.gauge_test, name="gauge"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
