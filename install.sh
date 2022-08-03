@@ -121,7 +121,8 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 user=$USER
-linux_distribution=$(lsb_release -i | cut -f 2-)#Linux version
+#Linux distribution
+linux_distribution=$(lsb_release -i | cut -f 2-)
 
 echo "Checking main requirements"
 python_check
