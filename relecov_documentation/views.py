@@ -1,12 +1,12 @@
-from django.shortcuts import render  # , redirect
-
-# from django.contrib.auth.decorators import login_required
+from django.shortcuts import render 
 
 from relecov_documentation.utils.markdown_handling import (
+    do_something,
     generate_html_from_markdown_file,
     markdown_to_html,
     fix_img_folder,
 )
+from django.utils.html import format_html
 
 
 # Create your views here.
@@ -35,34 +35,57 @@ def initial_configuration(request):
 
 
 def create_user_account(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file(
-        "create_user_account.md"
-    )
-
+    converted_to_html = markdown_to_html("create_user_account.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation.html",
-        {"html_visualization": html_visualization_from_markdown},
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
     )
 
 
 def intranet(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file("intranet.md")
-
+    # html_visualization_from_markdown = generate_html_from_markdown_file("intranet.md")
+    converted_to_html = markdown_to_html("intranet.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation.html",
-        {"html_visualization": html_visualization_from_markdown},
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
     )
 
 
 def dashboard(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file("dashboard.md")
-
+    converted_to_html = markdown_to_html("dashboard.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation.html",
-        {"html_visualization": html_visualization_from_markdown},
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
+    )
+
+
+def test(request):
+    html = do_something(title="title", content="content")
+    return render(
+        request,
+        "relecov_documentation/test.html",
+        {"html": html},
+    )
+    
+    
+def test2(request):
+    html = format_html("<h1>Hello</h1>")
+    return render(
+        request,
+        "relecov_documentation/test2.html",
+        {"html2": html},
     )
 
 
