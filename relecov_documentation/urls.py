@@ -21,6 +21,8 @@ urlpatterns = [
     path("Dashboard/", views.dashboard, name="dashboard"),
     path("markdownx/", include("markdownx.urls")),
     path("UploadMetadataLab/", views.upload_metadata_lab, name="upload_metadata_lab"),
+    path("Test/", views.test, name="test"),
+    path("Test2/", views.test2, name="test2"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
