@@ -426,6 +426,7 @@ class LineageInfo(models.Model):
     def get_lineage_id(self):
         return "%s" % (self.pk)
 
+
 """
 class LineageManager(models.Manager):
     def create_new_lineage(self, data):
