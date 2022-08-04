@@ -28,9 +28,9 @@ db_check(){
         echo -e "${RED}ERROR : Unable to connect to database. Check if your database is running and accessible${NC}"
         exit 1
     fi
-    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o relecov_platform`
+    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o relecov`
 
-    if  ! [ "$RESULT" == "relecov_platform" ] ; then
+    if  ! [ "$RESULT" == "relecov" ] ; then
         echo -e "${RED}ERROR : Relecov database is not defined yet ${NC}"
         echo -e "${RED}ERROR : Create Relecov database on your mysql server and run again the installation script ${NC}"
         exit 1
@@ -70,7 +70,8 @@ apache_check(){
 }
 
 python_check(){
-    python_version=$(python3 --version)
+
+    python_version=$(su -c python3 --version $user)
     if [[ $python_version == "" ]]; then
         echo -e "${RED}ERROR : Python3 is not found in your system ${NC}"
         echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
@@ -120,7 +121,8 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-user=$USER
+user=$SUDO_USER
+
 #Linux distribution
 linux_distribution=$(lsb_release -i | cut -f 2-)
 
@@ -137,6 +139,7 @@ echo "Successful check for apache"
 read -p "Are you sure you want to install Relecov-platform in this server? " -n 1 -r
 echo    # (optional) move to a new line
 if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+    echo "Exiting without running relecov_platform installation"
     exit 1
 fi
 
@@ -152,7 +155,7 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     #apt-get install git libpango1.0 libpango1.0-dev   -y
 fi
 
-if [[ $linux_distribution == "CentOs" ]]; then
+if [[ $linux_distribution == "CentOS" ]]; then
     echo "Software installation for Centos"
     yum groupinstall “Development tools”
     yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
@@ -161,12 +164,13 @@ fi
 
 echo "Starting relecov-platform installation"
 cd /opt/relecov-platform
-git checkout master
+# git checkout main
 
 mkdir -p /opt/relecov-platform/logs
 chown $user:apache /opt/relecov-platform/logs
 mkdir -p /opt/relecov-platform/documents
 chown $user:apache /opt/relecov-platform/documents
+echo "Created folders for logs and documents "
 
 # install virtual environment
 if [[ $linux_distribution == "Ubuntu" ]]; then
@@ -176,16 +180,21 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
 
 fi
 
-if [[ $linux_distribution == "CentOs" ]]; then
-    echo "Creating virtual environment"
-    p_exc=$(which python3)
-    if [[ $p_exec == '*alias*' ]]; then
-        p_exec=$(echo $p_exec | cut -d "'" -f5)
-    p_path=${p_exec//python3/}
-    $p_path/pip3 install virtualenv
-    $p_path/virtualenv --python=$p_exec virtualenv
+if [[ $linux_distribution == "CentOS" ]]; then
+    echo "Checking virtual environment"
+    p_exec=$(which python3)
+    p_exec=$(readlink -f $p_exec)
+    p_path=${dirname $p_exec)
+    if [ -f $p_path/virtualenv ]; then
+        echo "virtualenv alredy defined. Skyping"
+    else
+        echo "Creating virtual environment"
+        $p_path/pip3 install virtualenv
+    fi
+    su $user bash -c "$p_path/virtualenv --python=$p_exec virtualenv"
 fi
 echo "activate the virtualenv"
+exit 1
 source virtualenv/bin/activate
 #cd /srv/iSkyLIMS
 #/opt/python/3.6.4/bin/virtualenv --python=/opt/python/3.6.4/bin/python3.6 virtualenv

@@ -14,19 +14,24 @@ class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Relecov API",
+        title="RELECOV API",
         default_version="v0.0.1",
-        description="iSkyLIMS API",
+        description="Relecov Platform API",
     ),
     generator_class=BothHttpAndHttpsSchemaGenerator,
     public=True,
 )
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("relecov_core.urls")),
     path("dashboard/", include("relecov_dashboard.urls")),
+    path("documentation/", include("relecov_documentation.urls")),
     # REST FRAMEWORK URLS
     path("api/", include("relecov_core.api.urls")),
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0)),
+    # user accounts
+    path("accounts/", include("django.contrib.auth.urls")),
+    # path('markdownx/', include('markdownx.urls')),
 ]
