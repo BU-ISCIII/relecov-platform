@@ -24,6 +24,12 @@ class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
 """
 
 
+class UpdateSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = "__all__"
+
+
 class CreateAuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authors

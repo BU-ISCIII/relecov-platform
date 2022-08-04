@@ -662,6 +662,9 @@ class Error(models.Model):
     def __str__(self):
         return "%s" % (self.error_name)
 
+    def get_error_name(self):
+        return "%s" % (self.error_name)
+
     def get_id(self):
         return "%s" % (self.pk)
 
