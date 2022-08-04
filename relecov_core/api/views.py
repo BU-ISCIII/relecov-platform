@@ -252,32 +252,33 @@ def bioinfo_metadata_file(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-@api_view(["POST"])
+@api_view(["POST", "PUT"])
+# POST=Create; PUT=Update
 def update_state(request):
     if request.method == "POST":
         data = request.data
 
-    if isinstance(data, QueryDict):
-        data = data.dict()
+        if isinstance(data, QueryDict):
+            data = data.dict()
 
-    state_info = SampleState.objects.filter(state=data["State"]).last()
-    if state_info is None:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    else:
-        if Sample.objects.filter(sequencing_sample_id=data["Sample"]).exists():
-            sample = Sample.objects.get(sequencing_sample_id=data["Sample"])
-            sample.state = SampleState.objects.filter(state=data["State"]).last()
-
-            if data["Error"] is not None:
-                error = Error.objects.filter(error_name=data["Error"]).last()
-                sample.error_type = error
-
-            sample.save()
-        else:
-            new_sample = Sample.objects.create(
-                sequencing_sample_id=data["Sample"],
-                state=SampleState.objects.filter(state=data["State"]).last(),
+        data["user"] = request.user.pk
+        if SampleState.objects.filter(state=data["state"]).exists():
+            data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
+        data["sequencing_sample_id"] = data["sample"]
+        sample_serializer = CreateSampleSerializer(data=data)
+        if not sample_serializer.is_valid():
+            return Response(
+                sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-            print(new_sample)
+        sample_serializer.save()
+        return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
+    if request.method == "PUT":
+        data = request.data
+
+        print("PUT")
+
+        if isinstance(data, QueryDict):
+            data = data.dict()
+
     return Response(status=status.HTTP_201_CREATED)
