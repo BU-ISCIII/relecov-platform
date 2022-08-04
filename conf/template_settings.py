@@ -75,7 +75,7 @@ DATABASES = {
         "USER": "djangouser",
         "PASSWORD": "djangopass",
         "PORT": "djangoport",
-        "NAME": "iSkyLIMS",
+        "NAME": "relecov",
         "HOST": "djangohost",
     },
 }
