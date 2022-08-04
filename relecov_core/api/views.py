@@ -28,6 +28,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from relecov_core.models import SampleState
 
 
 """
@@ -238,11 +239,8 @@ def longtable_data(request):
 
 @api_view(["POST"])
 def bioinfo_metadata_file(request):
-    # bioinfo_data = BioInfoProcessValue.objects.all()
-    # bioinfo_data.delete()
     if request.method == "POST":
         data = request.data
-        # file_received = request.FILES.get("data")
 
     if isinstance(data, QueryDict):
         data = data.dict()
@@ -250,5 +248,37 @@ def bioinfo_metadata_file(request):
 
     if "ERROR" in stored_data:
         return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST", "PUT"])
+# POST=Create; PUT=Update
+def update_state(request):
+    if request.method == "POST":
+        data = request.data
+
+        if isinstance(data, QueryDict):
+            data = data.dict()
+
+        data["user"] = request.user.pk
+        if SampleState.objects.filter(state=data["state"]).exists():
+            data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
+        data["sequencing_sample_id"] = data["sample"]
+        sample_serializer = CreateSampleSerializer(data=data)
+        if not sample_serializer.is_valid():
+            return Response(
+                sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        sample_serializer.save()
+        return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
+    if request.method == "PUT":
+        data = request.data
+
+        print("PUT")
+
+        if isinstance(data, QueryDict):
+            data = data.dict()
 
     return Response(status=status.HTTP_201_CREATED)
