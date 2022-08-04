@@ -122,6 +122,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 user=$SUDO_USER
+group=groups | cut -d" " -f1
 
 #Linux distribution
 linux_distribution=$(lsb_release -i | cut -f 2-)
@@ -150,9 +151,6 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     apt-get install -y \
         lightdm git apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
         libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3
-    #apt-get install build-essential  -y
-    #apt-get install libghc-zlib-dev libbz2-dev libssl1.0-dev -y
-    #apt-get install git libpango1.0 libpango1.0-dev   -y
 fi
 
 if [[ $linux_distribution == "CentOS" ]]; then
@@ -184,7 +182,7 @@ if [[ $linux_distribution == "CentOS" ]]; then
     echo "Checking virtual environment"
     p_exec=$(which python3)
     p_exec=$(readlink -f $p_exec)
-    p_path=${dirname $p_exec)
+    p_path=$(dirname $p_exec)
     if [ -f $p_path/virtualenv ]; then
         echo "virtualenv alredy defined. Skyping"
     else
@@ -193,20 +191,22 @@ if [[ $linux_distribution == "CentOS" ]]; then
     fi
     su $user bash -c "$p_path/virtualenv --python=$p_exec virtualenv"
 fi
+echo ""
 echo "activate the virtualenv"
-exit 1
-source virtualenv/bin/activate
-#cd /srv/iSkyLIMS
-#/opt/python/3.6.4/bin/virtualenv --python=/opt/python/3.6.4/bin/python3.6 virtualenv
 
-# Starting iSkyLIMS
-python3 -m pip install -r conf/requirements.txt
-django-admin startproject relecov-platform .
-grep ^SECRET relecov-platform/settings.py > ~/.secret
+source virtualenv/bin/activate
+
+# Starting Relecov Platform
+echo "Loading python necessary packages"
+su $user bash -c "python3 -m pip install -r conf/requirements.txt"
+echo ""
+echo "Creating relecov_platform project"
+django-admin startproject relecov_platform .
+grep ^SECRET relecov_platform/settings.py > ~/.secret
 
 
 # Copying config files and script
-cp conf/settings.py /opt/relecov-platform/relecov_platform/settings.py
+cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
 cp conf/urls.py /opt/relecov-platform/relecov_platform/
 
 sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
@@ -220,16 +220,14 @@ sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-python3 manage.py makemigrations relecov_core
+su $user bash -c "python3 manage.py makemigrations relecov_core"
 python3 manage.py migrate
-
-# python3 manage.py collectstatic
 
 #echo "Change owner of files to Apache user"
 #chown -R www-data:www-data /opt/relecov-platform
 
-#echo "Loading in database initial data"
-#python3 manage.py loaddata conf/new_installation_loading_tables.json
+echo "Loading in database initial data"
+python3 manage.py loaddata conf/upload_tables.json
 
 
 echo "Updating Apache configuration"
@@ -245,7 +243,7 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
 fi
 
 if [[ $linux_distribution == "CentOs" ]]; then
-    cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
+    # cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
 echo "Creating super user "
 python3 manage.py createsuperuser
 
