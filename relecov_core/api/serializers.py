@@ -5,7 +5,7 @@ from relecov_core.models import (
     Authors,
     EnaInfo,
     GisaidInfo,
-    Lineage,
+    # Lineage,
     Sample,
     Chromosome,
     Gene,
@@ -90,7 +90,9 @@ class CreateVariantSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+"""
 class CreateLineageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lineage
         fields = ["lineage_name"]
+"""
