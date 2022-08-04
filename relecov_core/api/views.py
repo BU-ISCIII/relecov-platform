@@ -279,4 +279,5 @@ def update_state(request):
                 sequencing_sample_id=data["Sample"],
                 state=SampleState.objects.filter(state=data["State"]).last(),
             )
+            print(new_sample)
     return Response(status=status.HTTP_201_CREATED)
