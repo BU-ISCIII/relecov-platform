@@ -22,15 +22,15 @@ RELECOVPLATFORM_VERSION="0.2.0"
 . ./install_settings.txt
 
 db_check(){
-    mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >null ###user should have mysql permission on remote server.
+    mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >/tmp/null ###user should have mysql permission on remote server.
 
     if ! [ $? -eq 0 ]; then
         echo -e "${RED}ERROR : Unable to connect to database. Check if your database is running and accessible${NC}"
         exit 1
     fi
-    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o Relecov`
+    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o relecov_platform`
 
-    if  ! [ "$RESULT" == "relecov" ] ; then
+    if  ! [ "$RESULT" == "relecov_platform" ] ; then
         echo -e "${RED}ERROR : Relecov database is not defined yet ${NC}"
         echo -e "${RED}ERROR : Create Relecov database on your mysql server and run again the installation script ${NC}"
         exit 1
@@ -75,6 +75,7 @@ python_check(){
         echo -e "${RED}ERROR : Python3 is not found in your system ${NC}"
         echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
         exit 1
+    fi
     p_version=$(echo $python_version | cut -d"." -f2)
     if (( $p_version < 7 )); then
         echo -e "${RED}ERROR : Application requieres at least the version 3.7.x of Python3  ${NC}"
@@ -120,7 +121,8 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 user=$USER
-linux_distribution=$(lsb_release -i | cut -f 2-)#Linux version
+#Linux distribution
+linux_distribution=$(lsb_release -i | cut -f 2-)
 
 echo "Checking main requirements"
 python_check

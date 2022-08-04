@@ -407,26 +407,7 @@ class Effect(models.Model):
     objects = EffectManager()
 
 
-class LineageInfo(models.Model):
-    lineage_name = models.CharField(max_length=100)
-    pango_lineages = models.CharField(max_length=100)
-    variant_name = models.CharField(max_length=100)
-    nextclade = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "LineageInfo"
-
-    def __str__(self):
-        return "%s" % (self.lineage_name)
-
-    def get_lineage_name(self):
-        return "%s" % (self.lineage_name)
-
-    def get_lineage_id(self):
-        return "%s" % (self.pk)
-
-
+"""
 class LineageManager(models.Manager):
     def create_new_lineage(self, data):
         new_lineage = self.create(
@@ -483,6 +464,7 @@ class Lineage(models.Model):
         return "%s" % (self.lineage_analysis_software_version)
 
     objects = LineageManager()
+"""
 
 
 # Gene Table
@@ -839,6 +821,68 @@ class BioInfoAnalysisValue(models.Model):
 
     class Meta:
         db_table = "BioInfoAnalysisValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+    def get_b_process_field_id(self):
+        return "%s" % (self.bioinfo_analysis_fieldID)
+
+
+class LineageInfo(models.Model):
+    lineage_name = models.CharField(max_length=100)
+    pango_lineages = models.CharField(max_length=100)
+    variant_name = models.CharField(max_length=100)
+    nextclade = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "LineageInfo"
+
+    def __str__(self):
+        return "%s" % (self.lineage_name)
+
+    def get_lineage_name(self):
+        return "%s" % (self.lineage_name)
+
+    def get_lineage_id(self):
+        return "%s" % (self.pk)
+
+
+class LinageFields(models.Model):
+    schemaID = models.ManyToManyField(Schema)
+    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
+    property_name = models.CharField(max_length=60)
+    label_name = models.CharField(max_length=80)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "LineageFields"
+
+    def __str__(self):
+        return "%s" % (self.property_name)
+
+    def get_lineage_property_name(self):
+        return "%s" % (self.property_name)
+
+    def get_lineage_field_id(self):
+        return "%s" % (self.pk)
+
+
+class LinageValues(models.Model):
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    linage_fieldID = models.ForeignKey(LinageFields, on_delete=models.CASCADE)
+    lineage_infoID = models.ForeignKey(
+        LineageInfo, on_delete=models.CASCADE, null=True, blank=True
+    )
+    value = models.CharField(max_length=240)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "LinageValue"
 
     def __str__(self):
         return "%s" % (self.value)
