@@ -650,6 +650,28 @@ class GisaidInfo(models.Model):
         return data
 
 
+class Error(models.Model):
+    error_name = models.CharField(max_length=100)
+    display_string = models.CharField(max_length=100)
+    description = models.CharField(max_length=100)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "Error"
+
+    def __str__(self):
+        return "%s" % (self.error_name)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+    def get_display_string(self):
+        return "%s" % (self.display_string)
+
+    def get_description(self):
+        return "%s" % (self.description)
+
+
 # Sample Table
 class SampleManager(models.Manager):
     def create_new_sample(self, data, user):
@@ -676,6 +698,9 @@ class SampleManager(models.Manager):
 class Sample(models.Model):
     state = models.ForeignKey(SampleState, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    error_type = models.ForeignKey(
+        Error, on_delete=models.CASCADE, null=True, blank=True
+    )
     metadata_file = models.ForeignKey(
         Document, on_delete=models.CASCADE, null=True, blank=True
     )
