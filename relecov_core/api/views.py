@@ -28,6 +28,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from relecov_core.models import SampleState, Sample, Error
 
 
 """
@@ -238,11 +239,8 @@ def longtable_data(request):
 
 @api_view(["POST"])
 def bioinfo_metadata_file(request):
-    # bioinfo_data = BioInfoProcessValue.objects.all()
-    # bioinfo_data.delete()
     if request.method == "POST":
         data = request.data
-        # file_received = request.FILES.get("data")
 
     if isinstance(data, QueryDict):
         data = data.dict()
@@ -251,4 +249,34 @@ def bioinfo_metadata_file(request):
     if "ERROR" in stored_data:
         return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def update_state(request):
+    if request.method == "POST":
+        data = request.data
+
+    if isinstance(data, QueryDict):
+        data = data.dict()
+
+    state_info = SampleState.objects.filter(state=data["State"]).last()
+    if state_info is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    else:
+        if Sample.objects.filter(sequencing_sample_id=data["Sample"]).exists():
+            sample = Sample.objects.get(sequencing_sample_id=data["Sample"])
+            sample.state = SampleState.objects.filter(state=data["State"]).last()
+
+            if data["Error"] is not None:
+                error = Error.objects.filter(error_name=data["Error"]).last()
+                sample.error_type = error
+
+            sample.save()
+        else:
+            new_sample = Sample.objects.create(
+                sequencing_sample_id=data["Sample"],
+                state=SampleState.objects.filter(state=data["State"]).last(),
+            )
     return Response(status=status.HTTP_201_CREATED)

@@ -13,6 +13,7 @@ from relecov_core.models import (
     Document,
     Effect,
     EnaInfo,
+    Error,
     Gene,
     GisaidInfo,
     Filter,
@@ -200,4 +201,5 @@ admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
+admin.site.register(Error)
 # admin.site.register(LineageInfo, LineageInfoAdmin)
