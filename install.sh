@@ -219,7 +219,7 @@ sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 chown $user:$group -R relecov_platform
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-su $user bash -c "python3 manage.py makemigrations relecov_core"
+su $user bash -c "python3 manage.py makemigrations relecov_core django_plotly_dash"
 python3 manage.py migrate
 
 #echo "Change owner of files to Apache user"
@@ -243,6 +243,7 @@ fi
 
 if [[ $linux_distribution == "CentOs" ]]; then
     # cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
+fi
 echo "Creating super user "
 python3 manage.py createsuperuser
 
