@@ -306,7 +306,7 @@ def bioinfo_metadata_file(request):
 @permission_classes([IsAuthenticated])
 @api_view(["POST", "PUT"])
 def update_state(request):
-    data_date = {}
+    # data_date = {}
 
     if request.method == "POST":
         data = request.data
