@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -317,9 +316,7 @@ def update_state(request):
         if SampleState.objects.filter(state=data["state"]).exists():
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
         else:
-            return Response(
-                sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         data["sequencing_sample_id"] = data["sample"]
 
