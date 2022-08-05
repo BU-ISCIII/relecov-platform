@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -16,6 +17,7 @@ from relecov_core.api.serializers import (
     CreateAuthorSerializer,
     CreateGisaidSerializer,
     CreateEnaSerializer,
+    UpdateSampleSerializer,
 )
 
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
@@ -28,7 +30,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import SampleState
+from relecov_core.models import Sample, SampleState
 
 
 """
@@ -252,20 +254,83 @@ def bioinfo_metadata_file(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
+@swagger_auto_schema(
+    method="post",
+    operation_description="The POST method is used to insert new records into the database.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "sample": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Number of Sample"
+            ),
+            "state": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Sample Status"
+            ),
+            "error_type": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="If the status of the sample is ERROR, error_type tells us what type of error it is.",
+            ),
+        },
+    ),
+    responses={
+        201: "Successful create information",
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+)
+@swagger_auto_schema(
+    method="put",
+    operation_description="The PUT method is used to update existing records in the database.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "sample": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Number of Sample"
+            ),
+            "state": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Sample Status"
+            ),
+            "error_type": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="(Optional) If the status of the sample is ERROR, error_type tells us what type of error it is.",
+            ),
+        },
+    ),
+    responses={
+        201: "Successful create information",
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+)
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(["POST", "PUT"])
-# POST=Create; PUT=Update
 def update_state(request):
+
     if request.method == "POST":
         data = request.data
 
         if isinstance(data, QueryDict):
             data = data.dict()
-
         data["user"] = request.user.pk
+
         if SampleState.objects.filter(state=data["state"]).exists():
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
+        else:
+            return Response(
+                sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
         data["sequencing_sample_id"] = data["sample"]
-        sample_serializer = CreateSampleSerializer(data=data)
+
+        # if sample exists, create an instance of existing sample
+        if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
+            instance = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
+            sample_serializer = CreateSampleSerializer(instance, data=data)
+        # if sample does not exist, create a new sample register
+        else:
+
+            sample_serializer = CreateSampleSerializer(data=data)
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
@@ -275,10 +340,27 @@ def update_state(request):
 
     if request.method == "PUT":
         data = request.data
-
-        print("PUT")
-
         if isinstance(data, QueryDict):
             data = data.dict()
+        instance = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
+
+        request.data["user"] = request.user.id
+        if not SampleState.objects.filter(state=data["state"]).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        request.data["state"] = (
+            SampleState.objects.filter(state=data["state"]).last().get_state_id()
+        )
+
+        # pass in the instance we want to update
+        serializer = UpdateSampleSerializer(instance, data=request.data)
+
+        # validate and update
+        if serializer.is_valid():
+            serializer.save()
+            serializer_dict = serializer.data
+            serializer_dict["message"] = "Settings updated successfully."
+            return Response(serializer_dict, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
