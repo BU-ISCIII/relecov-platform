@@ -173,9 +173,8 @@ echo "Created folders for logs and documents "
 # install virtual environment
 if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Creating virtual environment"
-    pip3 install virtualenv
-    virtualenv --python=/usr/bin/python3 virtualenv
-
+    su $user bash -c "pip3 install virtualenv"
+    su $user bash -c "virtualenv --python=/usr/bin/python3 virtualenv"
 fi
 
 if [[ $linux_distribution == "CentOS" ]]; then
@@ -217,7 +216,7 @@ sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
-
+chown $user:$group -R relecov_platform
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
 su $user bash -c "python3 manage.py makemigrations relecov_core"
@@ -250,7 +249,7 @@ python3 manage.py createsuperuser
 printf "\n\n%s"
 printf "${BLUE}------------------${NC}\n"
 printf "%s"
-printf "${BLUE}Successfuly iSkyLIMS Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+printf "${BLUE}Successfuly Relecov Platform Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
 printf "%s"
 printf "${BLUE}------------------${NC}\n\n"
 
