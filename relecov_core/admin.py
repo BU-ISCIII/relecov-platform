@@ -18,7 +18,7 @@ from relecov_core.models import (
     GisaidInfo,
     Filter,
     # Lineage,
-    # LineageInfo,
+    LineageInfo,
     MetadataVisualization,
     Position,
     Profile,
@@ -202,4 +202,4 @@ admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(Error)
-# admin.site.register(LineageInfo, LineageInfoAdmin)
+admin.site.register(LineageInfo, LineageInfoAdmin)
