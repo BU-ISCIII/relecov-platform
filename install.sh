@@ -241,8 +241,8 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
 fi
 
-if [[ $linux_distribution == "CentOs" ]]; then
-    # cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
+if [[ $linux_distribution == "CentOS" ]]; then
+    cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
 fi
 echo "Creating super user "
 python3 manage.py createsuperuser
