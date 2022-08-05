@@ -17,7 +17,7 @@ from relecov_dashboard.utils.graphics.mutation_table import create_mutation_tabl
 from relecov_dashboard.utils.graphics.mutation_heatmap import create_hot_map
 
 from relecov_dashboard.utils.graphics.geo_json import create_json
-from relecov_dashboard.utils.graphics.gauge import create_gauge
+from relecov_dashboard.utils.graphics.gauge import create_gauge, create_medium_gauge
 
 
 def variant_dashboard(request):
@@ -60,4 +60,5 @@ def spike_mutations(request):
 
 def gauge_test(request):
     create_gauge()
+    create_medium_gauge()
     return render(request, "relecov_dashboard/dashboard_templates/gauge.html")
