@@ -17,6 +17,7 @@ from relecov_core.api.serializers import (
     CreateGisaidSerializer,
     CreateEnaSerializer,
     UpdateSampleSerializer,
+    # CreateDateAfterChangeState,
 )
 
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
@@ -305,6 +306,7 @@ def bioinfo_metadata_file(request):
 @permission_classes([IsAuthenticated])
 @api_view(["POST", "PUT"])
 def update_state(request):
+    data_date = {}
 
     if request.method == "POST":
         data = request.data
@@ -324,10 +326,13 @@ def update_state(request):
         if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
             instance = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
             sample_serializer = CreateSampleSerializer(instance, data=data)
+            # data_date["stateID_id"]=data["state"]
+            # data_date["sampleID_id"]=instance
+            # date_serializer = CreateDateAfterChangeState(data=data_date)
         # if sample does not exist, create a new sample register.
         else:
-
             sample_serializer = CreateSampleSerializer(data=data)
+
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST

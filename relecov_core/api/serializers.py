@@ -14,6 +14,7 @@ from relecov_core.models import (
     Filter,
     Position,
     Variant,
+    # Date,
 )
 
 """
@@ -21,6 +22,13 @@ class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = BioInfoProcessValue
         fields = "__all__"
+"""
+
+"""
+class CreateDateAfterChangeState(serializers.ModelSerializer):
+    class Meta:
+        model = Date
+        fields = "_all__"
 """
 
 
