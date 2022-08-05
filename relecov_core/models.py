@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.forms import DateField, DateTimeField
 
 from relecov_core.core_config import (
     SCHEMAS_UPLOAD_FOLDER,
@@ -797,6 +798,26 @@ class Sample(models.Model):
         return self
 
     objects = SampleManager()
+
+
+"""
+class DateUpdate(models.Model):
+    stateID_id = models.ForeignKey(SampleState,on_delete=models.CASCADE)
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    date= models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table="DateUpdate"
+        
+    def __str__(self):
+        return "%s" % (self.date)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+    
+    def get_date(self):
+        return "%s" % (self.date)
+"""
 
 
 class BioinfoAnalysisFieldManager(models.Manager):
