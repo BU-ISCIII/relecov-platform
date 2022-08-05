@@ -323,11 +323,11 @@ def update_state(request):
 
         data["sequencing_sample_id"] = data["sample"]
 
-        # if sample exists, create an instance of existing sample
+        # if sample exists, create an instance of existing sample.
         if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
             instance = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
             sample_serializer = CreateSampleSerializer(instance, data=data)
-        # if sample does not exist, create a new sample register
+        # if sample does not exist, create a new sample register.
         else:
 
             sample_serializer = CreateSampleSerializer(data=data)
