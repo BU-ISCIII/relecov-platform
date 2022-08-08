@@ -799,6 +799,24 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
+class DateUpdateState(models.Model):
+    stateID = models.ForeignKey(SampleState, on_delete=models.CASCADE)
+    sampleID = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "DateUpdateState"
+
+    def __str__(self):
+        return "%s" % (self.date)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+    def get_date(self):
+        return "%s" % (self.date)
+
+
 class BioinfoAnalysisFieldManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
