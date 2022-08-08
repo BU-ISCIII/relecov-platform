@@ -242,7 +242,7 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
 fi
 
 if [[ $linux_distribution == "CentOS" ]]; then
-    cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
+    cp conf/relecov_platform.conf /etc/httpd/conf.d/relecov_platform.conf
 fi
 echo "Creating super user "
 python3 manage.py createsuperuser
