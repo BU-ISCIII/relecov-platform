@@ -207,6 +207,9 @@ grep ^SECRET relecov_platform/settings.py > ~/.secret
 # Copying config files and script
 cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
 cp conf/urls.py /opt/relecov-platform/relecov_platform/
+cp conf/asgi.py /opt/relecov-platform/relecov_platform/
+cp conf/routing.py /opt/relecov-platform/relecov_platform/
+cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
 
 sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
 sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
@@ -242,7 +245,7 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
 fi
 
 if [[ $linux_distribution == "CentOS" ]]; then
-    cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
+    cp conf/relecov_platform.conf /etc/httpd/conf.d/relecov_platform.conf
 fi
 echo "Creating super user "
 python3 manage.py createsuperuser
