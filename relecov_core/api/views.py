@@ -17,7 +17,7 @@ from relecov_core.api.serializers import (
     CreateAuthorSerializer,
     CreateGisaidSerializer,
     CreateEnaSerializer,
-    UpdateSampleSerializer,
+    # UpdateSampleSerializer,
     # CreateDateAfterChangeState,
 )
 
@@ -339,8 +339,14 @@ def update_state(request):
             sequencing_sample_id=data["sample"]
         ).last()
 
+        DateUpdateState.objects.create(
+            stateID=data_date["stateID"], sampleID=sample_obj
+        )
+
+        """
         date_instance = DateUpdateState.objects.create(
             stateID=data_date["stateID"], sampleID=sample_obj
         )
+        """
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
