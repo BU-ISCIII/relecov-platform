@@ -1,4 +1,3 @@
-# from django.urls import is_valid_path
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -32,7 +31,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, DateUpdateState
+from relecov_core.models import Sample, SampleState, DateUpdateState, Error
 
 
 """
@@ -257,30 +256,6 @@ def bioinfo_metadata_file(request):
 
 
 @swagger_auto_schema(
-    method="post",
-    operation_description="The POST method is used to insert new records into the database.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "sample": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Number of Sample"
-            ),
-            "state": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Sample Status"
-            ),
-            "error_type": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="If the status of the sample is ERROR, error_type tells us what type of error it is.",
-            ),
-        },
-    ),
-    responses={
-        201: "Successful create information",
-        400: "Bad Request",
-        500: "Internal Server Error",
-    },
-)
-@swagger_auto_schema(
     method="put",
     operation_description="The PUT method is used to update existing records in the database.",
     request_body=openapi.Schema(
@@ -306,13 +281,12 @@ def bioinfo_metadata_file(request):
 )
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([IsAuthenticated])
-@api_view(["POST", "PUT"])
+@api_view(["PUT"])
 def update_state(request):
-    import pdb
-
     data_date = {}
+    # sample_instance = None
 
-    if request.method == "POST":
+    if request.method == "PUT":
         data = request.data
 
         if isinstance(data, QueryDict):
@@ -323,19 +297,29 @@ def update_state(request):
         # if state exists,
         if SampleState.objects.filter(state=data["state"]).exists():
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
+
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        print(data)
-
         data["sequencing_sample_id"] = data["sample"]
 
+        if "error_type" in data:
+            data["error_type"] = (
+                Error.objects.filter(error_name=data["error_type"]).last().pk
+            )
+        # else:
+        #    data["error_type"] = None
+
         # if sample exists, create an instance of existing sample.
-        if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
+        if Sample.objects.filter(
+            sequencing_sample_id=data["sample"], user=request.user
+        ).exists():
             sample_instance = Sample.objects.filter(
                 sequencing_sample_id=data["sample"]
             ).last()
+
             sample_serializer = CreateSampleSerializer(sample_instance, data=data)
+            # return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # if sample does not exist, create a new sample register.
         else:
@@ -347,49 +331,16 @@ def update_state(request):
             )
         sample_obj = sample_serializer.save()
 
-        pdb.set_trace()
-
-        # data_date["stateID_id"]=data["state"]
-        # data_date["sampleID_id"]=sample_instance.get_sample_id()
         data_date["stateID"] = SampleState.objects.filter(
             pk__exact=data["state"]
         ).last()
-        data_date["sampleID"] = sample_instance.get_sample_id()
-
-        print(data_date)
-        # date_instance = CreateDateAfterChangeState(data_date)
-        date_instance = DateUpdateState.objects.create(
-            stateID=data_date["stateID"], sampleID=sample_obj
-        )
-        print(date_instance)
-
-        return Response("Successful upload information", status=status.HTTP_201_CREATED)
-
-    if request.method == "PUT":
-        data = request.data
-        if isinstance(data, QueryDict):
-            data = data.dict()
-        sample_instance = Sample.objects.filter(
+        # data_date["sampleID"] = sample_instance.get_sample_id()
+        data_date["sampleID"] = Sample.objects.filter(
             sequencing_sample_id=data["sample"]
         ).last()
 
-        request.data["user"] = request.user.id
-        if not SampleState.objects.filter(state=data["state"]).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        request.data["state"] = (
-            SampleState.objects.filter(state=data["state"]).last().get_state_id()
+        date_instance = DateUpdateState.objects.create(
+            stateID=data_date["stateID"], sampleID=sample_obj
         )
 
-        # pass in the instance we want to update
-        serializer = UpdateSampleSerializer(sample_instance, data=request.data)
-
-        # validate and update
-        if serializer.is_valid():
-            serializer.save()
-            serializer_dict = serializer.data
-            serializer_dict["message"] = "Settings updated successfully."
-            return Response(serializer_dict, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_201_CREATED)
+        return Response("Successful upload information", status=status.HTTP_201_CREATED)
