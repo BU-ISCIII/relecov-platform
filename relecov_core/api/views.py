@@ -17,7 +17,7 @@ from relecov_core.api.serializers import (
     CreateAuthorSerializer,
     CreateGisaidSerializer,
     CreateEnaSerializer,
-    # UpdateSampleSerializer,
+    UpdateSampleSerializer,
     # CreateDateAfterChangeState,
 )
 
@@ -318,12 +318,12 @@ def update_state(request):
                 sequencing_sample_id=data["sample"]
             ).last()
 
-            sample_serializer = CreateSampleSerializer(sample_instance, data=data)
+            sample_serializer = UpdateSampleSerializer(sample_instance, data=data)
             # return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # if sample does not exist, create a new sample register.
         else:
-            sample_serializer = CreateSampleSerializer(data=data)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if not sample_serializer.is_valid():
             return Response(
@@ -336,8 +336,8 @@ def update_state(request):
         ).last()
         # data_date["sampleID"] = sample_instance.get_sample_id()
         data_date["sampleID"] = Sample.objects.filter(
-            sequencing_sample_id=data["sample"]
-        ).last()
+            sequencing_sample_id=sample_instance
+        )
 
         DateUpdateState.objects.create(
             stateID=data_date["stateID"], sampleID=sample_obj
