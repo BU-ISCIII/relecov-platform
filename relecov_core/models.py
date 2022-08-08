@@ -799,14 +799,13 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
-"""
-class DateUpdate(models.Model):
-    stateID_id = models.ForeignKey(SampleState,on_delete=models.CASCADE)
-    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    date= models.DateTimeField(auto_now_add=True)
+class DateUpdateState(models.Model):
+    stateID = models.ForeignKey(SampleState, on_delete=models.CASCADE)
+    sampleID = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table="DateUpdate"
+        db_table = "DateUpdateState"
 
     def __str__(self):
         return "%s" % (self.date)
@@ -816,7 +815,6 @@ class DateUpdate(models.Model):
 
     def get_date(self):
         return "%s" % (self.date)
-"""
 
 
 class BioinfoAnalysisFieldManager(models.Manager):

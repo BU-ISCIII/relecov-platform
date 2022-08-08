@@ -1,3 +1,5 @@
+from MySQLdb import Date
+from django.urls import is_valid_path
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -12,6 +14,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
+    CreateDateAfterChangeState,
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
@@ -30,7 +33,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState
+from relecov_core.models import Sample, SampleState, DateUpdateState
 
 
 """
@@ -306,29 +309,35 @@ def bioinfo_metadata_file(request):
 @permission_classes([IsAuthenticated])
 @api_view(["POST", "PUT"])
 def update_state(request):
-    # data_date = {}
+    import pdb
+
+    data_date = {}
 
     if request.method == "POST":
         data = request.data
 
         if isinstance(data, QueryDict):
             data = data.dict()
+
         data["user"] = request.user.pk
 
+        # if state exists,
         if SampleState.objects.filter(state=data["state"]).exists():
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        print(data)
+
         data["sequencing_sample_id"] = data["sample"]
 
         # if sample exists, create an instance of existing sample.
         if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
-            instance = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
-            sample_serializer = CreateSampleSerializer(instance, data=data)
-            # data_date["stateID_id"]=data["state"]
-            # data_date["sampleID_id"]=instance
-            # date_serializer = CreateDateAfterChangeState(data=data_date)
+            sample_instance = Sample.objects.filter(
+                sequencing_sample_id=data["sample"]
+            ).last()
+            sample_serializer = CreateSampleSerializer(sample_instance, data=data)
+
         # if sample does not exist, create a new sample register.
         else:
             sample_serializer = CreateSampleSerializer(data=data)
@@ -337,14 +346,33 @@ def update_state(request):
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-        sample_serializer.save()
+        sample_obj = sample_serializer.save()
+
+        pdb.set_trace()
+
+        # data_date["stateID_id"]=data["state"]
+        # data_date["sampleID_id"]=sample_instance.get_sample_id()
+        data_date["stateID"] = SampleState.objects.filter(
+            pk__exact=data["state"]
+        ).last()
+        data_date["sampleID"] = sample_instance.get_sample_id()
+
+        print(data_date)
+        # date_instance = CreateDateAfterChangeState(data_date)
+        date_instance = DateUpdateState.objects.create(
+            stateID=data_date["stateID"], sampleID=sample_obj
+        )
+        print(date_instance)
+
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
     if request.method == "PUT":
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
-        instance = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
+        sample_instance = Sample.objects.filter(
+            sequencing_sample_id=data["sample"]
+        ).last()
 
         request.data["user"] = request.user.id
         if not SampleState.objects.filter(state=data["state"]).exists():
@@ -354,7 +382,7 @@ def update_state(request):
         )
 
         # pass in the instance we want to update
-        serializer = UpdateSampleSerializer(instance, data=request.data)
+        serializer = UpdateSampleSerializer(sample_instance, data=request.data)
 
         # validate and update
         if serializer.is_valid():
