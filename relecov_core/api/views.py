@@ -1,5 +1,4 @@
-from MySQLdb import Date
-from django.urls import is_valid_path
+# from django.urls import is_valid_path
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -14,7 +13,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
-    CreateDateAfterChangeState,
+    # CreateDateAfterChangeState,
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
