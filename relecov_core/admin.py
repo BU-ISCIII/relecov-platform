@@ -30,6 +30,7 @@ from relecov_core.models import (
     TemporalSampleStorage,
     Variant,
     VariantInSample,
+    DateUpdateState,
 )
 
 
@@ -202,4 +203,5 @@ admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(Error)
+admin.site.register(DateUpdateState)
 admin.site.register(LineageInfo, LineageInfoAdmin)
