@@ -28,7 +28,10 @@ Before starting the installation check :
 ```bash
 
 cd /opt
-sudo git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+sudo mkdir relecov_platform
+sudo chown <your_user>:group relecov_platform
+git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+cd relecov_platform
 ```
 
 #### Configuration settings
