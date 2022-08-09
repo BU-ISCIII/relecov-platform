@@ -1,7 +1,7 @@
 import os
 from django.conf import settings
 import xml.etree.ElementTree as ET
-from django.utils.dateparse import parse_datetime
+# from django.utils.dateparse import parse_datetime
 
 
 def parse_xml():
