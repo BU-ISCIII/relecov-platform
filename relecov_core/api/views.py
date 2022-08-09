@@ -33,7 +33,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from relecov_core.models import Sample, SampleState, Error, EnaInfo
 
-from relecov_core.api.utils.accession_to_ENA import date_converter # parse_xml,
+from relecov_core.api.utils.accession_to_ENA import date_converter  # parse_xml,
 
 """
 analysis_data = openapi.Parameter(
@@ -368,7 +368,7 @@ def accession_ena(request):
             SRA_accession=data["SRA_accession"]
         ).last()
         sample_obj.save()
-        
+
         print(ena_obj)
 
     return Response("Successful upload information", status=status.HTTP_201_CREATED)
