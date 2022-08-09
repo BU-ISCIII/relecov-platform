@@ -31,8 +31,9 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, Error
+from relecov_core.models import Sample, SampleState, Error, EnaInfo
 
+from relecov_core.api.utils.accession_to_ENA import parse_xml, date_converter
 
 """
 analysis_data = openapi.Parameter(
@@ -340,3 +341,32 @@ def update_state(request):
         CreateDateAfterChangeState(data_date)
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
+
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(["POST"])
+def accession_ena(request):
+    if request.method == "POST":
+        data = request.data
+
+        if isinstance(data, QueryDict):
+            data = data.dict()
+
+        data["user"] = request.user.pk
+        process_date = date_converter(data["ena_process_date"])
+        # print(process_date)
+        ena_obj = EnaInfo.objects.create(
+            ena_process_date=process_date,
+            SRA_accession=data["SRA_accession"],
+            biosample_accession_ENA=data["biosample_accession_ENA"],
+        )
+        sample_obj = Sample.objects.filter(
+            collecting_lab_sample_id=data["collecting_lab_sample_id"]
+        ).last()
+        sample_obj.ena_obj = EnaInfo.objects.filter(
+            SRA_accession=data["SRA_accession"]
+        ).last()
+        sample_obj.save()
+
+    return Response("Successful upload information", status=status.HTTP_201_CREATED)
