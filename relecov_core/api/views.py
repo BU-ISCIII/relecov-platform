@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
     # CreateDateAfterChangeState,
+    CreateDateAfterChangeState,
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
@@ -284,7 +285,6 @@ def bioinfo_metadata_file(request):
 @api_view(["PUT"])
 def update_state(request):
     data_date = {}
-    # sample_instance = None
 
     if request.method == "PUT":
         data = request.data
@@ -299,6 +299,7 @@ def update_state(request):
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
 
         else:
+            print("state doesn't exists")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         data["sequencing_sample_id"] = data["sample"]
@@ -307,8 +308,6 @@ def update_state(request):
             data["error_type"] = (
                 Error.objects.filter(error_name=data["error_type"]).last().pk
             )
-        # else:
-        #    data["error_type"] = None
 
         # if sample exists, create an instance of existing sample.
         if Sample.objects.filter(
@@ -319,34 +318,26 @@ def update_state(request):
             ).last()
 
             sample_serializer = UpdateSampleSerializer(sample_instance, data=data)
-            # return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # if sample does not exist, create a new sample register.
         else:
+            print("sample doesn't exists")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if not sample_serializer.is_valid():
+            print(" if not sample_serializer.is_valid()")
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-        sample_obj = sample_serializer.save()
+        sample_serializer.save()
 
         data_date["stateID"] = SampleState.objects.filter(
             pk__exact=data["state"]
         ).last()
-        # data_date["sampleID"] = sample_instance.get_sample_id()
         data_date["sampleID"] = Sample.objects.filter(
             sequencing_sample_id=sample_instance
         )
 
-        DateUpdateState.objects.create(
-            stateID=data_date["stateID"], sampleID=sample_obj
-        )
-
-        """
-        date_instance = DateUpdateState.objects.create(
-            stateID=data_date["stateID"], sampleID=sample_obj
-        )
-        """
+        CreateDateAfterChangeState(data_date)
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
