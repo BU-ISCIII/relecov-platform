@@ -12,7 +12,6 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
-    # CreateDateAfterChangeState,
     CreateDateAfterChangeState,
     CreateSampleSerializer,
     CreateAuthorSerializer,
@@ -32,7 +31,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, DateUpdateState, Error
+from relecov_core.models import Sample, SampleState, Error
 
 
 """
