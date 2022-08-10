@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
+    count_samples_in_all_tables,
     create_metadata_form,
     get_sample_display_data,
     get_search_data,
@@ -36,7 +37,7 @@ from relecov_core.core_config import (
 
 
 def index(request):
-    number_of_samples_received = Sample.objects.count()
+    number_of_samples_received = count_samples_in_all_tables()
     return render(
         request,
         "relecov_core/index.html",
