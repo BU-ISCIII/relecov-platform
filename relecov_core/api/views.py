@@ -302,7 +302,6 @@ def update_state(request):
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
 
         else:
-            print("state doesn't exists")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         data["sequencing_sample_id"] = data["sample"]
@@ -324,11 +323,9 @@ def update_state(request):
 
         # if sample does not exist, create a new sample register.
         else:
-            print("sample doesn't exists")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if not sample_serializer.is_valid():
-            print(" if not sample_serializer.is_valid()")
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
