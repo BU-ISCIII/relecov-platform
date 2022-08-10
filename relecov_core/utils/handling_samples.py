@@ -87,8 +87,7 @@ def analyze_input_samples(request):
 
 
 def count_samples_in_all_tables():
-    """Count the number of entries that are in Sample,
-    """
+    """Count the number of entries that are in Sample,"""
     data = {}
     data["received"] = Sample.objects.all().count()
     data["up_ena"] = EnaInfo.objects.all().count()
@@ -209,6 +208,7 @@ def create_metadata_form(schema_obj, user_obj):
         return m_form["sample"]
     m_form["batch"] = create_form_for_batch(schema_obj, user_obj)
     return m_form
+
 
 def get_friend_list(user_name):
     friend_list = []
