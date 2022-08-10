@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
-    # CreateDateAfterChangeState,
+    CreateDateAfterChangeState,
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
@@ -31,8 +31,12 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, DateUpdateState, Error
+from relecov_core.models import Sample, SampleState, Error, EnaInfo
 
+from relecov_core.api.utils.accession_to_ENA import (
+    date_converter,
+    extract_number_of_sample,
+)  # parse_xml,
 
 """
 analysis_data = openapi.Parameter(
@@ -285,7 +289,6 @@ def bioinfo_metadata_file(request):
 @api_view(["PUT"])
 def update_state(request):
     data_date = {}
-    # sample_instance = None
 
     if request.method == "PUT":
         data = request.data
@@ -300,6 +303,7 @@ def update_state(request):
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
 
         else:
+            print("state doesn't exists")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         data["sequencing_sample_id"] = data["sample"]
@@ -308,8 +312,6 @@ def update_state(request):
             data["error_type"] = (
                 Error.objects.filter(error_name=data["error_type"]).last().pk
             )
-        # else:
-        #    data["error_type"] = None
 
         # if sample exists, create an instance of existing sample.
         if Sample.objects.filter(
@@ -320,34 +322,64 @@ def update_state(request):
             ).last()
 
             sample_serializer = UpdateSampleSerializer(sample_instance, data=data)
-            # return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # if sample does not exist, create a new sample register.
         else:
+            print("sample doesn't exists")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if not sample_serializer.is_valid():
+            print(" if not sample_serializer.is_valid()")
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-        sample_obj = sample_serializer.save()
+        sample_serializer.save()
 
         data_date["stateID"] = SampleState.objects.filter(
             pk__exact=data["state"]
         ).last()
-        # data_date["sampleID"] = sample_instance.get_sample_id()
         data_date["sampleID"] = Sample.objects.filter(
             sequencing_sample_id=sample_instance
         )
 
-        DateUpdateState.objects.create(
-            stateID=data_date["stateID"], sampleID=sample_obj
-        )
-
-        """
-        date_instance = DateUpdateState.objects.create(
-            stateID=data_date["stateID"], sampleID=sample_obj
-        )
-        """
+        CreateDateAfterChangeState(data_date)
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
+
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(["POST"])
+def accession_ena(request):
+    if request.method == "POST":
+        data = request.data
+
+        if isinstance(data, QueryDict):
+            data = data.dict()
+
+        number_of_sample = extract_number_of_sample(data["GenBank_ENA_DDBJ_accession"])
+
+        data["user"] = request.user.pk
+        process_date = date_converter(data["ena_process_date"])
+
+        if EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            ena_obj = EnaInfo.objects.create(
+                ena_process_date=process_date,
+                SRA_accession=data["SRA_accession"],
+                GenBank_ENA_DDBJ_accession=data["GenBank_ENA_DDBJ_accession"],
+            )
+            sample_obj = Sample.objects.filter(
+                sequencing_sample_id=number_of_sample
+            ).last()
+
+            ena_obj = EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).last()
+            sample_obj.ena_obj = ena_obj
+
+            sample_obj.save()
+
+            print(ena_obj)
+
+    return Response("Successful upload information", status=status.HTTP_201_CREATED)
