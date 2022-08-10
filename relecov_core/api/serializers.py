@@ -25,10 +25,10 @@ class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
 """
 
 
-class CreateDateAfterChangeState(serializers.ModelSerializer):
+class CreateDateAfterChangeStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DateUpdateState
-        fields = "_all__"
+        fields = "__all__"
 
 
 class UpdateSampleSerializer(serializers.ModelSerializer):
