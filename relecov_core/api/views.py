@@ -33,7 +33,10 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from relecov_core.models import Sample, SampleState, Error, EnaInfo
 
-from relecov_core.api.utils.accession_to_ENA import date_converter  # parse_xml,
+from relecov_core.api.utils.accession_to_ENA import (
+    date_converter,
+    extract_number_of_sample,
+)  # parse_xml,
 
 """
 analysis_data = openapi.Parameter(
@@ -353,20 +356,22 @@ def accession_ena(request):
         if isinstance(data, QueryDict):
             data = data.dict()
 
+        number_of_sample = extract_number_of_sample(data["GenBank_ENA_DDBJ_accession"])
+
         data["user"] = request.user.pk
         process_date = date_converter(data["ena_process_date"])
-        # print(process_date)
+
         ena_obj = EnaInfo.objects.create(
             ena_process_date=process_date,
             SRA_accession=data["SRA_accession"],
-            biosample_accession_ENA=data["biosample_accession_ENA"],
+            GenBank_ENA_DDBJ_accession=data["GenBank_ENA_DDBJ_accession"],
         )
-        sample_obj = Sample.objects.filter(
-            collecting_lab_sample_id=data["collecting_lab_sample_id"]
-        ).last()
-        sample_obj.ena_obj = EnaInfo.objects.filter(
-            SRA_accession=data["SRA_accession"]
-        ).last()
+        sample_obj = Sample.objects.filter(sequencing_sample_id=number_of_sample).last()
+        # sample_obj.ena_obj = ena_obj
+
+        ena_obj = EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).last()
+        sample_obj.ena_obj = ena_obj
+
         sample_obj.save()
 
         print(ena_obj)

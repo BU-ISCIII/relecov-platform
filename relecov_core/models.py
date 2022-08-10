@@ -591,7 +591,7 @@ class EnaInfo(models.Model):
     study_type = models.CharField(max_length=80, null=True, blank=True)
     experiment_alias = models.CharField(max_length=80, null=True, blank=True)
     experiment_title = models.CharField(max_length=80, null=True, blank=True)
-    ena_process_date = models.CharField(max_length=30, null=False, blank=False)
+    ena_process_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -726,8 +726,6 @@ class Sample(models.Model):
     fastq_r2_md5 = models.CharField(max_length=80, null=True, blank=True)
     r1_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
     r2_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
-
-    collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
