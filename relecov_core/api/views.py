@@ -31,7 +31,7 @@ from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, Error, EnaInfo
+from relecov_core.models import Sample, SampleState, Error, EnaInfo, BatchSample
 
 from relecov_core.api.utils.accession_to_ENA import (
     date_converter,
@@ -346,6 +346,45 @@ def update_state(request):
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
+@swagger_auto_schema(
+    method="post",
+    operation_description="The POST method is used to create new records in the database.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "SRA_accession": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Code provided by ENA after uploading samples",
+            ),
+            "ena_process_date": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Upload date to ENA"
+            ),
+            "GenBank_ENA_DDBJ_accession": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="",
+            ),
+            "study_alias": openapi.Schema(type=openapi.TYPE_STRING, description=""),
+            "study_id": openapi.Schema(type=openapi.TYPE_STRING, description=""),
+            "study_title": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="",
+            ),
+            "study_type": openapi.Schema(type=openapi.TYPE_STRING, description=""),
+            "experiment_alias": openapi.Schema(
+                type=openapi.TYPE_STRING, description=""
+            ),
+            "experiment_title": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="",
+            ),
+        },
+    ),
+    responses={
+        201: "Successful create information",
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+)
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(["POST"])
@@ -380,5 +419,52 @@ def accession_ena(request):
             sample_obj.save()
 
             print(ena_obj)
+
+    return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
+
+@swagger_auto_schema(
+    method="post",
+    operation_description="The POST method is used to create new records in the database.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "sample": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Number of Sample"
+            ),
+            "folder": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Folder where the sample is located",
+            ),
+        },
+    ),
+    responses={
+        201: "Successful create information",
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+)
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(["POST"])
+def batch_sample(request):
+    if request.method == "POST":
+        data = request.data
+
+        if isinstance(data, QueryDict):
+            data = data.dict()
+
+        print(data)
+
+        data["user"] = request.user.pk
+
+        if BatchSample.objects.filter(sample=data["sample"]).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            BatchSample.objects.create(
+                sample=data["sample"],
+                folder=data["folder"],
+            )
 
     return Response("Successful upload information", status=status.HTTP_201_CREATED)
