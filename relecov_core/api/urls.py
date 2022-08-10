@@ -10,4 +10,5 @@ urlpatterns = [
     path("longtableData/", views.longtable_data, name="longtable_data"),
     path("bioinfoData", views.bioinfo_metadata_file, name="bioinfo_data"),
     path("updateState/", views.update_state, name="update_state"),
+    path("accessionEna/", views.accession_ena, name="accession_ena"),
 ]
