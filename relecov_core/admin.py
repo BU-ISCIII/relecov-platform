@@ -34,6 +34,12 @@ from relecov_core.models import (
 )
 
 
+def custom_date_format(self):
+    if self.date:
+        return self.date.strftime("%d %b %Y")
+    return ""
+
+
 class ProfileInLine(admin.StackedInline):
     model = Profile
     can_delete = False
@@ -76,12 +82,20 @@ class ConfigSettingAdmin(admin.ModelAdmin):
     list_display = ["configuration_name", "configuration_value"]
 
 
+class DateUpdateStateAdmin(admin.ModelAdmin):
+    list_display = ["sampleID", "stateID", custom_date_format]
+
+
 class EffectAdmin(admin.ModelAdmin):
     list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
 
 
 class EnaInfoAdmin(admin.ModelAdmin):
     list_display = ["biosample_accession_ENA", "SRA_accession", "study_title"]
+
+
+class ErrorAdmin(admin.ModelAdmin):
+    list_display = ["error_name", "display_string"]
 
 
 class FilterAdmin(admin.ModelAdmin):
@@ -202,6 +216,6 @@ admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
-admin.site.register(Error)
-admin.site.register(DateUpdateState)
+admin.site.register(Error, ErrorAdmin)
+admin.site.register(DateUpdateState, DateUpdateStateAdmin)
 admin.site.register(LineageInfo, LineageInfoAdmin)
