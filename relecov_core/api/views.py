@@ -361,19 +361,24 @@ def accession_ena(request):
         data["user"] = request.user.pk
         process_date = date_converter(data["ena_process_date"])
 
-        ena_obj = EnaInfo.objects.create(
-            ena_process_date=process_date,
-            SRA_accession=data["SRA_accession"],
-            GenBank_ENA_DDBJ_accession=data["GenBank_ENA_DDBJ_accession"],
-        )
-        sample_obj = Sample.objects.filter(sequencing_sample_id=number_of_sample).last()
-        # sample_obj.ena_obj = ena_obj
+        if EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        ena_obj = EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).last()
-        sample_obj.ena_obj = ena_obj
+        else:
+            ena_obj = EnaInfo.objects.create(
+                ena_process_date=process_date,
+                SRA_accession=data["SRA_accession"],
+                GenBank_ENA_DDBJ_accession=data["GenBank_ENA_DDBJ_accession"],
+            )
+            sample_obj = Sample.objects.filter(
+                sequencing_sample_id=number_of_sample
+            ).last()
 
-        sample_obj.save()
+            ena_obj = EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).last()
+            sample_obj.ena_obj = ena_obj
 
-        print(ena_obj)
+            sample_obj.save()
+
+            print(ena_obj)
 
     return Response("Successful upload information", status=status.HTTP_201_CREATED)
