@@ -11,4 +11,5 @@ urlpatterns = [
     path("bioinfoData", views.bioinfo_metadata_file, name="bioinfo_data"),
     path("updateState/", views.update_state, name="update_state"),
     path("accessionEna/", views.accession_ena, name="accession_ena"),
+    path("batchSample/", views.batch_sample, name="batch_sample"),
 ]
