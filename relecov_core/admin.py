@@ -93,7 +93,7 @@ class GeneAdmin(admin.ModelAdmin):
 
 
 class GisaidInfoAdmin(admin.ModelAdmin):
-    list_display = ["gisaid_id", "submission_data"]
+    list_display = ["gisaid_id", "submission_date"]
 
 
 class ChromosomeAdmin(admin.ModelAdmin):
