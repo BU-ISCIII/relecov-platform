@@ -1,20 +1,4 @@
-import os
-from django.conf import settings
-import xml.etree.ElementTree as ET
-
-# from django.utils.dateparse import parse_datetime
-
-
-def parse_xml():
-    """
-    type(child.tag), type(child.attrib) -> <class 'str'> <class 'dict'>
-    """
-    xml_file_path = os.path.join(settings.BASE_DIR, "documents", "xml", "receipt.xml")
-    tree = ET.parse(xml_file_path)
-    root = tree.getroot()
-    for child in root:
-        # print(type(child.tag), type(child.attrib))
-        print(child.tag, child.attrib)
+from datetime import datetime
 
 
 def date_converter(received_date):
@@ -24,8 +8,17 @@ def date_converter(received_date):
     """
     received_date = received_date.replace("T", " ")
     received_date = received_date.split("+")
-    process_date = received_date[0]
+    received_date = received_date[0]
+    date_object = datetime.strptime(received_date, "%Y-%m-%d %H:%M:%S.%f")
 
-    # parse_date = parse_datetime("2022-07-21T14:38:36.408+01:00")
+    return date_object
 
-    return process_date
+
+def extract_number_of_sample(fastq_name):
+    """
+    This function extract number of sample from this type of data
+    Example: from 214821_S12_R1_001.fastq.gz_214821_S12_R2_001.fastq.gz we extract 214821
+    """
+    data = fastq_name.split("_")
+    data = data[0]
+    return data
