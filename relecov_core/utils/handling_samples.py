@@ -84,6 +84,14 @@ def analyze_input_samples(request):
     return result
 
 
+def count_samples_in_all_tables():
+    """Count the number of entries that are in Sample,
+    """
+    data = {}
+    
+    return data
+
+
 def create_form_for_batch(schema_obj, user_obj):
     """Collect information for creating for batch from. This form is displayed
     only if previously was defined sample in sample form
@@ -196,7 +204,6 @@ def create_metadata_form(schema_obj, user_obj):
         return m_form["sample"]
     m_form["batch"] = create_form_for_batch(schema_obj, user_obj)
     return m_form
-
 
 def get_friend_list(user_name):
     friend_list = []

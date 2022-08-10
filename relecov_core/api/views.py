@@ -182,6 +182,7 @@ def create_sample_data(request):
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
         sample_serializer.save()
+        # update sample state date
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
