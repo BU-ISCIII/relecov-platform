@@ -40,6 +40,8 @@ def split_sample_data(data):
     split_data["sample"]["state"] = (
         SampleState.objects.filter(state__exact="Defined").last().get_state_id()
     )
+    if split_data["author"]["author_submitter"] == "":
+        split_data["author"]["author_submitter"] = "Not provided yet"
     if len(split_data["sample"]) < len(FIELDS_ON_SAMPLE_TABLE):
         return {"ERROR": ERROR_MISSING_SAMPLE_DATA}
     return split_data
