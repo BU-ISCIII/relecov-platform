@@ -12,13 +12,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
+    CreateBatchSampleSerializer,
     CreateDateAfterChangeState,
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
     CreateEnaSerializer,
     UpdateSampleSerializer,
-    # CreateDateAfterChangeState,
 )
 
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
@@ -418,8 +418,6 @@ def accession_ena(request):
 
             sample_obj.save()
 
-            print(ena_obj)
-
     return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
@@ -454,14 +452,12 @@ def batch_sample(request):
         if isinstance(data, QueryDict):
             data = data.dict()
 
-        print(data)
-
-        data["user"] = request.user.pk
-
         if BatchSample.objects.filter(sample=data["sample"]).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         else:
+
+            # CreateBatchSampleSerializer(data)
             BatchSample.objects.create(
                 sample=data["sample"],
                 folder=data["folder"],
