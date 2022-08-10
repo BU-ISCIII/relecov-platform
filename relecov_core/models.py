@@ -39,9 +39,6 @@ class BatchSample(models.Model):
     def __str__(self):
         return "%s" % (self.sample)
 
-    def get_id(self):
-        return "%s" % (self.pk)
-
     def get_sample(self):
         return "%s" % (self.sample)
 
