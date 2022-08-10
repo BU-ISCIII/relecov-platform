@@ -602,6 +602,10 @@ class EnaInfo(models.Model):
     def get_genbank(self):
         return "%s" % (self.GenBank_ENA_DDBJ_accession)
 
+    def get_ena_info(self):
+        data = []
+        return data
+
 
 class VirusName(models.Model):
     virus_name = models.CharField(max_length=80, null=True, blank=True)
@@ -623,7 +627,7 @@ class GisaidInfo(models.Model):
     )
     # GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
     gisaid_id = models.CharField(max_length=80, null=True, blank=True)
-    submission_data = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    submission_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     length = models.CharField(max_length=20, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -641,7 +645,7 @@ class GisaidInfo(models.Model):
             v_name = self.virus_id.get_virus_name()
         else:
             v_name = None
-        date = self.submission_data.strftime("%d , %B , %Y")
+        date = self.submission_date.strftime("%d , %B , %Y")
         data = []
         data.append(self.gisaid_id)
         data.append(date)
@@ -748,6 +752,21 @@ class Sample(models.Model):
         if self.gisaid_obj:
             return "%s" % (self.gisaid_obj)
         return None
+
+    def get_gisaid_info(self):
+        if self.gisaid_obj is None:
+            return ""
+        return self.gisaid_obj.get_gisaid_data()
+
+    def get_ena_obj(self):
+        if self.ena_obj:
+            return "%s" % (self.ena_obj)
+        return None
+
+    def get_ena_info(self):
+        if self.ena_obj is None:
+            return ""
+        return self.ena_obj.get_ena_data()
 
     def get_state(self):
         if self.state:
