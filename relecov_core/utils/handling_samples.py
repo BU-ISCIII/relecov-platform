@@ -27,6 +27,8 @@ from relecov_core.core_config import (
 
 from relecov_core.models import (
     # Authors,
+    EnaInfo,
+    GisaidInfo,
     MetadataVisualization,
     SchemaProperties,
     #
@@ -88,7 +90,10 @@ def count_samples_in_all_tables():
     """Count the number of entries that are in Sample,
     """
     data = {}
-    
+    data["received"] = Sample.objects.all().count()
+    data["up_ena"] = EnaInfo.objects.all().count()
+    data["up_gisaid"] = GisaidInfo.objects.all().count()
+    data["processed"] = 0
     return data
 
 
