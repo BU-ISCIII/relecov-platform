@@ -691,23 +691,15 @@ class Error(models.Model):
 
 # Sample Table
 class SampleManager(models.Manager):
-    def create_new_sample(self, data, user):
-        state = SampleState.objects.filter(state__exact="pre_recorded").last()
-        metadata_file = Document(
-            title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
-        )
-        metadata_file.save()
-        if "sequencing_date" not in data:
-            data["sequencing_date"] = ""
+    def create_new_sample(self, data):
+        state = SampleState.objects.filter(state__exact=data["state"]).last()
         new_sample = self.create(
+            sample_unique_id=data["sample_unique_id"],
             sequencing_sample_id=data["sequencing_sample_id"],
-            # biosample_accession_ENA=data["biosample_accession_ENA"],
-            # virus_name=data["virus_name"],
-            # gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
-            metadata_file=metadata_file,
+            metadata_file=data["metadata_file"],
             state=state,
-            user=user,
+            user=data["user"],
         )
         return new_sample
 
@@ -730,6 +722,7 @@ class Sample(models.Model):
     ena_obj = models.ForeignKey(
         EnaInfo, on_delete=models.CASCADE, null=True, blank=True
     )
+    sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
