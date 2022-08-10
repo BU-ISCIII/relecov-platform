@@ -563,7 +563,7 @@ class Authors(models.Model):
         db_table = "Authors"
 
     def __str__(self):
-        return "%s" % (self.analysis_authors)
+        return "%s" % (self.author_submitter)
 
     def get_analysis_author(self):
         return "%s" % (self.analysis_authors)
@@ -573,6 +573,9 @@ class Authors(models.Model):
 
     def get_authors(self):
         return "%s" % (self.authors)
+
+    def get_author_obj(self):
+        return "%s" % (self.pk)
 
     objects = AuthorsManager()
 
@@ -606,6 +609,9 @@ class EnaInfo(models.Model):
     def get_ena_info(self):
         data = []
         return data
+
+    def get_ena_obj(self):
+        return "%s" % (self.pk)
 
 
 class VirusName(models.Model):
@@ -652,7 +658,10 @@ class GisaidInfo(models.Model):
         data.append(date)
         data.append(self.length)
         data.append(v_name)
-        return data
+        return
+
+    def get_gisaid_obj(self):
+        return "%s" % (self.pk)
 
 
 class Error(models.Model):
@@ -712,7 +721,7 @@ class Sample(models.Model):
     metadata_file = models.ForeignKey(
         Document, on_delete=models.CASCADE, null=True, blank=True
     )
-    autors_obj = models.ForeignKey(
+    authors_obj = models.ForeignKey(
         Authors, on_delete=models.CASCADE, null=True, blank=True
     )
     gisaid_obj = models.ForeignKey(
