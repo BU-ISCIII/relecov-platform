@@ -14,6 +14,8 @@ from relecov_core.core_config import (
     ERROR_SAMPLE_DOES_NOT_EXIST,
     HEADING_FOR_BASIC_SAMPLE_DATA,
     HEADING_FOR_FASTQ_SAMPLE_DATA,
+    HEADING_FOR_GISAID_SAMPLE_DATA,
+    HEADING_FOR_ENA_SAMPLE_DATA,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -25,6 +27,8 @@ from relecov_core.core_config import (
 
 from relecov_core.models import (
     # Authors,
+    EnaInfo,
+    GisaidInfo,
     MetadataVisualization,
     SchemaProperties,
     #
@@ -80,6 +84,16 @@ def analyze_input_samples(request):
     if len(s_already_record) > 0:
         result["s_already_record"] = s_already_record
     return result
+
+
+def count_samples_in_all_tables():
+    """Count the number of entries that are in Sample,"""
+    data = {}
+    data["received"] = Sample.objects.all().count()
+    data["up_ena"] = EnaInfo.objects.all().count()
+    data["up_gisaid"] = GisaidInfo.objects.all().count()
+    data["processed"] = 0
+    return data
 
 
 def create_form_for_batch(schema_obj, user_obj):
@@ -230,7 +244,13 @@ def get_sample_display_data(sample_id, user):
     s_data["fastq"] = list(
         zip(HEADING_FOR_FASTQ_SAMPLE_DATA, sample_obj.get_fastq_data())
     )
-
+    # Fetch gisaid and ena information
+    gisaid_data = sample_obj.get_gisaid_info()
+    if gisaid_data != "":
+        s_data["gisaid"] = list(zip(HEADING_FOR_GISAID_SAMPLE_DATA, gisaid_data))
+    ena_data = sample_obj.get_ena_info()
+    if ena_data != "":
+        s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
     return s_data
 
 
@@ -246,6 +266,37 @@ def get_search_data():
     for s_state_obj in s_state_objs:
         s_data["s_state"].append(s_state_obj.get_state())
     return s_data
+
+
+def increase_unique_value(old_unique_number):
+    """The function increases in one number the unique value
+    If number reaches the 9999 then the letter is stepped
+    """
+    split_value = old_unique_number.split("-")
+    number = int(split_value[1]) + 1
+    letter = split_value[0]
+
+    if number > 9999:
+        number = 1
+        index_letter = list(split_value[0])
+        if index_letter[2] == "Z":
+            if index_letter[1] == "Z":
+                index_letter[0] = chr(ord(index_letter[0]) + 1)
+                index_letter[1] = "A"
+                index_letter[2] = "A"
+            else:
+                index_letter[1] = chr(ord(index_letter[1]) + 1)
+                index_letter[2] = "A"
+
+            index_letter = "".join(index_letter)
+        else:
+            index_letter[2] = chr(ord(index_letter[2]) + 1)
+
+        letter = "".join(index_letter)
+
+    number_str = str(number)
+    number_str = number_str.zfill(4)
+    return str(letter + "-" + number_str)
 
 
 def search_samples(sample_name, user_name, sample_state, s_date):
