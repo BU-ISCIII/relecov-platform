@@ -48,9 +48,11 @@ def split_sample_data(data):
         return {"ERROR": ERROR_MISSING_SAMPLE_DATA}
     if Sample.objects.all().exists():
         last_unique_value = Sample.objects.all().last().get_unique_id()
-        data["sample"]["sample_unique_id"] = increase_unique_value(last_unique_value)
+        split_data["sample"]["sample_unique_id"] = increase_unique_value(
+            last_unique_value
+        )
     else:
-        data["sample"]["sample_unique_id"] = "AAA-0001"
+        split_data["sample"]["sample_unique_id"] = "AAA-0001"
     return split_data
 
 
