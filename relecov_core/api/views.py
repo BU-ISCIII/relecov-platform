@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
     # CreateBatchSampleSerializer,
-    CreateDateAfterChangeState,
+    CreateDateAfterChangeStateSerializer,
     CreateSampleSerializer,
     CreateAuthorSerializer,
     CreateGisaidSerializer,
