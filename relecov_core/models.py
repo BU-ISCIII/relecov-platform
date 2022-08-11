@@ -581,7 +581,7 @@ class Authors(models.Model):
         db_table = "Authors"
 
     def __str__(self):
-        return "%s" % (self.analysis_authors)
+        return "%s" % (self.author_submitter)
 
     def get_analysis_author(self):
         return "%s" % (self.analysis_authors)
@@ -591,6 +591,9 @@ class Authors(models.Model):
 
     def get_authors(self):
         return "%s" % (self.authors)
+
+    def get_author_obj(self):
+        return "%s" % (self.pk)
 
     objects = AuthorsManager()
 
@@ -621,6 +624,13 @@ class EnaInfo(models.Model):
     def get_genbank(self):
         return "%s" % (self.GenBank_ENA_DDBJ_accession)
 
+    def get_ena_info(self):
+        data = []
+        return data
+
+    def get_ena_obj(self):
+        return "%s" % (self.pk)
+
 
 class VirusName(models.Model):
     virus_name = models.CharField(max_length=80, null=True, blank=True)
@@ -642,7 +652,7 @@ class GisaidInfo(models.Model):
     )
     # GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
     gisaid_id = models.CharField(max_length=80, null=True, blank=True)
-    submission_data = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    submission_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     length = models.CharField(max_length=20, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -660,13 +670,16 @@ class GisaidInfo(models.Model):
             v_name = self.virus_id.get_virus_name()
         else:
             v_name = None
-        date = self.submission_data.strftime("%d , %B , %Y")
+        date = self.submission_date.strftime("%d , %B , %Y")
         data = []
         data.append(self.gisaid_id)
         data.append(date)
         data.append(self.length)
         data.append(v_name)
-        return data
+        return
+
+    def get_gisaid_obj(self):
+        return "%s" % (self.pk)
 
 
 class Error(models.Model):
@@ -696,23 +709,15 @@ class Error(models.Model):
 
 # Sample Table
 class SampleManager(models.Manager):
-    def create_new_sample(self, data, user):
-        state = SampleState.objects.filter(state__exact="pre_recorded").last()
-        metadata_file = Document(
-            title="title", file_path="file_path", uploadedFile="uploadedFile.xls"
-        )
-        metadata_file.save()
-        if "sequencing_date" not in data:
-            data["sequencing_date"] = ""
+    def create_new_sample(self, data):
+        state = SampleState.objects.filter(state__exact=data["state"]).last()
         new_sample = self.create(
+            sample_unique_id=data["sample_unique_id"],
             sequencing_sample_id=data["sequencing_sample_id"],
-            # biosample_accession_ENA=data["biosample_accession_ENA"],
-            # virus_name=data["virus_name"],
-            # gisaid_id=data["gisaid_id"],
             sequencing_date=data["sequencing_date"],
-            metadata_file=metadata_file,
+            metadata_file=data["metadata_file"],
             state=state,
-            user=user,
+            user=data["user"],
         )
         return new_sample
 
@@ -726,7 +731,7 @@ class Sample(models.Model):
     metadata_file = models.ForeignKey(
         Document, on_delete=models.CASCADE, null=True, blank=True
     )
-    autors_obj = models.ForeignKey(
+    authors_obj = models.ForeignKey(
         Authors, on_delete=models.CASCADE, null=True, blank=True
     )
     gisaid_obj = models.ForeignKey(
@@ -735,6 +740,7 @@ class Sample(models.Model):
     ena_obj = models.ForeignKey(
         EnaInfo, on_delete=models.CASCADE, null=True, blank=True
     )
+    sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
@@ -768,6 +774,21 @@ class Sample(models.Model):
         if self.gisaid_obj:
             return "%s" % (self.gisaid_obj)
         return None
+
+    def get_gisaid_info(self):
+        if self.gisaid_obj is None:
+            return ""
+        return self.gisaid_obj.get_gisaid_data()
+
+    def get_ena_obj(self):
+        if self.ena_obj:
+            return "%s" % (self.ena_obj)
+        return None
+
+    def get_ena_info(self):
+        if self.ena_obj is None:
+            return ""
+        return self.ena_obj.get_ena_data()
 
     def get_state(self):
         if self.state:
