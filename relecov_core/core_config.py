@@ -207,6 +207,13 @@ HEADING_FOR_FASTQ_SAMPLE_DATA = [
     "Fastq md5 r1",
     "Fastq md5 r2",
 ]
+HEADING_FOR_GISAID_SAMPLE_DATA = [
+    "GIDAID ID",
+    "Submittion date",
+    "Length",
+    "Virus Name",
+]
+HEADING_FOR_ENA_SAMPLE_DATA = []
 HEADING_SCHEMA_DISPLAY = [
     "Property",
     "Label",

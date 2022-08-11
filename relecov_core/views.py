@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
+    count_samples_in_all_tables,
     create_metadata_form,
     get_sample_display_data,
     get_search_data,
@@ -26,7 +27,6 @@ from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.contributor_info_handling import get_data_from_form
 from relecov_core.utils.generic_functions import check_valid_date_format
 
-from relecov_core.models import Sample
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
@@ -36,11 +36,11 @@ from relecov_core.core_config import (
 
 
 def index(request):
-    number_of_samples_received = Sample.objects.count()
+    number_of_samples = count_samples_in_all_tables()
     return render(
         request,
         "relecov_core/index.html",
-        {"number_of_samples_received": number_of_samples_received},
+        {"number_of_samples": number_of_samples},
     )
 
 

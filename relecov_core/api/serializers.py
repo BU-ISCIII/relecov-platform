@@ -30,12 +30,12 @@ class CreateBatchSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = BatchSample
         fields = "__all__"
-
+  
 
 class CreateDateAfterChangeState(serializers.ModelSerializer):
     class Meta:
         model = DateUpdateState
-        fields = "_all__"
+        fields = "__all__"
 
 
 class UpdateSampleSerializer(serializers.ModelSerializer):
