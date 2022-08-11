@@ -448,16 +448,21 @@ def batch_sample(request):
 
         if isinstance(data, QueryDict):
             data = data.dict()
+        print(request.user.username)
 
-        if BatchSample.objects.filter(sample=data["sample"]).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if request.user.username == "relecovbot":
 
+            if BatchSample.objects.filter(sample=data["sample"]).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+
+                # CreateBatchSampleSerializer(data)
+                BatchSample.objects.create(
+                    sample=data["sample"],
+                    folder=data["folder"],
+                )
         else:
-
-            # CreateBatchSampleSerializer(data)
-            BatchSample.objects.create(
-                sample=data["sample"],
-                folder=data["folder"],
-            )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response("Successful upload information", status=status.HTTP_201_CREATED)
