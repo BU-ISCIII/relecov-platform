@@ -3,6 +3,7 @@ from rest_framework import serializers
 from relecov_core.models import (
     # BioInfoProcessValue,
     Authors,
+    BatchSample,
     EnaInfo,
     GisaidInfo,
     # Lineage,
@@ -25,7 +26,13 @@ class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
 """
 
 
-class CreateDateAfterChangeStateSerializer(serializers.ModelSerializer):
+class CreateBatchSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BatchSample
+        fields = "__all__"
+  
+
+class CreateDateAfterChangeState(serializers.ModelSerializer):
     class Meta:
         model = DateUpdateState
         fields = "__all__"
