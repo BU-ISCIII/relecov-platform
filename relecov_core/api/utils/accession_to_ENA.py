@@ -3,8 +3,8 @@ from datetime import datetime
 
 def date_converter(received_date):
     """
-    This function converts this date format -> 2022-07-21T14:38:36.408+01:00
-    to this other format -> 2022-07-21 14:38:36.408
+    This function converts this date format, (received as string) -> 2022-07-21T14:38:36.408+01:00
+    to this other format -> 2022-07-21 14:38:36.408 (datetime)
     """
     received_date = received_date.replace("T", " ")
     received_date = received_date.split("+")
