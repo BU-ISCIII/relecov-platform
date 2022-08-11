@@ -172,20 +172,37 @@ def create_sample_data(request):
         else:
             ena_serializer = None
         # Store authors, gisaid, ena in ddbb to get the references
-        author_serializer.save()
+        if author_serializer:
+            split_data["sample"][
+                "authors_obj"
+            ] = author_serializer.save().get_author_obj()
+        else:
+            split_data["sample"]["authors_obj"] = None
         if gisaid_serializer:
-            gisaid_serializer.save()
+            split_data["sample"][
+                "gisaid_obj"
+            ] = gisaid_serializer.save().get_gisaid_obj()
+        else:
+            split_data["sample"]["gisaid_obj"] = None
         if ena_serializer:
-            ena_serializer.save()
-        split_data["sample"]["author_obj"] = author_serializer
-        split_data["sample"]["gisaid_obj"] = gisaid_serializer
-        split_data["sample"]["ena_obj"] = ena_serializer
+            split_data["sample"]["ena_obj"] = ena_serializer.save().get_ena_obj()
+        else:
+            split_data["sample"]["ena_obj"] = None
+
         sample_serializer = CreateSampleSerializer(data=split_data["sample"])
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-        sample_serializer.save()
+        sample_obj = sample_serializer.save()
+        # update sample state date
+        data = {
+            "sampleID": sample_obj.get_sample_id(),
+            "stateID": split_data["sample"]["state"],
+        }
+        date_serilizer = CreateDateAfterChangeStateSerializer(data=data)
+        if date_serilizer.is_valid():
+            date_serilizer.save()
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
@@ -338,7 +355,7 @@ def update_state(request):
             sequencing_sample_id=sample_instance
         )
 
-        CreateDateAfterChangeState(data_date)
+        CreateDateAfterChangeStateSerializer(data_date)
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
