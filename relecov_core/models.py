@@ -670,7 +670,10 @@ class GisaidInfo(models.Model):
             v_name = self.virus_id.get_virus_name()
         else:
             v_name = None
-        date = self.submission_date.strftime("%d , %B , %Y")
+        if self.submission_date is None:
+            date = "Not Provided"
+        else:
+            date = self.submission_date.strftime("%d , %B , %Y")
         data = []
         data.append(self.gisaid_id)
         data.append(date)
@@ -742,6 +745,7 @@ class Sample(models.Model):
     )
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
+    sample_name = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
