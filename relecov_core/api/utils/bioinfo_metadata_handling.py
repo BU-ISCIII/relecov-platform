@@ -79,4 +79,4 @@ def fetch_bioinfo_data(data):
 
     sample_obj.update_state("Bioinfo")
     """
-    return
+    return data
