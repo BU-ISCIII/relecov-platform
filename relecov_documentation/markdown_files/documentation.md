@@ -8,21 +8,31 @@ This documentation is structured in the following points, from the installation 
 
 This is a summary of the contents of this document:
 
-    Installation:
-        Installations steps.
+    Usage
+        Getting start
 
-    Configuration
-        Initial Configuration
-    Intranet
-        Create user intranet
-        Access to intranet
-        Upload Metadata Lab
+            Installation:
+                Installations steps.
 
-    Upload Status
-        Upload to ENA
-        Upload to GISAID
-    Result Info
-        Received
-        Processed
-    Downloads
-        Results Download
+            Configuration
+                Initial Configuration
+            
+            Intranet
+                Create user intranet
+                Access to intranet
+                Upload Metadata Lab
+            
+            Upload Status
+                Upload to ENA
+                Upload to GISAID
+            
+            Result Info
+                Received
+                Processed
+            
+            Downloads
+                Results Download
+
+            Dashboard
+
+            API Rest

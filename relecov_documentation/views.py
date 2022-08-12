@@ -1,8 +1,6 @@
 from django.shortcuts import render
 
 from relecov_documentation.utils.markdown_handling import (
-    do_something,
-    generate_html_from_markdown_file,
     markdown_to_html,
     fix_img_folder,
 )
@@ -11,14 +9,14 @@ from django.utils.html import format_html
 
 # Create your views here.
 def index(request):
-    html_visualization_from_markdown = generate_html_from_markdown_file(
-        "documentation.md"
-    )
-
+    converted_to_html = markdown_to_html("documentation.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation.html",
-        {"html_visualization": html_visualization_from_markdown},
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
     )
 
 
@@ -80,24 +78,6 @@ def dashboard(request):
         request,
         "relecov_documentation/documentation2.html",
         {"html": converted_to_html},
-    )
-
-
-def test(request):
-    html = do_something(title="title", content="content")
-    return render(
-        request,
-        "relecov_documentation/test.html",
-        {"html": html},
-    )
-
-
-def test2(request):
-    html = format_html("<h1>Hello</h1>")
-    return render(
-        request,
-        "relecov_documentation/test2.html",
-        {"html2": html},
     )
 
 

@@ -465,6 +465,9 @@ def batch_sample(request):
 
         if isinstance(data, QueryDict):
             data = data.dict()
+
+        print(request.user.username)
+
         if request.user.username == "relecovbot":
 
             if BatchSample.objects.filter(sample=data["sample"]).exists():
