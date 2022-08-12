@@ -246,7 +246,7 @@ def get_sample_display_data(sample_id, user):
     )
     # Fetch gisaid and ena information
     gisaid_data = sample_obj.get_gisaid_info()
-    if gisaid_data != "":
+    if gisaid_data is not None:
         s_data["gisaid"] = list(zip(HEADING_FOR_GISAID_SAMPLE_DATA, gisaid_data))
     ena_data = sample_obj.get_ena_info()
     if ena_data != "":
