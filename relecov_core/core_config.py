@@ -241,6 +241,7 @@ ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
 # API requested information
 FIELDS_ON_SAMPLE_TABLE = [
     "user",
+    "collecting_lab_sample_id",
     "microbiology_lab_sample_id",
     "sequencing_sample_id",
     "submitting_lab_sample_id",

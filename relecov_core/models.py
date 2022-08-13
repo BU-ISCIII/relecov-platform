@@ -745,7 +745,7 @@ class Sample(models.Model):
     )
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
-    sample_name = models.CharField(max_length=80, null=True, blank=True)
+    collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
