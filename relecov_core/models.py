@@ -769,6 +769,9 @@ class Sample(models.Model):
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
 
+    def get_collecting_lab_sample_id(self):
+        return "%s" % (self.collecting_lab_sample_id)
+
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
 
