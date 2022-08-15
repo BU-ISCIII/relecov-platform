@@ -43,6 +43,7 @@ from relecov_core.models import (
 from relecov_core.utils.rest_api_handling import (
     get_sample_fields_data,
     get_sample_project_fields_data,
+    get_sample_information,
     # save_sample_form_data,
 )
 
@@ -251,6 +252,19 @@ def get_sample_display_data(sample_id, user):
     ena_data = sample_obj.get_ena_info()
     if ena_data != "":
         s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
+    lab_sample = sample_obj.get_collecting_lab_sample_id()
+    if lab_sample != "":
+        iskylims_data = get_sample_information(lab_sample)
+        s_data["iskylims_basic"] = list(
+            zip(iskylims_data["heading"], iskylims_data["s_basic"])
+        )
+        s_data["iskylims_p_data"] = list(
+            zip(
+                iskylims_data["sample_project_field_heading"],
+                iskylims_data["sample_project_field_value"],
+            )
+        )
+        s_data["iskylims_project"] = iskylims_data["sample_project_name"]
     return s_data
 
 
