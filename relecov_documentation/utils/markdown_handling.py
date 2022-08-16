@@ -2,7 +2,8 @@ import os
 
 from django.conf import settings
 import markdown
-from django import template
+
+# from django import template
 
 
 def fix_img_folder(text):

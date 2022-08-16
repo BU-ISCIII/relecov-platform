@@ -4,7 +4,8 @@ from relecov_documentation.utils.markdown_handling import (
     markdown_to_html,
     fix_img_folder,
 )
-from django.utils.html import format_html
+
+# from django.utils.html import format_html
 
 
 # Create your views here.

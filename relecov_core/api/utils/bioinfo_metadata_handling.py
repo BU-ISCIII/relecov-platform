@@ -1,7 +1,7 @@
 from relecov_core.models import (
     BioinfoAnalysisField,
-    BioinfoAnalysisFieldManager,
-    BioInfoAnalysisValueManager,
+    # BioinfoAnalysisFieldManager,
+    # BioInfoAnalysisValueManager,
     Sample,
     Schema,
 )
@@ -16,7 +16,7 @@ from relecov_core.core_config import (
 )
 
 from relecov_core.api.serializers import (
-    CreateBioInfoAnalysisFieldSerializer,
+    # CreateBioInfoAnalysisFieldSerializer,
     CreateBioInfoAnalysisValueSerializer,
 )
 
