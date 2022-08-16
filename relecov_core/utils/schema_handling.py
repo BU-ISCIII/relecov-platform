@@ -6,6 +6,7 @@ from django.conf import settings
 from relecov_core.models import (
     BioinfoAnalysisField,
     Classification,
+    LineageFields,
     MetadataVisualization,
     PropertyOptions,
     Schema,
@@ -262,6 +263,24 @@ def store_bioinfo_fields(schema_obj, s_properties):
     return {"SUCCESS": ""}
 
 
+def store_lineage_fields(schema_obj, s_properties):
+    """Store the fields to be used for lineage analysis information"""
+    for prop_key in s_properties.keys():
+        classification = ""
+        data = dict(s_properties[prop_key])
+        if "classification" in data and data["classification"] == "Lineage fields":
+            classification = data["classification"]
+            class_obj = Classification.objects.filter(
+                classification_name__iexact=classification
+            ).last()
+            fields = {}
+            fields["classificationID"] = class_obj
+            fields["property_name"] = prop_key
+            fields["label_name"] = data["label"]
+            LineageFields.objects.create_new_field(fields)
+    return {"SUCCESS": ""}
+
+
 def remove_existing_default_schema(schema_name, apps_name):
     """Remove the tag for default schema for the given schema name"""
     if Schema.objects.filter(
@@ -312,9 +331,7 @@ def process_schema_file(json_file, version, default, user, apps_name):
     )
     if "ERROR" in result:
         return result
-    s_fields = store_bioinfo_fields(
-        new_schema, schema_data["full_schema"]["properties"]
-    )
-    if "ERROR" in s_fields:
-        return s_fields
+    store_bioinfo_fields(new_schema, schema_data["full_schema"]["properties"])
+    store_lineage_fields(new_schema, schema_data["full_schema"]["properties"])
+
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}
