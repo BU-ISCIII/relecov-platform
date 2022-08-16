@@ -1,11 +1,11 @@
-"""
 from relecov_core.models import (
-    # BioinfoProcessField,
+    BioinfoAnalysisField,
+    BioinfoAnalysisFieldManager,
+    BioInfoAnalysisValueManager,
     Sample,
     Schema,
 )
-"""
-"""
+
 from relecov_core.core_config import (
     ERROR_SCHEMA_NOT_DEFINED,
     ERROR_FIELD_NOT_DEFINED,
@@ -14,40 +14,41 @@ from relecov_core.core_config import (
     ERROR_SAMPLE_NOT_IN_DEFINED_STATE,
     ERROR_UNABLE_TO_STORE_IN_DATABASE,
 )
-"""
-# from relecov_core.api.serializers import CreateBioInfoProcessValueSerializer
 
-"""
+from relecov_core.api.serializers import (
+    CreateBioInfoAnalysisFieldSerializer,
+    CreateBioInfoAnalysisValueSerializer,
+)
+
+
 def check_valid_data(data, schema_id):
-    ""Check if all fields in the request are defined in database""
+    """Check if all fields in the request are defined in database"""
     for field in data:
         if field == "sample_name":
             continue
-        if not BioinfoProcessField.objects.filter(
+        if not BioinfoAnalysisField.objects.filter(
             schemaID=schema_id, property_name__iexact=field
         ).exists():
             return {"ERROR": str(field + " " + ERROR_FIELD_NOT_DEFINED)}
     return True
-"""
 
-"""
+
 def store_field(field, value, sample_obj, schema_id):
-    ""Save the new field data in database""
+    """Save the new field data in database"""
     data = {"value": value, "sampleID_id": sample_obj}
-    data["bioinfo_process_fieldID"] = BioinfoProcessField.objects.filter(
+    data["bioinfo_analysis_fieldID"] = BioinfoAnalysisField.objects.filter(
         schemaID=schema_id, property_name__iexact=field
     ).last()
 
-    bio_value_serializer = CreateBioInfoProcessValueSerializer(data=data)
+    bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
     if not bio_value_serializer.is_valid():
         return False
     bio_value_serializer.save()
     return True
-"""
 
 
 def fetch_bioinfo_data(data):
-    """
+
     if "sample_name" not in data:
         return {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED}
     sample_obj = Sample.objects.filter(
@@ -78,5 +79,5 @@ def fetch_bioinfo_data(data):
             return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
     sample_obj.update_state("Bioinfo")
-    """
+
     return data
