@@ -235,12 +235,14 @@ ISKLIMS_REST_API = "/wetlab/api/"
 ISKLIMS_GET_LABORATORY_PARAMETERS = ["laboratoryData", "laboratory"]
 ISKLIMS_PUT_LABORATORY_PARAMETER = "updateLab"
 ISKLIMS_GET_SAMPLE_FIELDS = "sampleFields"
+ISKLIMS_GET_SAMPLE_INFORMATION = ["fetchSampleIinformation", "sample"]
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
 ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
 
 # API requested information
 FIELDS_ON_SAMPLE_TABLE = [
     "user",
+    "collecting_lab_sample_id",
     "microbiology_lab_sample_id",
     "sequencing_sample_id",
     "submitting_lab_sample_id",
