@@ -177,7 +177,7 @@ def search_sample(request):
                 },
             )
         if len(sample_list) == 1:
-            return redirect("display_sample", sample_id=sample_list)
+            return redirect("sample_display", sample_id=sample_list[0])
         else:
             sample = {"s_data": sample_list, "heading": HEADING_FOR_SAMPLE_LIST}
             return render(
