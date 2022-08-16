@@ -135,6 +135,7 @@ class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "sequencing_sample_id",
         "submitting_lab_sample_id",
+        "collecting_lab_sample_id",
         "state",
     ]
     search_fields = ["sequencing_sample_id__icontains"]

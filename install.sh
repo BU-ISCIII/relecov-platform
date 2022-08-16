@@ -166,8 +166,13 @@ cd /opt/relecov-platform
 
 mkdir -p /opt/relecov-platform/logs
 chown $user:apache /opt/relecov-platform/logs
+chmod 775 /opt/relecov-platform/logs
 mkdir -p /opt/relecov-platform/documents
 chown $user:apache /opt/relecov-platform/documents
+chmod 775 /opt/relecov-platform/documents
+mkdir -p /opt/relecov-platform/documents/schemas
+chown $user:apache /opt/relecov-platform/documents/schemas
+chmod 775 /opt/relecov-platform/documents/schemas
 echo "Created folders for logs and documents "
 
 # install virtual environment
