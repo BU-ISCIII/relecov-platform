@@ -29,6 +29,7 @@ def check_valid_data(data, schema_id):
         if field == "sample_name":
             continue
 
+        # if this field belongs to BioinfoAnalysisField table
         if (
             BioinfoAnalysisField.objects.filter(
                 schemaID=schema_id, property_name__iexact=field
@@ -37,8 +38,9 @@ def check_valid_data(data, schema_id):
                 schemaID=schema_id, property_name__iexact=field
             ).exists()
         ):
-            # print(field + " exists in DB Bio" )
             continue
+
+        # if this field belongs to LineageFields table
         if (
             not BioinfoAnalysisField.objects.filter(
                 schemaID=schema_id, property_name__iexact=field
@@ -47,7 +49,6 @@ def check_valid_data(data, schema_id):
                 schemaID=schema_id, property_name__iexact=field
             ).exists()
         ):
-            # print(field + " exists in DB Lineage" )
             continue
 
         else:
@@ -57,16 +58,44 @@ def check_valid_data(data, schema_id):
 
 
 def store_field(field, value, sample_obj, schema_id):
-    """Save the new field data in database"""
-    data = {"value": value, "sampleID_id": sample_obj}
-    data["bioinfo_analysis_fieldID"] = BioinfoAnalysisField.objects.filter(
-        schemaID=schema_id, property_name__iexact=field
-    ).last()
+    import pdb
 
-    bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
-    if not bio_value_serializer.is_valid():
-        return False
-    bio_value_serializer.save()
+    """Save the new field data in database"""
+
+    # field to BioinfoAnalysisField table
+    if BioinfoAnalysisField.objects.filter(
+        schemaID=schema_id, property_name__iexact=field
+    ).exists():
+        print("exists")
+        data = {"value": value, "sampleID_id": sample_obj}
+        data["bioinfo_analysis_fieldID"] = (
+            BioinfoAnalysisField.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            )
+            .last()
+            .get_id()
+        )
+
+        bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
+        pdb.set_trace()
+        print(bio_value_serializer)
+        print(bio_value_serializer.is_valid())
+
+        if not bio_value_serializer.is_valid():
+            print("False")
+            return False
+
+        bio_value_serializer.save()
+
+    # field to LineageFields table
+    """
+    if LineageFields.objects.filter(
+            schemaID=schema_id, property_name__iexact=field
+            ).exists():
+        data = {"value":value, "sampleID_id": sample_obj}
+        data["lineage_fieldID"] = LineageFields.objects.filter(schemaID=schema_id, property_name__iexact=field).last()
+        data["lineage_infoID"]
+    """
     return True
 
 
