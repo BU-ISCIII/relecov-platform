@@ -1,5 +1,6 @@
 from relecov_core.models import (
     BioinfoAnalysisField,
+    LineageFields,
     # BioinfoAnalysisFieldManager,
     # BioInfoAnalysisValueManager,
     Sample,
@@ -24,12 +25,34 @@ from relecov_core.api.serializers import (
 def check_valid_data(data, schema_id):
     """Check if all fields in the request are defined in database"""
     for field in data:
+
         if field == "sample_name":
             continue
-        if not BioinfoAnalysisField.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-        ).exists():
+
+        if (
+            BioinfoAnalysisField.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            ).exists()
+            and not LineageFields.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            ).exists()
+        ):
+            # print(field + " exists in DB Bio" )
+            continue
+        if (
+            not BioinfoAnalysisField.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            ).exists()
+            or LineageFields.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            ).exists()
+        ):
+            # print(field + " exists in DB Lineage" )
+            continue
+
+        else:
             return {"ERROR": str(field + " " + ERROR_FIELD_NOT_DEFINED)}
+
     return True
 
 
@@ -68,6 +91,7 @@ def fetch_bioinfo_data(data):
     ).last()
 
     valid_data = check_valid_data(data, schema_obj)
+    print("valid_data" + str(valid_data))
     if isinstance(valid_data, dict):
         return valid_data
 

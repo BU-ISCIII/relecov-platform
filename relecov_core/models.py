@@ -959,7 +959,17 @@ class LineageInfo(models.Model):
         return "%s" % (self.pk)
 
 
-class LinageFields(models.Model):
+class LineageFieldsManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            classificationID=data["classificationID"],
+            property_name=data["property_name"],
+            label_name=data["label_name"],
+        )
+        return new_field
+
+
+class LineageFields(models.Model):
     schemaID = models.ManyToManyField(Schema)
     classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
@@ -978,10 +988,12 @@ class LinageFields(models.Model):
     def get_lineage_field_id(self):
         return "%s" % (self.pk)
 
+    objects = LineageFieldsManager()
 
-class LinageValues(models.Model):
+
+class LineageValues(models.Model):
     sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    linage_fieldID = models.ForeignKey(LinageFields, on_delete=models.CASCADE)
+    lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
     lineage_infoID = models.ForeignKey(
         LineageInfo, on_delete=models.CASCADE, null=True, blank=True
     )

@@ -7,6 +7,8 @@ from relecov_core.models import (
     BioinfoAnalysisField,
     EnaInfo,
     GisaidInfo,
+    LineageFields,
+    LineageValues,
     # Lineage,
     Sample,
     Chromosome,
@@ -120,6 +122,18 @@ class CreatePositionSerializer(serializers.ModelSerializer):
 class CreateVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variant
+        fields = "__all__"
+
+
+class CreateLineageFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LineageFields
+        fields = "__all__"
+
+
+class CreateLineageValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LineageValues
         fields = "__all__"
 
 
