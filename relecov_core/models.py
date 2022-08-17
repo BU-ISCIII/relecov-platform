@@ -743,6 +743,9 @@ class Sample(models.Model):
     ena_obj = models.ForeignKey(
         EnaInfo, on_delete=models.CASCADE, null=True, blank=True
     )
+    schema_obj = models.ForeignKey(
+        Schema, on_delete=models.CASCADE, null=True, blank=True
+    )
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
@@ -793,6 +796,11 @@ class Sample(models.Model):
     def get_ena_obj(self):
         if self.ena_obj:
             return "%s" % (self.ena_obj)
+        return None
+
+    def get_schema_obj(self):
+        if self.schema_obj:
+            return "%s" % (self.schema_obj)
         return None
 
     def get_ena_info(self):
@@ -999,8 +1007,8 @@ class LineageValues(models.Model):
     def get_id(self):
         return "%s" % (self.pk)
 
-    def get_b_process_field_id(self):
-        return "%s" % (self.bioinfo_analysis_fieldID)
+    def get_lineage_field(self):
+        return "%s" % (self.lineage_fieldID)
 
 
 class PositionManager(models.Manager):
