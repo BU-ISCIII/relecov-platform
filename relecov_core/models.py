@@ -940,6 +940,9 @@ class BioInfoAnalysisValue(models.Model):
     def __str__(self):
         return "%s" % (self.value)
 
+    def get_value(self):
+        return "%s" % (self.value)
+
     def get_id(self):
         return "%s" % (self.pk)
 
