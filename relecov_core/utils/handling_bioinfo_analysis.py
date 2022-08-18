@@ -10,9 +10,9 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
     # Get the schema ID for filtering Fields
     schema_obj = sample_obj.get_schema_obj()
     a_data = []
-    if not BioinfoAnalysisField.objects.filter(schema_id=schema_obj).exists():
+    if not BioinfoAnalysisField.objects.filter(schemaID=schema_obj).exists():
         return None
-    a_fields = BioinfoAnalysisField.objects.filter(schema_id=schema_obj)
+    a_fields = BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
     for a_field in a_fields:
         if BioInfoAnalysisValue.objects.filter(
             bioinfo_analysis_fieldID=a_field, sampleID_id=sample_obj
