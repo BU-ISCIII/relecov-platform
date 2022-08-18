@@ -21,13 +21,16 @@ from relecov_dashboard.utils.graphics.geo_json import create_json
 # from relecov_dashboard.utils.graphics.gauge import create_gauge, create_medium_gauge
 from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
 
+#
+from relecov_dashboard.utils.methodology_fields import schema_fields_utilization
 
-def variant_dashboard(request):
-    return render(request, "relecov_dashboard/variant_dashboard.html")
+
+def variants_index(request):
+    return render(request, "relecov_dashboard/variantsIndex.html")
 
 
-def methodology_dashboard(request):
-    return render(request, "relecov_dashboard/methodology_dashboard.html")
+def methodology_index(request):
+    return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
 def lineages_voc(request):
@@ -66,3 +69,12 @@ def gauge_test(request):
     query_to_database()
     return render(request, "relecov_dashboard/dashboard_templates/gauge2.html")
     # return render(request, "relecov_dashboard/dashboard_templates/gauge.html")
+
+
+def methodology_fields_utilization(request):
+    f_utilization = schema_fields_utilization()
+    return render(
+        request,
+        "relecov_dashboard/dashboard_templates/methodologyFieldsUtilization.html",
+        {"f_utilization": f_utilization},
+    )
