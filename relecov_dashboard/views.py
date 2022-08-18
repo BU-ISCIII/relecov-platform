@@ -25,8 +25,8 @@ from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_d
 from relecov_dashboard.utils.methodology_fields import schema_fields_utilization
 
 
-def variant_index(request):
-    return render(request, "relecov_dashboard/variantIndex.html")
+def variants_index(request):
+    return render(request, "relecov_dashboard/variantsIndex.html")
 
 
 def methodology_index(request):

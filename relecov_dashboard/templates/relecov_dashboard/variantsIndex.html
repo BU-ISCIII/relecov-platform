@@ -1,0 +1,74 @@
+{% extends 'relecov_core/base.html' %}
+
+{% load static %}
+{%load plotly_dash%}
+
+{% block content %}
+<br><br><br><br><br><br><br><br>
+{% include "relecov_dashboard/sidebar/dashboardMainSidebar.html"%}
+
+<div class="container-fluid" style="text-align: center;">
+
+        <div class="card d-inline-flex p-2 m-1" style="width: 35%;">
+            <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" class="card-img-top" alt="needle plot" style="width: 70%">
+            <div class="card-body" style="text-align: left;">
+              <h5 class="card-title">Lineages VOC</h5>
+              <p class="card-text">
+                <!--<ul>
+                  <li><a href="/dashboard">Graph by time</a></li>
+                  <li><a href="#">Graph by Autonomous Community</a></li>
+                  <li><a href="#">Table to filter and download</a></li>
+                </ul>-->
+              </p>
+              <a href="/dashboard/lineagesVOC" class="btn btn-primary">Go</a>
+            </div>
+          </div>
+
+          <div class="card d-inline-flex p-2 m-1" style="width: 35%">
+            <img src="{% static 'relecov_dashboard/img/needlePlot.png' %}" class="card-img-top" alt="molecular 3D" style="width: 70%">
+            <div class="card-body" style="text-align: left;">
+              <h5 class="card-title">Lineages</h5><!--Hackaton Graphs-->
+              <p class="card-text">
+                <!--ul>
+                  <li><a href="#">Graph by time</a></li>
+                  <li><a href="#">Graph by Autonomous Community</a></li>
+                  <li><a href="#">Table to filter and download</a></li>
+                </ul>-->
+              </p>
+              <a href="/dashboard/lineages" class="btn btn-primary">Go</a>
+            </div>
+          </div>
+
+          <div class="card d-inline-flex p-2 m-1" style="width: 35%">
+            <img src="{% static 'relecov_dashboard/img/molecular3D.png' %}" class="card-img-top" alt="needle plot" style="width: 30%">
+            <div class="card-body" style="text-align: left;">
+              <h5 class="card-title">Mutations in Lineages</h5>
+              <p class="card-text">
+                <!--<ul>
+                  <li><a href="#">needle plots</a></li>
+                  <li><a href="#">table to filter and output the data in table</a></li>
+                </ul>-->
+              </p>
+              <!--<a href="/dashboard/molecular3D" class="btn btn-primary">Go</a>-->
+              <a href="/dashboard/mutationsInLineages" class="btn btn-primary">Go</a>
+
+            </div>
+          </div>
+
+          <!---->
+          <div class="card d-inline-flex p-2 m-1" style="width: 35%">
+            <img src="{% static 'relecov_dashboard/img/molecular3D.png' %}" class="card-img-top" alt="needle plot" style="width:30%">
+            <div class="card-body" style="text-align: left;">
+              <h5 class="card-title">Spike mutations</h5>
+              <p class="card-text">
+                <!--<ul>
+                  <li><a href="#">Tables with graphs</a></li>
+                  <li><a href="#">Protein modeling plots</a></li>
+                </ul>-->
+              </p>
+              <a href="/dashboard/spikeMutations" class="btn btn-primary">Go</a>
+            </div>
+    </div>
+    <br><br><br><br>
+
+{% endblock %}
