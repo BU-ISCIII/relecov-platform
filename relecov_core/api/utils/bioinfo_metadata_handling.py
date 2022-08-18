@@ -19,6 +19,7 @@ from relecov_core.core_config import (
 from relecov_core.api.serializers import (
     # CreateBioInfoAnalysisFieldSerializer,
     CreateBioInfoAnalysisValueSerializer,
+    CreateLineageValueSerializer,
 )
 
 
@@ -41,7 +42,7 @@ def check_valid_data(data, schema_id):
             continue
 
         # if this field belongs to LineageFields table
-        if (
+        elif (
             not BioinfoAnalysisField.objects.filter(
                 schemaID=schema_id, property_name__iexact=field
             ).exists()
@@ -58,8 +59,6 @@ def check_valid_data(data, schema_id):
 
 
 def store_field(field, value, sample_obj, schema_id):
-    import pdb
-
     """Save the new field data in database"""
 
     # field to BioinfoAnalysisField table
@@ -77,7 +76,6 @@ def store_field(field, value, sample_obj, schema_id):
         )
 
         bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
-        pdb.set_trace()
         print(bio_value_serializer)
         print(bio_value_serializer.is_valid())
 
@@ -88,14 +86,30 @@ def store_field(field, value, sample_obj, schema_id):
         bio_value_serializer.save()
 
     # field to LineageFields table
-    """
+
     if LineageFields.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-            ).exists():
-        data = {"value":value, "sampleID_id": sample_obj}
-        data["lineage_fieldID"] = LineageFields.objects.filter(schemaID=schema_id, property_name__iexact=field).last()
-        data["lineage_infoID"]
-    """
+        schemaID=schema_id, property_name__iexact=field
+    ).exists():
+        data = {"value": value, "sampleID_id": sample_obj}
+        data["lineage_fieldID"] = (
+            LineageFields.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            )
+            .last()
+            .get_lineage_field_id()
+        )
+        data["lineage_infoID"] = None
+
+        lineage_field_value_serializer = CreateLineageValueSerializer(data=data)
+        print(lineage_field_value_serializer)
+        print(lineage_field_value_serializer.is_valid())
+
+        if not lineage_field_value_serializer.is_valid():
+            print("False")
+            return False
+
+        lineage_field_value_serializer.save()
+
     return True
 
 
