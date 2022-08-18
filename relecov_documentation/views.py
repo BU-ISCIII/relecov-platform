@@ -151,3 +151,15 @@ def upload_to_gisaid(request):
         "relecov_documentation/documentation2.html",
         {"html": converted_to_html},
     )
+
+
+def api_usage(request):
+    converted_to_html = markdown_to_html("api_usage.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/documentation2.html",
+        {"html": converted_to_html},
+    )
