@@ -268,6 +268,13 @@ def get_sample_display_data(sample_id, user):
     return s_data
 
 
+def get_sample_obj_from_id(sample_id):
+    """Return the sample instance from its id"""
+    if Sample.objects.filter(pk__exact=sample_id).exists():
+        return Sample.objects.filter(pk__exact=sample_id).last()
+    return None
+
+
 def get_search_data():
     """Fetch data to show in form"""
 
