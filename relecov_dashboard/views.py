@@ -25,12 +25,12 @@ from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_d
 from relecov_dashboard.utils.methodology_fields import schema_fields_utilization
 
 
-def variant_dashboard(request):
-    return render(request, "relecov_dashboard/variant_dashboard.html")
+def variant_index(request):
+    return render(request, "relecov_dashboard/variantIndex.html")
 
 
-def methodology_dashboard(request):
-    return render(request, "relecov_dashboard/methodology_dashboard.html")
+def methodology_index(request):
+    return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
 def lineages_voc(request):
