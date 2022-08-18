@@ -275,6 +275,11 @@ def get_sample_obj_from_id(sample_id):
     return None
 
 
+def get_samples_count_per_schema(schema_name):
+    """Get the number of samples that are stored in the schema"""
+    return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
+
+
 def get_search_data():
     """Fetch data to show in form"""
 
