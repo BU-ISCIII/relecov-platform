@@ -17,6 +17,7 @@ from relecov_core.models import (
     Gene,
     GisaidInfo,
     Filter,
+    # Lineage,
     LineageFields,
     LineageValues,
     LineageInfo,
