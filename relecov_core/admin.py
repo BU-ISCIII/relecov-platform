@@ -18,6 +18,8 @@ from relecov_core.models import (
     GisaidInfo,
     Filter,
     # Lineage,
+    LineageFields,
+    LineageValues,
     LineageInfo,
     MetadataVisualization,
     Position,
@@ -119,12 +121,12 @@ class LineageInfoAdmin(admin.ModelAdmin):
     list_display = ["lineage_name"]
 
 
-class LineageAdmin(admin.ModelAdmin):
-    list_display = [
-        "lineage_name",
-        "lineage_analysis_software_name",
-        "lineage_analysis_software_version",
-    ]
+class LineageFieldsAdmin(admin.ModelAdmin):
+    list_display = ["property_name", "label_name", "classificationID"]
+
+
+class LineageValuesAdmin(admin.ModelAdmin):
+    list_display = ["value", "lineage_fieldID", "sampleID_id", "lineage_infoID"]
 
 
 class PositionAdmin(admin.ModelAdmin):
@@ -135,6 +137,7 @@ class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "sequencing_sample_id",
         "submitting_lab_sample_id",
+        "collecting_lab_sample_id",
         "state",
     ]
     search_fields = ["sequencing_sample_id__icontains"]
@@ -201,7 +204,8 @@ admin.site.register(EnaInfo, EnaInfoAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(GisaidInfo, GisaidInfoAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
-# admin.site.register(Lineage, LineageAdmin)
+admin.site.register(LineageFields, LineageFieldsAdmin)
+admin.site.register(LineageValues, LineageValuesAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
