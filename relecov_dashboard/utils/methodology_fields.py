@@ -17,9 +17,6 @@ def schema_fields_utilization():
             continue
         field_df = pd.DataFrame.from_dict(fields, index=[0])
         field_df = (field_df(s_count)).round(2)
-        import pdb
-
-        pdb.set_trace()
 
         counts = {}
         for field, value in fields.items():
