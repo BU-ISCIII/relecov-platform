@@ -916,6 +916,16 @@ class BioinfoAnalysisField(models.Model):
     objects = BioinfoAnalysisFieldManager()
 
 
+class BioInfoAnalysisValueManager(models.Manager):
+    def create_new_value(self, data):
+        new_value = self.create(
+            value=data["value"],
+            bioinfo_analysis_fieldID=data["bioinfo_analysis_fieldID"],
+            sampleID_id=data["sampleID_id"],
+        )
+        return new_value
+
+
 class BioInfoAnalysisValue(models.Model):
     value = models.CharField(max_length=240)
     bioinfo_analysis_fieldID = models.ForeignKey(
