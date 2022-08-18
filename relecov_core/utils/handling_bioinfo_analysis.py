@@ -1,8 +1,12 @@
 from relecov_core.models import BioinfoAnalysisField, BioInfoAnalysisValue
+from relecov_core.utils.handling_samples import get_sample_obj_from_id
 
 
-def get_bioinfo_analysis_data_from_sample(sample_obj):
+def get_bioinfo_analysis_data_from_sample(sample_id):
     """Get the bioinfo analysis for the sample"""
+    sample_obj = get_sample_obj_from_id(sample_id)
+    if not sample_obj:
+        return None
     # Get the schema ID for filtering Fields
     schema_obj = sample_obj.get_schema_obj()
     a_data = []
