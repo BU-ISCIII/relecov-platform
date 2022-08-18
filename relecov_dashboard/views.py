@@ -71,7 +71,10 @@ def gauge_test(request):
     # return render(request, "relecov_dashboard/dashboard_templates/gauge.html")
 
 
-
 def methodology_fields_utilization(request):
     f_utilization = schema_fields_utilization()
-    return render(request, "relecov_dashboard/dashboard_templates/methodologyFieldsUtilization.html", {"f_utilization": f_utilization})
+    return render(
+        request,
+        "relecov_dashboard/dashboard_templates/methodologyFieldsUtilization.html",
+        {"f_utilization": f_utilization},
+    )
