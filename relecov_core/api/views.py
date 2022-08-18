@@ -38,6 +38,8 @@ from relecov_core.api.utils.accession_to_ENA import (
     extract_number_of_sample,
 )  # parse_xml,
 
+from relecov_core.api.utils.common_functions import get_schema_version_if_exists
+
 """
 analysis_data = openapi.Parameter(
     "analysis_name",
@@ -139,6 +141,10 @@ def create_sample_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
+        schema_obj = get_schema_version_if_exists(data)
+        if schema_obj is None:
+            error = {"ERROR": "schema name and version is not defined"}
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         # check if sample is alrady defined
         if "sequencing_sample_id" not in data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -146,6 +152,7 @@ def create_sample_data(request):
             error = {"ERROR": "sample already defined"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         data["user"] = request.user.pk
+        data["schema_obj"] = schema_obj.get_schema_id()
         split_data = split_sample_data(data)
         if "ERROR" in split_data:
             return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
