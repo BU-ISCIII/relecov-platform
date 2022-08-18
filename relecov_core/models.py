@@ -670,7 +670,10 @@ class GisaidInfo(models.Model):
             v_name = self.virus_id.get_virus_name()
         else:
             v_name = None
-        date = self.submission_date.strftime("%d , %B , %Y")
+        if self.submission_date is None:
+            date = "Not Provided"
+        else:
+            date = self.submission_date.strftime("%d , %B , %Y")
         data = []
         data.append(self.gisaid_id)
         data.append(date)
@@ -742,6 +745,7 @@ class Sample(models.Model):
     )
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
+    collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
@@ -764,6 +768,9 @@ class Sample(models.Model):
 
     def get_sequencing_sample_id(self):
         return "%s" % (self.sequencing_sample_id)
+
+    def get_collecting_lab_sample_id(self):
+        return "%s" % (self.collecting_lab_sample_id)
 
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
@@ -901,6 +908,16 @@ class BioinfoAnalysisField(models.Model):
     objects = BioinfoAnalysisFieldManager()
 
 
+class BioInfoAnalysisValueManager(models.Manager):
+    def create_new_value(self, data):
+        new_value = self.create(
+            value=data["value"],
+            bioinfo_analysis_fieldID=data["bioinfo_analysis_fieldID"],
+            sampleID_id=data["sampleID_id"],
+        )
+        return new_value
+
+
 class BioInfoAnalysisValue(models.Model):
     value = models.CharField(max_length=240)
     bioinfo_analysis_fieldID = models.ForeignKey(
@@ -942,7 +959,17 @@ class LineageInfo(models.Model):
         return "%s" % (self.pk)
 
 
-class LinageFields(models.Model):
+class LineageFieldsManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            classificationID=data["classificationID"],
+            property_name=data["property_name"],
+            label_name=data["label_name"],
+        )
+        return new_field
+
+
+class LineageFields(models.Model):
     schemaID = models.ManyToManyField(Schema)
     classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
@@ -961,10 +988,12 @@ class LinageFields(models.Model):
     def get_lineage_field_id(self):
         return "%s" % (self.pk)
 
+    objects = LineageFieldsManager()
 
-class LinageValues(models.Model):
+
+class LineageValues(models.Model):
     sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    linage_fieldID = models.ForeignKey(LinageFields, on_delete=models.CASCADE)
+    lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
     lineage_infoID = models.ForeignKey(
         LineageInfo, on_delete=models.CASCADE, null=True, blank=True
     )

@@ -268,6 +268,7 @@ def bioinfo_metadata_file(request):
 
     if isinstance(data, QueryDict):
         data = data.dict()
+    # check schema (name and version)
     stored_data = fetch_bioinfo_data(data)
 
     if "ERROR" in stored_data:
