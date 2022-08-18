@@ -5,12 +5,8 @@ from relecov_dashboard import views
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path("variantDashboard", views.variant_dashboard, name="variant_dashboard"),
-    path(
-        "methodologyDashboard",
-        views.methodology_dashboard,
-        name="methodology_dashboard",
-    ),
+    path("variant", views.variant_index, name="variant_index"),
+
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
     path("lineagesVOC", views.lineages_voc, name="lineages_voc"),
     path("lineages", views.lineages, name="lineages"),
@@ -19,6 +15,8 @@ urlpatterns = [
     ),
     path("spikeMutations", views.spike_mutations, name="spike_mutations"),
     path("Gauge", views.gauge_test, name="gauge"),
+    # Methodology graphics
+    path("methodology", views.methodology_index, name="methodology_index"),
     path(
         "methodology/fields_utilization",
         views.methodology_fields_utilization,
