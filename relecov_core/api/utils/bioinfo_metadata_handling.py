@@ -22,8 +22,6 @@ from relecov_core.api.serializers import (
     CreateLineageValueSerializer,
 )
 
-from relecov_core.api.utils.common_functions import get_schema_version_if_exists
-
 
 def check_valid_data(data, schema_id):
     """Check if all fields in the request are defined in database"""
