@@ -36,6 +36,7 @@ urlpatterns = [
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
     ),
+    path("virusAnnotation", views.virus_annotation, name="virus_annotation"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
