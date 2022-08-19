@@ -276,6 +276,10 @@ def bioinfo_metadata_file(request):
     if isinstance(data, QueryDict):
         data = data.dict()
     # check schema (name and version)
+    schema_obj = get_schema_version_if_exists(data)
+    if schema_obj is None:
+        error = {"ERROR": "schema name and version is not defined"}
+        return Response(error, status=status.HTTP_400_BAD_REQUEST)
     stored_data = fetch_bioinfo_data(data)
 
     if "ERROR" in stored_data:
