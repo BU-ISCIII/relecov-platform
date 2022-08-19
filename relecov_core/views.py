@@ -30,6 +30,7 @@ from relecov_core.utils.handling_bioinfo_analysis import (
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.contributor_info_handling import get_data_from_form
 from relecov_core.utils.generic_functions import check_valid_date_format
+from relecov_core.utils.handling_annotation import read_gff_file, stored_gff
 
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
@@ -285,6 +286,14 @@ def metadata_form(request):
                 request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
             )
         return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
+
+
+def virus_annotation(request):
+    """Store the organism annotation gff file"""
+    if request.method == "POST" and request.POST["action"] == "uploadAnnotation":
+        gff_parsed = read_gff_file(request.FILES["gffFile"])
+        stored_gff(gff_parsed)
+    return render(request, "relecov_core/virusAnnotation.html")
 
 
 @login_required()
