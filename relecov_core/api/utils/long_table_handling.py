@@ -1,6 +1,6 @@
 from relecov_core.api.serializers import (
     CreateChromosomeSerializer,
-    CreateGeneSerializer,
+    # CreateGeneSerializer,
     CreateEffectSerializer,
     CreateVariantInSampleSerializer,
     CreateFilterSerializer,
