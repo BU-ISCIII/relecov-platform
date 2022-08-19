@@ -205,7 +205,7 @@
                         <div class="row mt-4">
                             <div class="col-md-12">
                                  <div class="card">
-                                     <div class="card-header text-center"><h3 style="text-align:center">{{sample_data.iskylims_project}} prject data</h3> </div>
+                                     <div class="card-header text-center"><h3 style="text-align:center">{{sample_data.iskylims_project}} project data</h3> </div>
                                      <div class="card-body  text-center">
                                          <table id="i_project" class="table table-striped table-bordered">
                                              <thead>
@@ -236,6 +236,47 @@
                         });
                     });
                 </script>
+                <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="grupo-tab">
+                    <div class="container-md">
+                        <div class="row mt-5">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header"><h3 style="text-align:center">Bio Info Analysis information</h3> </div>
+                                    <div class="card-body  text-center">
+                                        {% if sample_data.bioinfo %}
+                                            <table id="bio_data" class="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr scope="row">
+                                                        <th>Label name</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for label, value in sample_data.bioinfo %}
+                                                        <tr>
+                                                            <td>{{label}}</td>
+                                                            <td>{{value}}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        {% else %}
+                                            <h5>Not Available information </h5>
+                                        {% endif %}
+                                    </div>     <!-- end card body  -->
+                                </div> <!-- end card  -->
+                            </div> <!-- end col-md-12 -->
+                        </div> <!-- end row-->
+                    </div> <!-- end continer-->
+                </div>  <!-- end tab database -->
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        $('#bio_data').DataTable({
+                            responsive: true,
+                        });
+                   });
+                </script>
+
             </div>  <!-- end myTabContent -->
         {% endif %}
     </div>  <!-- end container -->
