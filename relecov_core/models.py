@@ -325,6 +325,35 @@ class MetadataVisualization(models.Model):
     objects = MetadataVisualizationManager()
 
 
+class OrganismAnnotationManger(models.Manager):
+    def create_new_annotation(self, data):
+        new_annotation = self.create(
+            gff_version=data["gff_version"],
+            gff_spec_version=data["gff_spec_version"],
+            sequence_region=data["sequence_region"],
+            organism_code=data["organism_code"],
+        )
+        return new_annotation
+
+
+class OrganismAnnotation(models.Model):
+    gff_version = models.CharField(max_length=5)
+    gff_spec_version = models.CharField(max_length=10)
+    sequence_region = models.CharField(max_length=30)
+    organism_code = models.CharField(max_length=20)
+
+    class Meta:
+        db_table = "OrganismAnnotation"
+
+    def __str__(self):
+        return "%s" % (self.gene_name)
+
+    def get_gene_name(self):
+        return "%s" % (self.gene_name)
+
+    objects = OrganismAnnotationManger()
+
+
 # Caller Table
 class CallerManager(models.Manager):
     def create_new_caller(self, data):
@@ -425,88 +454,43 @@ class Effect(models.Model):
     objects = EffectManager()
 
 
-"""
-class LineageManager(models.Manager):
-    def create_new_lineage(self, data):
-        new_lineage = self.create(
-            lineage_identification_date=data["lineage_identification_date"],
-            lineage_name=data["lineage_name_id"],
-            lineage_analysis_software_name=data["lineage_analysis_software_name"],
-            if_lineage_identification_other=data["if_lineage_identification_other"],
-            lineage_analysis_software_version=data["lineage_analysis_software_version"],
-        )
-        return new_lineage
-
-
-class Lineage(models.Model):
-    lineage_infoID = models.ForeignKey(
-        LineageInfo, on_delete=models.CASCADE, null=True, blank=True
-    )
-    lineage_identification_date = models.CharField(
-        max_length=100, null=True, blank=True
-    )
-    lineage_analysis_software_name = models.CharField(
-        max_length=100, null=True, blank=True
-    )
-    if_lineage_identification_other = models.CharField(
-        max_length=100, null=True, blank=True
-    )
-    lineage_analysis_software_version = models.CharField(
-        max_length=100, null=True, blank=True
-    )
-    lineage_name = models.CharField(max_length=100, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "Lineage"
-
-    def __str__(self):
-        return "%s" % (self.lineage_name)
-
-    def get_lineage_id(self):
-        return "%s" % (self.pk)
-
-    def get_lineage_identification_date(self):
-        return "%s" % (self.lineage_identification_date)
-
-    def get_lineage_name(self):
-        return "%s" % (self.lineage_name)
-
-    def get_lineage_analysis_software_name(self):
-        return "%s" % (self.lineage_analysis_software_name)
-
-    def get_if_lineage_identification_other(self):
-        return "%s" % (self.if_lineage_identification_other)
-
-    def get_lineage_analysis_software_version(self):
-        return "%s" % (self.lineage_analysis_software_version)
-
-    objects = LineageManager()
-"""
-
-
 # Gene Table
 class GeneManager(models.Manager):
     def create_new_gene(self, data):
-        new_gene = self.create(gene=data)
+        new_gene = self.create(
+            gene_name=data["gene_name"],
+            gene_start=data["gene_start"],
+            gene_end=data["gene_end"],
+            user=data["user"],
+            gff_annotationID=data["gff_anotationID"],
+        )
         return new_gene
 
 
 class Gene(models.Model):
-    gene = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    gff_annotationID = models.ForeignKey(
+        OrganismAnnotation, on_delete=models.CASCADE, null=True, blank=True
+    )
+    gene_name = models.CharField(max_length=50)
+    gene_start = models.CharField(max_length=12)
+    gene_end = models.CharField(max_length=12)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "Gene"
 
     def __str__(self):
-        return "%s" % (self.gene)
+        return "%s" % (self.gene_name)
 
     def get_gene(self):
-        return "%s" % (self.gene)
+        return "%s" % (self.gene_name)
 
     def get_gene_id(self):
         return "%s" % (self.pk)
+
+    def get_positions(self):
+        return [self.gene_start, self.gene_end]
 
     objects = GeneManager()
 
