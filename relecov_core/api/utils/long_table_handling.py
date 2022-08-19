@@ -8,6 +8,7 @@ from relecov_core.api.serializers import (
     # CreateLineageSerializer,
     # CreateVariantSerializer,
 )
+from relecov_core.core_config import ERROR_GENE_NOT_DEFINED_IN_DATABASE
 
 from relecov_core.models import (
     Sample,
@@ -18,16 +19,14 @@ from relecov_core.models import (
     Filter,
     Position,
     Variant,
-    Document,
-    User,
-    SampleState,
+    # Document,
+    # User,
+    # SampleState,
 )
 
 
-# "caller" field parsed by Erika
 def fetch_long_table_data(data):
 
-    # create_sample_register()
     data_ids = {}
     for idx in range(2):
         chromosomeID_id = set_chromosome(data)
@@ -77,22 +76,20 @@ def set_chromosome(data):
         chrom_serializer = CreateChromosomeSerializer(data=data["Chrom"])
         if chrom_serializer.is_valid():
             chrom_serializer.save()
-            print("chrom_serializer saved")
 
 
 def set_gene(data):
     gene_id = 0
     if Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).exists():
-        gene_id = (
-            Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).last()
-            # .get_gene_id()
-        )
+        gene_id = Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).last()
         return gene_id
     else:
+        return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
+        """
         gene_serializer = CreateGeneSerializer(data=data["Gene"]["gene"])
         if gene_serializer.is_valid():
             gene_serializer.save()
-            print("gene_serializer saved")
+        """
 
 
 def set_effect(data):
@@ -107,7 +104,6 @@ def set_effect(data):
         effect_serializer = CreateEffectSerializer(data=data["Effect"])
         if effect_serializer.is_valid():
             effect_serializer.save()
-            print("effect_serializer saved")
 
 
 def set_variant_in_sample(data):
@@ -128,7 +124,6 @@ def set_variant_in_sample(data):
         )
         if variant_in_sample_serializer.is_valid():
             variant_in_sample_serializer.save()
-            print("variant_in_sample_serializer saved")
 
 
 def set_filter(data):
@@ -143,7 +138,6 @@ def set_filter(data):
         filter_serializer = CreateFilterSerializer(data=data["Filter"])
         if filter_serializer.is_valid():
             filter_serializer.save()
-            print("filter_serializer saved")
 
 
 def set_position(data):
@@ -158,7 +152,6 @@ def set_position(data):
         position_serializer = CreatePositionSerializer(data=data["Position"])
         if position_serializer.is_valid():
             position_serializer.save()
-            print("position_serializer saved")
 
 
 def set_sample(data):
@@ -166,12 +159,9 @@ def set_sample(data):
     if Sample.objects.filter(
         collecting_lab_sample_id=data["Sample"]["collecting_lab_sample_id"]
     ).exists():
-        sample_id = (
-            Sample.objects.filter(
-                collecting_lab_sample_id=data["Sample"]["collecting_lab_sample_id"]
-            ).last()
-            # .get_sample_id()
-        )
+        sample_id = Sample.objects.filter(
+            collecting_lab_sample_id=data["Sample"]["collecting_lab_sample_id"]
+        ).last()
 
         return sample_id
     """
@@ -204,6 +194,7 @@ def set_variant(data, data_ids):
         """
 
 
+"""
 # this function creates a new Sample register for testing
 def create_sample_register():
     new_sample = Sample.objects.create(
@@ -224,3 +215,4 @@ def create_sample_register():
         sequencing_date="2022/8/2",
     )
     new_sample.save()
+"""

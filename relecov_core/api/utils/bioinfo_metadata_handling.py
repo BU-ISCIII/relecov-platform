@@ -59,8 +59,6 @@ def check_valid_data(data, schema_id):
 
 
 def store_field(field, value, sample_obj, schema_id):
-    # import pdb
-
     """Save the new field data in database"""
 
     # field to BioinfoAnalysisField table
