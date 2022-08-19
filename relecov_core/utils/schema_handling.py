@@ -277,7 +277,8 @@ def store_lineage_fields(schema_obj, s_properties):
             fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
-            LineageFields.objects.create_new_field(fields)
+            l_field = LineageFields.objects.create_new_field(fields)
+            l_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
 
 
