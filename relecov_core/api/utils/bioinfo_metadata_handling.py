@@ -29,7 +29,7 @@ def check_valid_data(data, schema_id):
 
         if field == "sample_name":
             continue
-        
+
         # if this field belongs to BioinfoAnalysisField table
         if (
             BioinfoAnalysisField.objects.filter(
@@ -40,7 +40,7 @@ def check_valid_data(data, schema_id):
             ).exists()
         ):
             continue
-        
+
         # if this field belongs to LineageFields table
         if (
             not BioinfoAnalysisField.objects.filter(
@@ -60,8 +60,9 @@ def check_valid_data(data, schema_id):
 
 def store_field(field, value, sample_obj, schema_id):
     import pdb
+
     """Save the new field data in database"""
-    
+    """
     # field to BioinfoAnalysisField table
     if BioinfoAnalysisField.objects.filter(
             schemaID=schema_id, property_name__iexact=field
@@ -81,27 +82,41 @@ def store_field(field, value, sample_obj, schema_id):
         
         bio_value_serializer.save()
     """
+    print(field)
+    print(
+        LineageFields.objects.filter(
+            schemaID=schema_id, property_name__iexact=field
+        ).exists()
+    )
     # field to LineageFields table
     if LineageFields.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-            ).exists():
-        data = {"value":value, "sampleID_id": sample_obj}
-        data["lineage_fieldID"] = LineageFields.objects.filter(schemaID=schema_id, property_name__iexact=field).last()
-        # data["lineage_infoID"] = None
-    
+        schemaID=schema_id, property_name__iexact=field
+    ).exists():
+        data = {"value": value, "sampleID_id": sample_obj}
+        data["lineage_fieldID"] = (
+            LineageFields.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            )
+            .last()
+            .get_id()
+        )
+        data["lineage_infoID"] = None
+
         print(data)
         print(field)
-    
+
         lineage_value_serializer = CreateLineageValueSerializer(data=data)
-        
+
         if not lineage_value_serializer.is_valid():
             print("False")
             return False
-        
+
         lineage_value_serializer.save()
-    
+
     # pdb.set_trace()
-    """
+    else:
+        print("no exists")
+
     return True
 
 
