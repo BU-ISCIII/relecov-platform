@@ -19,6 +19,7 @@ from relecov_core.core_config import (
 from relecov_core.api.serializers import (
     # CreateBioInfoAnalysisFieldSerializer,
     CreateBioInfoAnalysisValueSerializer,
+    CreateLineageValueSerializer,
 )
 
 
@@ -58,16 +59,13 @@ def check_valid_data(data, schema_id):
 
 
 def store_field(field, value, sample_obj, schema_id):
-    import pdb
-
     """Save the new field data in database"""
 
     # field to BioinfoAnalysisField table
     if BioinfoAnalysisField.objects.filter(
         schemaID=schema_id, property_name__iexact=field
     ).exists():
-        print("exists")
-        data = {"value": value, "sampleID_id": sample_obj}
+        data = {"value": value, "sampleID_id": sample_obj.get_sample_id()}
         data["bioinfo_analysis_fieldID"] = (
             BioinfoAnalysisField.objects.filter(
                 schemaID=schema_id, property_name__iexact=field
@@ -77,25 +75,34 @@ def store_field(field, value, sample_obj, schema_id):
         )
 
         bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
-        pdb.set_trace()
-        print(bio_value_serializer)
-        print(bio_value_serializer.is_valid())
 
         if not bio_value_serializer.is_valid():
-            print("False")
             return False
 
         bio_value_serializer.save()
+        # bio_value_serializer.add(schema_id)
 
     # field to LineageFields table
-    """
     if LineageFields.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-            ).exists():
-        data = {"value":value, "sampleID_id": sample_obj}
-        data["lineage_fieldID"] = LineageFields.objects.filter(schemaID=schema_id, property_name__iexact=field).last()
-        data["lineage_infoID"]
-    """
+        schemaID__pk=schema_id, property_name__iexact=field
+    ).exists():
+        data = {"value": value, "sampleID_id": sample_obj.get_sample_id()}
+        data["lineage_fieldID"] = (
+            LineageFields.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            )
+            .last()
+            .get_lineage_field_id()
+        )
+        data["lineage_infoID"] = None
+
+        lineage_value_serializer = CreateLineageValueSerializer(data=data)
+
+        if not lineage_value_serializer.is_valid():
+            return False
+
+        lineage_value_serializer.save()
+
     return True
 
 
@@ -120,7 +127,7 @@ def fetch_bioinfo_data(data):
     ).last()
 
     valid_data = check_valid_data(data, schema_obj)
-    print("valid_data" + str(valid_data))
+
     if isinstance(valid_data, dict):
         return valid_data
 
@@ -128,7 +135,7 @@ def fetch_bioinfo_data(data):
         if field == "sample_name":
             continue
 
-        if not store_field(field, data[field], sample_obj, schema_obj):
+        if not store_field(field, data[field], sample_obj, schema_obj.get_schema_id()):
             return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
     sample_obj.update_state("Bioinfo")

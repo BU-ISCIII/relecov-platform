@@ -849,9 +849,9 @@ class Sample(models.Model):
         return data
 
     def update_state(self, state):
-        if not SampleState.object.filter(state__exact=state).exists():
+        if not SampleState.objects.filter(state__exact=state).exists():
             return False
-        self.state = SampleState.object.filter(state__exact=state).last()
+        self.state = SampleState.objects.filter(state__exact=state).last()
         self.save()
         return self
 
