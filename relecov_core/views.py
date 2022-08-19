@@ -41,6 +41,7 @@ from relecov_core.core_config import (
 
 def index(request):
     number_of_samples = count_samples_in_all_tables()
+
     return render(
         request,
         "relecov_core/index.html",
