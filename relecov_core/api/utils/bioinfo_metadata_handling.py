@@ -22,6 +22,8 @@ from relecov_core.api.serializers import (
     CreateLineageValueSerializer,
 )
 
+from relecov_core.api.utils.common_functions import get_schema_version_if_exists
+
 
 def check_valid_data(data, schema_id):
     """Check if all fields in the request are defined in database"""
@@ -62,24 +64,28 @@ def store_field(field, value, sample_obj, schema_id):
     # import pdb
 
     """Save the new field data in database"""
-    
+
     # field to BioinfoAnalysisField table
     if BioinfoAnalysisField.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-            ).exists():
+        schemaID=schema_id, property_name__iexact=field
+    ).exists():
         data = {"value": value, "sampleID_id": sample_obj.get_sample_id()}
-        data["bioinfo_analysis_fieldID"] = BioinfoAnalysisField.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-        ).last().get_id()
+        data["bioinfo_analysis_fieldID"] = (
+            BioinfoAnalysisField.objects.filter(
+                schemaID=schema_id, property_name__iexact=field
+            )
+            .last()
+            .get_id()
+        )
 
         bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
-        
+
         if not bio_value_serializer.is_valid():
             return False
-        
+
         bio_value_serializer.save()
         # bio_value_serializer.add(schema_id)
-    
+
     # field to LineageFields table
     if LineageFields.objects.filter(
         schemaID__pk=schema_id, property_name__iexact=field
@@ -94,13 +100,9 @@ def store_field(field, value, sample_obj, schema_id):
         )
         data["lineage_infoID"] = None
 
-        print(data)
-        print(field)
-
         lineage_value_serializer = CreateLineageValueSerializer(data=data)
 
         if not lineage_value_serializer.is_valid():
-            print("False")
             return False
 
         lineage_value_serializer.save()
@@ -129,7 +131,7 @@ def fetch_bioinfo_data(data):
     ).last()
 
     valid_data = check_valid_data(data, schema_obj)
-    print("valid_data" + str(valid_data))
+
     if isinstance(valid_data, dict):
         return valid_data
 
