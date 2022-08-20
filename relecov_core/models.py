@@ -333,6 +333,7 @@ class OrganismAnnotationManger(models.Manager):
             gff_spec_version=data["gff_spec_version"],
             sequence_region=data["sequence_region"],
             organism_code=data["organism_code"],
+            organism_code_version=data["organism_code_version"],
         )
         return new_annotation
 
@@ -343,6 +344,7 @@ class OrganismAnnotation(models.Model):
     gff_spec_version = models.CharField(max_length=10)
     sequence_region = models.CharField(max_length=30)
     organism_code = models.CharField(max_length=20)
+    organism_code_version = models.CharField(max_length=10)
 
     class Meta:
         db_table = "OrganismAnnotation"
@@ -357,6 +359,7 @@ class OrganismAnnotation(models.Model):
         data = []
         data.append(self.pk)
         data.append(self.organism_code)
+        data.append(self.organism_code_version)
         data.append(self.gff_spec_version)
         data.append(self.sequence_region)
         return data
