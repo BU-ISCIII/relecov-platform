@@ -328,6 +328,7 @@ class MetadataVisualization(models.Model):
 class OrganismAnnotationManger(models.Manager):
     def create_new_annotation(self, data):
         new_annotation = self.create(
+            user=data["user"],
             gff_version=data["gff_version"],
             gff_spec_version=data["gff_spec_version"],
             sequence_region=data["sequence_region"],
@@ -337,6 +338,7 @@ class OrganismAnnotationManger(models.Manager):
 
 
 class OrganismAnnotation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     gff_version = models.CharField(max_length=5)
     gff_spec_version = models.CharField(max_length=10)
     sequence_region = models.CharField(max_length=30)
@@ -346,10 +348,18 @@ class OrganismAnnotation(models.Model):
         db_table = "OrganismAnnotation"
 
     def __str__(self):
-        return "%s" % (self.gene_name)
+        return "%s" % (self.organism_code)
 
     def get_gene_name(self):
-        return "%s" % (self.gene_name)
+        return "%s" % (self.organism_code)
+
+    def get_full_information(self):
+        data = []
+        data.append(self.pk)
+        data.append(self.organism_code)
+        data.append(self.gff_spec_version)
+        data.append(self.sequence_region)
+        return data
 
     objects = OrganismAnnotationManger()
 
