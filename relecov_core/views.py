@@ -34,6 +34,8 @@ from relecov_core.utils.handling_annotation import (
     read_gff_file,
     stored_gff,
     get_annotations,
+    check_if_annotation_exists,
+    get_annotation_data,
 )
 
 from relecov_core.core_config import (
@@ -292,8 +294,26 @@ def metadata_form(request):
         return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
 
 
+@login_required()
+def annotation_display(request, annot_id):
+    """Display the full information about the organism annotation stored in
+    database
+    """
+    if request.user.username != "admin":
+        return redirect("/")
+    if not check_if_annotation_exists(annot_id):
+        return render(request, "relecov_core/error_404.html")
+    annot_data = get_annotation_data(annot_id)
+    return render(
+        request, "relecov_core/annotationDisplay.html", {"annotation_data": annot_data}
+    )
+
+
+@login_required()
 def virus_annotation(request):
     """Store the organism annotation gff file"""
+    if request.user.username != "admin":
+        return redirect("/")
     annotations = get_annotations()
     if request.method == "POST" and request.POST["action"] == "uploadAnnotation":
         gff_parsed = read_gff_file(request.FILES["gffFile"])

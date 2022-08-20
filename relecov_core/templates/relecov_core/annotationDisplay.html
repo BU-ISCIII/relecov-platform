@@ -1,0 +1,71 @@
+{% extends "relecov_core/base.html" %}
+
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/cdn_table_functionality.html" %}
+
+<section id="relecov-platform" class="hero-animated d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
+        <div class="container sm-9 offset-2">
+			<br><br><br>
+            {% if annotation_data.ERROR %}
+                <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-9" >
+                        <div class="card  border-danger mb-3">
+                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when displaying Annotations</h3> </div>
+                            <div class="card-body  text-center">
+                                <br>
+                                <p><strong>{{annotation_data.ERROR}}</strong></p>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            {% endif %}
+            <div class="row row-space-2 margin-b-4">
+                <div class="col-sm-10" >
+                    <div class="card">
+                        <div class="card-header text-center"><h3 style="text-align:center">Annotation information for {{annotation_data.organism}}.{{annotation_data.version}}</h3> </div>
+                        <div class="card-body  text-center">
+                            {% if annotation_data.heading %}
+
+                                        <table id="schema" class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr scope="row">
+                                                    {% for item in annotation_data.heading %}
+                                                        <th>{{item}}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for gene, start, end in annotation_data.genes %}
+                                                    <tr>
+                                                        <td>{{gene}}</td>
+                                                        <td>{{start}}</td>
+                                                        <td>{{end}}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div> <!--// end col-sm-10 -->
+                                </div> <!--// end row -->
+                                <script type="text/javascript">
+                                    $(document).ready(function() {
+                                        $('#schema').DataTable({
+                                            dom: "fltirpB",
+                                            responsive: true,
+                                            buttons: [
+                                                'excel', 'csv'
+                                            ]
+                                        });
+                                    });
+                                </script>
+                            {% endif %}
+                        </div> <!-- end card body  -->
+                    </div> <!-- end card  -->
+                </div> <!--// end col-sm-10 -->
+            </div> <!--// end row -->
+        </div>  <!-- end container -->
+    </div>
+</section>
+{% endblock %}

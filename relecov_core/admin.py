@@ -107,7 +107,7 @@ class FilterAdmin(admin.ModelAdmin):
 
 
 class GeneAdmin(admin.ModelAdmin):
-    list_display = ["gene_name", "gene_start", "gene_end", "gff_annotationID"]
+    list_display = ["gene_name", "gene_start", "gene_end", "org_annotationID"]
 
 
 class GisaidInfoAdmin(admin.ModelAdmin):
