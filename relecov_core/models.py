@@ -352,8 +352,11 @@ class OrganismAnnotation(models.Model):
     def __str__(self):
         return "%s" % (self.organism_code)
 
-    def get_gene_name(self):
+    def get_organism_code(self):
         return "%s" % (self.organism_code)
+
+    def get_organism_code_version(self):
+        return "%s" % (self.organism_code_version)
 
     def get_full_information(self):
         data = []
@@ -482,12 +485,12 @@ class GeneManager(models.Manager):
 
 class Gene(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    gff_annotationID = models.ForeignKey(
+    org_annotationID = models.ForeignKey(
         OrganismAnnotation, on_delete=models.CASCADE, null=True, blank=True
     )
     gene_name = models.CharField(max_length=50)
-    gene_start = models.CharField(max_length=12)
-    gene_end = models.CharField(max_length=12)
+    gene_start = models.IntegerField()
+    gene_end = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -496,14 +499,14 @@ class Gene(models.Model):
     def __str__(self):
         return "%s" % (self.gene_name)
 
-    def get_gene(self):
+    def get_gene_name(self):
         return "%s" % (self.gene_name)
 
     def get_gene_id(self):
         return "%s" % (self.pk)
 
-    def get_positions(self):
-        return [self.gene_start, self.gene_end]
+    def get_gene_positions(self):
+        return [str(self.gene_start), str(self.gene_end)]
 
     objects = GeneManager()
 
