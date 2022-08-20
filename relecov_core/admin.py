@@ -22,6 +22,7 @@ from relecov_core.models import (
     LineageValues,
     LineageInfo,
     MetadataVisualization,
+    OrganismAnnotation,
     Position,
     Profile,
     PropertyOptions,
@@ -129,6 +130,10 @@ class LineageValuesAdmin(admin.ModelAdmin):
     list_display = ["value", "lineage_fieldID", "sampleID_id", "lineage_infoID"]
 
 
+class OrganismAnnotationAdmin(admin.ModelAdmin):
+    list_display = ["organism_code", "gff_version",  "sequence_region"]
+
+
 class PositionAdmin(admin.ModelAdmin):
     list_display = ["pos", "nucleotide"]
 
@@ -224,3 +229,4 @@ admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(Error, ErrorAdmin)
 admin.site.register(DateUpdateState, DateUpdateStateAdmin)
 admin.site.register(LineageInfo, LineageInfoAdmin)
+admin.site.register(OrganismAnnotation, OrganismAnnotationAdmin)
