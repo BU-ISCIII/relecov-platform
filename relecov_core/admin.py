@@ -131,7 +131,7 @@ class LineageValuesAdmin(admin.ModelAdmin):
 
 
 class OrganismAnnotationAdmin(admin.ModelAdmin):
-    list_display = ["organism_code", "gff_version",  "sequence_region"]
+    list_display = ["organism_code", "gff_version", "sequence_region"]
 
 
 class PositionAdmin(admin.ModelAdmin):
