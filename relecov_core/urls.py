@@ -5,6 +5,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path(
+        "annotationDisplay=<int:annot_id>",
+        views.annotation_display,
+        name="annotation_display",
+    ),
     path("bioInfoHandling", views.bio_info_json_handling, name="bioInfo_handling"),
     path("Contact", views.contact, name="contact"),
     path("contributorInfo/", views.contributor_info, name="contributorInfo"),

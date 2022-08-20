@@ -2,7 +2,10 @@ import re
 
 from relecov_core.models import Gene, OrganismAnnotation
 
-from relecov_core.core_config import ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS
+from relecov_core.core_config import (
+    ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS,
+    HEADING_FOR_ANNOTATION_GENE,
+)
 
 
 def get_annotations():
@@ -17,6 +20,13 @@ def get_annotations():
     return ann_list
 
 
+def check_if_annotation_exists(annot_id):
+    """check if the annotation id exists on database"""
+    if OrganismAnnotation.objects.filter(pk__exact=annot_id).exists():
+        return True
+    return False
+
+
 def check_if_organism_version_exists(organism, version):
     """Check if the organism and version is already in database"""
     if OrganismAnnotation.objects.filter(
@@ -24,6 +34,34 @@ def check_if_organism_version_exists(organism, version):
     ).exists():
         return True
     return False
+
+
+def get_annotation_data(annot_id):
+    """Get tha annotation genes defined for the annotation id"""
+    annot_data = {}
+    annot_obj = get_annotation_obj_from_id(annot_id)
+
+    annot_data["organism"] = annot_obj.get_organism_code()
+    annot_data["version"] = annot_obj.get_organism_code_version()
+    if Gene.objects.filter(org_annotationID=annot_obj).exists():
+        gene_objs = Gene.objects.filter(org_annotationID=annot_obj).order_by(
+            "gene_start"
+        )
+        genes = []
+        for gene_obj in gene_objs:
+            g_info = gene_obj.get_gene_positions()
+            g_info.insert(0, gene_obj.get_gene_name())
+            genes.append(g_info)
+        annot_data["genes"] = genes
+        annot_data["heading"] = HEADING_FOR_ANNOTATION_GENE
+    return annot_data
+
+
+def get_annotation_obj_from_id(annot_id):
+    """Return the instace object from the id"""
+    if OrganismAnnotation.objects.filter(pk__exact=annot_id).exists():
+        return OrganismAnnotation.objects.filter(pk__exact=annot_id).last()
+    return None
 
 
 def read_gff_file(a_file):

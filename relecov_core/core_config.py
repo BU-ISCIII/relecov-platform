@@ -227,6 +227,8 @@ HEADING_SCHEMA_DISPLAY = [
     "Description",
 ]
 
+HEADING_FOR_ANNOTATION_GENE = ["Gene name", "Position start", "Position end"]
+
 HEADING_FOR_SAMPLE_LIST = ["Sequencing Sample ID", "State", "Recorded date"]
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
 
