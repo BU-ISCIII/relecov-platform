@@ -294,8 +294,15 @@ def metadata_form(request):
 
 def virus_annotation(request):
     """Store the organism annotation gff file"""
+    annotations = get_annotations()
     if request.method == "POST" and request.POST["action"] == "uploadAnnotation":
         gff_parsed = read_gff_file(request.FILES["gffFile"])
+        if "ERROR" in gff_parsed:
+            return render(
+                request,
+                "relecov_core/virusAnnotation.html",
+                {"ERROR": gff_parsed["ERROR"], "annotations": annotations},
+            )
         stored_gff(gff_parsed, request.user)
         annotations = get_annotations()
         return render(
@@ -303,7 +310,6 @@ def virus_annotation(request):
             "relecov_core/virusAnnotation.html",
             {"SUCCESS": "Success", "annotations": annotations},
         )
-    annotations = get_annotations()
     return render(
         request, "relecov_core/virusAnnotation.html", {"annotations": annotations}
     )

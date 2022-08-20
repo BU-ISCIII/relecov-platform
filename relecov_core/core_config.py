@@ -193,6 +193,10 @@ ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
 
 ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
 
+ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS = (
+    "Annotation file for the organism already loaded"
+)
+
 HEADING_FOR_BASIC_SAMPLE_DATA = [
     "Sample ID given for sequencing",
     "Sample ID given in the microbiology lab",

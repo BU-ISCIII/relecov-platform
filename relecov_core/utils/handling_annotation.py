@@ -2,6 +2,8 @@ import re
 
 from relecov_core.models import Gene, OrganismAnnotation
 
+from relecov_core.core_config import ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS
+
 
 def get_annotations():
     """Get the information of the existing loaded annotations and return a
@@ -13,6 +15,15 @@ def get_annotations():
         for annotation_obj in annotation_objs:
             ann_list.append(annotation_obj.get_full_information())
     return ann_list
+
+
+def check_if_organism_version_exists(organism, version):
+    """Check if the organism and version is already in database"""
+    if OrganismAnnotation.objects.filter(
+        organism_code__iexact=organism, organism_code_version__iexact=version
+    ).exists():
+        return True
+    return False
 
 
 def read_gff_file(a_file):
@@ -29,7 +40,12 @@ def read_gff_file(a_file):
     f_data["gff_spec_version"] = lines[1].strip().split(" ")[1]
     seq_reg = lines[5].strip().split(" ")
     f_data["sequence_region"] = seq_reg[-2] + "_" + seq_reg[-1]
-    f_data["organism_code"] = seq_reg[1]
+    f_data["organism_code"] = seq_reg[1].split(".")[0]
+    f_data["organism_code_version"] = seq_reg[1].split(".")[-1]
+    if check_if_organism_version_exists(
+        f_data["organism_code"], f_data["organism_code_version"]
+    ):
+        return {"ERROR": ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS}
     f_data["genes"] = []
     for line in lines:
         if line.startswith("#") or line == "":
