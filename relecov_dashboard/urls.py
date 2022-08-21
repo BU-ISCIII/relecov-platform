@@ -14,6 +14,16 @@ urlpatterns = [
         views.variants_mutations_in_lineages_heatmap,
         name="variants_mutations_in_lineages_heatmap",
     ),
+    path(
+        "variants/mutationsInLineagesNeedlePlot",
+        views.variants_mutations_in_lineages_needle_plot,
+        name="variants_mutations_in_lineages_needle_plot",
+    ),
+    path(
+        "variants/mutationsInLineagesTable",
+        views.variants_mutations_in_lineages_table,
+        name="variants_mutations_in_lineages_table",
+    ),
     path("spikeMutations", views.spike_mutations, name="spike_mutations"),
     path("Gauge", views.gauge_test, name="gauge"),
     # Methodology graphics

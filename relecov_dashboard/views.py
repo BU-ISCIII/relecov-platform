@@ -50,10 +50,17 @@ def lineages(request):
 
 def variants_mutations_in_lineages_heatmap(request):
     create_hot_map()
-    # Luis
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
+
+def variants_mutations_in_lineages_needle_plot(request):
     create_needle_plot_graph(sample=None)
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
+
+def variants_mutations_in_lineages_table(request):
     create_mutation_table(214821)
-    return render(request, "relecov_dashboard/variantsMutationsInLineages.html")
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesTable.html")
 
 
 def spike_mutations(request):
