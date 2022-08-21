@@ -33,13 +33,13 @@ def methodology_index(request):
     return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
-def lineages_voc(request):
+def variants_lineages_voc(request):
     create_needle_plot_graph_ITER("BA.1.1.1")
     # create_lineage_in_time_graph()
     # create_needle_plot_graph(sample=None)
     # create_mutation_table(214821)
     # create_hot_map()
-    return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
+    return render(request, "relecov_dashboard/variants_lineages_voc.html")
 
 
 def lineages(request):
