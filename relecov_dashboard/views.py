@@ -48,6 +48,12 @@ def lineages(request):
     return render(request, "relecov_dashboard/dashboard_templates/lineages.html")
 
 
+def variants_lineage_variation_over_time(request):
+    # waiting for the missing input file
+    # make_lineage_variaton_plot()
+    return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
+
+
 def variants_mutations_in_lineages_heatmap(request):
     create_hot_map()
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
