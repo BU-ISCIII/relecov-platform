@@ -48,13 +48,12 @@ def lineages(request):
     return render(request, "relecov_dashboard/dashboard_templates/lineages.html")
 
 
-def mutations_in_lineages(request):
+def variants_mutations_in_lineages_heatmap(request):
     create_hot_map()
+    # Luis
     create_needle_plot_graph(sample=None)
     create_mutation_table(214821)
-    return render(
-        request, "relecov_dashboard/dashboard_templates/mutations_in_lineages.html"
-    )
+    return render(request, "relecov_dashboard/variantsMutationsInLineages.html")
 
 
 def spike_mutations(request):

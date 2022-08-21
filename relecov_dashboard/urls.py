@@ -10,7 +10,9 @@ urlpatterns = [
     path("lineagesVOC", views.lineages_voc, name="lineages_voc"),
     path("lineages", views.lineages, name="lineages"),
     path(
-        "mutationsInLineages", views.mutations_in_lineages, name="mutations_in_lineages"
+        "variants/mutationsInLineagesHeatmap",
+        views.variants_mutations_in_lineages_heatmap,
+        name="variants_mutations_in_lineages_heatmap",
     ),
     path("spikeMutations", views.spike_mutations, name="spike_mutations"),
     path("Gauge", views.gauge_test, name="gauge"),
