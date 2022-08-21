@@ -7,8 +7,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("variants", views.variants_index, name="variants_index"),
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
-    path("lineagesVOC", views.lineages_voc, name="lineages_voc"),
-    path("lineages", views.lineages, name="lineages"),
+    path("variants/lineagesVOC", views.lineages_voc, name="lineages_voc"),
+    path("variants/lineages", views.lineages, name="lineages"),
+    path("variants/lineageVariationOverTime", views.variants_lineage_variation_over_time, name="variants_lineage_variation_over_time"),
     path(
         "variants/mutationsInLineagesHeatmap",
         views.variants_mutations_in_lineages_heatmap,
