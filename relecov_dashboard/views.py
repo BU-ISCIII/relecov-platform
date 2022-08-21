@@ -55,7 +55,7 @@ def variants_mutations_in_lineages_heatmap(request):
 
 def variants_mutations_in_lineages_needle_plot(request):
     create_needle_plot_graph(sample=None)
-    return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesNeedlePlot.html")
 
 
 def variants_mutations_in_lineages_table(request):
