@@ -478,7 +478,7 @@ class GeneManager(models.Manager):
             gene_start=data["gene_start"],
             gene_end=data["gene_end"],
             user=data["user"],
-            gff_annotationID=data["gff_anotationID"],
+            org_annotationID=data["org_annotationID"],
         )
         return new_gene
 
