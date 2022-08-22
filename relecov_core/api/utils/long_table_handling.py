@@ -26,6 +26,7 @@ from relecov_core.models import (
 
 
 def fetch_long_table_data(data):
+    print(data)
 
     data_ids = {}
     for idx in range(2):
@@ -64,18 +65,33 @@ def fetch_long_table_data(data):
 
 def set_chromosome(data):
     chrom_id = 0
-    if Chromosome.objects.filter(chromosome=data["Chrom"]["chromosome"]).last():
+    if Chromosome.objects.filter(
+        chromosome=data["variants"]["Chromosome"]["chromosome"]
+    ).exists():
         chrom_id = (
-            Chromosome.objects.filter(chromosome=data["Chrom"]["chromosome"]).last()
+            Chromosome.objects.filter(
+                chromosome=data["variants"]["Chromosome"]["chromosome"]
+            ).last()
             # .get_chromosome_id()
         )
 
         return chrom_id
 
     else:
-        chrom_serializer = CreateChromosomeSerializer(data=data["Chrom"])
+        chrom_serializer = CreateChromosomeSerializer(
+            data=data["variants"]["Chromosome"]["chromosome"]
+        )
         if chrom_serializer.is_valid():
             chrom_serializer.save()
+
+
+def set_caller(data):
+    gene_id = 0
+    if Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).exists():
+        gene_id = Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).last()
+        return gene_id
+    else:
+        return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
 
 
 def set_gene(data):
@@ -85,11 +101,6 @@ def set_gene(data):
         return gene_id
     else:
         return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
-        """
-        gene_serializer = CreateGeneSerializer(data=data["Gene"]["gene"])
-        if gene_serializer.is_valid():
-            gene_serializer.save()
-        """
 
 
 def set_effect(data):
@@ -142,6 +153,7 @@ def set_filter(data):
 
 def set_position(data):
     position_id = 0
+    data_to_serializer = []
     if Position.objects.filter(pos__iexact=data["Position"]["pos"]).exists():
         position_id = (
             Position.objects.filter(pos__iexact=data["Position"]["pos"]).last()
@@ -149,18 +161,18 @@ def set_position(data):
         )
         return position_id
     else:
-        position_serializer = CreatePositionSerializer(data=data["Position"])
+        data_to_serializer["Position"]["pos"] = data["Position"]["pos"]
+        data_to_serializer["Position"]["nucleotide"] = data["Position"]["nucleotide"]
+        position_serializer = CreatePositionSerializer(data=data_to_serializer)
         if position_serializer.is_valid():
             position_serializer.save()
 
 
 def set_sample(data):
     sample_id = 0
-    if Sample.objects.filter(
-        collecting_lab_sample_id=data["Sample"]["collecting_lab_sample_id"]
-    ).exists():
+    if Sample.objects.filter(collecting_lab_sample_id=data["sample"]).exists():
         sample_id = Sample.objects.filter(
-            collecting_lab_sample_id=data["Sample"]["collecting_lab_sample_id"]
+            collecting_lab_sample_id=data["sample"]
         ).last()
 
         return sample_id
