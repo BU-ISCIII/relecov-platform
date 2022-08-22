@@ -16,7 +16,7 @@ from relecov_core.models import (
     Effect,
     VariantInSample,
     Filter,
-    Position,
+    # Position,
     Variant,
     DateUpdateState,
 )
@@ -113,10 +113,12 @@ class CreateFilterSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+"""
 class CreatePositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
         fields = "__all__"
+"""
 
 
 class CreateVariantSerializer(serializers.ModelSerializer):

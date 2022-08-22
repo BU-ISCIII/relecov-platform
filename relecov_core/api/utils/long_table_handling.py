@@ -4,11 +4,15 @@ from relecov_core.api.serializers import (
     CreateEffectSerializer,
     CreateVariantInSampleSerializer,
     CreateFilterSerializer,
-    CreatePositionSerializer,
+    # CreatePositionSerializer,
     # CreateLineageSerializer,
-    # CreateVariantSerializer,
+    CreateVariantSerializer,
 )
-from relecov_core.core_config import ERROR_GENE_NOT_DEFINED_IN_DATABASE
+from relecov_core.core_config import (
+    ERROR_SAMPLE_DOES_NOT_EXIST,
+    ERROR_GENE_NOT_DEFINED_IN_DATABASE,
+    ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE,
+)
 
 from relecov_core.models import (
     Sample,
@@ -17,7 +21,7 @@ from relecov_core.models import (
     Effect,
     VariantInSample,
     Filter,
-    Position,
+    # Position,
     Variant,
     # Document,
     # User,
@@ -29,38 +33,36 @@ def fetch_long_table_data(data):
     print(data)
 
     data_ids = {}
-    for idx in range(2):
-        chromosomeID_id = set_chromosome(data)
-        if chromosomeID_id is not None:
-            data_ids["chromosomeID_id"] = chromosomeID_id
-
-        geneID_id = set_gene(data)
-        if geneID_id is not None:
-            data_ids["geneID_id"] = geneID_id
-
-        effectID_id = set_effect(data)
-        if effectID_id is not None:
-            data_ids["effectID_id"] = effectID_id
-
-        variant_in_sampleID_id = set_variant_in_sample(data)
-        if variant_in_sampleID_id is not None:
-            data_ids["variant_in_sampleID_id"] = variant_in_sampleID_id
-
-        filterID_id = set_filter(data)
-        if filterID_id is not None:
-            data_ids["filterID_id"] = filterID_id
-
-        positionID_id = set_position(data)
-        if positionID_id is not None:
-            data_ids["positionID_id"] = positionID_id
-
     sampleID_id = set_sample(data)
     if sampleID_id is not None:
         data_ids["sampleID_id"] = sampleID_id
+        for idx in range(2):
+            chromosomeID_id = set_chromosome(data)
+            if chromosomeID_id is not None:
+                data_ids["chromosomeID_id"] = chromosomeID_id
 
-    variantID_id = set_variant(data, data_ids)
-    if variantID_id is not None:
-        data_ids["variantID_id"] = variantID_id
+            geneID_id = set_gene(data)
+            if geneID_id is not None:
+                data_ids["geneID_id"] = geneID_id
+
+            effectID_id = set_effect(data)
+            if effectID_id is not None:
+                data_ids["effectID_id"] = effectID_id
+
+            variant_in_sampleID_id = set_variant_in_sample(data)
+            if variant_in_sampleID_id is not None:
+                data_ids["variant_in_sampleID_id"] = variant_in_sampleID_id
+
+            filterID_id = set_filter(data)
+            if filterID_id is not None:
+                data_ids["filterID_id"] = filterID_id
+
+            variantID_id = set_variant(data)
+            if variantID_id is not None:
+                data_ids["variantID_id"] = variantID_id
+
+    else:
+        return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
 
 
 def set_chromosome(data):
@@ -78,11 +80,14 @@ def set_chromosome(data):
         return chrom_id
 
     else:
+        return {"ERROR": ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE}
+        """
         chrom_serializer = CreateChromosomeSerializer(
             data=data["variants"]["Chromosome"]["chromosome"]
         )
         if chrom_serializer.is_valid():
             chrom_serializer.save()
+        """
 
 
 def set_caller(data):
@@ -105,9 +110,13 @@ def set_gene(data):
 
 def set_effect(data):
     effect_id = 0
-    if Effect.objects.filter(effect__iexact=data["Effect"]["effect"]).exists():
+    if Effect.objects.filter(
+        effect__iexact=data["variants"]["Effect"]["effect"]
+    ).exists():
         effect_id = (
-            Effect.objects.filter(effect__iexact=data["Effect"]["effect"]).last()
+            Effect.objects.filter(
+                effect__iexact=data["variants"]["Effect"]["effect"]
+            ).last()
             # .get_effect_id()
         )
         return effect_id
@@ -120,18 +129,18 @@ def set_effect(data):
 def set_variant_in_sample(data):
     variant_in_sample_id = 0
     if VariantInSample.objects.filter(
-        dp__iexact=data["VariantInSample"]["dp"]
+        dp__iexact=data["variants"]["VariantInSample"]["dp"]
     ).exists():
         variant_in_sample_id = (
             VariantInSample.objects.filter(
-                dp__iexact=data["VariantInSample"]["dp"]
+                dp__iexact=data["variants"]["VariantInSample"]["dp"]
             ).last()
             # .get_variant_in_sample_id()
         )
         return variant_in_sample_id
     else:
         variant_in_sample_serializer = CreateVariantInSampleSerializer(
-            data=data["VariantInSample"]
+            data=data["variants"]["VariantInSample"]
         )
         if variant_in_sample_serializer.is_valid():
             variant_in_sample_serializer.save()
@@ -151,21 +160,25 @@ def set_filter(data):
             filter_serializer.save()
 
 
-def set_position(data):
-    position_id = 0
+def set_variant(data):
+    variant_id = 0
     data_to_serializer = []
-    if Position.objects.filter(pos__iexact=data["Position"]["pos"]).exists():
-        position_id = (
-            Position.objects.filter(pos__iexact=data["Position"]["pos"]).last()
+    if Variant.objects.filter(pos__iexact=data["variants"]["Position"]["pos"]).exists():
+        variant_id = (
+            Variant.objects.filter(
+                pos__iexact=data["variants"]["Position"]["pos"]
+            ).last()
             # .get_position_id()
         )
-        return position_id
+        return variant_id
     else:
-        data_to_serializer["Position"]["pos"] = data["Position"]["pos"]
-        data_to_serializer["Position"]["nucleotide"] = data["Position"]["nucleotide"]
-        position_serializer = CreatePositionSerializer(data=data_to_serializer)
-        if position_serializer.is_valid():
-            position_serializer.save()
+        data_to_serializer["Position"]["pos"] = data["variants"]["Position"]["pos"]
+        data_to_serializer["Position"]["nucleotide"] = data["variants"]["Position"][
+            "nucleotide"
+        ]
+        variant_serializer = CreateVariantSerializer(data=data_to_serializer)
+        if variant_serializer.is_valid():
+            variant_serializer.save()
 
 
 def set_sample(data):
