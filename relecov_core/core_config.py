@@ -193,6 +193,10 @@ ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
 
 ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
 
+ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS = (
+    "Annotation file for the organism already loaded"
+)
+
 HEADING_FOR_BASIC_SAMPLE_DATA = [
     "Sample ID given for sequencing",
     "Sample ID given in the microbiology lab",
@@ -222,6 +226,8 @@ HEADING_SCHEMA_DISPLAY = [
     "Classification",
     "Description",
 ]
+
+HEADING_FOR_ANNOTATION_GENE = ["Gene name", "Position start", "Position end"]
 
 HEADING_FOR_SAMPLE_LIST = ["Sequencing Sample ID", "State", "Recorded date"]
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
