@@ -1024,6 +1024,7 @@ class LineageValues(models.Model):
         return "%s" % (self.lineage_fieldID)
 
 
+"""
 class PositionManager(models.Manager):
     def create_new_position(self, data):
         new_position = self.create(
@@ -1054,6 +1055,7 @@ class Position(models.Model):
         return "%s" % (self.nucleotide)
 
     objects = PositionManager()
+"""
 
 
 class VariantInSampleManager(models.Manager):
