@@ -1,6 +1,6 @@
 import re
 
-from relecov_core.models import Gene, OrganismAnnotation
+from relecov_core.models import Gene, OrganismAnnotation, Chromosome
 
 from relecov_core.core_config import (
     ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS,
@@ -102,8 +102,13 @@ def read_gff_file(a_file):
 
 def stored_gff(gff_parsed, user):
     """Save in database the gff information"""
+    if not Chromosome.objects.filter(
+        chromosome__iexact=gff_parsed["organism_code"]
+    ).exists():
+        Chromosome.objects.create_new_chromosome(gff_parsed["organism_code"])
     gff_parsed["user"] = user
     annotation_obj = OrganismAnnotation.objects.create_new_annotation(gff_parsed)
+
     for gene in gff_parsed["genes"]:
         gene["annotationID"] = annotation_obj
         gene["user"] = user
