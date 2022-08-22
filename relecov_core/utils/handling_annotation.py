@@ -107,6 +107,6 @@ def stored_gff(gff_parsed, user):
     for gene in gff_parsed["genes"]:
         gene["annotationID"] = annotation_obj
         gene["user"] = user
-        gene["gff_anotationID"] = annotation_obj
+        gene["org_annotationID"] = annotation_obj
         Gene.objects.create_new_gene(gene)
     return
