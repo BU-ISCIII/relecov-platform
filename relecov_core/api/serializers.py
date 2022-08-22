@@ -14,6 +14,7 @@ from relecov_core.models import (
     Chromosome,
     Gene,
     Effect,
+    VariantAnnotation,
     VariantInSample,
     Filter,
     # Position,
@@ -104,6 +105,12 @@ class CreateEffectSerializer(serializers.ModelSerializer):
 class CreateVariantInSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = VariantInSample
+        fields = "__all__"
+
+
+class CreateVariantAnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VariantAnnotation
         fields = "__all__"
 
 
