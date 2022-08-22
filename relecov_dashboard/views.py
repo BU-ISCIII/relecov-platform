@@ -33,13 +33,13 @@ def methodology_index(request):
     return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
-def lineages_voc(request):
+def variants_lineages_voc(request):
     create_needle_plot_graph_ITER("BA.1.1.1")
     # create_lineage_in_time_graph()
     # create_needle_plot_graph(sample=None)
     # create_mutation_table(214821)
     # create_hot_map()
-    return render(request, "relecov_dashboard/dashboard_templates/lineages_voc.html")
+    return render(request, "relecov_dashboard/variants_lineages_voc.html")
 
 
 def lineages(request):
@@ -48,13 +48,27 @@ def lineages(request):
     return render(request, "relecov_dashboard/dashboard_templates/lineages.html")
 
 
-def mutations_in_lineages(request):
+def variants_lineage_variation_over_time(request):
+    # waiting for the missing input file
+    # make_lineage_variaton_plot()
+    return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
+
+
+def variants_mutations_in_lineages_heatmap(request):
     create_hot_map()
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
+
+def variants_mutations_in_lineages_needle_plot(request):
     create_needle_plot_graph(sample=None)
-    create_mutation_table(214821)
     return render(
-        request, "relecov_dashboard/dashboard_templates/mutations_in_lineages.html"
+        request, "relecov_dashboard/variantsMutationsInLineagesNeedlePlot.html"
     )
+
+
+def variants_mutations_in_lineages_table(request):
+    create_mutation_table(214821)
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesTable.html")
 
 
 def spike_mutations(request):
