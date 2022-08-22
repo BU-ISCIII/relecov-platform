@@ -23,7 +23,7 @@ from relecov_core.models import (
     LineageInfo,
     MetadataVisualization,
     OrganismAnnotation,
-    Position,
+    # Position,
     Profile,
     PropertyOptions,
     Sample,
@@ -211,7 +211,7 @@ admin.site.register(GisaidInfo, GisaidInfoAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(LineageFields, LineageFieldsAdmin)
 admin.site.register(LineageValues, LineageValuesAdmin)
-admin.site.register(Position, PositionAdmin)
+# admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
