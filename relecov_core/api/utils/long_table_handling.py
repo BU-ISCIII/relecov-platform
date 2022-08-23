@@ -20,6 +20,7 @@ from relecov_core.models import (
     Chromosome,
     Gene,
     Effect,
+    VariantAnnotation,
     VariantInSample,
     Filter,
     # Position,
@@ -67,13 +68,17 @@ def fetch_long_table_data(data):
                     "variant_in_sampleID_id"
                 ] = variant_in_sample_obj.get_variant_in_sample_id()
 
+            variant_annotation_obj = set_variant_annotation(variant["Effect"], data_ids)
+            if variant_annotation_obj is not None:
+                data_ids[
+                    "variant_in_sampleID_id"
+                ] = variant_annotation_obj.get_variant_annotation_id()
+
             variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
             if variant_obj is not None:
                 data_ids["variantID_id"] = variant_obj.get_variant_id()
-            print(data_ids)
-            print(variant_obj)
-            variant_annotation_obj = set_variant_annotation(variant["Effect"], data_ids)
-            print(variant_annotation_obj)
+
+            return {"SUCCESS": "Success"}
 
     else:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
@@ -89,17 +94,6 @@ def get_chromosome(variant):
 
     else:
         return {"ERROR": ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE}
-
-
-"""
-def set_caller(data):
-    gene_id = 0
-    if Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).exists():
-        gene_id = Gene.objects.filter(gene__iexact=data["Gene"]["gene"]).last()
-        return gene_id
-    else:
-        return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
-"""
 
 
 def get_gene(gene):
@@ -154,20 +148,29 @@ def set_filter(filter):
 
 
 def set_variant_annotation(effect, data_ids):
-    data = {}
+    # import pdb
+    if VariantAnnotation.objects.filter(
+        geneID_id__iexact=data_ids["geneID_id"]
+    ).exists():
+        variant_annotation_id = VariantAnnotation.objects.filter(
+            geneID_id__iexact=data_ids["geneID_id"]
+        ).last()
+        return variant_annotation_id
+    else:
+        data = {}
 
-    data["variantID_id"] = data_ids["variantID_id"]
-    data["geneID_id"] = data_ids["geneID_id"]
-    data["effectID_id"] = data_ids["effectID_id"]
-    data["hgvs_c"] = effect["hgvs_c"]
-    data["hgvs_p"] = effect["hgvs_p"]
-    data["hgvs_p_1letter"] = effect["hgvs_p_1letter"]
+        # data["variantID_id"] = data_ids["variantID_id"]
+        data["geneID_id"] = data_ids["geneID_id"]
+        # data["effectID_id"] = data_ids["effectID_id"]
+        data["hgvs_c"] = effect["hgvs_c"]
+        data["hgvs_p"] = effect["hgvs_p"]
+        data["hgvs_p_1letter"] = effect["hgvs_p_1_letter"]
 
-    # print(data)
-
-    variant_annotation = CreateVariantAnnotationSerializer(data=data)
-    if variant_annotation.is_valid():
-        variant_annotation.save()
+        # print(data)
+        # pdb.set_trace()
+        variant_annotation = CreateVariantAnnotationSerializer(data=data)
+        if variant_annotation.is_valid():
+            variant_annotation.save()
 
     """
     if Variant.objects.filter(pos__iexact=data["variants"]["Position"]["pos"]).exists():
@@ -201,23 +204,20 @@ def get_sample(data):
 
 
 def set_variant(variant, position, data_ids):
-    import pdb
-
     if Variant.objects.filter(ref__iexact=variant["ref"]).exists():
         variant_id = Variant.objects.filter(ref__iexact=variant["ref"]).last()
         return variant_id
     else:
         data = {}
         data["chromosomeID_id"] = data_ids["chromosomeID_id"]
+        data["geneID_id"] = data_ids["geneID_id"]
+        data["variant_annotationID_id"] = data_ids["variant_annotationID_id"]
         data["effectID_id"] = data_ids["effectID_id"]
-        data["callerID_id"] = None
         data["filterID_id"] = data_ids["filterID_id"]
         data["variant_in_sampleID_id"] = data_ids["variant_in_sampleID_id"]
         data["ref"] = variant["ref"]
         data["pos"] = position["pos"]
-        data["alt"] = None
-
-        pdb.set_trace()
+        data["alt"] = position["alt"]
 
         variant_serializer = CreateVariantSerializer(data=data)
         if variant_serializer.is_valid():

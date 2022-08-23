@@ -6,7 +6,6 @@ from relecov_core.models import (
     Authors,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
-    Caller,
     Classification,
     Chromosome,
     ConfigSetting,
@@ -72,10 +71,6 @@ class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
 
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["title", "uploadedFile"]
-
-
-class CallerAdmin(admin.ModelAdmin):
-    list_display = ["name", "version"]
 
 
 class ClassificationAdmin(admin.ModelAdmin):
@@ -201,7 +196,6 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
-admin.site.register(Caller, CallerAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)

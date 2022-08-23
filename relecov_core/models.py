@@ -1140,7 +1140,7 @@ class VariantManager(models.Manager):
 class Variant(models.Model):
     chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
     effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
-    callerID_id = models.ForeignKey(Caller, on_delete=models.CASCADE)
+    # geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
     filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
     variant_in_sampleID_id = models.ForeignKey(
         VariantInSample, on_delete=models.CASCADE
@@ -1198,9 +1198,9 @@ class VariantAnnotationManager(models.Manager):
 
 # variant annotation GENE	EFFECT	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
-    variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    # effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
