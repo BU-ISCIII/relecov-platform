@@ -264,7 +264,7 @@ def longtable_data(request):
         if isinstance(data, QueryDict):
             data = data.dict()
         stored_data = fetch_long_table_data(data)
-        
+
         if "ERROR" in stored_data:
             return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 

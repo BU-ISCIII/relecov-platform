@@ -1089,9 +1089,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     class Meta:
         db_table = "VariantInSample"
-        
+
     def __str__(self):
-        return "%s" % (self.dp)    
+        return "%s" % (self.dp)
 
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
@@ -1119,9 +1119,6 @@ class VariantInSample(models.Model):  # include Foreign Keys
     objects = VariantInSampleManager()
 
 
-
-
-
 class VariantAnnotationManager(models.Manager):
     def create_new_variant_annotation(self, data, data_ids):
         new_variant_annotation = self.create(
@@ -1146,9 +1143,9 @@ class VariantAnnotation(models.Model):
 
     class Meta:
         db_table = "VariantAnnotation"
-        
+
     def __str__(self):
-        return "%s" % (self.geneID_id)    
+        return "%s" % (self.geneID_id)
 
     def get_variant_annotation_id(self):
         return "%s" % (self.pk)
@@ -1187,13 +1184,21 @@ class VariantManager(models.Manager):
 
 # CHROM	POS	REF	ALT
 class Variant(models.Model):
-    chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE, null=True, blank=True)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE, null=True, blank=True)
-    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE, null=True, blank=True)
+    chromosomeID_id = models.ForeignKey(
+        Chromosome, on_delete=models.CASCADE, null=True, blank=True
+    )
+    effectID_id = models.ForeignKey(
+        Effect, on_delete=models.CASCADE, null=True, blank=True
+    )
+    filterID_id = models.ForeignKey(
+        Filter, on_delete=models.CASCADE, null=True, blank=True
+    )
     variant_in_sampleID_id = models.ForeignKey(
         VariantInSample, on_delete=models.CASCADE, null=True, blank=True
     )
-    variant_annotationID_id = models.ForeignKey(VariantAnnotation, on_delete=models.CASCADE, null=True, blank=True)
+    variant_annotationID_id = models.ForeignKey(
+        VariantAnnotation, on_delete=models.CASCADE, null=True, blank=True
+    )
     # af = models.CharField(max_length=6)
     # alt_dp = models.CharField(max_length=5)
     ref = models.CharField(max_length=60)

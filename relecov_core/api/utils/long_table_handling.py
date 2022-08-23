@@ -33,6 +33,7 @@ from relecov_core.models import (
 
 def fetch_long_table_data(data):
     import pdb
+
     data_ids = {}
     sample_obj = get_sample(data)
 
@@ -83,7 +84,6 @@ def fetch_long_table_data(data):
 
             pdb.set_trace()
         return {"SUCCESS": "Success"}
-
 
     else:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
@@ -154,9 +154,7 @@ def set_filter(filter):
 
 def set_variant_annotation(effect, data_ids):
     # import pdb
-    if VariantAnnotation.objects.filter(
-        geneID_id=data_ids["geneID_id"]
-    ).exists():
+    if VariantAnnotation.objects.filter(geneID_id=data_ids["geneID_id"]).exists():
         variant_annotation_id = VariantAnnotation.objects.filter(
             geneID_id=data_ids["geneID_id"]
         ).last()
