@@ -37,7 +37,8 @@ def split_sample_data(data):
         if item in FIELDS_ON_ENA_TABLE:
             split_data["ena"][item] = value
             continue
-        print("Not match ", item)
+        if "schema" not in item:
+            print("Not match ", item)
     # add user and state to sample data
     split_data["sample"]["state"] = (
         SampleState.objects.filter(state__exact="Defined").last().get_state_id()
