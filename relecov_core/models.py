@@ -1150,7 +1150,8 @@ class Variant(models.Model):
     ref = models.CharField(max_length=60)
     pos = models.CharField(max_length=60)
     alt = models.CharField(max_length=100)
-    chrom = models.CharField(max_length=60)
+    # nucleotide????
+    # chrom = models.CharField(max_length=60)
     """
     filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
     positionID_id = models.ForeignKey(Position, on_delete=models.CASCADE)
