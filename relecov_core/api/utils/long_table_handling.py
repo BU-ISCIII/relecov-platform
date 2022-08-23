@@ -32,13 +32,16 @@ from relecov_core.models import (
 
 
 def fetch_long_table_data(data):
+    import pdb
     data_ids = {}
     sample_obj = get_sample(data)
 
     # Check if sample exists
     if sample_obj is not None:
         data_ids["sampleID_id"] = sample_obj.get_sample_id()
-        for variant in data["variants"]:
+        # for variant in data["variants"]:
+        for idx in range(len(data["variants"])):
+            variant = data["variants"][idx]
             chromosome_obj = get_chromosome(
                 variant["Chromosome"]["chromosome"].split(".")[0]
             )
@@ -71,14 +74,16 @@ def fetch_long_table_data(data):
             variant_annotation_obj = set_variant_annotation(variant["Effect"], data_ids)
             if variant_annotation_obj is not None:
                 data_ids[
-                    "variant_in_sampleID_id"
+                    "variant_annotationID_id"
                 ] = variant_annotation_obj.get_variant_annotation_id()
 
             variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
             if variant_obj is not None:
                 data_ids["variantID_id"] = variant_obj.get_variant_id()
 
-            return {"SUCCESS": "Success"}
+            pdb.set_trace()
+        return {"SUCCESS": "Success"}
+
 
     else:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
@@ -150,10 +155,10 @@ def set_filter(filter):
 def set_variant_annotation(effect, data_ids):
     # import pdb
     if VariantAnnotation.objects.filter(
-        geneID_id__iexact=data_ids["geneID_id"]
+        geneID_id=data_ids["geneID_id"]
     ).exists():
         variant_annotation_id = VariantAnnotation.objects.filter(
-            geneID_id__iexact=data_ids["geneID_id"]
+            geneID_id=data_ids["geneID_id"]
         ).last()
         return variant_annotation_id
     else:
