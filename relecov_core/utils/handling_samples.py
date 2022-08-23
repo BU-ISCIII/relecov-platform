@@ -91,8 +91,8 @@ def count_samples_in_all_tables():
     """Count the number of entries that are in Sample,"""
     data = {}
     data["received"] = Sample.objects.all().count()
-    data["up_ena"] = EnaInfo.objects.all().count()
-    data["up_gisaid"] = GisaidInfo.objects.all().count()
+    data["ena"] = EnaInfo.objects.all().count()
+    data["gisaid"] = GisaidInfo.objects.all().count()
     data["processed"] = 0
     return data
 
@@ -325,20 +325,22 @@ def increase_unique_value(old_unique_number):
     return str(letter + "-" + number_str)
 
 
-def search_samples(sample_name, user_name, sample_state, s_date):
+def search_samples(sample_name, user_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
     sample_objs = Sample.objects.all()
-    if user_name != "":
-        if User.objects.filter(username__exact=user_name).exists():
-            user_name_obj = User.objects.filter(username__exact=user_name).last()
-            user_friend_list = get_friend_list(user_name_obj)
-            if not sample_objs.filter(user__in=user_friend_list).exists():
-                return sample_list
+    group = Group.objects.get(name="RelecovManager")
+    if group not in user.groups.all():
+        if user_name != "":
+            if User.objects.filter(username__exact=user_name).exists():
+                user_name_obj = User.objects.filter(username__exact=user_name).last()
+                user_friend_list = get_friend_list(user_name_obj)
+                if not sample_objs.filter(user__in=user_friend_list).exists():
+                    return sample_list
+                else:
+                    sample_objs = sample_objs.filter(user__in=user_friend_list)
             else:
-                sample_objs = sample_objs.filter(user__in=user_friend_list)
-        else:
-            return sample_list
+                return sample_list
     if sample_name != "":
         if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
             sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)
