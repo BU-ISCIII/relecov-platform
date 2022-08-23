@@ -679,7 +679,7 @@ class GisaidInfo(models.Model):
         data.append(date)
         data.append(self.length)
         data.append(v_name)
-        return
+        return data
 
     def get_gisaid_obj(self):
         return "%s" % (self.pk)
