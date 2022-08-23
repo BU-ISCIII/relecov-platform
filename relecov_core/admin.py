@@ -6,7 +6,6 @@ from relecov_core.models import (
     Authors,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
-    Caller,
     Classification,
     Chromosome,
     ConfigSetting,
@@ -33,6 +32,7 @@ from relecov_core.models import (
     TemporalSampleStorage,
     Variant,
     VariantInSample,
+    VariantAnnotation,
     DateUpdateState,
     BatchSample,
 )
@@ -72,10 +72,6 @@ class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
 
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["title", "uploadedFile"]
-
-
-class CallerAdmin(admin.ModelAdmin):
-    list_display = ["name", "version"]
 
 
 class ClassificationAdmin(admin.ModelAdmin):
@@ -161,6 +157,10 @@ class VariantInSampleAdmin(admin.ModelAdmin):
     list_display = ["dp", "alt_dp", "ref_dp", "af"]
 
 
+class VariantAnnotationAdmin(admin.ModelAdmin):
+    list_display = ["geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1letter"]
+
+
 class AuthorsAdmin(admin.ModelAdmin):
     list_display = ["analysis_authors", "author_submitter", "authors"]
 
@@ -201,7 +201,6 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Document, DocumentAdmin)
-admin.site.register(Caller, CallerAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
@@ -216,6 +215,7 @@ admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
+admin.site.register(VariantAnnotation, VariantAnnotationAdmin)
 admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)

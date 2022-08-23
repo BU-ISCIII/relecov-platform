@@ -1090,6 +1090,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
     class Meta:
         db_table = "VariantInSample"
 
+    def __str__(self):
+        return "%s" % (self.dp)
+
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
 
@@ -1116,6 +1119,49 @@ class VariantInSample(models.Model):  # include Foreign Keys
     objects = VariantInSampleManager()
 
 
+class VariantAnnotationManager(models.Manager):
+    def create_new_variant_annotation(self, data, data_ids):
+        new_variant_annotation = self.create(
+            hgvs_c=data["hgvs_c"],
+            hgvs_p=data["hgvs_p"],
+            chromosomeID_id=data_ids["chromosomeID_id"],
+            effectID_id=data_ids["effectID_id"],
+            geneID_id=data_ids["geneID_id"],
+            variantID_id=data_ids["variantID_id"],
+        )
+        return new_variant_annotation
+
+
+# variant annotation GENE	EFFECT	HGVS_C	HGVS_P	HGVS_P_1LETTER
+class VariantAnnotation(models.Model):
+    # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
+    # effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    hgvs_c = models.CharField(max_length=60)
+    hgvs_p = models.CharField(max_length=60)
+    hgvs_p_1letter = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "VariantAnnotation"
+
+    def __str__(self):
+        return "%s" % (self.geneID_id)
+
+    def get_variant_annotation_id(self):
+        return "%s" % (self.pk)
+
+    def get_hgvs_c(self):
+        return "%s" % (self.hgvs_c)
+
+    def get_hgvs_p(self):
+        return "%s" % (self.hgvs_p)
+
+    def get_hgvs_p_1letter(self):
+        return "%s" % (self.hgvs_p_1letter)
+
+    objects = VariantAnnotationManager()
+
+
 # Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data, data_ids):
@@ -1138,19 +1184,28 @@ class VariantManager(models.Manager):
 
 # CHROM	POS	REF	ALT
 class Variant(models.Model):
-    chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
-    callerID_id = models.ForeignKey(Caller, on_delete=models.CASCADE)
-    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
+    chromosomeID_id = models.ForeignKey(
+        Chromosome, on_delete=models.CASCADE, null=True, blank=True
+    )
+    effectID_id = models.ForeignKey(
+        Effect, on_delete=models.CASCADE, null=True, blank=True
+    )
+    filterID_id = models.ForeignKey(
+        Filter, on_delete=models.CASCADE, null=True, blank=True
+    )
     variant_in_sampleID_id = models.ForeignKey(
-        VariantInSample, on_delete=models.CASCADE
+        VariantInSample, on_delete=models.CASCADE, null=True, blank=True
+    )
+    variant_annotationID_id = models.ForeignKey(
+        VariantAnnotation, on_delete=models.CASCADE, null=True, blank=True
     )
     # af = models.CharField(max_length=6)
     # alt_dp = models.CharField(max_length=5)
     ref = models.CharField(max_length=60)
     pos = models.CharField(max_length=60)
     alt = models.CharField(max_length=100)
-    chrom = models.CharField(max_length=60)
+    # nucleotide????
+    # chrom = models.CharField(max_length=60)
     """
     filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
     positionID_id = models.ForeignKey(Position, on_delete=models.CASCADE)
@@ -1180,46 +1235,6 @@ class Variant(models.Model):
         return "%s" % (self.alt)
 
     objects = VariantManager()
-
-
-class VariantAnnotationManager(models.Manager):
-    def create_new_variant_annotation(self, data, data_ids):
-        new_variant_annotation = self.create(
-            hgvs_c=data["hgvs_c"],
-            hgvs_p=data["hgvs_p"],
-            chromosomeID_id=data_ids["chromosomeID_id"],
-            effectID_id=data_ids["effectID_id"],
-            geneID_id=data_ids["geneID_id"],
-            variantID_id=data_ids["variantID_id"],
-        )
-        return new_variant_annotation
-
-
-# variant annotation GENE	EFFECT	HGVS_C	HGVS_P	HGVS_P_1LETTER
-class VariantAnnotation(models.Model):
-    variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
-    hgvs_c = models.CharField(max_length=60)
-    hgvs_p = models.CharField(max_length=60)
-    hgvs_p_1letter = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = "VariantAnnotation"
-
-    def get_variant_annotation_id(self):
-        return "%s" % (self.pk)
-
-    def get_hgvs_c(self):
-        return "%s" % (self.hgvs_c)
-
-    def get_hgvs_p(self):
-        return "%s" % (self.hgvs_p)
-
-    def get_hgvs_p_1letter(self):
-        return "%s" % (self.hgvs_p_1letter)
-
-    objects = VariantAnnotationManager()
 
 
 class TemporalSampleStorageManager(models.Manager):
