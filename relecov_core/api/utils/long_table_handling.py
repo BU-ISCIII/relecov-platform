@@ -32,37 +32,43 @@ from relecov_core.models import (
 
 def fetch_long_table_data(data):
     data_ids = {}
-    sampleID_id = get_sample(data)
-    if sampleID_id is not None:
-        data_ids["sampleID_id"] = sampleID_id
+    sample_obj = get_sample(data)
+    
+    #Check if sample exists
+    if sample_obj is not None:
+        data_ids["sampleID_id"] = sample_obj.get_sample_id()
         for variant in data["variants"]:
-            chromosomeID_id = get_chromosome(
+            chromosome_obj = get_chromosome(
                 variant["Chromosome"]["chromosome"].split(".")[0]
             )
-            if chromosomeID_id is not None:
-                data_ids["chromosomeID_id"] = chromosomeID_id
+            if chromosome_obj is not None:
+                data_ids["chromosomeID_id"] = chromosome_obj.get_chromosome_id()
 
-            geneID_id = get_gene(variant["Gene"]["gene"])
-            if geneID_id is not None:
-                data_ids["geneID_id"] = geneID_id
+            gene_obj = get_gene(variant["Gene"]["gene"])
+            if gene_obj is not None:
+                data_ids["geneID_id"] = gene_obj.get_gene_id()
 
-            effectID_id = set_effect(variant["Effect"])
-            if effectID_id is not None:
-                data_ids["effectID_id"] = effectID_id
+            effect_obj = set_effect(variant["Effect"])
+            if effect_obj is not None:
+                data_ids["effectID_id"] = effect_obj.get_effect_id()
+                
+            filter_obj = set_filter(variant["Filter"])
+            if filter_obj is not None:
+                data_ids["filterID_id"] = filter_obj.get_filter_id()
+            
+            # data_id = {}
+            # data_id["sampleID_id"] = data_ids["sampleID_id"]
+            # data_id["filterID_id"] = data_ids["filterID_id"]
+            variant_in_sample_obj = set_variant_in_sample(variant["VariantInSample"], data_ids)
+            if variant_in_sample_obj is not None:
+                data_ids["variant_in_sampleID_id"] = variant_in_sample_obj.get_variant_in_sample_id()
 
-            variant_in_sampleID_id = set_variant_in_sample(variant["VariantInSample"])
-            if variant_in_sampleID_id is not None:
-                data_ids["variant_in_sampleID_id"] = variant_in_sampleID_id
-
-            filterID_id = set_filter(variant["Filter"])
-            if filterID_id is not None:
-                data_ids["filterID_id"] = filterID_id
-
-            variantID_id = set_variant(variant["Variant"])
-            if variantID_id is not None:
-                data_ids["variantID_id"] = variantID_id
-
-            set_variant_annotation(variant["Effect"], data_ids)
+            variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
+            if variant_obj is not None:
+                data_ids["variantID_id"] = variant_obj.get_variant_id()
+            print(data_ids)
+            print(variant_obj)
+            variant_annotation_obj = set_variant_annotation(variant["Effect"], data_ids)
 
     else:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
@@ -74,7 +80,6 @@ def get_chromosome(variant):
     if Chromosome.objects.filter(chromosome=variant).exists():
         chrom_id = (
             Chromosome.objects.filter(chromosome=variant).last()
-            # .get_chromosome_id()
         )
 
         return chrom_id
@@ -108,7 +113,6 @@ def set_effect(effect):
     if Effect.objects.filter(effect__iexact=effect["effect"]).exists():
         effect_id = (
             Effect.objects.filter(effect__iexact=effect["effect"]).last()
-            # .get_effect_id()
         )
         return effect_id
     else:
@@ -117,15 +121,16 @@ def set_effect(effect):
             effect_serializer.save()
 
 
-def set_variant_in_sample(variant_in_sample):
+def set_variant_in_sample(variant_in_sample,data_ids):
     variant_in_sample_id = 0
     if VariantInSample.objects.filter(dp__iexact=variant_in_sample["dp"]).exists():
         variant_in_sample_id = (
             VariantInSample.objects.filter(dp__iexact=variant_in_sample["dp"]).last()
-            # .get_variant_in_sample_id()
         )
         return variant_in_sample_id
     else:
+        variant_in_sample["sampleID_id"] = data_ids["sampleID_id"]
+        variant_in_sample["filterID_id"] = data_ids["filterID_id"]
         variant_in_sample_serializer = CreateVariantInSampleSerializer(
             data=variant_in_sample
         )
@@ -156,6 +161,8 @@ def set_variant_annotation(effect, data_ids):
     data["hgvs_c"] = effect["hgvs_c"]
     data["hgvs_p"] = effect["hgvs_p"]
     data["hgvs_p_1letter"] = effect["hgvs_p_1letter"]
+    
+    # print(data)
 
     variant_annotation = CreateVariantAnnotationSerializer(data=data)
     if variant_annotation.is_valid():
@@ -192,19 +199,43 @@ def get_sample(data):
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
 
 
-def set_variant(variant):
+def set_variant(variant, position,data_ids):
+    import pdb
     if Variant.objects.filter(ref__iexact=variant["ref"]).exists():
         variant_id = (
             Variant.objects.filter(ref__iexact=variant["ref"]).last()
-            # .get_variant_id()
         )
         return variant_id
     else:
-        variant_serializer = CreateVariantSerializer(data=variant)
+        data = {}
+        data["chromosomeID_id"] = data_ids["chromosomeID_id"]
+        data["effectID_id"] = data_ids["effectID_id"]
+        data["callerID_id"] = None
+        data["filterID_id"] = data_ids["filterID_id"]
+        data["variant_in_sampleID_id"] = data_ids["variant_in_sampleID_id"]
+        data["ref"] = variant["ref"]
+        data["pos"] = position["pos"]
+        data["alt"] = None
+        
+        pdb.set_trace()
+        
+        variant_serializer = CreateVariantSerializer(data=data)
         if variant_serializer.is_valid():
             variant_serializer.save()
 
         """
+        chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
+    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    callerID_id = models.ForeignKey(Caller, on_delete=models.CASCADE)
+    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
+    variant_in_sampleID_id = models.ForeignKey(
+        VariantInSample, on_delete=models.CASCADE
+    )
+    # af = models.CharField(max_length=6)
+    # alt_dp = models.CharField(max_length=5)
+    ref = models.CharField(max_length=60)
+    pos = models.CharField(max_length=60)
+    alt = models.CharField(max_length=100)
         variant_serializer = CreateVariantSerializer(data=data["Variant"])
         print(variant_serializer)
         if variant_serializer.is_valid():
