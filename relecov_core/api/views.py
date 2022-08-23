@@ -156,13 +156,15 @@ def create_sample_data(request):
         split_data = split_sample_data(data)
         if "ERROR" in split_data:
             return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
-
-        author_serializer = CreateAuthorSerializer(data=split_data["author"])
-        if not author_serializer.is_valid():
-            return Response(
-                author_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-        if split_data["gisaid"]["gisaid_id"] != "":
+        if split_data["author"]["authors"] == "":
+            author_serializer = CreateAuthorSerializer(data=split_data["author"])
+            if not author_serializer.is_valid():
+                return Response(
+                    author_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            author_serializer = None
+        if "EPI_" in split_data["gisaid"]["gisaid_id"]:
             gisaid_serializer = CreateGisaidSerializer(data=split_data["gisaid"])
             if not gisaid_serializer.is_valid():
                 return Response(
