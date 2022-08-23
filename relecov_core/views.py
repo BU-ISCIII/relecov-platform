@@ -110,7 +110,6 @@ def schema_handling(request):
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
         schema_data = process_schema_file(
             request.FILES["schemaFile"],
-            request.POST["schemaVersion"],
             request.POST["schemaDefault"],
             request.user,
             __package__,
