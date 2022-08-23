@@ -1089,6 +1089,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     class Meta:
         db_table = "VariantInSample"
+        
+    def __str__(self):
+        return "%s" % (self.dp)    
 
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
@@ -1143,6 +1146,9 @@ class VariantAnnotation(models.Model):
 
     class Meta:
         db_table = "VariantAnnotation"
+        
+    def __str__(self):
+        return "%s" % (self.geneID_id)    
 
     def get_variant_annotation_id(self):
         return "%s" % (self.pk)

@@ -259,14 +259,12 @@ def analysis_data(request):
 
 @api_view(["POST"])
 def longtable_data(request):
-    import pdb
-
     if request.method == "POST":
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
         stored_data = fetch_long_table_data(data)
-        pdb.set_trace()
+        
         if "ERROR" in stored_data:
             return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
