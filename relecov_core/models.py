@@ -800,7 +800,7 @@ class Sample(models.Model):
 
     def get_schema_obj(self):
         if self.schema_obj:
-            return "%s" % (self.schema_obj)
+            return self.schema_obj
         return None
 
     def get_ena_info(self):
