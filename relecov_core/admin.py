@@ -33,7 +33,7 @@ from relecov_core.models import (
     TemporalSampleStorage,
     Variant,
     VariantInSample,
-    DateUpdateState
+    DateUpdateState,
 )
 
 
