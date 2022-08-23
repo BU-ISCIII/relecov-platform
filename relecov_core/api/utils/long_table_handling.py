@@ -73,6 +73,7 @@ def fetch_long_table_data(data):
             print(data_ids)
             print(variant_obj)
             variant_annotation_obj = set_variant_annotation(variant["Effect"], data_ids)
+            print(variant_annotation_obj)
 
     else:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
