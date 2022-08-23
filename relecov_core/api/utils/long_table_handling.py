@@ -33,8 +33,8 @@ from relecov_core.models import (
 def fetch_long_table_data(data):
     data_ids = {}
     sample_obj = get_sample(data)
-    
-    #Check if sample exists
+
+    # Check if sample exists
     if sample_obj is not None:
         data_ids["sampleID_id"] = sample_obj.get_sample_id()
         for variant in data["variants"]:
@@ -51,17 +51,21 @@ def fetch_long_table_data(data):
             effect_obj = set_effect(variant["Effect"])
             if effect_obj is not None:
                 data_ids["effectID_id"] = effect_obj.get_effect_id()
-                
+
             filter_obj = set_filter(variant["Filter"])
             if filter_obj is not None:
                 data_ids["filterID_id"] = filter_obj.get_filter_id()
-            
+
             # data_id = {}
             # data_id["sampleID_id"] = data_ids["sampleID_id"]
             # data_id["filterID_id"] = data_ids["filterID_id"]
-            variant_in_sample_obj = set_variant_in_sample(variant["VariantInSample"], data_ids)
+            variant_in_sample_obj = set_variant_in_sample(
+                variant["VariantInSample"], data_ids
+            )
             if variant_in_sample_obj is not None:
-                data_ids["variant_in_sampleID_id"] = variant_in_sample_obj.get_variant_in_sample_id()
+                data_ids[
+                    "variant_in_sampleID_id"
+                ] = variant_in_sample_obj.get_variant_in_sample_id()
 
             variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
             if variant_obj is not None:
@@ -78,9 +82,7 @@ def get_chromosome(variant):
     chrom_id = 0
 
     if Chromosome.objects.filter(chromosome=variant).exists():
-        chrom_id = (
-            Chromosome.objects.filter(chromosome=variant).last()
-        )
+        chrom_id = Chromosome.objects.filter(chromosome=variant).last()
 
         return chrom_id
 
@@ -111,9 +113,7 @@ def get_gene(gene):
 def set_effect(effect):
     effect_id = 0
     if Effect.objects.filter(effect__iexact=effect["effect"]).exists():
-        effect_id = (
-            Effect.objects.filter(effect__iexact=effect["effect"]).last()
-        )
+        effect_id = Effect.objects.filter(effect__iexact=effect["effect"]).last()
         return effect_id
     else:
         effect_serializer = CreateEffectSerializer(data=effect)
@@ -121,12 +121,12 @@ def set_effect(effect):
             effect_serializer.save()
 
 
-def set_variant_in_sample(variant_in_sample,data_ids):
+def set_variant_in_sample(variant_in_sample, data_ids):
     variant_in_sample_id = 0
     if VariantInSample.objects.filter(dp__iexact=variant_in_sample["dp"]).exists():
-        variant_in_sample_id = (
-            VariantInSample.objects.filter(dp__iexact=variant_in_sample["dp"]).last()
-        )
+        variant_in_sample_id = VariantInSample.objects.filter(
+            dp__iexact=variant_in_sample["dp"]
+        ).last()
         return variant_in_sample_id
     else:
         variant_in_sample["sampleID_id"] = data_ids["sampleID_id"]
@@ -161,7 +161,7 @@ def set_variant_annotation(effect, data_ids):
     data["hgvs_c"] = effect["hgvs_c"]
     data["hgvs_p"] = effect["hgvs_p"]
     data["hgvs_p_1letter"] = effect["hgvs_p_1letter"]
-    
+
     # print(data)
 
     variant_annotation = CreateVariantAnnotationSerializer(data=data)
@@ -199,12 +199,11 @@ def get_sample(data):
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
 
 
-def set_variant(variant, position,data_ids):
+def set_variant(variant, position, data_ids):
     import pdb
+
     if Variant.objects.filter(ref__iexact=variant["ref"]).exists():
-        variant_id = (
-            Variant.objects.filter(ref__iexact=variant["ref"]).last()
-        )
+        variant_id = Variant.objects.filter(ref__iexact=variant["ref"]).last()
         return variant_id
     else:
         data = {}
@@ -216,9 +215,9 @@ def set_variant(variant, position,data_ids):
         data["ref"] = variant["ref"]
         data["pos"] = position["pos"]
         data["alt"] = None
-        
+
         pdb.set_trace()
-        
+
         variant_serializer = CreateVariantSerializer(data=data)
         if variant_serializer.is_valid():
             variant_serializer.save()
