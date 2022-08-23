@@ -179,7 +179,9 @@ def search_sample(request):
                     "warning": ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
                 },
             )
-        sample_list = search_samples(sample_name, user_name, sample_state, s_date)
+        sample_list = search_samples(
+            sample_name, user_name, sample_state, s_date, request.user
+        )
         if len(sample_list) == 0:
             return render(
                 request,
