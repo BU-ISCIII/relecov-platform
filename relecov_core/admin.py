@@ -155,11 +155,11 @@ class VariantAdmin(admin.ModelAdmin):
 
 class VariantInSampleAdmin(admin.ModelAdmin):
     list_display = ["dp", "alt_dp", "ref_dp", "af"]
-    
-    
+
+
 class VariantAnnotationAdmin(admin.ModelAdmin):
     list_display = ["geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1letter"]
-    
+
 
 class AuthorsAdmin(admin.ModelAdmin):
     list_display = ["analysis_authors", "author_submitter", "authors"]
