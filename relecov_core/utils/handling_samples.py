@@ -29,13 +29,10 @@ from relecov_core.models import (
     # Authors,
     AnalysisPerformed,
     EnaInfo,
+    DateUpdateState,
     GisaidInfo,
     MetadataVisualization,
     SchemaProperties,
-    #
-    # TemporalSampleStorage,
-    # PropertyOptions,
-    # Schema,
     Sample,
     SampleState,
     # User,
@@ -248,6 +245,17 @@ def get_sample_display_data(sample_id, user):
     s_data["fastq"] = list(
         zip(HEADING_FOR_FASTQ_SAMPLE_DATA, sample_obj.get_fastq_data())
     )
+    # Fetch actions done on the sample
+    if DateUpdateState.objects.filter(sampleID=sample_obj).exists():
+        actions = []
+        actions_date_objs = DateUpdateState.objects.filter(
+            sampleID=sample_obj
+        ).order_by("-date")
+        for action_date_obj in actions_date_objs:
+            actions.append(
+                [action_date_obj.get_state_name(), action_date_obj.get_date()]
+            )
+        s_data["actions"] = actions
     # Fetch gisaid and ena information
     gisaid_data = sample_obj.get_gisaid_info()
     if gisaid_data is not None:
