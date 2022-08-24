@@ -2,14 +2,12 @@ from rest_framework import serializers
 
 from relecov_core.models import (
     Authors,
-    BatchSample,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
     EnaInfo,
     GisaidInfo,
     LineageFields,
     LineageValues,
-    # Lineage,
     Sample,
     Chromosome,
     Gene,
@@ -22,13 +20,6 @@ from relecov_core.models import (
     DateUpdateState,
 )
 
-"""
-class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BioInfoProcessValue
-        fields = "__all__"
-"""
-
 
 class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,12 +30,6 @@ class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
 class CreateBioInfoAnalysisFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = BioinfoAnalysisField
-        fields = "__all__"
-
-
-class CreateBatchSampleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BatchSample
         fields = "__all__"
 
 
