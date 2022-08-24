@@ -65,7 +65,7 @@ class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
 
 
 class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
-    list_display = ["value", "bioinfo_analysis_fieldID", "sampleID_id"]
+    list_display = ["value", "bioinfo_analysis_fieldID"]
     search_fields = ("value__icontains",)
 
 
@@ -122,7 +122,7 @@ class LineageFieldsAdmin(admin.ModelAdmin):
 
 
 class LineageValuesAdmin(admin.ModelAdmin):
-    list_display = ["value", "lineage_fieldID", "sampleID_id", "lineage_infoID"]
+    list_display = ["value", "lineage_fieldID"]
 
 
 class OrganismAnnotationAdmin(admin.ModelAdmin):

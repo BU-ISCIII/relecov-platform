@@ -913,7 +913,7 @@ class BioInfoAnalysisValue(models.Model):
     bioinfo_analysis_fieldID = models.ForeignKey(
         BioinfoAnalysisField, on_delete=models.CASCADE
     )
-    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
@@ -985,11 +985,8 @@ class LineageFields(models.Model):
 
 
 class LineageValues(models.Model):
-    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
-    lineage_infoID = models.ForeignKey(
-        LineageInfo, on_delete=models.CASCADE, null=True, blank=True
-    )
     value = models.CharField(max_length=240)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
