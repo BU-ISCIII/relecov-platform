@@ -86,7 +86,7 @@ class DateUpdateStateAdmin(admin.ModelAdmin):
 
 
 class EffectAdmin(admin.ModelAdmin):
-    list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
+    list_display = ["effect"]
 
 
 class EnaInfoAdmin(admin.ModelAdmin):
