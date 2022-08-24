@@ -112,9 +112,6 @@ def set_effect(effect):
         effect_obj = 0
         if Effect.objects.filter(
             effect__iexact=effect["effect"],
-            hgvs_c__iexact=effect["hgvs_c"],
-            hgvs_p__iexact=effect["hgvs_p"],
-            hgvs_p_1_letter__iexact=effect["hgvs_p_1_letter"],
         ).exists():
             effect_obj = Effect.objects.filter(effect__iexact=effect["effect"]).last()
             return effect_obj
@@ -213,6 +210,7 @@ def set_variant_annotation(effect, data_ids):
     def create_variant_annotation_dict(effect, data_ids):
         data = {}
         data["geneID_id"] = data_ids["geneID_id"]
+        data["effectID_id"] = data_ids["effectID_id"]
         data["hgvs_c"] = effect["hgvs_c"]
         data["hgvs_p"] = effect["hgvs_p"]
         data["hgvs_p_1letter"] = effect["hgvs_p_1_letter"]

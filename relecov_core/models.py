@@ -407,18 +407,12 @@ class EffectManager(models.Manager):
     def create_new_effect(self, data):
         new_effect = self.create(
             effect=data[11],
-            hgvs_c=data[12],
-            hgvs_p=data[13],
-            hgvs_p_1_letter=data[14],
         )
         return new_effect
 
 
 class Effect(models.Model):
     effect = models.CharField(max_length=80)
-    hgvs_c = models.CharField(max_length=60)
-    hgvs_p = models.CharField(max_length=60)
-    hgvs_p_1_letter = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -432,15 +426,6 @@ class Effect(models.Model):
 
     def get_effect(self):
         return "%s" % (self.effect)
-
-    def get_hgvs_c(self):
-        return "%s" % (self.hgvs_c)
-
-    def get_hgvs_p(self):
-        return "%s" % (self.hgvs_p)
-
-    def get_hgvs_p_1_letter(self):
-        return "%s" % (self.hgvs_p_1_letter)
 
     objects = EffectManager()
 
@@ -1098,19 +1083,17 @@ class VariantAnnotationManager(models.Manager):
         new_variant_annotation = self.create(
             hgvs_c=data["hgvs_c"],
             hgvs_p=data["hgvs_p"],
-            chromosomeID_id=data_ids["chromosomeID_id"],
+            hgvs_p_1letter=data["hgvs_p_1_letter"],
             effectID_id=data_ids["effectID_id"],
             geneID_id=data_ids["geneID_id"],
-            variantID_id=data_ids["variantID_id"],
         )
         return new_variant_annotation
 
 
 # variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
-    # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    # effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
@@ -1123,6 +1106,12 @@ class VariantAnnotation(models.Model):
 
     def get_variant_annotation_id(self):
         return "%s" % (self.pk)
+
+    def get_geneID_id(self):
+        return "%s" % (self.geneID_id)
+
+    def get_effectID_id(self):
+        return "%s" % (self.effectID_id)
 
     def get_hgvs_c(self):
         return "%s" % (self.hgvs_c)
