@@ -142,8 +142,6 @@ def set_variant_in_sample(variant_in_sample, data_ids):
 
 
 def set_filter(filter):
-    import pdb
-
     def return_filter_obj(filter_string):
         filter_obj = 0
         if Filter.objects.filter(filter__iexact=filter_string["filter"]).exists():
@@ -164,17 +162,6 @@ def set_filter(filter):
         if filter_serializer.is_valid():
             filter_serializer.save()
             return return_filter_obj(filter_string=filter)
-    pdb.set_trace()
-    """
-    filter_id = 0
-    if Filter.objects.filter(filter__iexact=filter["filter"]).exists():
-        filter_id = Filter.objects.filter(filter__iexact=filter["filter"]).last()
-        return filter_id
-    else:
-        filter_serializer = CreateFilterSerializer(data=filter)
-        if filter_serializer.is_valid():
-            filter_serializer.save()
-    """
 
 
 def set_variant_annotation(effect, data_ids):
@@ -239,47 +226,3 @@ def set_variant(variant, position, data_ids):
         variant_serializer = CreateVariantSerializer(data=data)
         if variant_serializer.is_valid():
             variant_serializer.save()
-
-        """
-        chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
-    callerID_id = models.ForeignKey(Caller, on_delete=models.CASCADE)
-    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
-    variant_in_sampleID_id = models.ForeignKey(
-        VariantInSample, on_delete=models.CASCADE
-    )
-    # af = models.CharField(max_length=6)
-    # alt_dp = models.CharField(max_length=5)
-    ref = models.CharField(max_length=60)
-    pos = models.CharField(max_length=60)
-    alt = models.CharField(max_length=100)
-        variant_serializer = CreateVariantSerializer(data=data["Variant"])
-        print(variant_serializer)
-        if variant_serializer.is_valid():
-            variant_serializer.save()
-            print("variant_serializer saved")
-        """
-
-
-"""
-# this function creates a new Sample register for testing
-def create_sample_register():
-    new_sample = Sample.objects.create(
-        state=SampleState.objects.create(
-            state="pre-recorded",
-            display_string="display_string",
-            description="description",
-        ),
-        user=User.objects.create(password="appapk", username="tere"),
-        metadata_file=Document.objects.create(
-            title="title", file_path="", uploadedFile=""
-        ),
-        collecting_lab_sample_id="200002",
-        sequencing_sample_id="1234",
-        biosample_accession_ENA="456123",
-        virus_name="ramiro",
-        gisaid_id="09876",
-        sequencing_date="2022/8/2",
-    )
-    new_sample.save()
-"""
