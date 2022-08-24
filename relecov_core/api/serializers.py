@@ -12,9 +12,10 @@ from relecov_core.models import (
     Chromosome,
     Gene,
     Effect,
+    VariantAnnotation,
     VariantInSample,
     Filter,
-    Position,
+    # Position,
     Variant,
     DateUpdateState,
 )
@@ -92,16 +93,24 @@ class CreateVariantInSampleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class CreateVariantAnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VariantAnnotation
+        fields = "__all__"
+
+
 class CreateFilterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Filter
         fields = "__all__"
 
 
+"""
 class CreatePositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
         fields = "__all__"
+"""
 
 
 class CreateVariantSerializer(serializers.ModelSerializer):

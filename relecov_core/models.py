@@ -1006,6 +1006,7 @@ class LineageValues(models.Model):
         return "%s" % (self.lineage_fieldID)
 
 
+"""
 class PositionManager(models.Manager):
     def create_new_position(self, data):
         new_position = self.create(
@@ -1036,6 +1037,7 @@ class Position(models.Model):
         return "%s" % (self.nucleotide)
 
     objects = PositionManager()
+"""
 
 
 class VariantInSampleManager(models.Manager):
@@ -1049,22 +1051,29 @@ class VariantInSampleManager(models.Manager):
     def create_new_variant_in_sample(self, data):
         new_variant_in_sample = self.create(
             dp=data["dp"],
-            alt_dp=data["alt_dp"],
             ref_dp=data["ref_dp"],
+            alt_dp=data["alt_dp"],
             af=data["af"],
         )
         return new_variant_in_sample
 
 
+# FILTER	DP	REF_DP	ALT_DP	AF
 class VariantInSample(models.Model):  # include Foreign Keys
+    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
+    # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
     dp = models.CharField(max_length=10)
-    alt_dp = models.CharField(max_length=5)
     ref_dp = models.CharField(max_length=10)
+    alt_dp = models.CharField(max_length=5)
     af = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
         db_table = "VariantInSample"
+
+    def __str__(self):
+        return "%s" % (self.dp)
 
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
@@ -1072,11 +1081,11 @@ class VariantInSample(models.Model):  # include Foreign Keys
     def get_dp(self):
         return "%s" % (self.dp)
 
-    def get_alt_dp(self):
-        return "%s" % (self.alt_dp)
-
     def get_ref_dp(self):
         return "%s" % (self.ref_dp)
+
+    def get_alt_dp(self):
+        return "%s" % (self.alt_dp)
 
     def get_af(self):
         return "%s" % (self.af)
@@ -1084,43 +1093,110 @@ class VariantInSample(models.Model):  # include Foreign Keys
     def get_variant_in_sample_data(self):
         data = []
         data.append(self.dp)
-        data.append(self.alt)
-        data.append(self.ref)
+        data.append(self.ref_dp)
+        data.append(self.alt_dp)
         data.append(self.af)
         return data
 
     objects = VariantInSampleManager()
 
 
+class VariantAnnotationManager(models.Manager):
+    def create_new_variant_annotation(self, data, data_ids):
+        new_variant_annotation = self.create(
+            hgvs_c=data["hgvs_c"],
+            hgvs_p=data["hgvs_p"],
+            chromosomeID_id=data_ids["chromosomeID_id"],
+            effectID_id=data_ids["effectID_id"],
+            geneID_id=data_ids["geneID_id"],
+            variantID_id=data_ids["variantID_id"],
+        )
+        return new_variant_annotation
+
+
+# variant annotation GENE	EFFECT	HGVS_C	HGVS_P	HGVS_P_1LETTER
+class VariantAnnotation(models.Model):
+    # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
+    # effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    hgvs_c = models.CharField(max_length=60)
+    hgvs_p = models.CharField(max_length=60)
+    hgvs_p_1letter = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "VariantAnnotation"
+
+    def __str__(self):
+        return "%s" % (self.geneID_id)
+
+    def get_variant_annotation_id(self):
+        return "%s" % (self.pk)
+
+    def get_hgvs_c(self):
+        return "%s" % (self.hgvs_c)
+
+    def get_hgvs_p(self):
+        return "%s" % (self.hgvs_p)
+
+    def get_hgvs_p_1letter(self):
+        return "%s" % (self.hgvs_p_1letter)
+
+    objects = VariantAnnotationManager()
+
+
 # Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data, data_ids):
         new_variant = self.create(
-            ref=data,
-            sampleID_id=data_ids["sampleID_id"],
-            variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
-            filterID_id=data_ids["filterID_id"],
-            positionID_id=data_ids["positionID_id"],
+            # ref=data,
+            chrom=data["chrom"],
+            pos=data["pos"],
+            ref=data["ref"],
+            alt=data["alt"],
+            # sampleID_id=data_ids["sampleID_id"],
             chromosomeID_id=data_ids["chromosomeID_id"],
-            geneID_id=data_ids["geneID_id"],
             effectID_id=data_ids["effectID_id"],
+            callerID_id=data_ids["callerID_id"],
+            filterID_id=data_ids["filterID_id"],
+            variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
+            # geneID_id=data_ids["geneID_id"],
         )
         return new_variant
 
 
+# CHROM	POS	REF	ALT
 class Variant(models.Model):
-    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    variant_in_sampleID_id = models.ForeignKey(
-        VariantInSample, on_delete=models.CASCADE
+    chromosomeID_id = models.ForeignKey(
+        Chromosome, on_delete=models.CASCADE, null=True, blank=True
     )
+    effectID_id = models.ForeignKey(
+        Effect, on_delete=models.CASCADE, null=True, blank=True
+    )
+    filterID_id = models.ForeignKey(
+        Filter, on_delete=models.CASCADE, null=True, blank=True
+    )
+    variant_in_sampleID_id = models.ForeignKey(
+        VariantInSample, on_delete=models.CASCADE, null=True, blank=True
+    )
+    variant_annotationID_id = models.ForeignKey(
+        VariantAnnotation, on_delete=models.CASCADE, null=True, blank=True
+    )
+    # af = models.CharField(max_length=6)
+    # alt_dp = models.CharField(max_length=5)
+    ref = models.CharField(max_length=60)
+    pos = models.CharField(max_length=60)
+    alt = models.CharField(max_length=100)
+    # nucleotide????
+    # chrom = models.CharField(max_length=60)
+    """
     filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
     positionID_id = models.ForeignKey(Position, on_delete=models.CASCADE)
     chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
     effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
-
-    ref = models.CharField(max_length=60)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
+    callerID_id = models.ForeignKey(Caller, on_delete=models.CASCADE)
+    positionID_id FILTER	DP	REF_DP	ALT_DP	AF
+    """
 
     class Meta:
         db_table = "Variant"
@@ -1130,6 +1206,15 @@ class Variant(models.Model):
 
     def get_ref(self):
         return "%s" % (self.ref)
+
+    def get_pos(self):
+        return "%s" % (self.pos)
+
+    def get_chrom(self):
+        return "%s" % (self.chrom)
+
+    def get_alt(self):
+        return "%s" % (self.alt)
 
     objects = VariantManager()
 

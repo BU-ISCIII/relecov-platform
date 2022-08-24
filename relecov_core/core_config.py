@@ -168,6 +168,7 @@ ERROR_SAMPLE_NOT_DEFINED = "Sample id is not defined"
 ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED = "So far there are no samples defined"
 ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED = "Missing configuration for sample states"
 ERROR_GENE_NOT_DEFINED_IN_DATABASE = "Error Gene not defined in database"
+ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE = "Error Chromosome not defined in database"
 ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS = (
     "User name must have al least 5 characters"
 )
