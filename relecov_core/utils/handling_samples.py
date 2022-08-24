@@ -266,16 +266,17 @@ def get_sample_display_data(sample_id, user):
     lab_sample = sample_obj.get_collecting_lab_sample_id()
     if lab_sample != "":
         iskylims_data = get_sample_information(lab_sample)
-        s_data["iskylims_basic"] = list(
-            zip(iskylims_data["heading"], iskylims_data["s_basic"])
-        )
-        s_data["iskylims_p_data"] = list(
-            zip(
-                iskylims_data["sample_project_field_heading"],
-                iskylims_data["sample_project_field_value"],
+        if "ERROR" not in iskylims_data:
+            s_data["iskylims_basic"] = list(
+                zip(iskylims_data["heading"], iskylims_data["s_basic"])
             )
-        )
-        s_data["iskylims_project"] = iskylims_data["sample_project_name"]
+            s_data["iskylims_p_data"] = list(
+                zip(
+                    iskylims_data["sample_project_field_heading"],
+                    iskylims_data["sample_project_field_value"],
+                )
+            )
+            s_data["iskylims_project"] = iskylims_data["sample_project_name"]
     return s_data
 
 
