@@ -1001,6 +1001,9 @@ class AnalysisType(models.Model):
     def get_type_name(self):
         return "%s" % (self.type_name)
 
+    def get_id(self):
+        return "%s" % (self.pk)
+
     def get_display_string(self):
         return "%s" % (self.display_string)
 
@@ -1101,7 +1104,7 @@ class VariantAnnotationManager(models.Manager):
 # variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE, null=True, blank=True)
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
