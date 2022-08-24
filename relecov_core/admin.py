@@ -86,7 +86,7 @@ class DateUpdateStateAdmin(admin.ModelAdmin):
 
 
 class EffectAdmin(admin.ModelAdmin):
-    list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
+    list_display = ["effect"]
 
 
 class EnaInfoAdmin(admin.ModelAdmin):
@@ -149,7 +149,16 @@ class SampleStateAdmin(admin.ModelAdmin):
 
 
 class VariantAdmin(admin.ModelAdmin):
-    list_display = ["ref"]
+    list_display = [
+        "ref",
+        "pos",
+        "alt",
+        "chromosomeID_id",
+        "effectID_id",
+        "filterID_id",
+        "variant_in_sampleID_id",
+        "variant_annotationID_id",
+    ]
 
 
 class VariantInSampleAdmin(admin.ModelAdmin):
