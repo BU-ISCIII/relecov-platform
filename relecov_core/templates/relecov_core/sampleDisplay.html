@@ -28,6 +28,12 @@
               <li class="nav-item" role="presentation">
                   <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">Analysis Information</button>
              </li>
+             <li class="nav-item" role="presentation">
+                 <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#lineage" type="button" role="tab" aria-controls="analysis" aria-selected="false">Lineage Information</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#variant" type="button" role="tab" aria-controls="analysis" aria-selected="false">Variant Information</button>
+           </li>
             </ul>
             <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="info-tab">
@@ -272,6 +278,46 @@
                 <script type="text/javascript">
                     $(document).ready(function() {
                         $('#bio_data').DataTable({
+                            responsive: true,
+                        });
+                   });
+                </script>
+                <div class="tab-pane fade" id="lineage" role="tabpanel" aria-labelledby="grupo-tab">
+                    <div class="container-md">
+                        <div class="row mt-5">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header"><h3 style="text-align:center">Lineage Analysis information</h3> </div>
+                                    <div class="card-body  text-center">
+                                        {% if sample_data.lineage %}
+                                            <table id="lineage_data" class="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr scope="row">
+                                                        <th>Label name</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for label, value in sample_data.lineage %}
+                                                        <tr>
+                                                            <td>{{label}}</td>
+                                                            <td>{{value}}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        {% else %}
+                                            <h5>Not Available information </h5>
+                                        {% endif %}
+                                    </div>     <!-- end card body  -->
+                                </div> <!-- end card  -->
+                            </div> <!-- end col-md-12 -->
+                        </div> <!-- end row-->
+                    </div> <!-- end continer-->
+                </div>  <!-- end tab database -->
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        $('#lineage_data').DataTable({
                             responsive: true,
                         });
                    });
