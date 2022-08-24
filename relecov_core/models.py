@@ -1104,7 +1104,9 @@ class VariantAnnotationManager(models.Manager):
 # variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE, null=True, blank=True)
+    effectID_id = models.ForeignKey(
+        Effect, on_delete=models.CASCADE, null=True, blank=True
+    )
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
