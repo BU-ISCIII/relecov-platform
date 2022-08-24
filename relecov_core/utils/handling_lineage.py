@@ -18,9 +18,7 @@ def get_lineage_data_from_sample(sample_id):
             lineage_fieldID=a_field, sample=sample_obj
         ).exists():
             value = (
-                LineageValues.objects.filter(
-                    lineage_fieldID=a_field, sample=sample_obj
-                )
+                LineageValues.objects.filter(lineage_fieldID=a_field, sample=sample_obj)
                 .last()
                 .get_value()
             )
