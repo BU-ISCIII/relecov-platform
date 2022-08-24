@@ -32,7 +32,7 @@ from relecov_core.models import (
 
 
 def fetch_long_table_data(data):
-    # import pdb
+    import pdb
 
     data_ids = {}
     sample_obj = get_sample(data)
@@ -79,7 +79,7 @@ def fetch_long_table_data(data):
             if variant_obj is not None:
                 data_ids["variantID_id"] = variant_obj.get_variant_id()
 
-            # pdb.set_trace()
+        pdb.set_trace()
         return {"SUCCESS": "Success"}
 
     else:
@@ -136,6 +136,29 @@ def set_variant_in_sample(variant_in_sample, data_ids):
 
 
 def set_filter(filter):
+    import pdb
+
+    def return_filter_obj(filter_string):
+        filter_obj = 0
+        if Filter.objects.filter(filter__iexact=filter_string["filter"]).exists():
+            filter_obj = Filter.objects.filter(
+                filter__iexact=filter_string["filter"]
+            ).last()
+            return filter_obj
+        else:
+            return None
+
+    filter_obj = 0
+    if return_filter_obj(filter_string=filter) is not None:
+        filter_obj = return_filter_obj(filter_string=filter)
+        return filter_obj
+    else:
+        filter_serializer = CreateFilterSerializer(data=filter)
+        if filter_serializer.is_valid():
+            filter_serializer.save()
+            return return_filter_obj(filter_string=filter)
+    pdb.set_trace()
+    """
     filter_id = 0
     if Filter.objects.filter(filter__iexact=filter["filter"]).exists():
         filter_id = Filter.objects.filter(filter__iexact=filter["filter"]).last()
@@ -144,6 +167,7 @@ def set_filter(filter):
         filter_serializer = CreateFilterSerializer(data=filter)
         if filter_serializer.is_valid():
             filter_serializer.save()
+    """
 
 
 def set_variant_annotation(effect, data_ids):
