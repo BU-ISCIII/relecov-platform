@@ -34,7 +34,6 @@ from relecov_core.models import (
     Variant,
     VariantInSample,
     DateUpdateState,
-    BatchSample,
 )
 
 
@@ -221,7 +220,6 @@ admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
-admin.site.register(BatchSample)
 admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
