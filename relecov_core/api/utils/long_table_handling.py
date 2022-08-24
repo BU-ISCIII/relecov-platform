@@ -32,7 +32,7 @@ from relecov_core.models import (
 
 
 def fetch_long_table_data(data):
-    import pdb
+    # import pdb
 
     data_ids = {}
     sample_obj = get_sample(data)
@@ -61,9 +61,6 @@ def fetch_long_table_data(data):
             if filter_obj is not None:
                 data_ids["filterID_id"] = filter_obj.get_filter_id()
 
-            # data_id = {}
-            # data_id["sampleID_id"] = data_ids["sampleID_id"]
-            # data_id["filterID_id"] = data_ids["filterID_id"]
             variant_in_sample_obj = set_variant_in_sample(
                 variant["VariantInSample"], data_ids
             )
@@ -82,7 +79,7 @@ def fetch_long_table_data(data):
             if variant_obj is not None:
                 data_ids["variantID_id"] = variant_obj.get_variant_id()
 
-            pdb.set_trace()
+            # pdb.set_trace()
         return {"SUCCESS": "Success"}
 
     else:
@@ -141,10 +138,7 @@ def set_variant_in_sample(variant_in_sample, data_ids):
 def set_filter(filter):
     filter_id = 0
     if Filter.objects.filter(filter__iexact=filter["filter"]).exists():
-        filter_id = (
-            Filter.objects.filter(filter__iexact=filter["filter"]).last()
-            # .get_filter_id()
-        )
+        filter_id = Filter.objects.filter(filter__iexact=filter["filter"]).last()
         return filter_id
     else:
         filter_serializer = CreateFilterSerializer(data=filter)
