@@ -231,31 +231,33 @@
                                 </div> <!-- end card  -->
                             </div> <!-- end col-md-8 -->
                         </div> <!-- end row-->
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                 <div class="card">
-                                     <div class="card-header text-center"><h3 style="text-align:center">{{sample_data.iskylims_project}} project data</h3> </div>
-                                     <div class="card-body  text-center">
-                                         <table id="i_project" class="table table-striped table-bordered">
-                                             <thead>
-                                                 <tr scope="row">
-                                                     <th>Label name</th>
-                                                     <th>Value</th>
-                                                 </tr>
-                                             </thead>
-                                             <tbody>
-                                                 {% for label, value in sample_data.iskylims_p_data %}
-                                                     <tr>
-                                                         <td>{{label}}</td>
-                                                         <td>{{value}}</td>
+                        {% if sample_data.iskylims_p_data %}
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                     <div class="card">
+                                         <div class="card-header text-center"><h3 style="text-align:center">{{sample_data.iskylims_project}} project data</h3> </div>
+                                         <div class="card-body  text-center">
+                                             <table id="i_project" class="table table-striped table-bordered">
+                                                 <thead>
+                                                     <tr scope="row">
+                                                         <th>Label name</th>
+                                                         <th>Value</th>
                                                      </tr>
-                                                 {% endfor %}
-                                             </tbody>
-                                         </table>
-                                     </div>     <!-- end card body  -->
-                                 </div> <!-- end card  -->
-                             </div> <!-- end col-md-10 -->
-                         </div> <!-- end row-->
+                                                 </thead>
+                                                 <tbody>
+                                                     {% for label, value in sample_data.iskylims_p_data %}
+                                                         <tr>
+                                                             <td>{{label}}</td>
+                                                             <td>{{value}}</td>
+                                                         </tr>
+                                                     {% endfor %}
+                                                 </tbody>
+                                             </table>
+                                         </div>     <!-- end card body  -->
+                                     </div> <!-- end card  -->
+                                 </div> <!-- end col-md-10 -->
+                             </div> <!-- end row-->
+                        {% endif %}
                     </div> <!-- end continer-->
                 </div>  <!-- end tab database -->
                 <script type="text/javascript">
