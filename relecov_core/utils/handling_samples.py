@@ -27,6 +27,7 @@ from relecov_core.core_config import (
 
 from relecov_core.models import (
     # Authors,
+    AnalysisPerformed,
     EnaInfo,
     GisaidInfo,
     MetadataVisualization,
@@ -93,7 +94,9 @@ def count_samples_in_all_tables():
     data["received"] = Sample.objects.all().count()
     data["ena"] = EnaInfo.objects.all().count()
     data["gisaid"] = GisaidInfo.objects.all().count()
-    data["processed"] = 0
+    data["processed"] = AnalysisPerformed.objects.filter(
+        typeID__type_name__iexact="bioinfo_analysis"
+    ).count()
     return data
 
 
