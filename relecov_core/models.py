@@ -1060,13 +1060,15 @@ class VariantInSampleManager(models.Manager):
 
 # FILTER	DP	REF_DP	ALT_DP	AF
 class VariantInSample(models.Model):  # include Foreign Keys
-    sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
+    sampleID_id = models.ForeignKey(
+        Sample, on_delete=models.CASCADE, null=True, blank=True
+    )
+    # filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
     # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    dp = models.CharField(max_length=10)
-    ref_dp = models.CharField(max_length=10)
-    alt_dp = models.CharField(max_length=5)
-    af = models.CharField(max_length=6)
+    dp = models.CharField(max_length=10, null=True, blank=True)
+    ref_dp = models.CharField(max_length=10, null=True, blank=True)
+    alt_dp = models.CharField(max_length=5, null=True, blank=True)
+    af = models.CharField(max_length=6, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -1183,9 +1185,9 @@ class Variant(models.Model):
     )
     # af = models.CharField(max_length=6)
     # alt_dp = models.CharField(max_length=5)
-    ref = models.CharField(max_length=60)
-    pos = models.CharField(max_length=60)
-    alt = models.CharField(max_length=100)
+    ref = models.CharField(max_length=60, null=True, blank=True)
+    pos = models.CharField(max_length=60, null=True, blank=True)
+    alt = models.CharField(max_length=100, null=True, blank=True)
     # nucleotide????
     # chrom = models.CharField(max_length=60)
     """
