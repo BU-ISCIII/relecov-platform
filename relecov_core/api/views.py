@@ -240,14 +240,16 @@ def create_bioinfo_metadata(request):
     if "ERROR" in split_data:
         return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
 
-    stored_data = store_bioinfo_data(split_data)
+    stored_data = store_bioinfo_data(split_data, schema_obj)
     if "ERROR" in stored_data:
         return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
     state_id = SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
     data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
-    date_serilizer = CreateDateAfterChangeStateSerializer(data_date)
+
+    date_serilizer = CreateDateAfterChangeStateSerializer(data=data_date)
     if date_serilizer.is_valid():
         date_serilizer.save()
+
     return Response(status=status.HTTP_201_CREATED)
 
 
