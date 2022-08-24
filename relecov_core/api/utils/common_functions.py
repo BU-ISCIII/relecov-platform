@@ -1,4 +1,4 @@
-from relecov_core.models import Schema, Sample
+from relecov_core.models import Schema, Sample, AnalysisType
 
 
 def get_schema_version_if_exists(data):
@@ -25,4 +25,10 @@ def get_sample_obj_if_exists(data):
         return Sample.objects.filter(
             sequencing_sample_id__iexact=data["sample_name"]
         ).last()
+    return None
+
+
+def get_analysis_type_id(type):
+    if AnalysisType.objects.filter(type_name__iexact=type).exists():
+        return AnalysisType.objects.filter(type_name__iexact=type).last().get_id()
     return None
