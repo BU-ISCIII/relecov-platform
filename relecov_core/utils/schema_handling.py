@@ -296,7 +296,7 @@ def remove_existing_default_schema(schema_name, apps_name):
     return
 
 
-def process_schema_file(json_file, version, default, user, apps_name):
+def process_schema_file(json_file, default, user, apps_name):
     """Check json file and store in database"""
     schema_data = load_schema(json_file)
     if "ERROR" in schema_data:
@@ -305,6 +305,7 @@ def process_schema_file(json_file, version, default, user, apps_name):
     if not check_heading_valid_json(schema_data["full_schema"], MAIN_SCHEMA_STRUCTURE):
         return {"ERROR": ERROR_INVALID_SCHEMA}
     schema_name = schema_data["full_schema"]["schema"]
+    version = schema_data["full_schema"]["version"]
     if default == "on":
         remove_existing_default_schema(schema_name, apps_name)
         default = True
