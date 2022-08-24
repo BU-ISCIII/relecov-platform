@@ -32,6 +32,8 @@ from relecov_core.models import (
 
 
 def fetch_long_table_data(data):
+    # import pdb
+
     data_ids = {}
     sample_obj = get_sample(data)
 
@@ -77,6 +79,7 @@ def fetch_long_table_data(data):
             if variant_obj is not None:
                 data_ids["variantID_id"] = variant_obj.get_variant_id()
 
+        # pdb.set_trace()
         return {"SUCCESS": "Success"}
 
     else:
@@ -107,7 +110,12 @@ def get_gene(gene):
 def set_effect(effect):
     def return_effect_obj(effect):
         effect_obj = 0
-        if Effect.objects.filter(effect__iexact=effect["effect"]).exists():
+        if Effect.objects.filter(
+            effect__iexact=effect["effect"],
+            hgvs_c__iexact=effect["hgvs_c"],
+            hgvs_p__iexact=effect["hgvs_p"],
+            hgvs_p_1_letter__iexact=effect["hgvs_p_1_letter"],
+        ).exists():
             effect_obj = Effect.objects.filter(effect__iexact=effect["effect"]).last()
             return effect_obj
         else:
@@ -115,7 +123,7 @@ def set_effect(effect):
 
     effect_obj = 0
     if return_effect_obj(effect) is not None:
-        effect_obj = Effect.objects.filter(effect__iexact=effect["effect"]).last()
+        effect_obj = return_effect_obj(effect)
         return effect_obj
     else:
         effect_serializer = CreateEffectSerializer(data=effect)
@@ -125,20 +133,47 @@ def set_effect(effect):
 
 
 def set_variant_in_sample(variant_in_sample, data_ids):
-    variant_in_sample_id = 0
-    if VariantInSample.objects.filter(dp__iexact=variant_in_sample["dp"]).exists():
-        variant_in_sample_id = VariantInSample.objects.filter(
-            dp__iexact=variant_in_sample["dp"]
-        ).last()
-        return variant_in_sample_id
+    def return_variant_in_sample(variant_in_sample, data_ids):
+        variant_in_sample_obj = 0
+        if VariantInSample.objects.filter(
+            sampleID_id=data_ids["sampleID_id"],
+            dp__iexact=variant_in_sample["dp"],
+            ref_dp__iexact=variant_in_sample["ref_dp"],
+            alt_dp__iexact=variant_in_sample["alt_dp"],
+            af__iexact=variant_in_sample["af"],
+        ).exists():
+            variant_in_sample_obj = VariantInSample.objects.filter(
+                sampleID_id=data_ids["sampleID_id"],
+                dp__iexact=variant_in_sample["dp"],
+                ref_dp__iexact=variant_in_sample["ref_dp"],
+                alt_dp__iexact=variant_in_sample["alt_dp"],
+                af__iexact=variant_in_sample["af"],
+            ).last()
+            return variant_in_sample_obj
+        else:
+            return None
+
+    def create_variant_in_sample_dict(variant_in_sample_dict, data_ids):
+        data = {}
+        data["sampleID_id"] = data_ids["sampleID_id"]
+        data["filterID_id"] = data_ids["filterID_id"]
+        data["dp"] = variant_in_sample_dict["dp"]
+        data["ref_dp"] = variant_in_sample_dict["ref_dp"]
+        data["alt_dp"] = variant_in_sample_dict["alt_dp"]
+        data["af"] = variant_in_sample_dict["af"]
+
+        return data
+
+    variant_in_sample_obj = 0
+    if return_variant_in_sample(variant_in_sample, data_ids) is not None:
+        variant_in_sample_obj = return_variant_in_sample(variant_in_sample, data_ids)
+        return variant_in_sample_obj
     else:
-        variant_in_sample["sampleID_id"] = data_ids["sampleID_id"]
-        variant_in_sample["filterID_id"] = data_ids["filterID_id"]
-        variant_in_sample_serializer = CreateVariantInSampleSerializer(
-            data=variant_in_sample
-        )
+        data = create_variant_in_sample_dict(variant_in_sample, data_ids)
+        variant_in_sample_serializer = CreateVariantInSampleSerializer(data=data)
         if variant_in_sample_serializer.is_valid():
             variant_in_sample_serializer.save()
+            return return_variant_in_sample(variant_in_sample, data_ids)
 
 
 def set_filter(filter):
@@ -156,7 +191,7 @@ def set_filter(filter):
     if return_filter_obj(filter_string=filter) is not None:
         filter_obj = return_filter_obj(filter_string=filter)
         return filter_obj
-    # create register and return create
+    # create register and return created register
     else:
         filter_serializer = CreateFilterSerializer(data=filter)
         if filter_serializer.is_valid():
@@ -165,7 +200,7 @@ def set_filter(filter):
 
 
 def set_variant_annotation(effect, data_ids):
-    def return_variant_annotation_obj(data_ids):
+    def return_variant_annotation_obj(effect, data_ids):
         variant_annotation_obj = 0
         if VariantAnnotation.objects.filter(geneID_id=data_ids["geneID_id"]).exists():
             variant_annotation_obj = VariantAnnotation.objects.filter(
@@ -175,7 +210,7 @@ def set_variant_annotation(effect, data_ids):
         else:
             return None
 
-    def create_effect_dictionary(effect, data_ids):
+    def create_variant_annotation_dict(effect, data_ids):
         data = {}
         data["geneID_id"] = data_ids["geneID_id"]
         data["hgvs_c"] = effect["hgvs_c"]
@@ -184,16 +219,16 @@ def set_variant_annotation(effect, data_ids):
 
         return data
 
-    if return_variant_annotation_obj(data_ids) is not None:
-        variant_annotation_obj = return_variant_annotation_obj(data_ids)
+    if return_variant_annotation_obj(effect, data_ids) is not None:
+        variant_annotation_obj = return_variant_annotation_obj(effect, data_ids)
         return variant_annotation_obj
     else:
-        data = create_effect_dictionary(effect, data_ids)
+        data = create_variant_annotation_dict(effect, data_ids)
 
         variant_annotation = CreateVariantAnnotationSerializer(data=data)
         if variant_annotation.is_valid():
             variant_annotation.save()
-            return return_variant_annotation_obj(data_ids)
+            return return_variant_annotation_obj(effect, data_ids)
 
 
 def get_sample(data):

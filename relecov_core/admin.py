@@ -149,7 +149,16 @@ class SampleStateAdmin(admin.ModelAdmin):
 
 
 class VariantAdmin(admin.ModelAdmin):
-    list_display = ["ref"]
+    list_display = [
+        "ref",
+        "pos",
+        "alt",
+        "chromosomeID_id",
+        "effectID_id",
+        "filterID_id",
+        "variant_in_sampleID_id",
+        "variant_annotationID_id",
+    ]
 
 
 class VariantInSampleAdmin(admin.ModelAdmin):

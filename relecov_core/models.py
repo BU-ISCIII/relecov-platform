@@ -401,15 +401,8 @@ class Filter(models.Model):
 
     objects = FilterManager()
 
-    # Effect Table
-    """
-    fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4),
-    FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10),
-    EFFECT(11), HGVS_C(12), HGVS_P(13), HGVS_P1LETTER(14),
-    CALLER(15), LINEAGE(16)
-    """
 
-
+# Effect Table
 class EffectManager(models.Manager):
     def create_new_effect(self, data):
         new_effect = self.create(
@@ -1113,7 +1106,7 @@ class VariantAnnotationManager(models.Manager):
         return new_variant_annotation
 
 
-# variant annotation GENE	EFFECT	HGVS_C	HGVS_P	HGVS_P_1LETTER
+# variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
     # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
@@ -1199,6 +1192,9 @@ class Variant(models.Model):
 
     class Meta:
         db_table = "Variant"
+
+    def __str__(self):
+        return "%s" % (self.ref)
 
     def get_variant_id(self):
         return "%s" % (self.pk)
