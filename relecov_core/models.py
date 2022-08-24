@@ -28,24 +28,6 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     instance.profile.save()
 
 
-class BatchSample(models.Model):
-    sample = models.CharField(max_length=200)
-    folder = models.CharField(max_length=200)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "BatchSample"
-
-    def __str__(self):
-        return "%s" % (self.sample)
-
-    def get_sample(self):
-        return "%s" % (self.sample)
-
-    def get_folder(self):
-        return "%s" % (self.folder)
-
-
 class Document(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)

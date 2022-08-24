@@ -5,7 +5,7 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
     api_view,
-    action,
+    # action,
     #    parser_classes,
 )
 from rest_framework import status
@@ -22,37 +22,33 @@ from relecov_core.api.serializers import (
 )
 
 from relecov_core.api.utils.long_table_handling import fetch_long_table_data
-from .utils.analysis_handling import process_analysis_data
 from relecov_core.api.utils.sample_handling import (
     check_if_sample_exists,
     split_sample_data,
 )
-from relecov_core.api.utils.bioinfo_metadata_handling import fetch_bioinfo_data
+from relecov_core.api.utils.bioinfo_metadata_handling import (
+    split_bioinfo_data,
+    store_bioinfo_data,
+)
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, Error, EnaInfo, BatchSample
+from relecov_core.models import Sample, SampleState, Error, EnaInfo
 
 from relecov_core.api.utils.accession_to_ENA import (
     date_converter,
     extract_number_of_sample,
 )  # parse_xml,
 
-from relecov_core.api.utils.common_functions import get_schema_version_if_exists
+from relecov_core.api.utils.common_functions import (
+    get_schema_version_if_exists,
+    get_sample_obj_if_exists,
+)
 
-"""
-analysis_data = openapi.Parameter(
-    "analysis_name",
-    openapi.IN_FORM,
-    description="Name of the analsys to be performed",
-    type=openapi.TYPE_STRING,
+from relecov_core.core_config import (
+    ERROR_SAMPLE_NAME_NOT_INCLUDED,
+    ERROR_SAMPLE_NOT_DEFINED,
 )
-analysis_file = openapi.Schema(
-    "upload_file",
-    in_=openapi.IN_BODY,
-    type=openapi.TYPE_FILE,
-)
-"""
 
 
 @swagger_auto_schema(
@@ -217,62 +213,9 @@ def create_sample_data(request):
 
 y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
 
-"""
-@parser_classes(
-    (
-        FormParser,
-        MultiPartParser,
-    )
-)
-@swagger_auto_schema(
-    method="post",
-    # manual_parameters=[analysis_file],
-    request_body=[y_param],
-    responses={
-        200: "Successful upload information",
-        400: "Bad Request",
-        500: "Internal Server Error",
-    },
-)
-"""
-# @action(detail=True, methods=['post'], parser_classes=(MultiPartParser, ), name='upload-excel', url_path='upload-excel')
-
 
 @api_view(["POST"])
-@action(detail=False, methods=["post"])
-def analysis_data(request):
-    if request.method == "POST":
-        data = request.data
-        if isinstance(data, QueryDict):
-            data = data.dict()
-        if "analysis" not in data:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        fetched_data = process_analysis_data(data)
-        if "ERROR" in fetched_data:
-            return Response(fetched_data, status=status.HTTP_400_BAD_REQUEST)
-        # if "upload_file" in request.FILES:
-        #     a_file = request.FILES["analysis_file"]
-        #    print(a_file)
-
-    return Response(status=status.HTTP_201_CREATED)
-
-
-@api_view(["POST"])
-def longtable_data(request):
-    if request.method == "POST":
-        data = request.data
-        if isinstance(data, QueryDict):
-            data = data.dict()
-        stored_data = fetch_long_table_data(data)
-
-        if "ERROR" in stored_data:
-            return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(status=status.HTTP_201_CREATED)
-
-
-@api_view(["POST"])
-def bioinfo_metadata_file(request):
+def create_bioinfo_metadata(request):
     if request.method == "POST":
         data = request.data
 
@@ -283,12 +226,43 @@ def bioinfo_metadata_file(request):
     if schema_obj is None:
         error = {"ERROR": "schema name and version is not defined"}
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-    stored_data = fetch_bioinfo_data(data)
+    if "sample_name" not in data:
+        return Response(
+            {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    sample_obj = get_sample_obj_if_exists(data)
+    if sample_obj is None:
+        return Response(
+            {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+        )
+    split_data = split_bioinfo_data(data, schema_obj)
+    if "ERROR" in split_data:
+        return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
 
+    stored_data = store_bioinfo_data(split_data)
     if "ERROR" in stored_data:
         return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
-
+    state_id = SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
+    data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
+    date_serilizer = CreateDateAfterChangeStateSerializer(data_date)
+    if date_serilizer.is_valid():
+        date_serilizer.save()
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def create_variant_data(request):
+    if request.method == "POST":
+        data = request.data
+        if isinstance(data, QueryDict):
+            data = data.dict()
+        stored_data = fetch_long_table_data(data)
+
+        if "ERROR" in stored_data:
+            return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_201_CREATED)
 
 
 @swagger_auto_schema(
@@ -332,7 +306,6 @@ def update_state(request):
         # if state exists,
         if SampleState.objects.filter(state=data["state"]).exists():
             data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
-
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -352,7 +325,6 @@ def update_state(request):
             ).last()
 
             sample_serializer = UpdateSampleSerializer(sample_instance, data=data)
-
         # if sample does not exist, create a new sample register.
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -446,56 +418,5 @@ def accession_ena(request):
             sample_obj.ena_obj = ena_obj
 
             sample_obj.save()
-
-    return Response("Successful upload information", status=status.HTTP_201_CREATED)
-
-
-@swagger_auto_schema(
-    method="post",
-    operation_description="The POST method is used to create new records in the database.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "sample": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Number of Sample"
-            ),
-            "folder": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Folder where the sample is located",
-            ),
-        },
-    ),
-    responses={
-        201: "Successful create information",
-        400: "Bad Request",
-        500: "Internal Server Error",
-    },
-)
-@authentication_classes([SessionAuthentication, BasicAuthentication])
-@permission_classes([IsAuthenticated])
-@api_view(["POST"])
-def batch_sample(request):
-    if request.method == "POST":
-        data = request.data
-
-        if isinstance(data, QueryDict):
-            data = data.dict()
-
-        print(request.user.username)
-
-        if request.user.username == "relecovbot":
-
-            if BatchSample.objects.filter(sample=data["sample"]).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-
-            else:
-
-                # CreateBatchSampleSerializer(data)
-                BatchSample.objects.create(
-                    sample=data["sample"],
-                    folder=data["folder"],
-                )
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response("Successful upload information", status=status.HTTP_201_CREATED)
