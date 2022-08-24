@@ -663,6 +663,9 @@ class SampleState(models.Model):
     def get_state_id(self):
         return "%s" % (self.pk)
 
+    def get_state_display_string(self):
+        return "%s" % (self.display_string)
+
 
 # table Authors
 class AuthorsManager(models.Manager):
@@ -979,13 +982,14 @@ class DateUpdateState(models.Model):
         db_table = "DateUpdateState"
 
     def __str__(self):
-        return "%s" % (self.date)
+        return "%s_%s" % (self.stateID, self.sampleID)
 
-    def get_id(self):
-        return "%s" % (self.pk)
+    def get_state_name(self):
+        if self.stateID is not None:
+            return "%s" % (self.stateID.get_state_display_string())
 
     def get_date(self):
-        return "%s" % (self.date)
+        return self.date.strftime("%B %d, %Y")
 
 
 class AnalysisType(models.Model):
