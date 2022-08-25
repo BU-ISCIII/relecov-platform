@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
-    # CreateBatchSampleSerializer,
+    CrateAnalysisForSampleSerilizer,
     CreateDateAfterChangeStateSerializer,
     CreateSampleSerializer,
     CreateAuthorSerializer,
@@ -43,6 +43,7 @@ from relecov_core.api.utils.accession_to_ENA import (
 from relecov_core.api.utils.common_functions import (
     get_schema_version_if_exists,
     get_sample_obj_if_exists,
+    get_analysis_type_id,
 )
 
 from relecov_core.core_config import (
@@ -246,10 +247,20 @@ def create_bioinfo_metadata(request):
     state_id = SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
     data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
 
-    date_serilizer = CreateDateAfterChangeStateSerializer(data=data_date)
-    if date_serilizer.is_valid():
-        date_serilizer.save()
+    # update sample state
+    sample_obj.update_state("Bioinfo")
+    # Include date and state in DateState table
+    date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
+    if date_serializer.is_valid():
+        date_serializer.save()
+    analysis_data = {
+        "sampleID": sample_obj.get_sample_id(),
+        "typeID": get_analysis_type_id("bioinfo_analysis"),
+    }
+    analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
 
+    if analysis_serializer.is_valid():
+        analysis_serializer.save()
     return Response(status=status.HTTP_201_CREATED)
 
 

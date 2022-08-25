@@ -37,7 +37,7 @@ from relecov_core.utils.handling_annotation import (
     check_if_annotation_exists,
     get_annotation_data,
 )
-
+from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
@@ -98,6 +98,7 @@ def sample_display(request, sample_id):
             request, "relecov_core/sampleDisplay.html", {"ERROR": sample_data["ERROR"]}
         )
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
+    sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     return render(
         request, "relecov_core/sampleDisplay.html", {"sample_data": sample_data}
     )

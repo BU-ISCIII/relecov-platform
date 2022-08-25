@@ -18,11 +18,11 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
     a_fields = BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
     for a_field in a_fields:
         if BioInfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID=a_field, sampleID_id=sample_obj
+            bioinfo_analysis_fieldID=a_field, sample=sample_obj
         ).exists():
             value = (
                 BioInfoAnalysisValue.objects.filter(
-                    bioinfo_analysis_fieldID=a_field, sampleID_id=sample_obj
+                    bioinfo_analysis_fieldID=a_field, sample=sample_obj
                 )
                 .last()
                 .get_value()
