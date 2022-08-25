@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 
 from relecov_core.models import (
     Authors,
+    AnalysisPerformed,
+    AnalysisType,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
     Classification,
@@ -57,6 +59,14 @@ class CustomUserAdmin(UserAdmin):
         if not obj:
             return list()
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
+
+
+class AnalysisTypeAdmin(admin.ModelAdmin):
+    list_display = ["type_name", "display_string"]
+
+
+class AnalysisPerformedAdmin(admin.ModelAdmin):
+    list_display = ["typeID", "sampleID"]
 
 
 class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
@@ -208,6 +218,8 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 # Register models
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(AnalysisType, AnalysisTypeAdmin)
+admin.site.register(AnalysisPerformed, AnalysisPerformedAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)

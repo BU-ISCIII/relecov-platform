@@ -27,14 +27,12 @@ from relecov_core.core_config import (
 
 from relecov_core.models import (
     # Authors,
+    AnalysisPerformed,
     EnaInfo,
+    DateUpdateState,
     GisaidInfo,
     MetadataVisualization,
     SchemaProperties,
-    #
-    # TemporalSampleStorage,
-    # PropertyOptions,
-    # Schema,
     Sample,
     SampleState,
     # User,
@@ -93,7 +91,9 @@ def count_samples_in_all_tables():
     data["received"] = Sample.objects.all().count()
     data["ena"] = EnaInfo.objects.all().count()
     data["gisaid"] = GisaidInfo.objects.all().count()
-    data["processed"] = 0
+    data["processed"] = AnalysisPerformed.objects.filter(
+        typeID__type_name__iexact="bioinfo_analysis"
+    ).count()
     return data
 
 
@@ -245,6 +245,17 @@ def get_sample_display_data(sample_id, user):
     s_data["fastq"] = list(
         zip(HEADING_FOR_FASTQ_SAMPLE_DATA, sample_obj.get_fastq_data())
     )
+    # Fetch actions done on the sample
+    if DateUpdateState.objects.filter(sampleID=sample_obj).exists():
+        actions = []
+        actions_date_objs = DateUpdateState.objects.filter(
+            sampleID=sample_obj
+        ).order_by("-date")
+        for action_date_obj in actions_date_objs:
+            actions.append(
+                [action_date_obj.get_state_name(), action_date_obj.get_date()]
+            )
+        s_data["actions"] = actions
     # Fetch gisaid and ena information
     gisaid_data = sample_obj.get_gisaid_info()
     if gisaid_data is not None:
@@ -255,16 +266,17 @@ def get_sample_display_data(sample_id, user):
     lab_sample = sample_obj.get_collecting_lab_sample_id()
     if lab_sample != "":
         iskylims_data = get_sample_information(lab_sample)
-        s_data["iskylims_basic"] = list(
-            zip(iskylims_data["heading"], iskylims_data["s_basic"])
-        )
-        s_data["iskylims_p_data"] = list(
-            zip(
-                iskylims_data["sample_project_field_heading"],
-                iskylims_data["sample_project_field_value"],
+        if "ERROR" not in iskylims_data:
+            s_data["iskylims_basic"] = list(
+                zip(iskylims_data["heading"], iskylims_data["s_basic"])
             )
-        )
-        s_data["iskylims_project"] = iskylims_data["sample_project_name"]
+            s_data["iskylims_p_data"] = list(
+                zip(
+                    iskylims_data["sample_project_field_heading"],
+                    iskylims_data["sample_project_field_value"],
+                )
+            )
+            s_data["iskylims_project"] = iskylims_data["sample_project_name"]
     return s_data
 
 

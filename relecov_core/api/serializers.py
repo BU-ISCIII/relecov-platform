@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from relecov_core.models import (
     Authors,
+    AnalysisPerformed,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
     EnaInfo,
@@ -19,6 +20,12 @@ from relecov_core.models import (
     Variant,
     DateUpdateState,
 )
+
+
+class CrateAnalysisForSampleSerilizer(serializers.ModelSerializer):
+    class Meta:
+        model = AnalysisPerformed
+        fields = "__all__"
 
 
 class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
