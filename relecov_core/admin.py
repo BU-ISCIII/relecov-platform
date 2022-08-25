@@ -164,10 +164,10 @@ class VariantAdmin(admin.ModelAdmin):
         "pos",
         "alt",
         "chromosomeID_id",
-        "effectID_id",
+        # "effectID_id",
         "filterID_id",
         "variant_in_sampleID_id",
-        "variant_annotationID_id",
+        # "variant_annotationID_id",
     ]
 
 

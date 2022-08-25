@@ -33,14 +33,12 @@ from relecov_core.models import (
 
 def fetch_long_table_data(data):
     # import pdb
-
     data_ids = {}
     sample_obj = get_sample(data)
 
     # Check if sample exists
     if sample_obj is not None:
         data_ids["sampleID_id"] = sample_obj.get_sample_id()
-        # for variant in data["variants"]:
         for idx in range(len(data["variants"])):
             variant = data["variants"][idx]
             chromosome_obj = get_chromosome(
@@ -69,17 +67,21 @@ def fetch_long_table_data(data):
                     "variant_in_sampleID_id"
                 ] = variant_in_sample_obj.get_variant_in_sample_id()
 
+            variant_obj = set_variant(
+                data, variant["Variant"], variant["Position"], data_ids
+            )
+            if variant_obj is not None:
+                data_ids["variantID_id"] = variant_obj.get_variant_id()
+
+            # pdb.set_trace()
+
             variant_annotation_obj = set_variant_annotation(variant["Effect"], data_ids)
             if variant_annotation_obj is not None:
+                variant_annotation_obj.variantID_id.add(variant_obj)
                 data_ids[
                     "variant_annotationID_id"
                 ] = variant_annotation_obj.get_variant_annotation_id()
 
-            variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
-            if variant_obj is not None:
-                data_ids["variantID_id"] = variant_obj.get_variant_id()
-
-        # pdb.set_trace()
         return {"SUCCESS": "Success"}
 
     else:
@@ -214,6 +216,7 @@ def set_variant_annotation(effect, data_ids):
         data["hgvs_c"] = effect["hgvs_c"]
         data["hgvs_p"] = effect["hgvs_p"]
         data["hgvs_p_1letter"] = effect["hgvs_p_1_letter"]
+        data["variantID_id"] = data_ids["variantID_id"]
 
         return data
 
@@ -240,22 +243,59 @@ def get_sample(data):
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
 
 
-def set_variant(variant, position, data_ids):
-    if Variant.objects.filter(ref__iexact=variant["ref"]).exists():
-        variant_id = Variant.objects.filter(ref__iexact=variant["ref"]).last()
-        return variant_id
+def set_variant(data, variant, position, data_ids):
+    def check_if_sample_has_same_pos_and_alt(data, variant, position, data_ids):
+        if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
+            sample_obj_check = Sample.objects.filter(
+                sequencing_sample_id=data["sample"]
+            ).last()
+            print("sample_obj_check: ")
+            print(sample_obj_check)
+            if VariantInSample.objects.filter(sampleID_id=sample_obj_check).exists():
+                variant_in_sample_objs_check = VariantInSample.objects.filter(
+                    sampleID_id=sample_obj_check
+                )  # .last().get_variant_in_sample_id()
+                print("variant_in_sample_objs_check")
+                print(variant_in_sample_objs_check)
+                for variant_obj in variant_in_sample_objs_check:
+                    print(variant_obj.get_variant_in_sample_id())
+
+                    if Variant.objects.filter(
+                        variant_in_sampleID_id=variant_obj.get_variant_in_sample_id(),
+                        pos=position["pos"],
+                        alt=position["alt"],
+                    ).exists():
+                        variant_obj_check = Variant.objects.filter(
+                            variant_in_sampleID_id=variant_obj.get_variant_in_sample_id(),
+                            pos=position["pos"],
+                            alt=position["alt"],
+                        ).last()
+                        return variant_obj_check
+                    else:
+                        return None
+
+    variant_obj_check = check_if_sample_has_same_pos_and_alt(
+        data, variant, position, data_ids
+    )
+    print("variant_obj_check")
+    print(variant_obj_check)
+    if variant_obj_check is not None:
+        print("return variant_obj_check")
+        return variant_obj_check
+
     else:
         data = {}
         data["chromosomeID_id"] = data_ids["chromosomeID_id"]
-        data["geneID_id"] = data_ids["geneID_id"]
-        data["variant_annotationID_id"] = data_ids["variant_annotationID_id"]
-        data["effectID_id"] = data_ids["effectID_id"]
         data["filterID_id"] = data_ids["filterID_id"]
         data["variant_in_sampleID_id"] = data_ids["variant_in_sampleID_id"]
         data["ref"] = variant["ref"]
         data["pos"] = position["pos"]
         data["alt"] = position["alt"]
+        # data["geneID_id"] = data_ids["geneID_id"]
+        # data["variant_annotationID_id"] = data_ids["variant_annotationID_id"]
+        # data["effectID_id"] = data_ids["effectID_id"]
 
         variant_serializer = CreateVariantSerializer(data=data)
         if variant_serializer.is_valid():
             variant_serializer.save()
+            print("variant_serializer.save()")

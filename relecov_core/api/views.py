@@ -21,7 +21,7 @@ from relecov_core.api.serializers import (
     UpdateSampleSerializer,
 )
 
-from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+from relecov_core.api.utils.long_table_handling import fetch_long_table_data, get_sample
 from relecov_core.api.utils.sample_handling import (
     check_if_sample_exists,
     split_sample_data,
@@ -253,6 +253,7 @@ def create_bioinfo_metadata(request):
     date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
     if date_serializer.is_valid():
         date_serializer.save()
+
     analysis_data = {
         "sampleID": sample_obj.get_sample_id(),
         "typeID": get_analysis_type_id("bioinfo_analysis"),
@@ -274,6 +275,17 @@ def create_variant_data(request):
 
         if "ERROR" in stored_data:
             return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+
+        sample_obj = get_sample(data)
+
+        analysis_data = {
+            "sampleID": sample_obj.get_sample_id(),
+            "typeID": get_analysis_type_id("bioinfo_analysis"),
+        }
+        analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
+
+        if analysis_serializer.is_valid():
+            analysis_serializer.save()
 
         return Response(status=status.HTTP_201_CREATED)
 
