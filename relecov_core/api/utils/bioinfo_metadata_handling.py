@@ -28,6 +28,8 @@ def split_bioinfo_data(data, schema_obj):
             schemaID=schema_obj, property_name__iexact=field
         ).exists():
             split_data["lineage"][field] = value
+        elif "schema" in field:
+            pass
         else:
             return {"ERROR": str(field + " " + ERROR_FIELD_NOT_DEFINED)}
     return split_data
@@ -37,7 +39,7 @@ def store_bioinfo_data(s_data, schema_obj):
     """Save the new field data in database"""
     # schema_id = schema_obj.get_schema_id()
     sample_id = (
-        Sample.objects.filter(sequencing_sample_id__iexact=s_data["sample_name"])
+        Sample.objects.filter(sequencing_sample_id__iexact=s_data["sample"])
         .last()
         .get_sample_id()
     )
