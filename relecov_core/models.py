@@ -307,6 +307,154 @@ class MetadataVisualization(models.Model):
     objects = MetadataVisualizationManager()
 
 
+class BioinfoAnalysisFieldManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            classificationID=data["classificationID"],
+            property_name=data["property_name"],
+            label_name=data["label_name"],
+        )
+        return new_field
+
+
+class BioinfoAnalysisField(models.Model):
+    schemaID = models.ManyToManyField(Schema)
+    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
+    property_name = models.CharField(max_length=60)
+    label_name = models.CharField(max_length=80)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioinfoAnalysisField"
+
+    def __str__(self):
+        return "%s" % (self.property_name)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+    def get_property(self):
+        return "%s" % (self.property_name)
+
+    def get_label(self):
+        return "%s" % (self.label_name)
+
+    def get_classification_name(self):
+        if self.classificationID is not None:
+            return self.classificationID.get_classification()
+        return None
+
+    objects = BioinfoAnalysisFieldManager()
+
+
+class BioInfoAnalysisValueManager(models.Manager):
+    def create_new_value(self, data):
+        new_value = self.create(
+            value=data["value"],
+            bioinfo_analysis_fieldID=data["bioinfo_analysis_fieldID"],
+            sampleID_id=data["sampleID_id"],
+        )
+        return new_value
+
+
+class BioInfoAnalysisValue(models.Model):
+    value = models.CharField(max_length=240)
+    bioinfo_analysis_fieldID = models.ForeignKey(
+        BioinfoAnalysisField, on_delete=models.CASCADE
+    )
+    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "BioInfoAnalysisValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_value(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+    def get_b_process_field_id(self):
+        return "%s" % (self.bioinfo_analysis_fieldID)
+
+
+class LineageInfo(models.Model):
+    lineage_name = models.CharField(max_length=100)
+    pango_lineages = models.CharField(max_length=100)
+    variant_name = models.CharField(max_length=100)
+    nextclade = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "LineageInfo"
+
+    def __str__(self):
+        return "%s" % (self.lineage_name)
+
+    def get_lineage_name(self):
+        return "%s" % (self.lineage_name)
+
+    def get_lineage_id(self):
+        return "%s" % (self.pk)
+
+
+class LineageFieldsManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            classificationID=data["classificationID"],
+            property_name=data["property_name"],
+            label_name=data["label_name"],
+        )
+        return new_field
+
+
+class LineageFields(models.Model):
+    schemaID = models.ManyToManyField(Schema)
+    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
+    property_name = models.CharField(max_length=60)
+    label_name = models.CharField(max_length=80)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "LineageFields"
+
+    def __str__(self):
+        return "%s" % (self.property_name)
+
+    def get_lineage_property_name(self):
+        return "%s" % (self.property_name)
+
+    def get_lineage_field_id(self):
+        return "%s" % (self.pk)
+
+    objects = LineageFieldsManager()
+
+
+class LineageValues(models.Model):
+    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
+    value = models.CharField(max_length=240)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "LinageValue"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_value(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+    def get_lineage_field(self):
+        return "%s" % (self.lineage_fieldID)
+
+
 class OrganismAnnotationManger(models.Manager):
     def create_new_annotation(self, data):
         new_annotation = self.create(
@@ -515,6 +663,9 @@ class SampleState(models.Model):
     def get_state_id(self):
         return "%s" % (self.pk)
 
+    def get_state_display_string(self):
+        return "%s" % (self.display_string)
+
 
 # table Authors
 class AuthorsManager(models.Manager):
@@ -706,6 +857,10 @@ class Sample(models.Model):
     schema_obj = models.ForeignKey(
         Schema, on_delete=models.CASCADE, null=True, blank=True
     )
+    linage_values = models.ManyToManyField(LineageValues)
+    linage_info = models.ManyToManyField(LineageInfo)
+    bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue)
+
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
@@ -827,192 +982,52 @@ class DateUpdateState(models.Model):
         db_table = "DateUpdateState"
 
     def __str__(self):
-        return "%s" % (self.date)
+        return "%s_%s" % (self.stateID, self.sampleID)
 
-    def get_id(self):
-        return "%s" % (self.pk)
+    def get_state_name(self):
+        if self.stateID is not None:
+            return "%s" % (self.stateID.get_state_display_string())
 
     def get_date(self):
-        return "%s" % (self.date)
+        return self.date.strftime("%B %d, %Y")
 
 
-class BioinfoAnalysisFieldManager(models.Manager):
-    def create_new_field(self, data):
-        new_field = self.create(
-            classificationID=data["classificationID"],
-            property_name=data["property_name"],
-            label_name=data["label_name"],
-        )
-        return new_field
-
-
-class BioinfoAnalysisField(models.Model):
-    schemaID = models.ManyToManyField(Schema)
-    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
-    property_name = models.CharField(max_length=60)
-    label_name = models.CharField(max_length=80)
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+class AnalysisType(models.Model):
+    type_name = models.CharField(max_length=20)
+    display_string = models.CharField(max_length=50)
 
     class Meta:
-        db_table = "BioinfoAnalysisField"
+        db_table = "AnalysisType"
 
     def __str__(self):
-        return "%s" % (self.property_name)
+        return "%s" % (self.type_name)
+
+    def get_type_name(self):
+        return "%s" % (self.type_name)
 
     def get_id(self):
         return "%s" % (self.pk)
 
-    def get_property(self):
-        return "%s" % (self.property_name)
-
-    def get_label(self):
-        return "%s" % (self.label_name)
-
-    def get_classification_name(self):
-        if self.classificationID is not None:
-            return self.classificationID.get_classification()
-        return None
-
-    objects = BioinfoAnalysisFieldManager()
+    def get_display_string(self):
+        return "%s" % (self.display_string)
 
 
-class BioInfoAnalysisValueManager(models.Manager):
-    def create_new_value(self, data):
-        new_value = self.create(
-            value=data["value"],
-            bioinfo_analysis_fieldID=data["bioinfo_analysis_fieldID"],
-            sampleID_id=data["sampleID_id"],
-        )
-        return new_value
-
-
-class BioInfoAnalysisValue(models.Model):
-    value = models.CharField(max_length=240)
-    bioinfo_analysis_fieldID = models.ForeignKey(
-        BioinfoAnalysisField, on_delete=models.CASCADE
-    )
-    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    class Meta:
-        db_table = "BioInfoAnalysisValue"
-
-    def __str__(self):
-        return "%s" % (self.value)
-
-    def get_value(self):
-        return "%s" % (self.value)
-
-    def get_id(self):
-        return "%s" % (self.pk)
-
-    def get_b_process_field_id(self):
-        return "%s" % (self.bioinfo_analysis_fieldID)
-
-
-class LineageInfo(models.Model):
-    lineage_name = models.CharField(max_length=100)
-    pango_lineages = models.CharField(max_length=100)
-    variant_name = models.CharField(max_length=100)
-    nextclade = models.CharField(max_length=100)
+class AnalysisPerformed(models.Model):
+    typeID = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
+    sampleID = models.ForeignKey(Sample, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "LineageInfo"
+        db_table = "AnalysisPerformed"
 
     def __str__(self):
-        return "%s" % (self.lineage_name)
-
-    def get_lineage_name(self):
-        return "%s" % (self.lineage_name)
-
-    def get_lineage_id(self):
-        return "%s" % (self.pk)
-
-
-class LineageFieldsManager(models.Manager):
-    def create_new_field(self, data):
-        new_field = self.create(
-            classificationID=data["classificationID"],
-            property_name=data["property_name"],
-            label_name=data["label_name"],
+        return "%s_%s" % (
+            self.sampleID.get_sequencing_sample_id(),
+            self.typeID.get_type_name(),
         )
-        return new_field
 
-
-class LineageFields(models.Model):
-    schemaID = models.ManyToManyField(Schema)
-    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
-    property_name = models.CharField(max_length=60)
-    label_name = models.CharField(max_length=80)
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    class Meta:
-        db_table = "LineageFields"
-
-    def __str__(self):
-        return "%s" % (self.property_name)
-
-    def get_lineage_property_name(self):
-        return "%s" % (self.property_name)
-
-    def get_lineage_field_id(self):
-        return "%s" % (self.pk)
-
-    objects = LineageFieldsManager()
-
-
-class LineageValues(models.Model):
-    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
-    value = models.CharField(max_length=240)
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    class Meta:
-        db_table = "LinageValue"
-
-    def __str__(self):
-        return "%s" % (self.value)
-
-    def get_id(self):
-        return "%s" % (self.pk)
-
-    def get_lineage_field(self):
-        return "%s" % (self.lineage_fieldID)
-
-
-"""
-class PositionManager(models.Manager):
-    def create_new_position(self, data):
-        new_position = self.create(
-            pos=data["pos"],
-            nucleotide=data["nucleotide"],
-        )
-        return new_position
-
-
-class Position(models.Model):
-    pos = models.CharField(max_length=100)
-    nucleotide = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "Position"
-
-    def __str__(self):
-        return "%s" % (self.pos)
-
-    def get_position_id(self):
-        return "%s" % (self.pk)
-
-    def get_pos(self):
-        return "%s" % (self.pos)
-
-    def get_nucleotide(self):
-        return "%s" % (self.nucleotide)
-
-    objects = PositionManager()
-"""
+    def get_analysis_type(self):
+        return "%s" % (self.typeID.get_type_name())
 
 
 class VariantInSampleManager(models.Manager):
@@ -1093,7 +1108,9 @@ class VariantAnnotationManager(models.Manager):
 # variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
+    effectID_id = models.ForeignKey(
+        Effect, on_delete=models.CASCADE, null=True, blank=True
+    )
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
