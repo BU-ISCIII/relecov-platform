@@ -32,7 +32,7 @@ from relecov_core.models import (
 
 
 def fetch_long_table_data(data):
-    import pdb
+    # import pdb
 
     data_ids = {}
     sample_obj = get_sample(data)
@@ -79,7 +79,7 @@ def fetch_long_table_data(data):
             if variant_obj is not None:
                 data_ids["variantID_id"] = variant_obj.get_variant_id()
 
-        pdb.set_trace()
+        # pdb.set_trace()
         return {"SUCCESS": "Success"}
 
     else:
@@ -108,36 +108,72 @@ def get_gene(gene):
 
 
 def set_effect(effect):
-    effect_id = 0
-    if Effect.objects.filter(effect__iexact=effect["effect"]).exists():
-        effect_id = Effect.objects.filter(effect__iexact=effect["effect"]).last()
-        return effect_id
+    def return_effect_obj(effect):
+        effect_obj = 0
+        if Effect.objects.filter(
+            effect__iexact=effect["effect"],
+        ).exists():
+            effect_obj = Effect.objects.filter(effect__iexact=effect["effect"]).last()
+            return effect_obj
+        else:
+            return None
+
+    effect_obj = 0
+    if return_effect_obj(effect) is not None:
+        effect_obj = return_effect_obj(effect)
+        return effect_obj
     else:
         effect_serializer = CreateEffectSerializer(data=effect)
         if effect_serializer.is_valid():
             effect_serializer.save()
+            return return_effect_obj(effect)
 
 
 def set_variant_in_sample(variant_in_sample, data_ids):
-    variant_in_sample_id = 0
-    if VariantInSample.objects.filter(dp__iexact=variant_in_sample["dp"]).exists():
-        variant_in_sample_id = VariantInSample.objects.filter(
-            dp__iexact=variant_in_sample["dp"]
-        ).last()
-        return variant_in_sample_id
+    def return_variant_in_sample(variant_in_sample, data_ids):
+        variant_in_sample_obj = 0
+        if VariantInSample.objects.filter(
+            sampleID_id=data_ids["sampleID_id"],
+            dp__iexact=variant_in_sample["dp"],
+            ref_dp__iexact=variant_in_sample["ref_dp"],
+            alt_dp__iexact=variant_in_sample["alt_dp"],
+            af__iexact=variant_in_sample["af"],
+        ).exists():
+            variant_in_sample_obj = VariantInSample.objects.filter(
+                sampleID_id=data_ids["sampleID_id"],
+                dp__iexact=variant_in_sample["dp"],
+                ref_dp__iexact=variant_in_sample["ref_dp"],
+                alt_dp__iexact=variant_in_sample["alt_dp"],
+                af__iexact=variant_in_sample["af"],
+            ).last()
+            return variant_in_sample_obj
+        else:
+            return None
+
+    def create_variant_in_sample_dict(variant_in_sample_dict, data_ids):
+        data = {}
+        data["sampleID_id"] = data_ids["sampleID_id"]
+        data["filterID_id"] = data_ids["filterID_id"]
+        data["dp"] = variant_in_sample_dict["dp"]
+        data["ref_dp"] = variant_in_sample_dict["ref_dp"]
+        data["alt_dp"] = variant_in_sample_dict["alt_dp"]
+        data["af"] = variant_in_sample_dict["af"]
+
+        return data
+
+    variant_in_sample_obj = 0
+    if return_variant_in_sample(variant_in_sample, data_ids) is not None:
+        variant_in_sample_obj = return_variant_in_sample(variant_in_sample, data_ids)
+        return variant_in_sample_obj
     else:
-        variant_in_sample["sampleID_id"] = data_ids["sampleID_id"]
-        variant_in_sample["filterID_id"] = data_ids["filterID_id"]
-        variant_in_sample_serializer = CreateVariantInSampleSerializer(
-            data=variant_in_sample
-        )
+        data = create_variant_in_sample_dict(variant_in_sample, data_ids)
+        variant_in_sample_serializer = CreateVariantInSampleSerializer(data=data)
         if variant_in_sample_serializer.is_valid():
             variant_in_sample_serializer.save()
+            return return_variant_in_sample(variant_in_sample, data_ids)
 
 
 def set_filter(filter):
-    import pdb
-
     def return_filter_obj(filter_string):
         filter_obj = 0
         if Filter.objects.filter(filter__iexact=filter_string["filter"]).exists():
@@ -152,65 +188,45 @@ def set_filter(filter):
     if return_filter_obj(filter_string=filter) is not None:
         filter_obj = return_filter_obj(filter_string=filter)
         return filter_obj
+    # create register and return created register
     else:
         filter_serializer = CreateFilterSerializer(data=filter)
         if filter_serializer.is_valid():
             filter_serializer.save()
             return return_filter_obj(filter_string=filter)
-    pdb.set_trace()
-    """
-    filter_id = 0
-    if Filter.objects.filter(filter__iexact=filter["filter"]).exists():
-        filter_id = Filter.objects.filter(filter__iexact=filter["filter"]).last()
-        return filter_id
-    else:
-        filter_serializer = CreateFilterSerializer(data=filter)
-        if filter_serializer.is_valid():
-            filter_serializer.save()
-    """
 
 
 def set_variant_annotation(effect, data_ids):
-    # import pdb
-    if VariantAnnotation.objects.filter(geneID_id=data_ids["geneID_id"]).exists():
-        variant_annotation_id = VariantAnnotation.objects.filter(
-            geneID_id=data_ids["geneID_id"]
-        ).last()
-        return variant_annotation_id
-    else:
-        data = {}
+    def return_variant_annotation_obj(effect, data_ids):
+        variant_annotation_obj = 0
+        if VariantAnnotation.objects.filter(geneID_id=data_ids["geneID_id"]).exists():
+            variant_annotation_obj = VariantAnnotation.objects.filter(
+                geneID_id=data_ids["geneID_id"]
+            ).last()
+            return variant_annotation_obj
+        else:
+            return None
 
-        # data["variantID_id"] = data_ids["variantID_id"]
+    def create_variant_annotation_dict(effect, data_ids):
+        data = {}
         data["geneID_id"] = data_ids["geneID_id"]
-        # data["effectID_id"] = data_ids["effectID_id"]
+        data["effectID_id"] = data_ids["effectID_id"]
         data["hgvs_c"] = effect["hgvs_c"]
         data["hgvs_p"] = effect["hgvs_p"]
         data["hgvs_p_1letter"] = effect["hgvs_p_1_letter"]
 
-        # print(data)
-        # pdb.set_trace()
+        return data
+
+    if return_variant_annotation_obj(effect, data_ids) is not None:
+        variant_annotation_obj = return_variant_annotation_obj(effect, data_ids)
+        return variant_annotation_obj
+    else:
+        data = create_variant_annotation_dict(effect, data_ids)
+
         variant_annotation = CreateVariantAnnotationSerializer(data=data)
         if variant_annotation.is_valid():
             variant_annotation.save()
-
-    """
-    if Variant.objects.filter(pos__iexact=data["variants"]["Position"]["pos"]).exists():
-        variantID_id = (
-            Variant.objects.filter(
-                pos__iexact=data["variants"]["Position"]["pos"]
-            ).last()
-            # .get_position_id()
-        )
-        return variantID_id
-    else:
-        data_to_serializer["Position"]["pos"] = data["variants"]["Position"]["pos"]
-        data_to_serializer["Position"]["nucleotide"] = data["variants"]["Position"][
-            "nucleotide"
-        ]
-        variant_serializer = CreateVariantSerializer(data=data_to_serializer)
-        if variant_serializer.is_valid():
-            variant_serializer.save()
-    """
+            return return_variant_annotation_obj(effect, data_ids)
 
 
 def get_sample(data):
@@ -243,47 +259,3 @@ def set_variant(variant, position, data_ids):
         variant_serializer = CreateVariantSerializer(data=data)
         if variant_serializer.is_valid():
             variant_serializer.save()
-
-        """
-        chromosomeID_id = models.ForeignKey(Chromosome, on_delete=models.CASCADE)
-    effectID_id = models.ForeignKey(Effect, on_delete=models.CASCADE)
-    callerID_id = models.ForeignKey(Caller, on_delete=models.CASCADE)
-    filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
-    variant_in_sampleID_id = models.ForeignKey(
-        VariantInSample, on_delete=models.CASCADE
-    )
-    # af = models.CharField(max_length=6)
-    # alt_dp = models.CharField(max_length=5)
-    ref = models.CharField(max_length=60)
-    pos = models.CharField(max_length=60)
-    alt = models.CharField(max_length=100)
-        variant_serializer = CreateVariantSerializer(data=data["Variant"])
-        print(variant_serializer)
-        if variant_serializer.is_valid():
-            variant_serializer.save()
-            print("variant_serializer saved")
-        """
-
-
-"""
-# this function creates a new Sample register for testing
-def create_sample_register():
-    new_sample = Sample.objects.create(
-        state=SampleState.objects.create(
-            state="pre-recorded",
-            display_string="display_string",
-            description="description",
-        ),
-        user=User.objects.create(password="appapk", username="tere"),
-        metadata_file=Document.objects.create(
-            title="title", file_path="", uploadedFile=""
-        ),
-        collecting_lab_sample_id="200002",
-        sequencing_sample_id="1234",
-        biosample_accession_ENA="456123",
-        virus_name="ramiro",
-        gisaid_id="09876",
-        sequencing_date="2022/8/2",
-    )
-    new_sample.save()
-"""

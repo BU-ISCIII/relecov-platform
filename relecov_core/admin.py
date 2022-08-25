@@ -65,7 +65,7 @@ class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
 
 
 class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
-    list_display = ["value", "bioinfo_analysis_fieldID", "sampleID_id"]
+    list_display = ["value", "bioinfo_analysis_fieldID"]
     search_fields = ("value__icontains",)
 
 
@@ -86,7 +86,7 @@ class DateUpdateStateAdmin(admin.ModelAdmin):
 
 
 class EffectAdmin(admin.ModelAdmin):
-    list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
+    list_display = ["effect"]
 
 
 class EnaInfoAdmin(admin.ModelAdmin):
@@ -122,7 +122,7 @@ class LineageFieldsAdmin(admin.ModelAdmin):
 
 
 class LineageValuesAdmin(admin.ModelAdmin):
-    list_display = ["value", "lineage_fieldID", "sampleID_id", "lineage_infoID"]
+    list_display = ["value", "lineage_fieldID"]
 
 
 class OrganismAnnotationAdmin(admin.ModelAdmin):
@@ -149,7 +149,16 @@ class SampleStateAdmin(admin.ModelAdmin):
 
 
 class VariantAdmin(admin.ModelAdmin):
-    list_display = ["ref"]
+    list_display = [
+        "ref",
+        "pos",
+        "alt",
+        "chromosomeID_id",
+        "effectID_id",
+        "filterID_id",
+        "variant_in_sampleID_id",
+        "variant_annotationID_id",
+    ]
 
 
 class VariantInSampleAdmin(admin.ModelAdmin):
