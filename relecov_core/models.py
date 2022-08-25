@@ -1141,6 +1141,10 @@ class VariantAnnotation(models.Model):
 
     def get_variant_in_sample_data(self):
         data = []
+        data.append(self.hgvs_c)
+        data.append(self.hgvs_p)
+        data.append(self.hgvs_p_1letter)
+        return data
 
     objects = VariantAnnotationManager()
 
