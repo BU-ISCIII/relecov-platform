@@ -38,11 +38,9 @@ def split_bioinfo_data(data, schema_obj):
 def store_bioinfo_data(s_data, schema_obj):
     """Save the new field data in database"""
     # schema_id = schema_obj.get_schema_id()
-    sample_id = (
-        Sample.objects.filter(sequencing_sample_id__iexact=s_data["sample"])
-        .last()
-        .get_sample_id()
-    )
+    sample_obj = Sample.objects.filter(
+        sequencing_sample_id__iexact=s_data["sample"]
+    ).last()
     # field to BioinfoAnalysisField table
     for field, value in s_data["bioinfo"].items():
         field_id = (
@@ -54,14 +52,14 @@ def store_bioinfo_data(s_data, schema_obj):
         )
         data = {
             "value": value,
-            "sampleID_id": sample_id,
             "bioinfo_analysis_fieldID": field_id,
         }
 
         bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
         if not bio_value_serializer.is_valid():
             return {"ERROR": str(field + " " + ERROR_UNABLE_TO_STORE_IN_DATABASE)}
-        bio_value_serializer.save()
+        bio_value_obj = bio_value_serializer.save()
+        sample_obj.bio_analysis_values.add(bio_value_obj)
 
     # field to LineageFields table
     for field, value in s_data["lineage"].items():
@@ -72,12 +70,12 @@ def store_bioinfo_data(s_data, schema_obj):
             .last()
             .get_lineage_field_id()
         )
-        data = {"value": value, "sampleID_id": sample_id, "lineage_fieldID": lineage_id}
-
+        data = {"value": value, "lineage_fieldID": lineage_id}
         lineage_value_serializer = CreateLineageValueSerializer(data=data)
 
         if not lineage_value_serializer.is_valid():
             return {"ERROR": str(field + " " + ERROR_UNABLE_TO_STORE_IN_DATABASE)}
-        lineage_value_serializer.save()
+        lineage_value_obj = lineage_value_serializer.save()
+        sample_obj.linage_values.add(lineage_value_obj)
 
     return {"SUCCESS": "success"}
