@@ -29,6 +29,7 @@ def get_variant_data_from_sample(sample_id):
                 v_ann_objs = VariantAnnotation.objects.filter(variantID_id=v_obj)
                 v_ann_data_p = []
                 for v_ann_obj in v_ann_objs:
+                    # HGVS_C	HGVS_P	HGVS_P_1LETTER
                     v_ann_data_p.append(v_ann_obj.get_variant_in_sample_data())
                 if len(v_ann_data_p) > 1:
                     v_ann_data = []
