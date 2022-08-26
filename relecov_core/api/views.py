@@ -271,14 +271,14 @@ def create_variant_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
-        
+
         # sample_obj = get_sample(data)
         sample_obj = get_sample_obj_if_exists(data)
         if sample_obj is None:
             return Response(
-            {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+                {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         stored_data = fetch_long_table_data(data, sample_obj)
 
         if "ERROR" in stored_data:
