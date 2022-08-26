@@ -1034,9 +1034,6 @@ class AnalysisPerformed(models.Model):
         return "%s" % (self.typeID.get_type_name())
 
 
-
-
-
 # Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data, data_ids):
@@ -1113,7 +1110,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
     sampleID_id = models.ForeignKey(
         Sample, on_delete=models.CASCADE, null=True, blank=True
     )
-    variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE, null=True, blank=True)
+    variantID_id = models.ForeignKey(
+        Variant, on_delete=models.CASCADE, null=True, blank=True
+    )
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
     alt_dp = models.CharField(max_length=5, null=True, blank=True)
@@ -1170,7 +1169,9 @@ class VariantAnnotation(models.Model):
     effectID_id = models.ForeignKey(
         Effect, on_delete=models.CASCADE, null=True, blank=True
     )
-    variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE, null=True, blank=True)
+    variantID_id = models.ForeignKey(
+        Variant, on_delete=models.CASCADE, null=True, blank=True
+    )
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
@@ -1207,7 +1208,6 @@ class VariantAnnotation(models.Model):
         return data
 
     objects = VariantAnnotationManager()
-
 
 
 class TemporalSampleStorageManager(models.Manager):

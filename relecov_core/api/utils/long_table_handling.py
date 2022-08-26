@@ -41,14 +41,14 @@ def fetch_long_table_data(data, sample_obj):
     # Check if sample exists
     # if sample_obj is not None:
     data_ids["sampleID_id"] = sample_obj.get_sample_id()
-    
+
     # checks if each variant in a sample contains Chromosome, Gene, effect and filter.
     for idx in range(len(data["variants"])):
         variant = data["variants"][idx]
         chromosome_obj = get_chromosome(
             variant["Chromosome"]["chromosome"].split(".")[0]
         )
-        
+
         if chromosome_obj is not None:
             data_ids["chromosomeID_id"] = chromosome_obj.get_chromosome_id()
 
@@ -63,10 +63,8 @@ def fetch_long_table_data(data, sample_obj):
         filter_obj = set_filter(variant["Filter"])
         if filter_obj is not None:
             data_ids["filterID_id"] = filter_obj.get_filter_id()
-            
-        variant_obj = set_variant(
-            variant["Variant"], variant["Position"], data_ids
-        )
+
+        variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
         if variant_obj is not None:
             data_ids["variantID_id"] = variant_obj.get_variant_id()
 
@@ -117,14 +115,12 @@ def set_effect(effect):
         return effect_obj
     else:
         return {"ERROR": ERROR_EFFECT_NOT_DEFINED_IN_DATABASE}
-    
-    
+
+
 def set_filter(filter):
     filter_obj = 0
     if Filter.objects.filter(filter__iexact=filter["filter"]).exists():
-        filter_obj = Filter.objects.filter(
-            filter__iexact=filter["filter"]
-        ).last()
+        filter_obj = Filter.objects.filter(filter__iexact=filter["filter"]).last()
         return filter_obj
     else:
         return {"ERROR": ERROR_FILTER_NOT_DEFINED_IN_DATABASE}
@@ -141,25 +137,25 @@ def set_variant_in_sample(variant_in_sample, data_ids):
         data["af"] = variant_in_sample_dict["af"]
 
         return data
-    
+
     if VariantInSample.objects.filter(
-            variantID_id= data_ids["variantID_id"],
+        variantID_id=data_ids["variantID_id"],
+        dp__iexact=variant_in_sample["dp"],
+        ref_dp__iexact=variant_in_sample["ref_dp"],
+        alt_dp__iexact=variant_in_sample["alt_dp"],
+        af__iexact=variant_in_sample["af"],
+    ).exists():
+        variant_in_sample_obj = VariantInSample.objects.filter(
+            variantID_id=data_ids["variantID_id"],
             dp__iexact=variant_in_sample["dp"],
             ref_dp__iexact=variant_in_sample["ref_dp"],
             alt_dp__iexact=variant_in_sample["alt_dp"],
             af__iexact=variant_in_sample["af"],
-        ).exists():
-            variant_in_sample_obj = VariantInSample.objects.filter(
-               variantID_id=data_ids["variantID_id"],
-                dp__iexact=variant_in_sample["dp"],
-                ref_dp__iexact=variant_in_sample["ref_dp"],
-                alt_dp__iexact=variant_in_sample["alt_dp"],
-                af__iexact=variant_in_sample["af"],
-            ).last()
-            return variant_in_sample_obj
+        ).last()
+        return variant_in_sample_obj
     else:
         data = create_variant_in_sample_dict(variant_in_sample, data_ids)
-        variant_in_sample_serializers = CreateVariantInSampleSerializer(data = data)
+        variant_in_sample_serializers = CreateVariantInSampleSerializer(data=data)
         if variant_in_sample_serializers.is_valid():
             variant_in_sample_obj = variant_in_sample_serializers.save()
             return variant_in_sample_obj
@@ -220,7 +216,7 @@ def set_variant_annotation(effect, data_ids):
         data["variantID_id"] = data_ids["variantID_id"]
 
         return data
-    
+
     variant_annotation_obj = 0
     if VariantAnnotation.objects.filter(geneID_id=data_ids["geneID_id"]).exists():
         variant_annotation_obj = VariantAnnotation.objects.filter(
@@ -247,8 +243,10 @@ def get_sample(data):
 
 
 def set_variant(variant, position, data_ids):
-    if Variant.objects.filter(pos=position["pos"],alt=position["alt"]).exists():
-        variant_obj_check = Variant.objects.filter(pos=position["pos"], alt=position["alt"]).last()
+    if Variant.objects.filter(pos=position["pos"], alt=position["alt"]).exists():
+        variant_obj_check = Variant.objects.filter(
+            pos=position["pos"], alt=position["alt"]
+        ).last()
         return variant_obj_check
     else:
         data = {}
@@ -317,4 +315,3 @@ def set_variant(variant, position, data_ids):
             variant_serializer.save()
             print("variant_serializer.save()")
     """
-    
