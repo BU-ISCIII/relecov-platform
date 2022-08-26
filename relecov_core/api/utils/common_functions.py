@@ -21,9 +21,16 @@ def get_schema_version_if_exists(data):
 
 def get_sample_obj_if_exists(data):
     """Check if sample name exists"""
+    """
     if Sample.objects.filter(sequencing_sample_id__iexact=data["sample_name"]).exists():
         return Sample.objects.filter(
             sequencing_sample_id__iexact=data["sample_name"]
+        ).last()
+    return None
+    """
+    if Sample.objects.filter(sequencing_sample_id__iexact=data["sample"]).exists():
+        return Sample.objects.filter(
+            sequencing_sample_id__iexact=data["sample"]
         ).last()
     return None
 

@@ -1032,6 +1032,62 @@ class AnalysisPerformed(models.Model):
         return "%s" % (self.typeID.get_type_name())
 
 
+
+
+
+# Variant Table
+class VariantManager(models.Manager):
+    def create_new_variant(self, data, data_ids):
+        new_variant = self.create(
+            # ref=data,
+            chrom=data["chrom"],
+            pos=data["pos"],
+            ref=data["ref"],
+            alt=data["alt"],
+            chromosomeID_id=data_ids["chromosomeID_id"],
+            callerID_id=data_ids["callerID_id"],
+            filterID_id=data_ids["filterID_id"],
+            variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
+        )
+        return new_variant
+
+
+# CHROM	POS	REF	ALT
+class Variant(models.Model):
+    chromosomeID_id = models.ForeignKey(
+        Chromosome, on_delete=models.CASCADE, null=True, blank=True
+    )
+    filterID_id = models.ForeignKey(
+        Filter, on_delete=models.CASCADE, null=True, blank=True
+    )
+    ref = models.CharField(max_length=60, null=True, blank=True)
+    pos = models.CharField(max_length=60, null=True, blank=True)
+    alt = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        db_table = "Variant"
+
+    def __str__(self):
+        return "%s" % (self.ref)
+
+    def get_variant_id(self):
+        return "%s" % (self.pk)
+
+    def get_ref(self):
+        return "%s" % (self.ref)
+
+    def get_pos(self):
+        return "%s" % (self.pos)
+
+    def get_chrom(self):
+        return "%s" % (self.chrom)
+
+    def get_alt(self):
+        return "%s" % (self.alt)
+
+    objects = VariantManager()
+
+
 class VariantInSampleManager(models.Manager):
     """
     fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4),
@@ -1055,8 +1111,7 @@ class VariantInSample(models.Model):  # include Foreign Keys
     sampleID_id = models.ForeignKey(
         Sample, on_delete=models.CASCADE, null=True, blank=True
     )
-    # filterID_id = models.ForeignKey(Filter, on_delete=models.CASCADE)
-    # variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE, null=True, blank=True)
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
     alt_dp = models.CharField(max_length=5, null=True, blank=True)
@@ -1095,67 +1150,6 @@ class VariantInSample(models.Model):  # include Foreign Keys
     objects = VariantInSampleManager()
 
 
-# Variant Table
-class VariantManager(models.Manager):
-    def create_new_variant(self, data, data_ids):
-        new_variant = self.create(
-            # ref=data,
-            chrom=data["chrom"],
-            pos=data["pos"],
-            ref=data["ref"],
-            alt=data["alt"],
-            chromosomeID_id=data_ids["chromosomeID_id"],
-            callerID_id=data_ids["callerID_id"],
-            filterID_id=data_ids["filterID_id"],
-            variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
-        )
-        return new_variant
-
-
-# CHROM	POS	REF	ALT
-class Variant(models.Model):
-    chromosomeID_id = models.ForeignKey(
-        Chromosome, on_delete=models.CASCADE, null=True, blank=True
-    )
-    filterID_id = models.ForeignKey(
-        Filter, on_delete=models.CASCADE, null=True, blank=True
-    )
-    variant_in_sampleID_id = models.ForeignKey(
-        VariantInSample, on_delete=models.CASCADE, null=True, blank=True
-    )
-    """
-    variant_annotationID_id = models.ForeignKey(
-        VariantAnnotation, on_delete=models.CASCADE, null=True, blank=True
-    )
-    """
-    ref = models.CharField(max_length=60, null=True, blank=True)
-    pos = models.CharField(max_length=60, null=True, blank=True)
-    alt = models.CharField(max_length=100, null=True, blank=True)
-
-    class Meta:
-        db_table = "Variant"
-
-    def __str__(self):
-        return "%s" % (self.ref)
-
-    def get_variant_id(self):
-        return "%s" % (self.pk)
-
-    def get_ref(self):
-        return "%s" % (self.ref)
-
-    def get_pos(self):
-        return "%s" % (self.pos)
-
-    def get_chrom(self):
-        return "%s" % (self.chrom)
-
-    def get_alt(self):
-        return "%s" % (self.alt)
-
-    objects = VariantManager()
-
-
 class VariantAnnotationManager(models.Manager):
     def create_new_variant_annotation(self, data, data_ids):
         new_variant_annotation = self.create(
@@ -1174,7 +1168,7 @@ class VariantAnnotation(models.Model):
     effectID_id = models.ForeignKey(
         Effect, on_delete=models.CASCADE, null=True, blank=True
     )
-    variantID_id = models.ManyToManyField(Variant)
+    variantID_id = models.ForeignKey(Variant, on_delete=models.CASCADE, null=True, blank=True)
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
     hgvs_p_1letter = models.CharField(max_length=100)
