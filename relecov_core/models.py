@@ -541,11 +541,11 @@ class Filter(models.Model):
     def __str__(self):
         return "%s" % (self.filter)
 
-    def get_filter_id(self):
-        return "%s" % (self.pk)
-
     def get_filter(self):
         return "%s" % (self.filter)
+
+    def get_filter_id(self):
+        return "%s" % (self.pk)
 
     objects = FilterManager()
 
@@ -636,11 +636,11 @@ class Chromosome(models.Model):
     def __str__(self):
         return "%s" % (self.chromosome)
 
+    def get_chromosome_name(self):
+        return "%s" % (self.chromosome)
+
     def get_chromosome_id(self):
         return "%s" % (self.pk)
-
-    def get_chromosome(self):
-        return "%s" % (self.chromosome)
 
     objects = ChromosomeManager()
 
@@ -1139,6 +1139,13 @@ class VariantAnnotation(models.Model):
     def get_hgvs_p_1letter(self):
         return "%s" % (self.hgvs_p_1letter)
 
+    def get_variant_in_sample_data(self):
+        data = []
+        data.append(self.hgvs_c)
+        data.append(self.hgvs_p)
+        data.append(self.hgvs_p_1letter)
+        return data
+
     objects = VariantAnnotationManager()
 
 
@@ -1216,6 +1223,23 @@ class Variant(models.Model):
 
     def get_alt(self):
         return "%s" % (self.alt)
+
+    def get_variant_in_sample_data(self):
+        data = []
+        if self.chromosomeID_id is not None:
+            chromosome = self.chromosomeID_id.get_chromosome_name()
+        else:
+            chromosome = ""
+        if self.filterID_id is not None:
+            filter = self.filterID_id.get_filter()
+        else:
+            filter = ""
+        data.append(chromosome)
+        data.append(self.pos)
+        data.append(self.ref)
+        data.append(self.alt)
+        data.append(filter)
+        return data
 
     objects = VariantManager()
 
