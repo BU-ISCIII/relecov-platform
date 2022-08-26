@@ -543,11 +543,11 @@ class Filter(models.Model):
     def __str__(self):
         return "%s" % (self.filter)
 
-    def get_filter_id(self):
-        return "%s" % (self.pk)
-
     def get_filter(self):
         return "%s" % (self.filter)
+
+    def get_filter_id(self):
+        return "%s" % (self.pk)
 
     objects = FilterManager()
 
@@ -638,11 +638,11 @@ class Chromosome(models.Model):
     def __str__(self):
         return "%s" % (self.chromosome)
 
+    def get_chromosome_name(self):
+        return "%s" % (self.chromosome)
+
     def get_chromosome_id(self):
         return "%s" % (self.pk)
-
-    def get_chromosome(self):
-        return "%s" % (self.chromosome)
 
     objects = ChromosomeManager()
 
@@ -859,9 +859,11 @@ class Sample(models.Model):
     schema_obj = models.ForeignKey(
         Schema, on_delete=models.CASCADE, null=True, blank=True
     )
-    linage_values = models.ManyToManyField(LineageValues)
-    linage_info = models.ManyToManyField(LineageInfo)
-    bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue)
+    linage_values = models.ManyToManyField(LineageValues, null=True, blank=True)
+    linage_info = models.ManyToManyField(LineageInfo, null=True, blank=True)
+    bio_analysis_values = models.ManyToManyField(
+        BioInfoAnalysisValue, null=True, blank=True
+    )
 
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
@@ -1197,7 +1199,15 @@ class VariantAnnotation(models.Model):
     def get_hgvs_p_1letter(self):
         return "%s" % (self.hgvs_p_1letter)
 
+    def get_variant_in_sample_data(self):
+        data = []
+        data.append(self.hgvs_c)
+        data.append(self.hgvs_p)
+        data.append(self.hgvs_p_1letter)
+        return data
+
     objects = VariantAnnotationManager()
+
 
 
 class TemporalSampleStorageManager(models.Manager):
