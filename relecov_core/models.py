@@ -1070,7 +1070,7 @@ class Variant(models.Model):
         db_table = "Variant"
 
     def __str__(self):
-        return "%s" % (self.ref)
+        return "%s_%s" % (self.pos, self.alt)
 
     def get_variant_id(self):
         return "%s" % (self.pk)
@@ -1179,7 +1179,7 @@ class VariantAnnotation(models.Model):
         db_table = "VariantAnnotation"
 
     def __str__(self):
-        return "%s" % (self.geneID_id)
+        return "%s" % (self.variantID_id)
 
     def get_variant_annotation_id(self):
         return "%s" % (self.pk)

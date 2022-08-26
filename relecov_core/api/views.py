@@ -286,7 +286,7 @@ def create_variant_data(request):
 
         analysis_data = {
             "sampleID": sample_obj.get_sample_id(),
-            "typeID": get_analysis_type_id("bioinfo_analysis"),
+            "typeID": get_analysis_type_id("variant_analysis"),
         }
         analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
 
