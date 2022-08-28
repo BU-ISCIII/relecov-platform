@@ -41,7 +41,7 @@ urlpatterns = [
     path("spikeMutations", views.spike_mutations, name="spike_mutations"),
     path("Gauge", views.gauge_test, name="gauge"),
     # Methodology graphics
-    path("methodology", views.methodology_index, name="methodology_index")
+    path("methodology", views.methodology_index, name="methodology_index"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
