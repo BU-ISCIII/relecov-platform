@@ -90,18 +90,4 @@ def gauge_test(request):
 
 
 def methodology_fields_utilization(request):
-    per_value, never_used = schema_fields_utilization()
-    graph_not_empty_fields(per_value, "Bioinfo metadata filled values %")
-    # create_utilization_graphic(1)
-    # return render(request, "relecov_dashboard/methodologytest.html" )
-    graph_never_used_fields(never_used, "Never used bioinfometada fields")
-
-    # render_page_content()
-    # create_gauge(value, "bioinfo metadata filled values %")
     return render(request, "relecov_dashboard/methodologytest2.html")
-
-    return render(
-        request,
-        "relecov_dashboard/dashboard_templates/methodologyFieldsUtilization.html",
-        {"f_utilization": f_utilization},
-    )
