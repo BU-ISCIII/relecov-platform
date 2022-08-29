@@ -21,7 +21,7 @@ from relecov_core.api.serializers import (
     UpdateSampleSerializer,
 )
 
-from relecov_core.api.utils.long_table_handling import fetch_long_table_data, get_sample
+from relecov_core.api.utils.long_table_handling import fetch_long_table_data
 from relecov_core.api.utils.sample_handling import (
     check_if_sample_exists,
     split_sample_data,
