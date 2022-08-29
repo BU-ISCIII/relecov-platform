@@ -93,4 +93,6 @@ def index_dash_fields():
     graph_not_empty_fields(f_value, "Bioinfo metadata filled values %")
     # create graphic for never useds fields
     graph_never_used_fields(n_used, "Never used bioinfometada fields")
+    # create sequencer pie graphic
+    
     return
