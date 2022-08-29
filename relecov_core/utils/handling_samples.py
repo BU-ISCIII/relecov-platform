@@ -264,6 +264,7 @@ def get_sample_display_data(sample_id, user):
     if ena_data != "":
         s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
     lab_sample = sample_obj.get_collecting_lab_sample_id()
+    # Fetch information from iSkyLIMS
     if lab_sample != "":
         iskylims_data = get_sample_information(lab_sample)
         if "ERROR" not in iskylims_data:

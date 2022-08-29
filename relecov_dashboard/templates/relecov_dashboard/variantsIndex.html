@@ -6,8 +6,9 @@
 {% block content %}
 <br><br><br><br><br><br><br><br>
 
+
 <div class="container-fluid" style="text-align: center;">
-    <div class="card d-inline-flex p-2 m-1">
+    <div class="card d-inline-flex p-2 m-1" style="width: 35%">
         <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" class="card-img-top" alt="needle plot" style="width: 70%">
         <div class="card-body" style="text-align: left;">
           <h5 class="card-title">Lineages VOC</h5>
@@ -18,9 +19,10 @@
               <li><a href="#">Table to filter and download</a></li>
             </ul>-->
           </p>
-          <a href="/dashboard/variants/lineagesVoc" class="btn btn-primary">Go</a>
+          <a href="/dashboard/variants/lineagesVOC" class="btn btn-primary">Go</a>
         </div>
     </div>
+
 
     <div class="card d-inline-flex p-2 m-1" style="width: 35%">
             <img src="{% static 'relecov_dashboard/img/needlePlot.png' %}" class="card-img-top" alt="molecular 3D" style="width: 70%">
