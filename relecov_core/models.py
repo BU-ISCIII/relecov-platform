@@ -1125,7 +1125,7 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
-    
+
     def get_variantID_id(self):
         return "%s" % (self.variantID_id.get_variant_id())
 
@@ -1140,10 +1140,10 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     def get_af(self):
         return "%s" % (self.af)
-    
+
     def get_variant_pos(self):
         return self.variantID_id.get_pos()
-    
+
     def get_variant_in_sample_data(self):
         data = []
         data.append(self.dp)
@@ -1194,7 +1194,7 @@ class VariantAnnotation(models.Model):
 
     def get_effectID_id(self):
         return "%s" % (self.effectID_id)
-    
+
     def get_hgvs_c(self):
         return "%s" % (self.hgvs_c)
 
