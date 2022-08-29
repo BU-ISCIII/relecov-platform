@@ -8,6 +8,11 @@ urlpatterns = [
     path("variants", views.variants_index, name="variants_index"),
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
     path(
+        "methodology/fields_utilization",
+        views.methodology_fields_utilization,
+        name="methodology_fields_utilization",
+    ),
+    path(
         "variants/lineagesVoc",
         views.variants_lineages_voc,
         name="variants_lineages_voc",
@@ -37,11 +42,6 @@ urlpatterns = [
     path("Gauge", views.gauge_test, name="gauge"),
     # Methodology graphics
     path("methodology", views.methodology_index, name="methodology_index"),
-    path(
-        "methodology/fields_utilization",
-        views.methodology_fields_utilization,
-        name="methodology_fields_utilization",
-    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -22,7 +22,10 @@ from relecov_dashboard.utils.graphics.geo_json import create_json
 from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
 
 #
-from relecov_dashboard.utils.methodology_fields import schema_fields_utilization
+
+from relecov_dashboard.utils.methodology_index import index_dash_fields
+
+# from relecov_dashboard.utils.methodology_test import render_page_content, create_gauge
 
 
 def variants_index(request):
@@ -30,6 +33,7 @@ def variants_index(request):
 
 
 def methodology_index(request):
+    index_dash_fields()
     return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
@@ -86,9 +90,4 @@ def gauge_test(request):
 
 
 def methodology_fields_utilization(request):
-    f_utilization = schema_fields_utilization()
-    return render(
-        request,
-        "relecov_dashboard/dashboard_templates/methodologyFieldsUtilization.html",
-        {"f_utilization": f_utilization},
-    )
+    return render(request, "relecov_dashboard/methodologytest2.html")
