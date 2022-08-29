@@ -178,6 +178,7 @@ ERROR_INVALID_DEFINED_SAMPLE_FORMAT = "The format for the defined Date is incorr
 ERROR_NOT_MATCHED_ITEMS_IN_SEARCH = "Your query does not return any match"
 
 ERROR_SAMPLE_DOES_NOT_EXIST = "The Sample you request does not exist"
+ERROR_CHROMOSOME_DOES_NOT_EXIST = "The Chromosome you request does not exist"
 ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE = "You are not allowed to see the sample"
 
 ERROR_INVALID_JSON = "Invalid json file"
