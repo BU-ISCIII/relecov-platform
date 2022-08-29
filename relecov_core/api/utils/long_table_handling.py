@@ -1,10 +1,10 @@
 from relecov_core.api.serializers import (
     # CreateChromosomeSerializer,
     # CreateGeneSerializer,
-    CreateEffectSerializer,
+    # CreateEffectSerializer,
     CreateVariantInSampleSerializer,
     CreateVariantAnnotationSerializer,
-    CreateFilterSerializer,
+    # CreateFilterSerializer,
     # CreatePositionSerializer,
     # CreateLineageSerializer,
     CreateVariantSerializer,
@@ -288,7 +288,7 @@ def set_variant(variant, position, data_ids):
                         return variant_obj_check
                     else:
                         return None
-                        
+
     variant_obj_check = check_if_sample_has_same_pos_and_alt(
         data, variant, position, data_ids
     )
