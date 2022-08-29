@@ -244,6 +244,7 @@ ISKLIMS_PUT_LABORATORY_PARAMETER = "updateLab"
 ISKLIMS_GET_SAMPLE_FIELDS = "sampleFields"
 ISKLIMS_GET_SAMPLE_INFORMATION = ["fetchSampleIinformation", "sample"]
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
+ISKLIMS_GET_SUMMARIZE_DATA = "summarizeDataInformation"
 ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
 
 # API requested information
