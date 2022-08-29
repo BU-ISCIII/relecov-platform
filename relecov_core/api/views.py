@@ -253,6 +253,7 @@ def create_bioinfo_metadata(request):
     date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
     if date_serializer.is_valid():
         date_serializer.save()
+
     analysis_data = {
         "sampleID": sample_obj.get_sample_id(),
         "typeID": get_analysis_type_id("bioinfo_analysis"),
@@ -270,10 +271,27 @@ def create_variant_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
-        stored_data = fetch_long_table_data(data)
+
+        # sample_obj = get_sample(data)
+        sample_obj = get_sample_obj_if_exists(data)
+        if sample_obj is None:
+            return Response(
+                {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        stored_data = fetch_long_table_data(data, sample_obj)
 
         if "ERROR" in stored_data:
             return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+
+        analysis_data = {
+            "sampleID": sample_obj.get_sample_id(),
+            "typeID": get_analysis_type_id("variant_analysis"),
+        }
+        analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
+
+        if analysis_serializer.is_valid():
+            analysis_serializer.save()
 
         return Response(status=status.HTTP_201_CREATED)
 

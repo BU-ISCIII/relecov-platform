@@ -164,10 +164,7 @@ class VariantAdmin(admin.ModelAdmin):
         "pos",
         "alt",
         "chromosomeID_id",
-        "effectID_id",
         "filterID_id",
-        "variant_in_sampleID_id",
-        "variant_annotationID_id",
     ]
 
 
@@ -176,7 +173,7 @@ class VariantInSampleAdmin(admin.ModelAdmin):
 
 
 class VariantAnnotationAdmin(admin.ModelAdmin):
-    list_display = ["geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1letter"]
+    list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1letter"]
 
 
 class AuthorsAdmin(admin.ModelAdmin):
