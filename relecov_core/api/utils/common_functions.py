@@ -22,8 +22,8 @@ def get_schema_version_if_exists(data):
 
 
 def update_change_state_date(sample_id, state_id):
-    """ Update the DateUpdateState table with the new sample state"""
-    d_date = {"stateID": state_id, "sampleID" : sample_id}
+    """Update the DateUpdateState table with the new sample state"""
+    d_date = {"stateID": state_id, "sampleID": sample_id}
     date_update_serializer = CreateDateAfterChangeStateSerializer(d_date)
     if date_update_serializer.isvalid():
         date_update_serializer.save()

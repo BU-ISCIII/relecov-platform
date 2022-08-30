@@ -146,7 +146,7 @@ class VariantInSampleAdmin(admin.ModelAdmin):
 
 
 class VariantAnnotationAdmin(admin.ModelAdmin):
-    list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1letter"]
+    list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
 
 
 class SchemaAdmin(admin.ModelAdmin):

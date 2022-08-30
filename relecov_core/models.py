@@ -485,12 +485,6 @@ class OrganismAnnotation(models.Model):
     objects = OrganismAnnotationManger()
 
 
-class FilterManager(models.Manager):
-    def create_new_filter(self, data):
-        new_filter = self.create(filter=data)
-        return new_filter
-
-
 class Filter(models.Model):
     filter = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
@@ -506,17 +500,6 @@ class Filter(models.Model):
 
     def get_filter_id(self):
         return "%s" % (self.pk)
-
-    objects = FilterManager()
-
-
-# Effect Table
-class EffectManager(models.Manager):
-    def create_new_effect(self, data):
-        new_effect = self.create(
-            effect=data[11],
-        )
-        return new_effect
 
 
 class Effect(models.Model):
@@ -534,8 +517,6 @@ class Effect(models.Model):
 
     def get_effect(self):
         return "%s" % (self.effect)
-
-    objects = EffectManager()
 
 
 # Gene Table
@@ -788,22 +769,6 @@ class DateUpdateState(models.Model):
         return self.date.strftime("%B %d, %Y")
 
 
-class VariantManager(models.Manager):
-    def create_new_variant(self, data, data_ids):
-        new_variant = self.create(
-            # ref=data,
-            chrom=data["chrom"],
-            pos=data["pos"],
-            ref=data["ref"],
-            alt=data["alt"],
-            chromosomeID_id=data_ids["chromosomeID_id"],
-            callerID_id=data_ids["callerID_id"],
-            filterID_id=data_ids["filterID_id"],
-            variant_in_sampleID_id=data_ids["variant_in_sampleID_id"],
-        )
-        return new_variant
-
-
 # CHROM	POS	REF	ALT
 class Variant(models.Model):
     chromosomeID_id = models.ForeignKey(
@@ -836,19 +801,6 @@ class Variant(models.Model):
 
     def get_alt(self):
         return "%s" % (self.alt)
-
-    objects = VariantManager()
-
-
-class VariantInSampleManager(models.Manager):
-    def create_new_variant_in_sample(self, data):
-        new_variant_in_sample = self.create(
-            dp=data["dp"],
-            ref_dp=data["ref_dp"],
-            alt_dp=data["alt_dp"],
-            af=data["af"],
-        )
-        return new_variant_in_sample
 
 
 # FILTER	DP	REF_DP	ALT_DP	AF
@@ -900,20 +852,6 @@ class VariantInSample(models.Model):  # include Foreign Keys
         data.append(self.af)
         return data
 
-    objects = VariantInSampleManager()
-
-
-class VariantAnnotationManager(models.Manager):
-    def create_new_variant_annotation(self, data, data_ids):
-        new_variant_annotation = self.create(
-            hgvs_c=data["hgvs_c"],
-            hgvs_p=data["hgvs_p"],
-            hgvs_p_1letter=data["hgvs_p_1_letter"],
-            effectID_id=data_ids["effectID_id"],
-            geneID_id=data_ids["geneID_id"],
-        )
-        return new_variant_annotation
-
 
 # variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
@@ -926,7 +864,7 @@ class VariantAnnotation(models.Model):
     )
     hgvs_c = models.CharField(max_length=60)
     hgvs_p = models.CharField(max_length=60)
-    hgvs_p_1letter = models.CharField(max_length=100)
+    hgvs_p_1_letter = models.CharField(max_length=100)
 
     class Meta:
         db_table = "VariantAnnotation"
@@ -943,23 +881,12 @@ class VariantAnnotation(models.Model):
     def get_effectID_id(self):
         return "%s" % (self.effectID_id)
 
-    def get_hgvs_c(self):
-        return "%s" % (self.hgvs_c)
-
-    def get_hgvs_p(self):
-        return "%s" % (self.hgvs_p)
-
-    def get_hgvs_p_1letter(self):
-        return "%s" % (self.hgvs_p_1letter)
-
     def get_variant_in_sample_data(self):
         data = []
         data.append(self.hgvs_c)
         data.append(self.hgvs_p)
-        data.append(self.hgvs_p_1letter)
+        data.append(self.hgvs_p_1_letter)
         return data
-
-    objects = VariantAnnotationManager()
 
 
 class TemporalSampleStorageManager(models.Manager):
