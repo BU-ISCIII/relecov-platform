@@ -1,4 +1,4 @@
-from relecov_core.models import Schema, Sample, AnalysisType
+from relecov_core.models import Schema, AnalysisType
 
 
 def get_schema_version_if_exists(data):
