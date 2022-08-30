@@ -14,10 +14,11 @@ from django.http import QueryDict
 from relecov_core.api.serializers import (
     CreateDateAfterChangeStateSerializer,
     CreateSampleSerializer,
-    UpdateSampleSerializer,
+    CreateErrorSerializer,
+    UpdateStateSampleSerializer,
 )
 
-from relecov_core.api.utils.long_table_handling import fetch_variant_data
+from relecov_core.api.utils.variant_handling import fetch_variant_data, store_variant_annotation, store_variant_in_sample
 from relecov_core.api.utils.sample_handling import (
     check_if_sample_exists,
     split_sample_data,
@@ -29,11 +30,11 @@ from relecov_core.api.utils.bioinfo_metadata_handling import (
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, Error
+from relecov_core.models import SampleState, Error
 
-from relecov_core.api.utils.common_functions import get_schema_version_if_exists
+from relecov_core.api.utils.common_functions import get_schema_version_if_exists, update_change_state_date
 
-from relecov_core.utils.handling_samples import get_sample_obj_if_exists
+from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
 from relecov_core.core_config import (
     ERROR_SAMPLE_NAME_NOT_INCLUDED,
     ERROR_SAMPLE_NOT_DEFINED,
@@ -218,7 +219,7 @@ def create_bioinfo_metadata(request):
             {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    sample_obj = get_sample_obj_if_exists(data)
+    sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
     if sample_obj is None:
         return Response(
             {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
@@ -252,8 +253,7 @@ def create_variant_data(request):
         if isinstance(data, QueryDict):
             data = data.dict()
 
-        # sample_obj = get_sample(data)
-        sample_obj = get_sample_obj_if_exists(data)
+        sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
         if sample_obj is None:
             return Response(
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
@@ -263,11 +263,26 @@ def create_variant_data(request):
                 {"ERROR": ERROR_VARIANT_INFORMATION_NOT_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        found_error = False
+        v_in_sample_list = []
+        v_an_list = []
         for s_data in data["variant"]:
-            stored_data = fetch_variant_data(data, sample_obj)
-
-        if "ERROR" in stored_data:
-            return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+            variant_data = fetch_variant_data(data, sample_obj)
+            if "ERROR" in variant_data :
+                found_error = True
+                break
+            variant_in_sample_obj = store_variant_in_sample(variant_data)
+            if "ERROR" in variant_in_sample_obj:
+                found_error = True
+                break
+            v_in_sample_list.append(variant_in_sample_obj)
+            variant_ann_obj = store_variant_annotation(variant_data)
+            if "ERROR" in variant_ann_obj:
+                found_error = True
+                break
+            v_an_list.append(variant_ann_obj)
+        if found_error:
+            pass
 
         sample_obj.update_state("Variant")
         # Include date and state in DateState table
@@ -279,6 +294,7 @@ def create_variant_data(request):
         if date_serializer.is_valid():
             date_serializer.save()
         return Response(status=status.HTTP_201_CREATED)
+        return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
 
 @swagger_auto_schema(
@@ -309,8 +325,6 @@ def create_variant_data(request):
 @permission_classes([IsAuthenticated])
 @api_view(["PUT"])
 def update_state(request):
-    data_date = {}
-
     if request.method == "PUT":
         data = request.data
 
@@ -318,46 +332,35 @@ def update_state(request):
             data = data.dict()
 
         data["user"] = request.user.pk
-
+        sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
+        if sample_obj is None:
+            return Response(
+                {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+            )
+        sample_id = sample_obj.get_sample_id()
         # if state exists,
         if SampleState.objects.filter(state=data["state"]).exists():
-            data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
+            s_data = {"state" : SampleState.objects.filter(state=data["state"]).last().get_state_id()}
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        data["sequencing_sample_id"] = data["sample"]
-
-        if "error_type" in data:
-            data["error_type"] = (
-                Error.objects.filter(error_name=data["error_type"]).last().pk
-            )
-
-        # if sample exists, create an instance of existing sample.
-        if Sample.objects.filter(
-            sequencing_sample_id=data["sample"], user=request.user
-        ).exists():
-            sample_instance = Sample.objects.filter(
-                sequencing_sample_id=data["sample"]
-            ).last()
-
-            sample_serializer = UpdateSampleSerializer(sample_instance, data=data)
-        # if sample does not exist, create a new sample register.
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
+        sample_serializer = UpdateStateSampleSerializer(sample_obj, data=s_data)
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
         sample_serializer.save()
 
-        data_date["stateID"] = SampleState.objects.filter(
-            pk__exact=data["state"]
-        ).last()
-        data_date["sampleID"] = Sample.objects.filter(
-            sequencing_sample_id=sample_instance
-        )
+        if "error_type" in data and "Error" in data["state"]:
+            error_type_id = Error.objects.filter(error_name=data["error_type"]).last().get_error_id()
+            e_data = {"error_type" : error_type_id}
+            sample_err_serializer = CreateErrorSerializer(sample_obj, data=e_data)
+            if not sample_err_serializer.is_valid():
+                return Response(
+                    sample_err_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+            sample_err_serializer.save()
 
-        CreateDateAfterChangeStateSerializer(data_date)
+        update_change_state_date(sample_id, s_data["state"])
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)

@@ -13,21 +13,15 @@ from relecov_core.models import (
 )
 
 
-class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BioInfoAnalysisValue
-        fields = "__all__"
-
-
 class CreateDateAfterChangeStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DateUpdateState
         fields = "__all__"
 
 
-class UpdateSampleSerializer(serializers.ModelSerializer):
+class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Sample
+        model = BioInfoAnalysisValue
         fields = "__all__"
 
 
@@ -41,6 +35,12 @@ class CreateEffectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Effect
         fields = "__all__"
+
+
+class CreateErrorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = "error_type"
 
 
 class CreateVariantInSampleSerializer(serializers.ModelSerializer):
@@ -71,3 +71,9 @@ class CreateLineageValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = LineageValues
         fields = "__all__"
+
+
+class UpdateStateSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = "state"

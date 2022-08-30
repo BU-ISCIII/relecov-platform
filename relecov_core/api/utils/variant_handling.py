@@ -25,23 +25,53 @@ from relecov_core.models import (
     VariantAnnotation,
     VariantInSample,
     Filter,
-    # Position,
     Variant,
-    # Document,
-    # User,
-    # SampleState,
 )
 
 
+# from relecov_core.handling_variant import check_if_organism_exists
+
+def store_variant_annotation(data):
+    return
+
+
+def store_variant_in_sample(data):
+    return
+
+
+def get_variant_id(data):
+    """look out for the necessary reference ids to create the variance instance"""
+    variant_id = {}
+
+    return variant_id
+
+def get_required_variant_ann_id(data):
+    """Look for the ids that variant annotation needs"""
+    v_ann_ids = {}
+
+    return v_ann_ids
+
 def fetch_variant_data(data, sample_obj):
-    # import pdb
+
     data_ids = {}
+
     # sample_obj = get_sample(data)
 
     # Check if sample exists
     # if sample_obj is not None:
     data_ids["sampleID_id"] = sample_obj.get_sample_id()
+    variant_id = get_variant_id(data)
+    if "ERROR" in variant_id:
+        return variant_id
+    data_ids.update(variant_id)
+    v_ann_id = get_required_variant_ann_id(data)
+    if "ERROR" in v_ann_id:
+        return v_ann_id
 
+    data_ids["variant_id"] =
+    data_ids
+    if "ERROR" in references:
+        return references
     # checks if each variant in a sample contains Chromosome, Gene, effect and filter.
     for idx in range(len(data["variants"])):
         variant = data["variants"][idx]
