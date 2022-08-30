@@ -13,8 +13,8 @@ urlpatterns = [
         name="methodology_fields_utilization",
     ),
     path(
-        "variants/lineagesVoc",
-        views.variants_lineages_voc,
+        "variants/mutationsInLineagesByLineage",
+        views.mutations_in_lineages_by_lineage,
         name="variants_lineages_voc",
     ),
     path("variants/lineages", views.lineages, name="lineages"),
@@ -29,8 +29,8 @@ urlpatterns = [
         name="variants_mutations_in_lineages_heatmap",
     ),
     path(
-        "variants/mutationsInLineagesNeedlePlot",
-        views.variants_mutations_in_lineages_needle_plot,
+        "variants/mutationsInLineagesBySample",
+        views.mutations_in_lineages_by_samples,
         name="variants_mutations_in_lineages_needle_plot",
     ),
     path(
