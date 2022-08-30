@@ -1,12 +1,8 @@
 from rest_framework import serializers
 
 from relecov_core.models import (
-    Authors,
-    AnalysisPerformed,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
-    EnaInfo,
-    GisaidInfo,
     LineageFields,
     LineageValues,
     Sample,
@@ -20,13 +16,6 @@ from relecov_core.models import (
     Variant,
     DateUpdateState,
 )
-
-
-class CrateAnalysisForSampleSerilizer(serializers.ModelSerializer):
-    class Meta:
-        model = AnalysisPerformed
-        fields = "__all__"
-        # exclude = ["linage_values", "linage_info", "bio_analysis_values"]
 
 
 class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
@@ -53,33 +42,9 @@ class UpdateSampleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CreateAuthorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Authors
-        fields = "__all__"
-
-
-class CreateGisaidSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GisaidInfo
-        fields = "__all__"
-
-
-class CreateEnaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EnaInfo
-        fields = "__all__"
-
-
 class CreateSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = "__all__"
-
-
-class CreateChromosomeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chromosome
         fields = "__all__"
 
 
@@ -113,14 +78,6 @@ class CreateFilterSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-"""
-class CreatePositionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Position
-        fields = "__all__"
-"""
-
-
 class CreateVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variant
@@ -137,11 +94,3 @@ class CreateLineageValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = LineageValues
         fields = "__all__"
-
-
-"""
-class CreateLineageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lineage
-        fields = ["lineage_name"]
-"""

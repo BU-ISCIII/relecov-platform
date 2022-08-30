@@ -33,7 +33,8 @@ from relecov_core.models import (
 )
 
 
-def fetch_long_table_data(data, sample_obj):
+
+def fetch_variant_data(data, sample_obj):
     # import pdb
     data_ids = {}
     # sample_obj = get_sample(data)
@@ -56,13 +57,14 @@ def fetch_long_table_data(data, sample_obj):
         if gene_obj is not None:
             data_ids["geneID_id"] = gene_obj.get_gene_id()
 
+        filter_obj = set_filter(variant["Filter"])
+        if "ERROR" in filter_obj:
+
+            data_ids["filterID_id"] = filter_obj.get_filter_id()
+
         effect_obj = set_effect(variant["Effect"])
         if effect_obj is not None:
             data_ids["effectID_id"] = effect_obj.get_effect_id()
-
-        filter_obj = set_filter(variant["Filter"])
-        if filter_obj is not None:
-            data_ids["filterID_id"] = filter_obj.get_filter_id()
 
         variant_obj = set_variant(variant["Variant"], variant["Position"], data_ids)
         if variant_obj is not None:
@@ -107,12 +109,11 @@ def get_gene(gene):
 
 
 def set_effect(effect):
-    effect_obj = 0
+
     if Effect.objects.filter(
         effect__iexact=effect["effect"],
     ).exists():
-        effect_obj = Effect.objects.filter(effect__iexact=effect["effect"]).last()
-        return effect_obj
+        return Effect.objects.filter(effect__iexact=effect["effect"]).last()
     else:
         return {"ERROR": ERROR_EFFECT_NOT_DEFINED_IN_DATABASE}
 
