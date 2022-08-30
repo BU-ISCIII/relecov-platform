@@ -642,7 +642,7 @@ class Error(models.Model):
     def get_error_name(self):
         return "%s" % (self.error_name)
 
-    def get_id(self):
+    def get_error_id(self):
         return "%s" % (self.pk)
 
     def get_display_string(self):

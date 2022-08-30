@@ -276,8 +276,11 @@ def get_sample_display_data(sample_id, user):
     return s_data
 
 
-def get_sample_obj_if_exists(sample_name):
-    return
+def get_sample_obj_from_sample_name(sample_name):
+    """Return the sample instance from its name"""
+    if Sample.objects.filter(sample_name__iexact=sample_name).exists():
+        return Sample.objects.filter(sample_name__iexact=sample_name).last()
+    return None
 
 
 def get_sample_obj_from_id(sample_id):
