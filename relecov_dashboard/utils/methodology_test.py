@@ -1,8 +1,8 @@
-import dash
+import dash_daq as daq
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 from django_plotly_dash import DjangoDash
 from django.shortcuts import redirect
 
@@ -66,9 +66,6 @@ def render_page_content():
                 html.P(f"The pathname {pathname} was not recognised..."),
             ]
         )
-
-
-import dash_daq as daq
 
 
 def create_gauge(value, label):
