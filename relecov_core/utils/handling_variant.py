@@ -52,10 +52,10 @@ def get_variant_data_from_sample(sample_id):
         variant_data.append([v_data + v_in_s_data + v_ann_data])
     return variant_data
 
-    ###################################################################################################################################
-    """
-    Functions to get data from database and paint variant mutation in lineages needle plot graph
-    """
+
+"""
+Functions to get data from database and paint variant mutation in lineages needle plot graph
+"""
 
 
 def check_if_organism_exists(organism_code):
@@ -174,6 +174,3 @@ def create_dataframe(sample, organism_code):
     mdata["domains"] = domains
 
     return mdata
-
-
-###############################################################################################################################3
