@@ -33,7 +33,6 @@ from relecov_core.models import (
 )
 
 
-
 def fetch_variant_data(data, sample_obj):
     # import pdb
     data_ids = {}

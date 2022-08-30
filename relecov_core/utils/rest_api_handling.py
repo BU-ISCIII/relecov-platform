@@ -91,7 +91,7 @@ def get_sample_project_fields_data(project):
 
 
 def get_summarize_data(param_data):
-    """Send API request to iSkyLIMS to get the summarize data options """
+    """Send API request to iSkyLIMS to get the summarize data options"""
     iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
     iskylims_url = ISKLIMS_REST_API
     request = ISKLIMS_GET_SUMMARIZE_DATA

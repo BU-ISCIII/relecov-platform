@@ -1,6 +1,9 @@
 from relecov_core.models import BioinfoAnalysisField, BioInfoAnalysisValue, Schema
 
-from relecov_core.utils.handling_samples import get_sample_obj_from_id, get_samples_count_per_schema
+from relecov_core.utils.handling_samples import (
+    get_sample_obj_from_id,
+    get_samples_count_per_schema,
+)
 
 from relecov_core.utils.schema_handling import get_schema_obj_from_id
 
@@ -66,11 +69,15 @@ def get_bioinfo_analyis_fields_utilization(schema_id=None):
                 b_data[schema_name][f_name] = "never_used"
                 continue
             # b_data[schema_name][f_name] = [count]
-            count_not_empty = BioInfoAnalysisValue.objects.filter(
-                bioinfo_analysis_fieldID=b_field_obj
-            ).exclude(value="None").count()
+            count_not_empty = (
+                BioInfoAnalysisValue.objects.filter(
+                    bioinfo_analysis_fieldID=b_field_obj
+                )
+                .exclude(value="None")
+                .count()
+            )
             try:
-                b_data[schema_name][f_name] = count_not_empty/num_samples_in_sch
+                b_data[schema_name][f_name] = count_not_empty / num_samples_in_sch
             except ZeroDivisionError:
                 b_data[schema_name][f_name] = 0
     return b_data
