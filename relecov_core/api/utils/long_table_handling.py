@@ -25,21 +25,14 @@ from relecov_core.models import (
     VariantAnnotation,
     VariantInSample,
     Filter,
-    # Position,
     Variant,
-    # Document,
-    # User,
-    # SampleState,
 )
 
 
 def fetch_long_table_data(data, sample_obj):
-    # import pdb
     data_ids = {}
-    # sample_obj = get_sample(data)
 
     # Check if sample exists
-    # if sample_obj is not None:
     data_ids["sampleID_id"] = sample_obj.get_sample_id()
 
     # checks if each variant in a sample contains Chromosome, Gene, effect and filter.
@@ -246,8 +239,10 @@ def set_variant_annotation(effect, data_ids):
 
 def get_sample(data):
     sample_id = 0
-    if Sample.objects.filter(sequencing_sample_id=data["sample"]).exists():
-        sample_id = Sample.objects.filter(sequencing_sample_id=data["sample"]).last()
+    if Sample.objects.filter(sequencing_sample_id=data["sample_name"]).exists():
+        sample_id = Sample.objects.filter(
+            sequencing_sample_id=data["sample_name"]
+        ).last()
         return sample_id
 
     else:

@@ -280,6 +280,13 @@ def get_sample_display_data(sample_id, user):
     return s_data
 
 
+def get_sample_obj_if_exists(sample_name):
+    """Check if sample name exists"""
+    if Sample.objects.filter(sequencing_sample_id__iexact=sample_name).exists():
+        return Sample.objects.filter(sequencing_sample_id__iexact=sample_name).last()
+    return None
+
+
 def get_sample_obj_from_id(sample_id):
     """Return the sample instance from its id"""
     if Sample.objects.filter(pk__exact=sample_id).exists():

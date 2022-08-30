@@ -15,7 +15,10 @@ from relecov_dashboard.utils.graphics.geo_json import create_json
 from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
 from relecov_dashboard.utils.methodology_index import index_dash_fields
 
-from relecov_core.utils.handling_variant import create_dataframe
+from relecov_core.utils.handling_variant import (
+    create_dataframe,
+    get_variant_data_from_lineages,
+)
 
 
 def variants_index(request):
@@ -28,7 +31,8 @@ def methodology_index(request):
 
 
 def variants_lineages_voc(request):
-    create_needle_plot_graph_ITER("BA.1.1.1")
+    mdata = get_variant_data_from_lineages("B.1.1.7", "NC_045512")
+    create_needle_plot_graph_ITER("BA.1.1.7", mdata)
     # create_lineage_in_time_graph()
     # create_needle_plot_graph(sample=None)
     # create_mutation_table(214821)
