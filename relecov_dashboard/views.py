@@ -1,11 +1,6 @@
 from django.shortcuts import render
 from relecov_dashboard.utils.graphics.iter_plot import create_needle_plot_graph_ITER
 
-"""
-from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
-    create_lineage_in_time_graph,
-)
-"""
 from relecov_dashboard.utils.graphics.molecule3D_graph import (
     create_molecule3D_zoom_specific_residues,
 )
@@ -13,19 +8,14 @@ from relecov_dashboard.utils.graphics.needle_plot_graph import create_needle_plo
 from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_graph
 from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
 
-# from relecov_dashboard.utils.graphics.lineage_by_CCAA_geomap_graph import plot_geomap
 from relecov_dashboard.utils.graphics.mutation_heatmap import create_hot_map
 
 from relecov_dashboard.utils.graphics.geo_json import create_json
 
-# from relecov_dashboard.utils.graphics.gauge import create_gauge, create_medium_gauge
 from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
-
-#
-
 from relecov_dashboard.utils.methodology_index import index_dash_fields
 
-# from relecov_dashboard.utils.methodology_test import render_page_content, create_gauge
+from relecov_core.utils.handling_variant import create_dataframe
 
 
 def variants_index(request):
@@ -64,7 +54,8 @@ def variants_mutations_in_lineages_heatmap(request):
 
 
 def variants_mutations_in_lineages_needle_plot(request):
-    create_needle_plot_graph(sample=None)
+    mdata = create_dataframe(sample=2018185, organism_code="NC_045512")
+    create_needle_plot_graph(sample=None, mdata=mdata)
     return render(
         request, "relecov_dashboard/variantsMutationsInLineagesNeedlePlot.html"
     )
