@@ -1131,6 +1131,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
 
+    def get_variantID_id(self):
+        return "%s" % (self.variantID_id.get_variant_id())
+
     def get_dp(self):
         return "%s" % (self.dp)
 
@@ -1142,6 +1145,9 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     def get_af(self):
         return "%s" % (self.af)
+
+    def get_variant_pos(self):
+        return self.variantID_id.get_pos()
 
     def get_variant_in_sample_data(self):
         data = []
