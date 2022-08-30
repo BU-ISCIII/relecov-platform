@@ -58,7 +58,7 @@ class CreateVariantAnnotationSerializer(serializers.ModelSerializer):
 class CreateFilterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Filter
-        fields = "__all__"
+        fields = "filter"
 
 
 class CreateVariantSerializer(serializers.ModelSerializer):
