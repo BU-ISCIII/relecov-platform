@@ -152,10 +152,7 @@ HEADING_FOR_QCSTATS_TABLE = {
 }
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
-BIOINFO_UPLOAD_FOLDER = "bioinfo"
-BIOINFO_METADATA_UPLOAD_FOLDER = "bioinfo_metadata"
-METADATA_JSON_UPLOAD_FOLDER = "metadata_json"
-METADATA_UPLOAD_FOLDER = "metadata"
+BIOINFO_UPLOAD_FOLDER = "Check if delete"
 
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 BIOINFO_SUCCESSFUL_LOAD = "Bioinfo file was successfully loaded"

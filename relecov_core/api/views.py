@@ -31,15 +31,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from relecov_core.models import Sample, SampleState, Error
 
-from relecov_core.api.utils.accession_to_ENA import (
-    date_converter,
-    extract_number_of_sample,
-)
-
-from relecov_core.api.utils.common_functions import (
-    get_schema_version_if_exists
-
-)
+from relecov_core.api.utils.common_functions import get_schema_version_if_exists
 
 from relecov_core.utils.handling_samples import get_sample_obj_if_exists
 from relecov_core.core_config import (
@@ -268,7 +260,8 @@ def create_variant_data(request):
             )
         if "variant" not in data:
             return Response(
-                {"ERROR": ERROR_VARIANT_INFORMATION_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+                {"ERROR": ERROR_VARIANT_INFORMATION_NOT_DEFINED},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         for s_data in data["variant"]:
             stored_data = fetch_variant_data(data, sample_obj)
@@ -278,7 +271,9 @@ def create_variant_data(request):
 
         sample_obj.update_state("Variant")
         # Include date and state in DateState table
-        state_id = SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
+        state_id = (
+            SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
+        )
         data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
         date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
         if date_serializer.is_valid():
@@ -366,78 +361,3 @@ def update_state(request):
         CreateDateAfterChangeStateSerializer(data_date)
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
-
-
-@swagger_auto_schema(
-    method="post",
-    operation_description="The POST method is used to create new records in the database.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "SRA_accession": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Code provided by ENA after uploading samples",
-            ),
-            "ena_process_date": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Upload date to ENA"
-            ),
-            "GenBank_ENA_DDBJ_accession": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="",
-            ),
-            "study_alias": openapi.Schema(type=openapi.TYPE_STRING, description=""),
-            "study_id": openapi.Schema(type=openapi.TYPE_STRING, description=""),
-            "study_title": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="",
-            ),
-            "study_type": openapi.Schema(type=openapi.TYPE_STRING, description=""),
-            "experiment_alias": openapi.Schema(
-                type=openapi.TYPE_STRING, description=""
-            ),
-            "experiment_title": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="",
-            ),
-        },
-    ),
-    responses={
-        201: "Successful create information",
-        400: "Bad Request",
-        500: "Internal Server Error",
-    },
-)
-@authentication_classes([SessionAuthentication, BasicAuthentication])
-@permission_classes([IsAuthenticated])
-@api_view(["POST"])
-def accession_ena(request):
-    if request.method == "POST":
-        data = request.data
-
-        if isinstance(data, QueryDict):
-            data = data.dict()
-
-        number_of_sample = extract_number_of_sample(data["GenBank_ENA_DDBJ_accession"])
-
-        data["user"] = request.user.pk
-        process_date = date_converter(data["ena_process_date"])
-
-        if EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        else:
-            ena_obj = EnaInfo.objects.create(
-                ena_process_date=process_date,
-                SRA_accession=data["SRA_accession"],
-                GenBank_ENA_DDBJ_accession=data["GenBank_ENA_DDBJ_accession"],
-            )
-            sample_obj = Sample.objects.filter(
-                sequencing_sample_id=number_of_sample
-            ).last()
-
-            ena_obj = EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).last()
-            sample_obj.ena_obj = ena_obj
-
-            sample_obj.save()
-
-    return Response("Successful upload information", status=status.HTTP_201_CREATED)

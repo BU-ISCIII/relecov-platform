@@ -3,11 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from relecov_core.core_config import (
-    SCHEMAS_UPLOAD_FOLDER,
-    METADATA_UPLOAD_FOLDER,
-    BIOINFO_METADATA_UPLOAD_FOLDER,
-)
+from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 
 class Profile(models.Model):
@@ -31,7 +27,6 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
 class BioinfoMetadataFile(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to=BIOINFO_METADATA_UPLOAD_FOLDER)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -681,8 +676,8 @@ class Sample(models.Model):
     schema_obj = models.ForeignKey(
         Schema, on_delete=models.CASCADE, null=True, blank=True
     )
-    linage_values = models.ManyToManyField(LineageValues,  blank=True)
-    linage_info = models.ManyToManyField(LineageInfo,  blank=True)
+    linage_values = models.ManyToManyField(LineageValues, blank=True)
+    linage_info = models.ManyToManyField(LineageInfo, blank=True)
     bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue, blank=True)
 
     sample_unique_id = models.CharField(max_length=12)
@@ -846,7 +841,6 @@ class Variant(models.Model):
 
 
 class VariantInSampleManager(models.Manager):
-
     def create_new_variant_in_sample(self, data):
         new_variant_in_sample = self.create(
             dp=data["dp"],
