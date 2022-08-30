@@ -233,6 +233,11 @@ class SchemaProperties(models.Model):
     def get_fill_mode(self):
         return "%s" % (self.fill_mode)
 
+    def get_classification(self):
+        if self.classificationID is not None:
+            return self.classificationID.get_classification_name()
+        return ""
+
     objects = SchemaPropertiesManager()
 
 
