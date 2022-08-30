@@ -12,16 +12,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
-    CrateAnalysisForSampleSerilizer,
     CreateDateAfterChangeStateSerializer,
     CreateSampleSerializer,
-    CreateAuthorSerializer,
-    CreateGisaidSerializer,
-    CreateEnaSerializer,
     UpdateSampleSerializer,
 )
 
-from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+from relecov_core.api.utils.long_table_handling import fetch_variant_data
 from relecov_core.api.utils.sample_handling import (
     check_if_sample_exists,
     split_sample_data,
@@ -33,22 +29,23 @@ from relecov_core.api.utils.bioinfo_metadata_handling import (
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, Error, EnaInfo
+from relecov_core.models import Sample, SampleState, Error
 
 from relecov_core.api.utils.accession_to_ENA import (
     date_converter,
     extract_number_of_sample,
-)  # parse_xml,
-
-from relecov_core.api.utils.common_functions import (
-    get_schema_version_if_exists,
-    get_sample_obj_if_exists,
-    get_analysis_type_id,
 )
 
+from relecov_core.api.utils.common_functions import (
+    get_schema_version_if_exists
+
+)
+
+from relecov_core.utils.handling_samples import get_sample_obj_if_exists
 from relecov_core.core_config import (
     ERROR_SAMPLE_NAME_NOT_INCLUDED,
     ERROR_SAMPLE_NOT_DEFINED,
+    ERROR_VARIANT_INFORMATION_NOT_DEFINED,
 )
 
 
@@ -152,14 +149,7 @@ def create_sample_data(request):
         split_data = split_sample_data(data)
         if "ERROR" in split_data:
             return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
-        if split_data["author"]["authors"] != "":
-            author_serializer = CreateAuthorSerializer(data=split_data["author"])
-            if not author_serializer.is_valid():
-                return Response(
-                    author_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-        else:
-            author_serializer = None
+        """
         if "EPI_" in split_data["gisaid"]["gisaid_id"]:
             gisaid_serializer = CreateGisaidSerializer(data=split_data["gisaid"])
             if not gisaid_serializer.is_valid():
@@ -176,6 +166,7 @@ def create_sample_data(request):
                 )
         else:
             ena_serializer = None
+
         # Store authors, gisaid, ena in ddbb to get the references
         if author_serializer:
             split_data["sample"][
@@ -193,6 +184,7 @@ def create_sample_data(request):
             split_data["sample"]["ena_obj"] = ena_serializer.save().get_ena_obj()
         else:
             split_data["sample"]["ena_obj"] = None
+        """
         split_data["sample"]["schema_obj"] = schema_obj.get_schema_id()
         sample_serializer = CreateSampleSerializer(data=split_data["sample"])
         if not sample_serializer.is_valid():
@@ -215,7 +207,9 @@ def create_sample_data(request):
 y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
 
 
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_bioinfo_metadata(request):
     if request.method == "POST":
         data = request.data
@@ -254,18 +248,12 @@ def create_bioinfo_metadata(request):
     if date_serializer.is_valid():
         date_serializer.save()
 
-    analysis_data = {
-        "sampleID": sample_obj.get_sample_id(),
-        "typeID": get_analysis_type_id("bioinfo_analysis"),
-    }
-    analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
-
-    if analysis_serializer.is_valid():
-        analysis_serializer.save()
     return Response(status=status.HTTP_201_CREATED)
 
 
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_variant_data(request):
     if request.method == "POST":
         data = request.data
@@ -278,21 +266,23 @@ def create_variant_data(request):
             return Response(
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        stored_data = fetch_long_table_data(data, sample_obj)
+        if "variant" not in data:
+            return Response(
+                {"ERROR": ERROR_VARIANT_INFORMATION_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+            )
+        for s_data in data["variant"]:
+            stored_data = fetch_variant_data(data, sample_obj)
 
         if "ERROR" in stored_data:
             return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
 
-        analysis_data = {
-            "sampleID": sample_obj.get_sample_id(),
-            "typeID": get_analysis_type_id("variant_analysis"),
-        }
-        analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
-
-        if analysis_serializer.is_valid():
-            analysis_serializer.save()
-
+        sample_obj.update_state("Variant")
+        # Include date and state in DateState table
+        state_id = SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
+        data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
+        date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
+        if date_serializer.is_valid():
+            date_serializer.save()
         return Response(status=status.HTTP_201_CREATED)
 
 

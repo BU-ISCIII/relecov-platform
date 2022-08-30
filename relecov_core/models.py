@@ -28,19 +28,6 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     instance.profile.save()
 
 
-class Document(models.Model):
-    title = models.CharField(max_length=200)
-    file_path = models.CharField(max_length=200)
-    uploadedFile = models.FileField(upload_to=METADATA_UPLOAD_FOLDER)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "Document"
-
-    def __str__(self):
-        return "%s" % (self.title)
-
-
 class BioinfoMetadataFile(models.Model):
     title = models.CharField(max_length=200)
     file_path = models.CharField(max_length=200)
@@ -324,7 +311,6 @@ class BioinfoAnalysisFieldManager(models.Manager):
 
 class BioinfoAnalysisField(models.Model):
     schemaID = models.ManyToManyField(Schema)
-    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
     label_name = models.CharField(max_length=80)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -418,7 +404,6 @@ class LineageFieldsManager(models.Manager):
 
 class LineageFields(models.Model):
     schemaID = models.ManyToManyField(Schema)
-    classificationID = models.ForeignKey(Classification, on_delete=models.CASCADE)
     property_name = models.CharField(max_length=60)
     label_name = models.CharField(max_length=80)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -505,33 +490,6 @@ class OrganismAnnotation(models.Model):
     objects = OrganismAnnotationManger()
 
 
-"""
-# Caller Table
-class CallerManager(models.Manager):
-    def create_new_caller(self, data):
-        new_caller = self.create(name=data["name"], version=data["version"])
-        return new_caller
-
-
-class Caller(models.Model):
-    name = models.CharField(max_length=60)
-    version = models.CharField(max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "Caller"
-
-    def __str__(self):
-        return "%s" % (self.name)
-
-    def get_version(self):
-        return "%s" % (self.version)
-
-    objects = CallerManager()
-"""
-
-
-# Filter Table
 class FilterManager(models.Manager):
     def create_new_filter(self, data):
         new_filter = self.create(filter=data)
@@ -674,135 +632,6 @@ class SampleState(models.Model):
         return "%s" % (self.display_string)
 
 
-# table Authors
-class AuthorsManager(models.Manager):
-    def create_new_authors(self, data):
-        analysis_authors = ""
-        author_submitter = ""
-        new_authors = self.create(
-            analysis_authors=analysis_authors,
-            author_submitter=author_submitter,
-            # analysis_authors=data["analysis_authors"],
-            # author_submitter=data["author_submitter"],
-            authors=data["authors"],
-        )
-        return new_authors
-
-
-class Authors(models.Model):
-    analysis_authors = models.CharField(max_length=100, null=True, blank=True)
-    author_submitter = models.CharField(max_length=100, null=True, blank=True)
-    authors = models.CharField(max_length=600, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
-
-    class Meta:
-        db_table = "Authors"
-
-    def __str__(self):
-        return "%s" % (self.author_submitter)
-
-    def get_analysis_author(self):
-        return "%s" % (self.analysis_authors)
-
-    def get_author_submitter(self):
-        return "%s" % (self.author_submitter)
-
-    def get_authors(self):
-        return "%s" % (self.authors)
-
-    def get_author_obj(self):
-        return "%s" % (self.pk)
-
-    objects = AuthorsManager()
-
-
-class EnaInfo(models.Model):
-    bioproject_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    bioproject_umbrella_accession_ENA = models.CharField(
-        max_length=80, null=True, blank=True
-    )
-    biosample_accession_ENA = models.CharField(max_length=80, null=True, blank=True)
-    GenBank_ENA_DDBJ_accession = models.CharField(max_length=80, null=True, blank=True)
-    SRA_accession = models.CharField(max_length=80, null=True, blank=True)
-    study_alias = models.CharField(max_length=80, null=True, blank=True)
-    study_id = models.CharField(max_length=80, null=True, blank=True)
-    study_title = models.CharField(max_length=100, null=True, blank=True)
-    study_type = models.CharField(max_length=80, null=True, blank=True)
-    experiment_alias = models.CharField(max_length=80, null=True, blank=True)
-    experiment_title = models.CharField(max_length=80, null=True, blank=True)
-    ena_process_date = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "EnaInfo"
-
-    def __str__(self):
-        return "%s" % (self.GenBank_ENA_DDBJ_accession)
-
-    def get_genbank(self):
-        return "%s" % (self.GenBank_ENA_DDBJ_accession)
-
-    def get_ena_info(self):
-        data = []
-        return data
-
-    def get_ena_obj(self):
-        return "%s" % (self.pk)
-
-
-class VirusName(models.Model):
-    virus_name = models.CharField(max_length=80, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "VirusName"
-
-    def __str__(self):
-        return "%s" % (self.virus_name)
-
-    def get_virus_name(self):
-        return "%s" % (self.virus_name)
-
-
-class GisaidInfo(models.Model):
-    virus_id = models.ForeignKey(
-        VirusName, on_delete=models.CASCADE, null=True, blank=True
-    )
-    # GISAID_accession = models.CharField(max_length=80, null=True, blank=True)
-    gisaid_id = models.CharField(max_length=80, null=True, blank=True)
-    submission_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    length = models.CharField(max_length=20, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "GisaidInfo"
-
-    def __str__(self):
-        return "%s" % (self.gisaid_id)
-
-    def get_gisaid_id(self):
-        return "%s" % (self.gisaid_id)
-
-    def get_gisaid_data(self):
-        if self.virus_id is not None:
-            v_name = self.virus_id.get_virus_name()
-        else:
-            v_name = None
-        if self.submission_date is None:
-            date = "Not Provided"
-        else:
-            date = self.submission_date.strftime("%d , %B , %Y")
-        data = []
-        data.append(self.gisaid_id)
-        data.append(date)
-        data.append(self.length)
-        data.append(v_name)
-        return data
-
-    def get_gisaid_obj(self):
-        return "%s" % (self.pk)
-
-
 class Error(models.Model):
     error_name = models.CharField(max_length=100)
     display_string = models.CharField(max_length=100)
@@ -849,24 +678,12 @@ class Sample(models.Model):
     error_type = models.ForeignKey(
         Error, on_delete=models.CASCADE, null=True, blank=True
     )
-    metadata_file = models.ForeignKey(
-        Document, on_delete=models.CASCADE, null=True, blank=True
-    )
-    authors_obj = models.ForeignKey(
-        Authors, on_delete=models.CASCADE, null=True, blank=True
-    )
-    gisaid_obj = models.ForeignKey(
-        GisaidInfo, on_delete=models.CASCADE, null=True, blank=True
-    )
-    ena_obj = models.ForeignKey(
-        EnaInfo, on_delete=models.CASCADE, null=True, blank=True
-    )
     schema_obj = models.ForeignKey(
         Schema, on_delete=models.CASCADE, null=True, blank=True
     )
-    linage_values = models.ManyToManyField(LineageValues)
-    linage_info = models.ManyToManyField(LineageInfo)
-    bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue)
+    linage_values = models.ManyToManyField(LineageValues,  blank=True)
+    linage_info = models.ManyToManyField(LineageInfo,  blank=True)
+    bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue, blank=True)
 
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
@@ -900,26 +717,6 @@ class Sample(models.Model):
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
 
-    def get_virus_obj(self):
-        if self.virus_obj:
-            return "%s" % (self.virus_obj)
-        return None
-
-    def get_gisaid_obj(self):
-        if self.gisaid_obj:
-            return "%s" % (self.gisaid_obj)
-        return None
-
-    def get_gisaid_info(self):
-        if self.gisaid_obj is None:
-            return ""
-        return self.gisaid_obj.get_gisaid_data()
-
-    def get_ena_obj(self):
-        if self.ena_obj:
-            return "%s" % (self.ena_obj)
-        return None
-
     def get_schema_obj(self):
         if self.schema_obj:
             return self.schema_obj
@@ -937,9 +734,6 @@ class Sample(models.Model):
 
     def get_user(self):
         return "%s" % (self.user)
-
-    def get_metadata_file(self):
-        return "%s" % (self.metadata_file)
 
     def get_info_for_searching(self):
         recorded_date = self.created_at.strftime("%d , %B , %Y")
@@ -999,45 +793,6 @@ class DateUpdateState(models.Model):
         return self.date.strftime("%B %d, %Y")
 
 
-class AnalysisType(models.Model):
-    type_name = models.CharField(max_length=20)
-    display_string = models.CharField(max_length=50)
-
-    class Meta:
-        db_table = "AnalysisType"
-
-    def __str__(self):
-        return "%s" % (self.type_name)
-
-    def get_type_name(self):
-        return "%s" % (self.type_name)
-
-    def get_id(self):
-        return "%s" % (self.pk)
-
-    def get_display_string(self):
-        return "%s" % (self.display_string)
-
-
-class AnalysisPerformed(models.Model):
-    typeID = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
-    sampleID = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "AnalysisPerformed"
-
-    def __str__(self):
-        return "%s_%s" % (
-            self.sampleID.get_sequencing_sample_id(),
-            self.typeID.get_type_name(),
-        )
-
-    def get_analysis_type(self):
-        return "%s" % (self.typeID.get_type_name())
-
-
-# Variant Table
 class VariantManager(models.Manager):
     def create_new_variant(self, data, data_ids):
         new_variant = self.create(
@@ -1091,12 +846,6 @@ class Variant(models.Model):
 
 
 class VariantInSampleManager(models.Manager):
-    """
-    fields => SAMPLE(0), CHROM(1), POS(2), REF(3), ALT(4),
-    FILTER(5), DP(6),  REF_DP(7), ALT_DP(8), AF(9), GENE(10),
-    EFFECT(11), HGVS_C(12), HGVS_P(13), HGVS_P1LETTER(14),
-    CALLER(15), LINEAGE(16)
-    """
 
     def create_new_variant_in_sample(self, data):
         new_variant_in_sample = self.create(
