@@ -77,6 +77,7 @@ def schema_fields_utilization():
         return
     schema_fields = get_bioinfo_analyis_fields_utilization()
     iskylims_fields = get_summarize_data("sample_project", "Relecov")
+    print(iskylims_fields)
     for schema_name, fields in schema_fields.items():
         # import pdb; pdb.set_trace()
 
