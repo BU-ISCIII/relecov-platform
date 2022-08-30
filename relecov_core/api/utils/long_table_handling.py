@@ -218,9 +218,21 @@ def set_variant_annotation(effect, data_ids):
         return data
 
     variant_annotation_obj = 0
-    if VariantAnnotation.objects.filter(geneID_id=data_ids["geneID_id"]).exists():
+    if VariantAnnotation.objects.filter(
+        geneID_id=data_ids["geneID_id"],
+        effectID_id=data_ids["effectID_id"],
+        variantID_id=data_ids["variantID_id"],
+        hgvs_c=effect["hgvs_c"],
+        hgvs_p=effect["hgvs_p"],
+        hgvs_p_1letter=effect["hgvs_p_1_letter"],
+    ).exists():
         variant_annotation_obj = VariantAnnotation.objects.filter(
-            geneID_id=data_ids["geneID_id"]
+            geneID_id=data_ids["geneID_id"],
+            effectID_id=data_ids["effectID_id"],
+            variantID_id=data_ids["variantID_id"],
+            hgvs_c=effect["hgvs_c"],
+            hgvs_p=effect["hgvs_p"],
+            hgvs_p_1letter=effect["hgvs_p_1_letter"],
         ).last()
         return variant_annotation_obj
     else:

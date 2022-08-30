@@ -6,6 +6,7 @@ from relecov_core.utils.handling_bioinfo_analysis import (
 
 from django_plotly_dash import DjangoDash
 import dash_bootstrap_components as dbc
+
 import dash_html_components as html
 from dash.dependencies import Input, Output
 

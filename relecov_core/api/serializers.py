@@ -26,7 +26,7 @@ class CrateAnalysisForSampleSerilizer(serializers.ModelSerializer):
     class Meta:
         model = AnalysisPerformed
         fields = "__all__"
-        exclude = ["linage_values", "linage_info", "bio_analysis_values"]
+        # exclude = ["linage_values", "linage_info", "bio_analysis_values"]
 
 
 class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
