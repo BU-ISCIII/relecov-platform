@@ -9,7 +9,7 @@ Mutation heatmap
     - Color represents allele frequency
 
 """
-import os
+# import os
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
@@ -18,12 +18,13 @@ import plotly.express as px
 
 import pandas as pd
 
-
+"""
 from relecov_dashboard.utils.graphics.mutation_table_copy import (
     read_mutation_data,
     process_mutation_df,
 )
-from relecov_platform import settings
+"""
+# from relecov_platform import settings
 
 from relecov_core.utils.handling_variant import (
     # get_if_chromosomes_exists,
