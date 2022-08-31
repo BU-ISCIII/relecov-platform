@@ -1,4 +1,6 @@
-from relecov_core.models import Schema, AnalysisType
+from relecov_core.models import Schema
+
+from relecov_core.api.serializers import CreateDateAfterChangeStateSerializer
 
 
 def get_schema_version_if_exists(data):
@@ -19,7 +21,9 @@ def get_schema_version_if_exists(data):
     return None
 
 
-def get_analysis_type_id(type):
-    if AnalysisType.objects.filter(type_name__iexact=type).exists():
-        return AnalysisType.objects.filter(type_name__iexact=type).last().get_id()
-    return None
+def update_change_state_date(sample_id, state_id):
+    """Update the DateUpdateState table with the new sample state"""
+    d_date = {"stateID": state_id, "sampleID": sample_id}
+    date_update_serializer = CreateDateAfterChangeStateSerializer(d_date)
+    if date_update_serializer.isvalid():
+        date_update_serializer.save()

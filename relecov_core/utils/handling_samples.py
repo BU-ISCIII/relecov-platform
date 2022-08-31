@@ -26,16 +26,11 @@ from relecov_core.core_config import (
 
 
 from relecov_core.models import (
-    # Authors,
-    AnalysisPerformed,
-    EnaInfo,
     DateUpdateState,
-    GisaidInfo,
     MetadataVisualization,
     SchemaProperties,
     Sample,
     SampleState,
-    # User,
 )
 
 from relecov_core.utils.rest_api_handling import (
@@ -89,11 +84,11 @@ def count_samples_in_all_tables():
     """Count the number of entries that are in Sample,"""
     data = {}
     data["received"] = Sample.objects.all().count()
-    data["ena"] = EnaInfo.objects.all().count()
-    data["gisaid"] = GisaidInfo.objects.all().count()
-    data["processed"] = AnalysisPerformed.objects.filter(
-        typeID__type_name__iexact="bioinfo_analysis"
-    ).count()
+    # data["ena"] = EnaInfo.objects.all().count()
+    # data["gisaid"] = GisaidInfo.objects.all().count()
+    # data["processed"] = AnalysisPerformed.objects.filter(
+    #    typeID__type_name__iexact="bioinfo_analysis"
+    # ).count()
     return data
 
 
@@ -264,6 +259,7 @@ def get_sample_display_data(sample_id, user):
     if ena_data != "":
         s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
     lab_sample = sample_obj.get_collecting_lab_sample_id()
+    # Fetch information from iSkyLIMS
     if lab_sample != "":
         iskylims_data = get_sample_information(lab_sample)
         if "ERROR" not in iskylims_data:
@@ -280,10 +276,10 @@ def get_sample_display_data(sample_id, user):
     return s_data
 
 
-def get_sample_obj_if_exists(sample_name):
-    """Check if sample name exists"""
-    if Sample.objects.filter(sequencing_sample_id__iexact=sample_name).exists():
-        return Sample.objects.filter(sequencing_sample_id__iexact=sample_name).last()
+def get_sample_obj_from_sample_name(sample_name):
+    """Return the sample instance from its name"""
+    if Sample.objects.filter(sample_name__iexact=sample_name).exists():
+        return Sample.objects.filter(sample_name__iexact=sample_name).last()
     return None
 
 

@@ -10,14 +10,10 @@ from relecov_core.models import (
     Sample,
 )
 
-from relecov_core.core_config import (
-    ERROR_CHROMOSOME_DOES_NOT_EXIST,
-    # ERROR_GENE_NOT_DEFINED_IN_DATABASE,
-)
 
 from relecov_core.utils.handling_samples import (
     get_sample_obj_from_id,
-    get_sample_obj_if_exists,
+    get_sample_obj_from_sample_name,
 )
 
 """
@@ -58,6 +54,12 @@ def get_variant_data_from_sample(sample_id):
     return variant_data
 
 
+def get_gene_obj_from_gene_name(gene_name):
+    if Gene.objects.filter(gene_name__iexact=gene_name).exists():
+        return Gene.objects.filter(gene_name__iexact=gene_name).last()
+    return None
+
+
 """
 Functions to get data from database and paint variant mutation in lineages needle plot graph
 """
@@ -76,30 +78,25 @@ def get_if_organism_exists(organism_code):
 
 def get_if_chromosomes_exists(chromosome):
     if Chromosome.objects.filter(chromosome=chromosome).exists():
-        chromosomes_obj = Chromosome.objects.filter(chromosome=chromosome).last()
-        return chromosomes_obj
+        chromosome_obj = Chromosome.objects.filter(chromosome=chromosome).last()
+        return chromosome_obj
     else:
         return None
-        # return {"ERROR":ERROR_CHROMOSOME_DOES_NOT_EXIST}
 
 
-def get_gene_data(organism_code):
+def get_gene_objs(organism_code):
     organism_obj = get_if_organism_exists(organism_code=organism_code)
     if organism_obj:
         if Gene.objects.filter(org_annotationID=organism_obj).exists():
-            gene_coords = Gene.objects.filter(org_annotationID=organism_obj)
-            return gene_coords
-
-    else:
-        return {"ERROR": ERROR_CHROMOSOME_DOES_NOT_EXIST}
-        # return {"ERROR":ERROR_GENE_NOT_DEFINED_IN_DATABASE}
+            return Gene.objects.filter(org_annotationID=organism_obj)
+    return None
 
 
 def create_domains_list_of_dict(organism_code):
     separator = "-"
     dict_of_domain = {}
     domains = []
-    gene_data_objs = get_gene_data(organism_code)
+    gene_data_objs = get_gene_objs(organism_code)
     for gene_data_obj in gene_data_objs:
         list_of_coordenates = gene_data_obj.get_gene_positions()
         coords = separator.join(list_of_coordenates)
@@ -113,7 +110,7 @@ def get_alelle_frequency_per_sample(sample_name, chromosome):
     list_of_af = []
     chrom_obj = get_if_chromosomes_exists(chromosome)
     if chrom_obj:
-        sample_obj = get_sample_obj_if_exists(sample_name)
+        sample_obj = get_sample_obj_from_sample_name(sample_name)
         if sample_obj:
             variant_in_sample_objs = VariantInSample.objects.filter(
                 sampleID_id=sample_obj
@@ -127,7 +124,7 @@ def create_effect_list(sample_name, chromosome):
     list_of_effects = []
     chrom_obj = get_if_chromosomes_exists(chromosome)
     if chrom_obj:
-        sample_obj = get_sample_obj_if_exists(sample_name)
+        sample_obj = get_sample_obj_from_sample_name(sample_name)
         if sample_obj:
             variant_in_sample_objs = VariantInSample.objects.filter(
                 sampleID_id=sample_obj
@@ -148,7 +145,7 @@ def get_position_per_sample(sample_name, chromosome):
     list_of_effects = []
     chrom_obj = get_if_chromosomes_exists(chromosome)
     if chrom_obj:
-        sample_obj = get_sample_obj_if_exists(sample_name)
+        sample_obj = get_sample_obj_from_sample_name(sample_name)
         if sample_obj:
             variant_in_sample_objs = VariantInSample.objects.filter(
                 sampleID_id=sample_obj
@@ -158,7 +155,7 @@ def get_position_per_sample(sample_name, chromosome):
             return list_of_position
 
     if chrom_obj:
-        sample_obj = get_sample_obj_if_exists(sample_name)
+        sample_obj = get_sample_obj_from_sample_name(sample_name)
         if sample_obj:
             variant_in_sample_objs = VariantInSample.objects.filter(
                 sampleID_id=sample_obj

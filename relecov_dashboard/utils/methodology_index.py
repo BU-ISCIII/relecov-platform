@@ -4,6 +4,8 @@ from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analyis_fields_utilization,
 )
 
+from relecov_core.utils.schema_handling import get_default_schema, get_schema_properties
+from relecov_core.utils.rest_api_handling import get_summarize_data
 from django_plotly_dash import DjangoDash
 import dash_bootstrap_components as dbc
 
@@ -70,7 +72,12 @@ def graph_never_used_fields(value, label):
 
 def schema_fields_utilization():
     """ """
+    schema_obj = get_default_schema()
+    if schema_obj is None:
+        return
     schema_fields = get_bioinfo_analyis_fields_utilization()
+    iskylims_fields = get_summarize_data("sample_project", "Relecov")
+    print(iskylims_fields)
     for schema_name, fields in schema_fields.items():
         # import pdb; pdb.set_trace()
 
@@ -85,6 +92,8 @@ def schema_fields_utilization():
                 f_values.append(value)
         value = int("%.0f" % (mean(f_values) * 100))
     # graph_not_empty_fields(value)
+    # match once fields are collected from different ways
+    get_schema_properties(schema_obj)
     return value, sum_never_used
 
 
@@ -94,4 +103,6 @@ def index_dash_fields():
     graph_not_empty_fields(f_value, "Bioinfo metadata filled values %")
     # create graphic for never useds fields
     graph_never_used_fields(n_used, "Never used bioinfometada fields")
+    # create sequencer pie graphic
+
     return

@@ -3,22 +3,15 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from relecov_core.models import (
-    Authors,
-    AnalysisPerformed,
-    AnalysisType,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
     Classification,
     Chromosome,
     ConfigSetting,
-    Document,
     Effect,
-    EnaInfo,
     Error,
     Gene,
-    GisaidInfo,
     Filter,
-    # Lineage,
     LineageFields,
     LineageValues,
     LineageInfo,
@@ -61,26 +54,18 @@ class CustomUserAdmin(UserAdmin):
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
 
 
-class AnalysisTypeAdmin(admin.ModelAdmin):
-    list_display = ["type_name", "display_string"]
-
-
 class AnalysisPerformedAdmin(admin.ModelAdmin):
     list_display = ["typeID", "sampleID"]
 
 
 class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
-    list_display = ["property_name", "classificationID", "label_name"]
+    list_display = ["property_name", "label_name"]
     search_fields = ("property_name__icontains",)
 
 
 class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
     list_display = ["value", "bioinfo_analysis_fieldID"]
     search_fields = ("value__icontains",)
-
-
-class DocumentAdmin(admin.ModelAdmin):
-    list_display = ["title", "uploadedFile"]
 
 
 class ClassificationAdmin(admin.ModelAdmin):
@@ -99,10 +84,6 @@ class EffectAdmin(admin.ModelAdmin):
     list_display = ["effect"]
 
 
-class EnaInfoAdmin(admin.ModelAdmin):
-    list_display = ["biosample_accession_ENA", "SRA_accession", "study_title"]
-
-
 class ErrorAdmin(admin.ModelAdmin):
     list_display = ["error_name", "display_string"]
 
@@ -115,10 +96,6 @@ class GeneAdmin(admin.ModelAdmin):
     list_display = ["gene_name", "gene_start", "gene_end", "org_annotationID"]
 
 
-class GisaidInfoAdmin(admin.ModelAdmin):
-    list_display = ["gisaid_id", "submission_date"]
-
-
 class ChromosomeAdmin(admin.ModelAdmin):
     list_display = ["chromosome"]
 
@@ -128,7 +105,7 @@ class LineageInfoAdmin(admin.ModelAdmin):
 
 
 class LineageFieldsAdmin(admin.ModelAdmin):
-    list_display = ["property_name", "label_name", "classificationID"]
+    list_display = ["property_name", "label_name"]
 
 
 class LineageValuesAdmin(admin.ModelAdmin):
@@ -137,10 +114,6 @@ class LineageValuesAdmin(admin.ModelAdmin):
 
 class OrganismAnnotationAdmin(admin.ModelAdmin):
     list_display = ["organism_code", "gff_version", "sequence_region"]
-
-
-class PositionAdmin(admin.ModelAdmin):
-    list_display = ["pos", "nucleotide"]
 
 
 class SampleAdmin(admin.ModelAdmin):
@@ -173,11 +146,7 @@ class VariantInSampleAdmin(admin.ModelAdmin):
 
 
 class VariantAnnotationAdmin(admin.ModelAdmin):
-    list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1letter"]
-
-
-class AuthorsAdmin(admin.ModelAdmin):
-    list_display = ["analysis_authors", "author_submitter", "authors"]
+    list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
 
 
 class SchemaAdmin(admin.ModelAdmin):
@@ -215,25 +184,18 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 # Register models
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(AnalysisType, AnalysisTypeAdmin)
-admin.site.register(AnalysisPerformed, AnalysisPerformedAdmin)
-admin.site.register(Document, DocumentAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
-admin.site.register(EnaInfo, EnaInfoAdmin)
 admin.site.register(Gene, GeneAdmin)
-admin.site.register(GisaidInfo, GisaidInfoAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
 admin.site.register(LineageFields, LineageFieldsAdmin)
 admin.site.register(LineageValues, LineageValuesAdmin)
-# admin.site.register(Position, PositionAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
 admin.site.register(VariantAnnotation, VariantAnnotationAdmin)
-admin.site.register(Authors, AuthorsAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)

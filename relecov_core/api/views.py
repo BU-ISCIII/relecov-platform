@@ -12,21 +12,23 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.http import QueryDict
 from relecov_core.api.serializers import (
-    CrateAnalysisForSampleSerilizer,
     CreateDateAfterChangeStateSerializer,
     CreateSampleSerializer,
-    CreateAuthorSerializer,
-    CreateGisaidSerializer,
-    CreateEnaSerializer,
-    UpdateSampleSerializer,
+    CreateErrorSerializer,
+    UpdateStateSampleSerializer,
 )
 
-from relecov_core.api.utils.long_table_handling import fetch_long_table_data
+from relecov_core.api.utils.variant_handling import (
+    split_variant_data,
+    store_variant_annotation,
+    store_variant_in_sample,
+    delete_created_variancs,
+)
 from relecov_core.api.utils.sample_handling import (
     # check_if_sample_exists,
     split_sample_data,
 )
-from relecov_core.utils.handling_samples import get_sample_obj_if_exists
+from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
 
 from relecov_core.api.utils.bioinfo_metadata_handling import (
     split_bioinfo_data,
@@ -35,21 +37,17 @@ from relecov_core.api.utils.bioinfo_metadata_handling import (
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from relecov_core.models import Sample, SampleState, Error, EnaInfo
-
-from relecov_core.api.utils.accession_to_ENA import (
-    date_converter,
-    extract_number_of_sample,
-)  # parse_xml,
+from relecov_core.models import SampleState, Error
 
 from relecov_core.api.utils.common_functions import (
     get_schema_version_if_exists,
-    get_analysis_type_id,
+    update_change_state_date,
 )
 
 from relecov_core.core_config import (
     ERROR_SAMPLE_NAME_NOT_INCLUDED,
     ERROR_SAMPLE_NOT_DEFINED,
+    ERROR_VARIANT_INFORMATION_NOT_DEFINED,
 )
 
 
@@ -147,57 +145,19 @@ def create_sample_data(request):
         # if "sequencing_sample_id" not in data:
         if "sample_name" not in data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        # if get_sample_obj_if_exists(data["sequencing_sample_id"]):
-        if get_sample_obj_if_exists(data["sample_name"]):
+
+        if get_sample_obj_from_sample_name(data["sample_name"]):
             error = {"ERROR": "sample already defined"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         data["user"] = request.user.pk
         split_data = split_sample_data(data)
         if "ERROR" in split_data:
             return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
-        if split_data["author"]["authors"] != "":
-            author_serializer = CreateAuthorSerializer(data=split_data["author"])
-            if not author_serializer.is_valid():
-                return Response(
-                    author_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-        else:
-            author_serializer = None
-        if "EPI_" in split_data["gisaid"]["gisaid_id"]:
-            gisaid_serializer = CreateGisaidSerializer(data=split_data["gisaid"])
-            if not gisaid_serializer.is_valid():
-                return Response(
-                    gisaid_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-        else:
-            gisaid_serializer = None
-        if split_data["ena"]["biosample_accession_ENA"] != "":
-            ena_serializer = CreateEnaSerializer(data=split_data["ena"])
-            if not ena_serializer.is_valid():
-                return Response(
-                    ena_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-        else:
-            ena_serializer = None
-        # Store authors, gisaid, ena in ddbb to get the references
-        if author_serializer:
-            split_data["sample_name"][
-                "authors_obj"
-            ] = author_serializer.save().get_author_obj()
-        else:
-            split_data["sample_name"]["authors_obj"] = None
-        if gisaid_serializer:
-            split_data["sample_name"][
-                "gisaid_obj"
-            ] = gisaid_serializer.save().get_gisaid_obj()
-        else:
-            split_data["sample_name"]["gisaid_obj"] = None
-        if ena_serializer:
-            split_data["sample_name"]["ena_obj"] = ena_serializer.save().get_ena_obj()
-        else:
-            split_data["sample_name"]["ena_obj"] = None
+
+        split_data["sample_name"]["ena_obj"] = None
         split_data["sample_name"]["schema_obj"] = schema_obj.get_schema_id()
         sample_serializer = CreateSampleSerializer(data=split_data["sample_name"])
+
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
@@ -218,7 +178,9 @@ def create_sample_data(request):
 y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
 
 
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_bioinfo_metadata(request):
     if request.method == "POST":
         data = request.data
@@ -235,7 +197,7 @@ def create_bioinfo_metadata(request):
             {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    sample_obj = get_sample_obj_if_exists(data)
+    sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
     if sample_obj is None:
         return Response(
             {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
@@ -257,46 +219,63 @@ def create_bioinfo_metadata(request):
     if date_serializer.is_valid():
         date_serializer.save()
 
-    analysis_data = {
-        "sampleID": sample_obj.get_sample_id(),
-        "typeID": get_analysis_type_id("bioinfo_analysis"),
-    }
-    analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
-
-    if analysis_serializer.is_valid():
-        analysis_serializer.save()
     return Response(status=status.HTTP_201_CREATED)
 
 
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_variant_data(request):
     if request.method == "POST":
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
 
-        # sample_obj = get_sample(data)
-        sample_obj = get_sample_obj_if_exists(data["sample_name"])
+        sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
         if sample_obj is None:
             return Response(
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        stored_data = fetch_long_table_data(data, sample_obj)
-
-        if "ERROR" in stored_data:
-            return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
-
-        analysis_data = {
-            "sampleID": sample_obj.get_sample_id(),
-            "typeID": get_analysis_type_id("variant_analysis"),
-        }
-        analysis_serializer = CrateAnalysisForSampleSerilizer(data=analysis_data)
-
-        if analysis_serializer.is_valid():
-            analysis_serializer.save()
-
+        if "variant" not in data:
+            return Response(
+                {"ERROR": ERROR_VARIANT_INFORMATION_NOT_DEFINED},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        found_error = False
+        v_in_sample_list = []
+        v_an_list = []
+        for v_data in data["variant"]:
+            split_data = split_variant_data(v_data, sample_obj)
+            if "ERROR" in split_data:
+                error = {"ERROR": split_data}
+                found_error = True
+                break
+            variant_in_sample_obj = store_variant_in_sample(split_data["variant_data"])
+            if "ERROR" in variant_in_sample_obj:
+                error = {"ERROR": variant_in_sample_obj}
+                found_error = True
+                break
+            v_in_sample_list.append(variant_in_sample_obj)
+            variant_ann_obj = store_variant_annotation(split_data["v_ann_data"])
+            if "ERROR" in variant_ann_obj:
+                error = {"ERROR": variant_ann_obj}
+                found_error = True
+                break
+            v_an_list.append(variant_ann_obj)
+        if found_error:
+            delete_created_variancs(v_in_sample_list, v_an_list)
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        sample_obj.update_state("Variant")
+        # Include date and state in DateState table
+        state_id = (
+            SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
+        )
+        data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
+        date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
+        if date_serializer.is_valid():
+            date_serializer.save()
         return Response(status=status.HTTP_201_CREATED)
+        #
 
 
 @swagger_auto_schema(
@@ -327,8 +306,6 @@ def create_variant_data(request):
 @permission_classes([IsAuthenticated])
 @api_view(["PUT"])
 def update_state(request):
-    data_date = {}
-
     if request.method == "PUT":
         data = request.data
 
@@ -336,121 +313,43 @@ def update_state(request):
             data = data.dict()
 
         data["user"] = request.user.pk
-
+        sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
+        if sample_obj is None:
+            return Response(
+                {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
+            )
+        sample_id = sample_obj.get_sample_id()
         # if state exists,
         if SampleState.objects.filter(state=data["state"]).exists():
-            data["state"] = SampleState.objects.filter(state=data["state"]).last().pk
+            s_data = {
+                "state": SampleState.objects.filter(state=data["state"])
+                .last()
+                .get_state_id()
+            }
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        data["sequencing_sample_id"] = data["sample"]
-
-        if "error_type" in data:
-            data["error_type"] = (
-                Error.objects.filter(error_name=data["error_type"]).last().pk
-            )
-
-        # if sample exists, create an instance of existing sample.
-        if Sample.objects.filter(
-            sequencing_sample_id=data["sample"], user=request.user
-        ).exists():
-            sample_instance = Sample.objects.filter(
-                sequencing_sample_id=data["sample"]
-            ).last()
-
-            sample_serializer = UpdateSampleSerializer(sample_instance, data=data)
-        # if sample does not exist, create a new sample register.
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
+        sample_serializer = UpdateStateSampleSerializer(sample_obj, data=s_data)
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
         sample_serializer.save()
 
-        data_date["stateID"] = SampleState.objects.filter(
-            pk__exact=data["state"]
-        ).last()
-        data_date["sampleID"] = Sample.objects.filter(
-            sequencing_sample_id=sample_instance
-        )
+        if "error_type" in data and "Error" in data["state"]:
+            error_type_id = (
+                Error.objects.filter(error_name=data["error_type"])
+                .last()
+                .get_error_id()
+            )
+            e_data = {"error_type": error_type_id}
+            sample_err_serializer = CreateErrorSerializer(sample_obj, data=e_data)
+            if not sample_err_serializer.is_valid():
+                return Response(
+                    sample_err_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+            sample_err_serializer.save()
 
-        CreateDateAfterChangeStateSerializer(data_date)
+        update_change_state_date(sample_id, s_data["state"])
 
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
-
-
-@swagger_auto_schema(
-    method="post",
-    operation_description="The POST method is used to create new records in the database.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "SRA_accession": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Code provided by ENA after uploading samples",
-            ),
-            "ena_process_date": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Upload date to ENA"
-            ),
-            "GenBank_ENA_DDBJ_accession": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="",
-            ),
-            "study_alias": openapi.Schema(type=openapi.TYPE_STRING, description=""),
-            "study_id": openapi.Schema(type=openapi.TYPE_STRING, description=""),
-            "study_title": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="",
-            ),
-            "study_type": openapi.Schema(type=openapi.TYPE_STRING, description=""),
-            "experiment_alias": openapi.Schema(
-                type=openapi.TYPE_STRING, description=""
-            ),
-            "experiment_title": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="",
-            ),
-        },
-    ),
-    responses={
-        201: "Successful create information",
-        400: "Bad Request",
-        500: "Internal Server Error",
-    },
-)
-@authentication_classes([SessionAuthentication, BasicAuthentication])
-@permission_classes([IsAuthenticated])
-@api_view(["POST"])
-def accession_ena(request):
-    if request.method == "POST":
-        data = request.data
-
-        if isinstance(data, QueryDict):
-            data = data.dict()
-
-        number_of_sample = extract_number_of_sample(data["GenBank_ENA_DDBJ_accession"])
-
-        data["user"] = request.user.pk
-        process_date = date_converter(data["ena_process_date"])
-
-        if EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        else:
-            ena_obj = EnaInfo.objects.create(
-                ena_process_date=process_date,
-                SRA_accession=data["SRA_accession"],
-                GenBank_ENA_DDBJ_accession=data["GenBank_ENA_DDBJ_accession"],
-            )
-            sample_obj = Sample.objects.filter(
-                sequencing_sample_id=number_of_sample
-            ).last()
-
-            ena_obj = EnaInfo.objects.filter(SRA_accession=data["SRA_accession"]).last()
-            sample_obj.ena_obj = ena_obj
-
-            sample_obj.save()
-
-    return Response("Successful upload information", status=status.HTTP_201_CREATED)
