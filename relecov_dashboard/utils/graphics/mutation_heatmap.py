@@ -17,15 +17,6 @@ import dash_html_components as html
 import plotly.express as px
 
 import pandas as pd
-
-"""
-from relecov_dashboard.utils.graphics.mutation_table_copy import (
-    read_mutation_data,
-    process_mutation_df,
-)
-"""
-# from relecov_platform import settings
-
 from relecov_core.utils.handling_variant import (
     # get_if_chromosomes_exists,
     # get_if_organism_exists,
@@ -35,6 +26,16 @@ from relecov_core.utils.handling_variant import (
 )
 from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
 from relecov_core.models import Effect, Gene, VariantAnnotation, VariantInSample
+
+"""
+from relecov_dashboard.utils.graphics.mutation_table_copy import (
+    read_mutation_data,
+    process_mutation_df,
+)
+"""
+# from relecov_platform import settings
+
+
 
 
 def create_data_for_dataframe(sample_name):
