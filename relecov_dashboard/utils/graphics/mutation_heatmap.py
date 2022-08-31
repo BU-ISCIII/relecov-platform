@@ -36,8 +36,6 @@ from relecov_dashboard.utils.graphics.mutation_table_copy import (
 # from relecov_platform import settings
 
 
-
-
 def create_data_for_dataframe(sample_name):
     # "B.1.1.7", "NC_045512"
     df = {}
