@@ -78,12 +78,12 @@ def get_variant_id(data):
     variant_obj = Variant.objects.filter(
         chromosomeID_id=chr_obj,
         pos__iexact=data["Variant"]["pos"],
-        alt_iexact=data["Variant"]["alt"],
+        alt__iexact=data["Variant"]["alt"],
     ).last()
     if variant_obj is None:
         # Create the variant
         filter_obj = create_or_get_filter_obj(data["Filter"])
-        if "ERROR" in filter_obj:
+        if isinstance(filter_obj, dict):
             return filter_obj
         variant_dict = {}
         variant_dict["chromosomeID_id"] = chr_obj.get_chromosome_id()
@@ -95,19 +95,19 @@ def get_variant_id(data):
         if not variant_serializer.is_valid():
             return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
         variant_obj = variant_serializer.save()
-
-    return variant_obj
+    return variant_obj.get_variant_id()
 
 
 def get_required_variant_ann_id(data):
     """Look for the ids that variant annotation needs"""
     v_ann_ids = {}
     gene_obj = get_gene_obj_from_gene_name(data["Gene"])
+
     if gene_obj is None:
         return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
     v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
     effect_obj = create_or_get_effect_obj(data["Effect"])
-    if "ERROR" in effect_obj:
+    if isinstance(effect_obj, dict):
         return effect_obj
     v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
     v_ann_ids["effectID_id"] = effect_obj.get_effect_id()
@@ -119,7 +119,7 @@ def split_variant_data(data, sample_obj):
     split_data = {"variant_in_sample": {}, "variant_ann": {}}
     split_data["variant_in_sample"]["sampleID_id"] = sample_obj.get_sample_id()
     variant_id = get_variant_id(data)
-    if "ERROR" in variant_id:
+    if isinstance(variant_id, dict):
         return variant_id
     split_data["variant_in_sample"]["variantID_id"] = variant_id
     split_data["variant_in_sample"].update(data["VariantInSample"])
@@ -127,8 +127,7 @@ def split_variant_data(data, sample_obj):
     v_ann_id = get_required_variant_ann_id(data)
     if "ERROR" in v_ann_id:
         return v_ann_id
-    split_data["variant_data"] = v_ann_id
+    split_data["variant_ann"] = v_ann_id
     split_data["variant_ann"]["variantID_id"] = variant_id
     split_data["variant_ann"].update(data["VariantAnnotation"])
-
     return split_data
