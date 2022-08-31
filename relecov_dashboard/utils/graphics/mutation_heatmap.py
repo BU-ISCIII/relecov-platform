@@ -18,10 +18,12 @@ import plotly.express as px
 
 import pandas as pd
 
+"""
 from relecov_dashboard.utils.graphics.mutation_table import (
     read_mutation_data,
     process_mutation_df,
 )
+"""
 from relecov_platform import settings
 
 
@@ -68,6 +70,7 @@ def get_figure(data: pd.DataFrame, sample_ids: list, genes: list = None):
 
 
 def create_hot_map():
+    """
     input_file = os.path.join(
         settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
     )
@@ -136,3 +139,4 @@ def create_hot_map():
         return fig
 
     return app
+    """
