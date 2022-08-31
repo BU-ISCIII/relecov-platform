@@ -40,7 +40,7 @@ class CreateEffectSerializer(serializers.ModelSerializer):
 class CreateErrorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = "error_type"
+        fields = "__all__"
 
 
 class CreateVariantInSampleSerializer(serializers.ModelSerializer):
@@ -58,7 +58,7 @@ class CreateVariantAnnotationSerializer(serializers.ModelSerializer):
 class CreateFilterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Filter
-        fields = "filter"
+        fields = "__all__"
 
 
 class CreateVariantSerializer(serializers.ModelSerializer):
@@ -76,4 +76,4 @@ class CreateLineageValueSerializer(serializers.ModelSerializer):
 class UpdateStateSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = "state"
+        fields = "__all__"
