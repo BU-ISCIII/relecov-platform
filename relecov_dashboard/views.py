@@ -47,7 +47,7 @@ def variants_lineage_variation_over_time(request):
 
 
 def variants_mutations_in_lineages_heatmap(request):
-    create_hot_map()
+    create_hot_map(2018185)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
 
 
