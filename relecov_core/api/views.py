@@ -236,7 +236,7 @@ def create_variant_data(request):
             return Response(
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
-        if "variant" not in data:
+        if "variants" not in data:
             return Response(
                 {"ERROR": ERROR_VARIANT_INFORMATION_NOT_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -244,20 +244,23 @@ def create_variant_data(request):
         found_error = False
         v_in_sample_list = []
         v_an_list = []
-        for v_data in data["variant"]:
+
+        for v_data in data["variants"]:
             split_data = split_variant_data(v_data, sample_obj)
             if "ERROR" in split_data:
                 error = {"ERROR": split_data}
                 found_error = True
                 break
-            variant_in_sample_obj = store_variant_in_sample(split_data["variant_data"])
-            if "ERROR" in variant_in_sample_obj:
+            variant_in_sample_obj = store_variant_in_sample(
+                split_data["variant_in_sample"]
+            )
+            if isinstance(variant_in_sample_obj, dict):
                 error = {"ERROR": variant_in_sample_obj}
                 found_error = True
                 break
             v_in_sample_list.append(variant_in_sample_obj)
-            variant_ann_obj = store_variant_annotation(split_data["v_ann_data"])
-            if "ERROR" in variant_ann_obj:
+            variant_ann_obj = store_variant_annotation(split_data["variant_ann"])
+            if isinstance(variant_ann_obj, dict):
                 error = {"ERROR": variant_ann_obj}
                 found_error = True
                 break
@@ -265,17 +268,16 @@ def create_variant_data(request):
         if found_error:
             delete_created_variancs(v_in_sample_list, v_an_list)
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
         sample_obj.update_state("Variant")
         # Include date and state in DateState table
         state_id = (
-            SampleState.objects.filter(state__exact="Bioinfo").last().get_state_id()
+            SampleState.objects.filter(state__exact="Variant").last().get_state_id()
         )
-        data_date = {"sampleID": sample_obj.get_sample_id(), "stateID": state_id}
-        date_serializer = CreateDateAfterChangeStateSerializer(data=data_date)
-        if date_serializer.is_valid():
-            date_serializer.save()
+        sample_id = sample_obj.get_sample_id()
+        update_change_state_date(sample_id, state_id)
+
         return Response(status=status.HTTP_201_CREATED)
-        #
 
 
 @swagger_auto_schema(
