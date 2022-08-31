@@ -135,7 +135,9 @@ def create_effect_list(sample_name, chromosome):
                     variantID_id=variant_obj
                 )
                 for variant_annotation_obj in variant_annotation_objs:
-                    list_of_effects.append(variant_annotation_obj.get_effectID_id())
+                    list_of_effects.append(
+                        variant_annotation_obj.get_variant_in_sample_data()
+                    )
 
         return list_of_effects
 

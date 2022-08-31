@@ -681,6 +681,9 @@ class Sample(models.Model):
     def __str__(self):
         return "%s" % (self.sequencing_sample_id)
 
+    def get_lineage_values(self):
+        return "%s" % (self.linage_values)
+
     def get_sample_id(self):
         return "%s" % (self.pk)
 
