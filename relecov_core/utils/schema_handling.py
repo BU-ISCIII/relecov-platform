@@ -168,6 +168,13 @@ def check_heading_valid_json(schema_data, m_structure):
     return True
 
 
+def get_default_schema():
+    """Return the default schema used for relecov"""
+    if Schema.objects.filter(schema_default=True).exists():
+        return Schema.objects.filter(schema_default=True).last()
+    return None
+
+
 def del_metadata_visualization():
     """Delete previous metadata visualization if already exists"""
     if MetadataVisualization.objects.all().exists():
@@ -175,6 +182,19 @@ def del_metadata_visualization():
         for m_vis_obj in m_vis_objs:
             m_vis_obj.delete()
     return None
+
+
+def get_schema_properties(schema):
+    """Fetch the list of the properties"""
+    s_prop_dict = {}
+    if SchemaProperties.objects.filter(schemaID=schema).exists():
+        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema)
+        for s_prop_obj in s_prop_objs:
+            p_name = s_prop_obj.get_property_name()
+            s_prop_dict[p_name] = {}
+            s_prop_dict[p_name]["classification"] = s_prop_obj.get_classification()
+            s_prop_dict[p_name]["ontology"] = s_prop_obj.get_ontology()
+    return s_prop_dict
 
 
 def store_fields_metadata_visualization(data):

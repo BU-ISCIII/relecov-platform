@@ -152,10 +152,7 @@ HEADING_FOR_QCSTATS_TABLE = {
 }
 
 SCHEMAS_UPLOAD_FOLDER = "schemas"
-BIOINFO_UPLOAD_FOLDER = "bioinfo"
-BIOINFO_METADATA_UPLOAD_FOLDER = "bioinfo_metadata"
-METADATA_JSON_UPLOAD_FOLDER = "metadata_json"
-METADATA_UPLOAD_FOLDER = "metadata"
+BIOINFO_UPLOAD_FOLDER = "Check if delete"
 
 SCHEMA_SUCCESSFUL_LOAD = "Schema was successfully loaded"
 BIOINFO_SUCCESSFUL_LOAD = "Bioinfo file was successfully loaded"
@@ -169,8 +166,6 @@ ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED = "So far there are no samples defined"
 ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED = "Missing configuration for sample states"
 ERROR_GENE_NOT_DEFINED_IN_DATABASE = "Error Gene not defined in database"
 ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE = "Error Chromosome not defined in database"
-ERROR_EFFECT_NOT_DEFINED_IN_DATABASE = "Error Effect not defined in database"
-ERROR_FILTER_NOT_DEFINED_IN_DATABASE = "Error Filter not defined in database"
 ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS = (
     "User name must have al least 5 characters"
 )
@@ -199,6 +194,7 @@ ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
 ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS = (
     "Annotation file for the organism already loaded"
 )
+ERROR_VARIANT_INFORMATION_NOT_DEFINED = "Variant field is not included in the request"
 
 HEADING_FOR_BASIC_SAMPLE_DATA = [
     "Sample ID given for sequencing",
@@ -247,6 +243,7 @@ ISKLIMS_PUT_LABORATORY_PARAMETER = "updateLab"
 ISKLIMS_GET_SAMPLE_FIELDS = "sampleFields"
 ISKLIMS_GET_SAMPLE_INFORMATION = ["fetchSampleIinformation", "sample"]
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
+ISKLIMS_GET_SUMMARIZE_DATA = "summarizeDataInformation"
 ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
 
 # API requested information
