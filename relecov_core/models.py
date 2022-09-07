@@ -774,7 +774,7 @@ class PublicDatabaseFieldsManager(models.Manager):
         new_field = self.create(
             database_type=data["database_type"],
             property_name=data["property_name"],
-            label_name=data["label_name"]
+            label_name=data["label_name"],
         )
         return new_field
 
