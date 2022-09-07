@@ -5,10 +5,12 @@ from django.db import DataError
 from django.conf import settings
 from relecov_core.models import (
     BioinfoAnalysisField,
-    Classification,
+    # Classification,
     LineageFields,
     MetadataVisualization,
     PropertyOptions,
+    PublicDatabaseFields,
+    PublicDatabaseType,
     Schema,
     SchemaProperties,
 )
@@ -257,7 +259,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
     # p = re.compile(r"Bioinformatic?..*[\w+]")
     # p2 = re.compile(r"Lineage.+[\w+]")
     for prop_key in s_properties.keys():
-        classification = ""
+        # classification = ""
         data = dict(s_properties[prop_key])
         if "sample_name" in data:
             continue
@@ -265,17 +267,19 @@ def store_bioinfo_fields(schema_obj, s_properties):
             match = re.search(r"^Bioinformatic.*", data["classification"])
             if not match:
                 continue
-            classification = data["classification"]
+            # classification = data["classification"]
             # print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
 
             # fetch the Classification instance
+            """
             class_obj = Classification.objects.filter(
                 classification_name__iexact=classification
             ).last()
+            """
             fields = {}
-            fields["classificationID"] = class_obj
+            # fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
             n_field = BioinfoAnalysisField.objects.create_new_field(fields)
@@ -286,20 +290,34 @@ def store_bioinfo_fields(schema_obj, s_properties):
 def store_lineage_fields(schema_obj, s_properties):
     """Store the fields to be used for lineage analysis information"""
     for prop_key in s_properties.keys():
-        classification = ""
         data = dict(s_properties[prop_key])
         if "classification" in data and data["classification"] == "Lineage fields":
-            classification = data["classification"]
-            class_obj = Classification.objects.filter(
-                classification_name__iexact=classification
-            ).last()
             fields = {}
-            fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
             l_field = LineageFields.objects.create_new_field(fields)
             l_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
+
+
+def store_public_data_fields(schema_obj, s_properties):
+    """Store the fiells to be usde for public database information"""
+    for prop_key in s_properties.keys():
+        data = dict(s_properties[prop_key])
+        if "classification" in data and data["classification"] == "Public databases":
+            fields = {}
+            fields["property_name"] = prop_key
+            fields["label_name"] = data["label"]
+            # find out the public database type
+
+            database_types = PublicDatabaseType.objects.values_list("public_type_name", flat=True).distinct()
+            for database_type in database_types:
+                if database_type in prop_key:
+                    break
+            p_database_type_obj = PublicDatabaseType.objects.filter(public_type_name__exact=database_type).last()
+            fields["database_type"] = p_database_type_obj
+            p_field = PublicDatabaseFields.objects.create_new_field(fields)
+            p_field.schemaID.add(schema_obj)
 
 
 def remove_existing_default_schema(schema_name, apps_name):
@@ -355,5 +373,6 @@ def process_schema_file(json_file, default, user, apps_name):
         return result
     store_bioinfo_fields(new_schema, schema_data["full_schema"]["properties"])
     store_lineage_fields(new_schema, schema_data["full_schema"]["properties"])
+    store_public_data_fields(new_schema, schema_data["full_schema"]["properties"])
 
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}

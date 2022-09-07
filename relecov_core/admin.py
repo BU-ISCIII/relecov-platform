@@ -20,6 +20,8 @@ from relecov_core.models import (
     # Position,
     Profile,
     PropertyOptions,
+    PublicDatabaseFields,
+    PublicDatabaseValues,
     PublicDatabaseType,
     Sample,
     SampleState,
@@ -121,6 +123,14 @@ class PublicDatabaseTypeAdmin(admin.ModelAdmin):
     list_display = ["public_type_name", "public_type_display"]
 
 
+class PublicDatabaseFieldsAdmin(admin.ModelAdmin):
+    list_display = ["property_name", "database_type"]
+
+
+class PublicDatabaseValuesAdmin(admin.ModelAdmin):
+    list_display = ["value", "sampleID", "public_database_fieldID"]
+
+
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "sequencing_sample_id",
@@ -205,6 +215,8 @@ admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
 admin.site.register(PublicDatabaseType, PublicDatabaseTypeAdmin)
+admin.site.register(PublicDatabaseFields, PublicDatabaseFieldsAdmin)
+admin.site.register(PublicDatabaseValues, PublicDatabaseValuesAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
 admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
