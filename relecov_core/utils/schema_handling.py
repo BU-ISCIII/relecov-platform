@@ -238,12 +238,12 @@ def store_schema_properties(schema_obj, s_properties, required):
             # schema_obj.delete()
             # return {"ERROR": e}
         if "options" in data:
-            for item in s_properties[prop_key]["Enums"]:
+            for item in s_properties[prop_key]["enum"]:
                 enum = re.search(r"(.+) \[(.*)\]", item)
                 if enum:
-                    e_data = {"enums": enum.group(1), "ontology": enum.group(2)}
+                    e_data = {"enum": enum.group(1), "ontology": enum.group(2)}
                 else:
-                    e_data = {"enums": item, "ontology": None}
+                    e_data = {"enum": item, "ontology": None}
                 e_data["propertyID"] = new_property
                 try:
                     PropertyOptions.objects.create_property_options(e_data)
