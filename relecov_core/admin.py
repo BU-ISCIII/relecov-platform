@@ -20,6 +20,7 @@ from relecov_core.models import (
     # Position,
     Profile,
     PropertyOptions,
+    PublicDatabaseType,
     Sample,
     SampleState,
     Schema,
@@ -116,6 +117,10 @@ class OrganismAnnotationAdmin(admin.ModelAdmin):
     list_display = ["organism_code", "gff_version", "sequence_region"]
 
 
+class PublicDatabaseTypeAdmin(admin.ModelAdmin):
+    list_display = ["public_type_name", "public_type_display"]
+
+
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "sequencing_sample_id",
@@ -199,6 +204,7 @@ admin.site.register(VariantAnnotation, VariantAnnotationAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
+admin.site.register(PublicDatabaseType, PublicDatabaseTypeAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
 admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)

@@ -753,6 +753,69 @@ class Sample(models.Model):
     objects = SampleManager()
 
 
+class PublicDatabaseType(models.Model):
+    public_type_name = models.CharField(max_length=30)
+    public_type_display = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "PublicDatabaseType"
+
+    def __str__(self):
+        return "%s" % (self.public_type_name)
+
+    def get_public_type_name(self):
+        return "%s" % (self.public_type_name)
+
+    def get_public_type_display(self):
+        return "%s" % (self.public_type_display)
+
+
+class PublicDatabaseFields(models.Model):
+    schemaID = models.ManyToManyField(Schema)
+    database_type = models.ForeignKey(
+        PublicDatabaseType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    property_name = models.CharField(max_length=60)
+    label_name = models.CharField(max_length=80)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "PublicDatabaseFields"
+
+    def __str__(self):
+        return "%s" % (self.property_name)
+
+    def get_property_name(self):
+        return "%s" % (self.property_name)
+
+    def get_label_name(self):
+        return "%s" % (self.label_name)
+
+
+class PublicDatabaseValues(models.Model):
+    public_database_fieldID = models.ForeignKey(
+        PublicDatabaseFields, on_delete=models.CASCADE
+    )
+    sampleID = models.ForeignKey(
+        Sample, on_delete=models.CASCADE, null=True, blank=True
+    )
+    value = models.CharField(max_length=240)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "PublicDatabaseValues"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_value(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
+
+
 class DateUpdateState(models.Model):
     stateID = models.ForeignKey(SampleState, on_delete=models.CASCADE)
     sampleID = models.ForeignKey(Sample, on_delete=models.CASCADE)
