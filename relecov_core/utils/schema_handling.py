@@ -310,11 +310,15 @@ def store_public_data_fields(schema_obj, s_properties):
             fields["label_name"] = data["label"]
             # find out the public database type
 
-            database_types = PublicDatabaseType.objects.values_list("public_type_name", flat=True).distinct()
+            database_types = PublicDatabaseType.objects.values_list(
+                "public_type_name", flat=True
+            ).distinct()
             for database_type in database_types:
                 if database_type in prop_key:
                     break
-            p_database_type_obj = PublicDatabaseType.objects.filter(public_type_name__exact=database_type).last()
+            p_database_type_obj = PublicDatabaseType.objects.filter(
+                public_type_name__exact=database_type
+            ).last()
             fields["database_type"] = p_database_type_obj
             p_field = PublicDatabaseFields.objects.create_new_field(fields)
             p_field.schemaID.add(schema_obj)
