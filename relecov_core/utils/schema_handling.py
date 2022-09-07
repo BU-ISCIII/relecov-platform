@@ -229,7 +229,7 @@ def store_schema_properties(schema_obj, s_properties, required):
         data["property"] = prop_key
         if prop_key in required:
             data["required"] = True
-        if "Enums" in data:
+        if "enum" in data:
             data["options"] = True
         try:
             new_property = SchemaProperties.objects.create_new_property(data)
