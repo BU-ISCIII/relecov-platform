@@ -297,7 +297,6 @@ class MetadataVisualization(models.Model):
 class BioinfoAnalysisFieldManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
-            classificationID=data["classificationID"],
             property_name=data["property_name"],
             label_name=data["label_name"],
         )
@@ -390,7 +389,6 @@ class LineageInfo(models.Model):
 class LineageFieldsManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
-            classificationID=data["classificationID"],
             property_name=data["property_name"],
             label_name=data["label_name"],
         )
@@ -771,6 +769,16 @@ class PublicDatabaseType(models.Model):
         return "%s" % (self.public_type_display)
 
 
+class PublicDatabaseFieldsManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            database_type=data["database_type"],
+            property_name=data["property_name"],
+            label_name=data["label_name"]
+        )
+        return new_field
+
+
 class PublicDatabaseFields(models.Model):
     schemaID = models.ManyToManyField(Schema)
     database_type = models.ForeignKey(
@@ -791,6 +799,8 @@ class PublicDatabaseFields(models.Model):
 
     def get_label_name(self):
         return "%s" % (self.label_name)
+
+    objects = PublicDatabaseFieldsManager()
 
 
 class PublicDatabaseValues(models.Model):
