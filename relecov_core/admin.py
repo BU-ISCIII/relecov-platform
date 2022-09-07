@@ -184,7 +184,7 @@ class TemporalSampleStorageAdmin(admin.ModelAdmin):
 
 
 class PropertyOptionsAdmin(admin.ModelAdmin):
-    list_display = ["propertyID", "enums", "ontology"]
+    list_display = ["propertyID", "enum", "ontology"]
 
 
 class MetadataVisualizationAdmin(admin.ModelAdmin):
