@@ -227,7 +227,7 @@ class PropertyOptionsManager(models.Manager):
     def create_property_options(self, data):
         new_property_option_obj = self.create(
             propertyID=data["propertyID"],
-            enums=data["enums"],
+            enum=data["enum"],
             ontology=data["ontology"],
         )
         return new_property_option_obj
@@ -235,7 +235,7 @@ class PropertyOptionsManager(models.Manager):
 
 class PropertyOptions(models.Model):
     propertyID = models.ForeignKey(SchemaProperties, on_delete=models.CASCADE)
-    enums = models.CharField(max_length=80, null=True, blank=True)
+    enum = models.CharField(max_length=80, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
@@ -245,7 +245,7 @@ class PropertyOptions(models.Model):
         return "%s" % (self.enums)
 
     def get_enum(self):
-        return "%s" % (self.enums)
+        return "%s" % (self.enum)
 
     objects = PropertyOptionsManager()
 
