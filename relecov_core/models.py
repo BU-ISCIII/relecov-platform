@@ -242,7 +242,7 @@ class PropertyOptions(models.Model):
         db_table = "PropertyOptions"
 
     def __str__(self):
-        return "%s" % (self.enums)
+        return "%s" % (self.enum)
 
     def get_enum(self):
         return "%s" % (self.enum)
