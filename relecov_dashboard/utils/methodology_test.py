@@ -86,6 +86,7 @@ def create_gauge(value, label):
                 units="%",
                 max=100,
                 min=0,
+                config={"displaylogo": False},
             ),
         ],
     )
