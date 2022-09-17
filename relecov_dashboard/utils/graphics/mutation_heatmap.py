@@ -9,14 +9,16 @@ Mutation heatmap
     - Color represents allele frequency
 
 """
-# import os
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
-
 import pandas as pd
+from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
+from relecov_core.models import Effect, Gene, VariantAnnotation, VariantInSample
+
+"""
 from relecov_core.utils.handling_variant import (
     # get_if_chromosomes_exists,
     # get_if_organism_exists,
@@ -24,87 +26,65 @@ from relecov_core.utils.handling_variant import (
     get_alelle_frequency_per_sample,
     # create_effect_list,
 )
-from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
-from relecov_core.models import Effect, Gene, VariantAnnotation, VariantInSample
-
 """
-from relecov_dashboard.utils.graphics.mutation_table_copy import (
-    read_mutation_data,
-    process_mutation_df,
-)
-"""
-# from relecov_platform import settings
 
 
-def create_data_for_dataframe(sample_name):
-    # "B.1.1.7", "NC_045512"
+def create_data_for_dataframe(sample_list, gene_list):
     df = {}
     list_of_hgvs_p = []
-    gene_list = []
+    gene_list_df = []
     effect_list = []
-    sample_list = []
-    lineage_list = ["B.1.1.7", "B.1.1.7", "B.1.1.7", "B.1.1.7", "B.1.1.7"]
+    pos_list = []
+    af_list = []
+    sample_list_df = []
+    lineage_list = []
     chromosome = "NC_045512"
-    sample_obj = get_sample_obj_from_sample_name(sample_name=sample_name)
-    if sample_obj is not None:
-        af = get_alelle_frequency_per_sample(
-            sample_name=sample_name, chromosome=chromosome
-        )
-        pos = get_position_per_sample(sample_name=sample_name, chromosome=chromosome)
-        variant_in_sample_objs = VariantInSample.objects.filter(sampleID_id=sample_obj)
-        for variant_in_sample_obj in variant_in_sample_objs:
-            variant_annotation_obj = VariantAnnotation.objects.filter(
-                variantID_id=variant_in_sample_obj.get_variantID_id()
-            ).last()
-            # for variant_annotation_obj in variant_annotation_objs:
-            hgvs_p = variant_annotation_obj.get_variant_in_sample_data()[1]
-            list_of_hgvs_p.append(hgvs_p)
+    for sample_name in sample_list:
+        sample_obj = get_sample_obj_from_sample_name(sample_name=sample_name)
 
-            geneID_id = variant_annotation_obj.get_geneID_id()
-            gene_obj = Gene.objects.filter(gene_name__iexact=geneID_id).last()
-            gene_list.append(gene_obj.get_gene_name())
+        if sample_obj is not None:
+            variant_in_sample_objs = VariantInSample.objects.filter(
+                sampleID_id=sample_obj
+            )
+            for variant_in_sample_obj in variant_in_sample_objs:
+                variant_annotation_obj = VariantAnnotation.objects.filter(
+                    variantID_id=variant_in_sample_obj.get_variantID_id()
+                ).last()
+                if variant_annotation_obj.get_geneID_id() in gene_list:
+                    hgvs_p = variant_annotation_obj.get_variant_in_sample_data()[1]
+                    list_of_hgvs_p.append(hgvs_p)
 
-            effect_obj = Effect.objects.filter(
-                effect__iexact=variant_annotation_obj.get_effectID_id()
-            ).last()
-            effect_list.append(effect_obj.get_effect())
+                    geneID_id = variant_annotation_obj.get_geneID_id()
+                    gene_obj = Gene.objects.filter(gene_name__iexact=geneID_id).last()
+                    gene_list_df.append(gene_obj.get_gene_name())
 
-            sample_list.append(sample_name)
+                    effect_obj = Effect.objects.filter(
+                        effect__iexact=variant_annotation_obj.get_effectID_id()
+                    ).last()
+                    effect_list.append(effect_obj.get_effect())
+                    sample_list_df.append(sample_name)
+                    lineage_list.append("B.1.1.7")
+                    af_list.append(variant_in_sample_obj.get_af())
+                    pos_list.append(variant_in_sample_obj.get_variant_pos())
 
-        df["SAMPLE"] = sample_list
-        df["POS"] = pos
-        df["Mutation"] = list_of_hgvs_p
-        df["AF"] = af
-        df["EFFECT"] = effect_list
-        df["GENE"] = gene_list
-        df["LINEAGE"] = lineage_list
+    df["SAMPLE"] = sample_list_df
+    df["POS"] = pos_list
+    df["MUTATION"] = list_of_hgvs_p
+    df["AF"] = af_list
+    df["EFFECT"] = effect_list
+    df["GENE"] = gene_list_df
+    df["LINEAGE"] = lineage_list
+    pandas_df = pd.DataFrame.from_dict(df)
 
-        pandas_df = pd.DataFrame.from_dict(df)
-        return pandas_df
-    else:
-        return None
+    return pandas_df
 
 
-# (data: pd.DataFrame, sample_ids: list, genes: list = None):
-def get_figure(df, sample_name):
-    # df = create_data_for_dataframe(sample_name=sample_name)
-
-    """
-    # Filter
-    filter = {"SAMPLE": df["SAMPLE"], "GENE": df["GENE"]}
-    print(filter)
-    for col, filter in filter.items():
-        print(col)
-        print(filter)
-        if filter and type(filter) == list:
-            data = data[data[col].isin(filter)]
-            print(data)
-
+def get_figure(data: pd.DataFrame, sample_ids: list, genes: list):
     # Order by position
-    data = data.sort_values(by=df["POS"])
+    data = data.sort_values(by=["POS"])
 
     # Add gene name and mutation into one column
-    data["G_MUT"] = df["GENE"] + " - " + df["MUTATION"]
+    data["G_MUT"] = data["GENE"] + " - " + data["MUTATION"]
 
     # Pivot table
     pivot_df = pd.pivot_table(
@@ -114,10 +94,10 @@ def get_figure(df, sample_name):
     # Order
     pivot_df = pivot_df.sort_index()
     pivot_df.index = pivot_df.index.astype(str)
-    """
+
     # Heatmap
     fig = px.imshow(
-        df,
+        pivot_df,
         aspect="auto",
         labels=dict(x="Mutation", y="Sample", color="AF"),
         color_continuous_scale="RdYlGn",
@@ -127,32 +107,20 @@ def get_figure(df, sample_name):
     fig.update_layout(
         yaxis={"title": "Samples"},
         xaxis={"title": "Mutations", "tickangle": 45},
-        yaxis_nticks=len(df) if len(df) <= 50 else 50,
-        xaxis_nticks=len(df.columns) if len(df.columns) <= 100 else 100,
+        yaxis_nticks=len(pivot_df) if len(pivot_df) <= 50 else 50,
+        xaxis_nticks=len(pivot_df.columns) if len(pivot_df.columns) <= 100 else 100,
     )
     fig.update_traces(xgap=1)
 
     return fig
 
 
-def create_hot_map(sample_name):
-    df = create_data_for_dataframe(sample_name=sample_name)
-    get_figure(df, sample_name)
-
-    """
-    input_file = os.path.join(
-        settings.BASE_DIR, "relecov_core", "docs", "variants_long_table_last.csv"
-    )
-    sample_ids = [2018185, 210067]
-    df = read_mutation_data(input_file, file_extension="csv")
-    df = process_mutation_df(df)
-    print(df)
+def create_hot_map(sample_list, gene_list):
+    df = create_data_for_dataframe(sample_list=sample_list, gene_list=gene_list)
+    get_figure(df, sample_list, genes=None)
 
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
-    """
-    all_genes = list(df["GENE"])
-    all_sample_ids = list(df["SAMPLE"])
 
     app = DjangoDash("mutation_heatmap")
 
@@ -166,7 +134,7 @@ def create_hot_map(sample_name):
                 },
                 children=[
                     dcc.Dropdown(
-                        id="mutation_heatmap-select_sample",
+                        id="mutation_heatmap_select_sample",
                         options=[{"label": i, "value": i} for i in all_sample_ids],
                         clearable=False,
                         multi=True,
@@ -174,41 +142,32 @@ def create_hot_map(sample_name):
                         style={"width": "500px", "margin-right": "30px"},
                     ),
                     dcc.Dropdown(
-                        id="mutation_heatmap-gene_dropdown",
+                        id="mutation_heatmap_gene_dropdown",
                         options=[{"label": i, "value": i} for i in all_genes],
                         clearable=False,
                         multi=True,
-                        value=None,
+                        value=all_genes,
                         style={"width": "400px", "margin-right": "30px"},
                         placeholder="Filter genes",
                     ),
                 ],
             ),
             dcc.Graph(
-                id="mutation_heatmap",
-                figure=get_figure(df, all_sample_ids),
-                style={"width": "1500px", "height": "700px"},
+                id="mutation_heatmap_graph",
+                figure=get_figure(df, all_sample_ids, genes=None),
+                # style={"width": "1500px", "height": "700px"},
             ),
         ]
     )
 
-    def update_selected_sample(data: pd.DataFrame, selected_sample: int):
-        if selected_sample and type(selected_sample) == int:
-            data = data[data["SAMPLE"].isin([selected_sample])]
-        return data
-
-    def update_selected_genes(data: pd.DataFrame, selected_genes: int):
-        if selected_genes and type(selected_genes) == list and len(selected_genes) >= 1:
-            data = data[data["GENE"].isin(selected_genes)]
-        return data
-
     @app.callback(
-        Output("mutation_heatmap", "figure"),
-        Input("mutation_heatmap-select_sample", "value"),
-        Input("mutation_heatmap-gene_dropdown", "value"),
+        Output("mutation_heatmap_graph", "figure"),
+        Input("mutation_heatmap_select_sample", "value"),
+        Input("mutation_heatmap_gene_dropdown", "value"),
     )
-    def update_graph(sample_ids: str, genes: list):
-        fig = get_figure(df, sample_ids)
+    def update_selected_sample(selected_sample: int, selected_genes):
+        data = create_data_for_dataframe(
+            sample_list=list(selected_sample), gene_list=selected_genes
+        )
+        fig = get_figure(data, selected_sample, genes=selected_genes)
         return fig
-
-    return app
