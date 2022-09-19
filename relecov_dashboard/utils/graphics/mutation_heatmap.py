@@ -74,6 +74,7 @@ def create_data_for_dataframe(sample_list, gene_list):
     df["EFFECT"] = effect_list
     df["GENE"] = gene_list_df
     df["LINEAGE"] = lineage_list
+
     pandas_df = pd.DataFrame.from_dict(df)
 
     return pandas_df
@@ -117,13 +118,12 @@ def get_figure(data: pd.DataFrame, sample_ids: list, genes: list):
 
 def create_hot_map(sample_list, gene_list):
     df = create_data_for_dataframe(sample_list=sample_list, gene_list=gene_list)
-    get_figure(df, sample_list, genes=None)
+    get_figure(df, sample_list, genes=gene_list)
 
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
 
     app = DjangoDash("mutation_heatmap")
-
     app.layout = html.Div(
         children=[
             html.Div(

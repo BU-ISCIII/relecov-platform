@@ -54,7 +54,10 @@ def variants_mutations_in_lineages_heatmap(request):
 
 
 def mutations_in_lineages_by_lineage(request):
-    mdata = get_variant_data_from_lineages("B.1.1.7", "NC_045512")
+    sample_list = [2018185, 210067]
+    mdata = get_variant_data_from_lineages(
+        sample_list=sample_list, lineage="B.1.1.7", organism_code="NC_045512"
+    )
     create_needle_plot_graph_ITER("BA.1.1.7", mdata)
     # create_lineage_in_time_graph()
     # create_needle_plot_graph(sample=None)
@@ -64,14 +67,15 @@ def mutations_in_lineages_by_lineage(request):
 
 
 def mutations_in_lineages_by_samples(request):
-    mdata = create_dataframe(sample=2018185, organism_code="NC_045512")
-    create_needle_plot_graph(sample=None, mdata=mdata)
+    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
+    create_needle_plot_graph(sample_name=2018185, mdata=mdata)
     return render(
         request, "relecov_dashboard/variantsMutationsInLineagesNeedlePlot.html"
     )
 
 
 def variants_mutations_in_lineages_table(request):
+    sample_list = [2018185, 210067]
     create_mutation_table(2018185)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesTable.html")
 
