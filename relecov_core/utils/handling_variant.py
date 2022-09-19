@@ -174,7 +174,7 @@ def create_dataframe(sample_name, organism_code):
 
 
 # ITER variant mutation
-def get_variant_data_from_lineages(sample_list, lineage, organism_code):
+def get_variant_data_from_lineages(lineage, organism_code):
     mdata = {}
     list_of_af = []
     list_of_pos = []
