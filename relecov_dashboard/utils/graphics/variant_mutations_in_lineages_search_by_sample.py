@@ -7,7 +7,8 @@ import dash_bio as dashbio
 from relecov_core.utils.handling_variant import create_dataframe
 
 
-def create_needle_plot_graph(sample, mdata):
+def create_needle_plot_graph(sample_name, mdata):
+    sample_list = [2018185, 210067]
     app = DjangoDash("needle_plot")
 
     app.layout = html.Div(
@@ -35,10 +36,10 @@ def create_needle_plot_graph(sample, mdata):
                             "Select a Sample",
                             dcc.Dropdown(
                                 id="needleplot-select-sample",
-                                options=2018185,  # list of dictionaries of samples [{"label": "220685", "value": "220685"}]
+                                options=[{"label": i, "value": i} for i in sample_list],
                                 clearable=False,
                                 multi=False,
-                                value=sample,
+                                value=sample_list[0],
                                 style={"width": "150px"},
                             ),
                         ]
@@ -56,7 +57,7 @@ def create_needle_plot_graph(sample, mdata):
                     margin={"t": 100, "l": 20, "r": 400, "b": 40},
                     id="dashbio-needleplot",
                     mutationData=mdata,
-                    rangeSlider=False,
+                    rangeSlider=True,
                     xlabel="Genome Position",
                     ylabel="Allele Frequency ",
                     domainStyle={
@@ -69,13 +70,13 @@ def create_needle_plot_graph(sample, mdata):
 
     @app.callback(
         Output("dashbio-needleplot", "mutationData"),
+        # Output("dashbio-needleplot", component_property="mutationData"),
         Input("needleplot-select-sample", "value"),
     )
-    def update_sample(selected_sample):
-        mdata = create_dataframe(sample=2018185, organism_code="NC_045512")
-        create_needle_plot_graph(selected_sample, mdata=mdata)
-        # mutationData = mdata
-        # return mutationData
+    def update_sample(selected_sample: int):
+        mdata = create_dataframe(sample_name=selected_sample, organism_code="NC_045512")
+        mutationData = mdata
+        return mutationData
 
     @app.callback(
         Output("dashbio-needleplot", "rangeSlider"),
