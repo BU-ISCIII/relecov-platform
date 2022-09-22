@@ -34,6 +34,12 @@ def methodology_index(request):
     return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
+def geo_json(request):
+    # include lineages_variation_over_time.html(Alejandro Sanz from Fisabio)
+    create_json("BA.1.1.1")
+    return render(request, "relecov_dashboard/graph_templates/geo_json.html")
+
+
 def lineages(request):
     # include lineages_variation_over_time.html(Alejandro Sanz from Fisabio)
     create_json("BA.1.1.1")
