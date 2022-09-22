@@ -81,10 +81,18 @@ def variants_mutations_in_lineages_table(request):
     return render(request, "relecov_dashboard/variantsMutationsInLineagesTable.html")
 
 
-def spike_mutations(request):
+def spike_mutations_color(request):
     create_molecule3D_zoom_specific_residues()
+    return render(
+        request, "relecov_dashboard/dashboard_templates/spike_mutations_color.html"
+    )
+
+
+def spike_mutations_bn(request):
     create_graph()
-    return render(request, "relecov_dashboard/dashboard_templates/spike_mutations.html")
+    return render(
+        request, "relecov_dashboard/dashboard_templates/spike_mutations_bn.html"
+    )
 
 
 def gauge_test(request):

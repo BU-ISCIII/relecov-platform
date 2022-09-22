@@ -9,7 +9,7 @@ from relecov_core.utils.handling_variant import create_dataframe
 
 def create_needle_plot_graph(sample_name, mdata):
     sample_list = [2018185, 210067]
-    app = DjangoDash("needle_plot")
+    app = DjangoDash("needle_plot_by_sample")
 
     app.layout = html.Div(
         children=[
@@ -70,7 +70,6 @@ def create_needle_plot_graph(sample_name, mdata):
 
     @app.callback(
         Output("dashbio-needleplot", "mutationData"),
-        # Output("dashbio-needleplot", component_property="mutationData"),
         Input("needleplot-select-sample", "value"),
     )
     def update_sample(selected_sample: int):
