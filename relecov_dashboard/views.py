@@ -91,7 +91,9 @@ def spike_mutations_color(request):
 def spike_mutations_bn(request):
     create_graph()
     return render(
-        request, "relecov_dashboard/dashboard_templates/spike_mutations_bn.html"
+        # request, "relecov_dashboard/graph_templates/molecule3D_bn.html"
+        request,
+        "relecov_dashboard/dashboard_templates/spike_mutations_bn.html",
     )
 
 
