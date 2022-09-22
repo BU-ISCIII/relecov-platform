@@ -227,7 +227,7 @@ class PropertyOptionsManager(models.Manager):
     def create_property_options(self, data):
         new_property_option_obj = self.create(
             propertyID=data["propertyID"],
-            enums=data["enums"],
+            enum=data["enum"],
             ontology=data["ontology"],
         )
         return new_property_option_obj
@@ -235,17 +235,17 @@ class PropertyOptionsManager(models.Manager):
 
 class PropertyOptions(models.Model):
     propertyID = models.ForeignKey(SchemaProperties, on_delete=models.CASCADE)
-    enums = models.CharField(max_length=80, null=True, blank=True)
+    enum = models.CharField(max_length=80, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
         db_table = "PropertyOptions"
 
     def __str__(self):
-        return "%s" % (self.enums)
+        return "%s" % (self.enum)
 
     def get_enum(self):
-        return "%s" % (self.enums)
+        return "%s" % (self.enum)
 
     objects = PropertyOptionsManager()
 
@@ -297,7 +297,6 @@ class MetadataVisualization(models.Model):
 class BioinfoAnalysisFieldManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
-            classificationID=data["classificationID"],
             property_name=data["property_name"],
             label_name=data["label_name"],
         )
@@ -390,7 +389,6 @@ class LineageInfo(models.Model):
 class LineageFieldsManager(models.Manager):
     def create_new_field(self, data):
         new_field = self.create(
-            classificationID=data["classificationID"],
             property_name=data["property_name"],
             label_name=data["label_name"],
         )
@@ -751,6 +749,81 @@ class Sample(models.Model):
         return self
 
     objects = SampleManager()
+
+
+class PublicDatabaseType(models.Model):
+    public_type_name = models.CharField(max_length=30)
+    public_type_display = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "PublicDatabaseType"
+
+    def __str__(self):
+        return "%s" % (self.public_type_name)
+
+    def get_public_type_name(self):
+        return "%s" % (self.public_type_name)
+
+    def get_public_type_display(self):
+        return "%s" % (self.public_type_display)
+
+
+class PublicDatabaseFieldsManager(models.Manager):
+    def create_new_field(self, data):
+        new_field = self.create(
+            database_type=data["database_type"],
+            property_name=data["property_name"],
+            label_name=data["label_name"],
+        )
+        return new_field
+
+
+class PublicDatabaseFields(models.Model):
+    schemaID = models.ManyToManyField(Schema)
+    database_type = models.ForeignKey(
+        PublicDatabaseType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    property_name = models.CharField(max_length=60)
+    label_name = models.CharField(max_length=80)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "PublicDatabaseFields"
+
+    def __str__(self):
+        return "%s" % (self.property_name)
+
+    def get_property_name(self):
+        return "%s" % (self.property_name)
+
+    def get_label_name(self):
+        return "%s" % (self.label_name)
+
+    objects = PublicDatabaseFieldsManager()
+
+
+class PublicDatabaseValues(models.Model):
+    public_database_fieldID = models.ForeignKey(
+        PublicDatabaseFields, on_delete=models.CASCADE
+    )
+    sampleID = models.ForeignKey(
+        Sample, on_delete=models.CASCADE, null=True, blank=True
+    )
+    value = models.CharField(max_length=240)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "PublicDatabaseValues"
+
+    def __str__(self):
+        return "%s" % (self.value)
+
+    def get_value(self):
+        return "%s" % (self.value)
+
+    def get_id(self):
+        return "%s" % (self.pk)
 
 
 class DateUpdateState(models.Model):
