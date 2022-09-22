@@ -160,7 +160,7 @@ def create_form_for_sample(schema_obj):
             try:
                 label = s_prop_dict[values["ontology"]]["label"]
                 iskylims_sample_data[label] = {}
-                # Collcct information to send back the values ot iSkyLIMS
+                # Collect information to send back the values to iSkyLIMS
                 l_iskylims.append(values["field_name"])
                 l_metadata.append(label)
                 if "options" in values:

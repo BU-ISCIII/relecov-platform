@@ -20,6 +20,9 @@ from relecov_core.models import (
     # Position,
     Profile,
     PropertyOptions,
+    PublicDatabaseFields,
+    PublicDatabaseValues,
+    PublicDatabaseType,
     Sample,
     SampleState,
     Schema,
@@ -116,6 +119,18 @@ class OrganismAnnotationAdmin(admin.ModelAdmin):
     list_display = ["organism_code", "gff_version", "sequence_region"]
 
 
+class PublicDatabaseTypeAdmin(admin.ModelAdmin):
+    list_display = ["public_type_name", "public_type_display"]
+
+
+class PublicDatabaseFieldsAdmin(admin.ModelAdmin):
+    list_display = ["property_name", "database_type"]
+
+
+class PublicDatabaseValuesAdmin(admin.ModelAdmin):
+    list_display = ["value", "sampleID", "public_database_fieldID"]
+
+
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "sequencing_sample_id",
@@ -169,7 +184,7 @@ class TemporalSampleStorageAdmin(admin.ModelAdmin):
 
 
 class PropertyOptionsAdmin(admin.ModelAdmin):
-    list_display = ["propertyID", "enums", "ontology"]
+    list_display = ["propertyID", "enum", "ontology"]
 
 
 class MetadataVisualizationAdmin(admin.ModelAdmin):
@@ -199,6 +214,9 @@ admin.site.register(VariantAnnotation, VariantAnnotationAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
+admin.site.register(PublicDatabaseType, PublicDatabaseTypeAdmin)
+admin.site.register(PublicDatabaseFields, PublicDatabaseFieldsAdmin)
+admin.site.register(PublicDatabaseValues, PublicDatabaseValuesAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
 admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
