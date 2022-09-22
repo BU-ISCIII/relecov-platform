@@ -38,7 +38,7 @@ def create_data_for_dataframe(sample_list, gene_list):
     af_list = []
     sample_list_df = []
     lineage_list = []
-    chromosome = "NC_045512"
+    # chromosome = "NC_045512"
     for sample_name in sample_list:
         sample_obj = get_sample_obj_from_sample_name(sample_name=sample_name)
 

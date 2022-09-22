@@ -54,7 +54,7 @@ def variants_mutations_in_lineages_heatmap(request):
 
 
 def mutations_in_lineages_by_lineage(request):
-    sample_list = [2018185, 210067]
+    # sample_list = [2018185, 210067]
     mdata = get_variant_data_from_lineages(lineage="B.1.1.7", organism_code="NC_045512")
     create_needle_plot_graph_ITER("BA.1.1.7", mdata)
     return render(request, "relecov_dashboard/variants_lineages_voc.html")
