@@ -16,10 +16,6 @@ from relecov_core.utils.handling_samples import (
     get_sample_obj_from_sample_name,
 )
 
-"""
-SAMPLE,CHROM,POS,REF,ALT,FILTER,DP,REF_DP,ALT_DP,AF,GENE,EFFECT,HGVS_C,HGVS_P,HGVS_P_1LETTER,CALLER,LINEAGE
-"""
-
 
 def get_variant_data_from_sample(sample_id):
     """Collect the variant information for the sample"""
