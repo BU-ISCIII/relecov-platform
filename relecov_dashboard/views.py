@@ -24,6 +24,8 @@ from relecov_core.utils.handling_variant import (
     get_variant_data_from_lineages,
 )
 
+from relecov_dashboard.utils.graphics.lineages_in_time_graph import testing_fisabio_data
+
 
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
@@ -49,6 +51,7 @@ def lineages(request):
 def variants_lineage_variation_over_time(request):
     # waiting for the missing input file
     # make_lineage_variaton_plot()
+    testing_fisabio_data()
     return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
 
 
