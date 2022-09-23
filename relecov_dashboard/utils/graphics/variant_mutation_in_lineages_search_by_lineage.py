@@ -25,9 +25,9 @@ def create_needle_plot_graph_ITER(lineage, mdata):
                                 clearable=False,
                                 multi=False,
                                 value=1,
-                                # style={"width": "400px"},
+                                style={"width": "150px", "margin-right": "30px"},
                             ),
-                        ],
+                        ]
                     ),
                     html.Div(
                         children=[
@@ -40,9 +40,9 @@ def create_needle_plot_graph_ITER(lineage, mdata):
                                 clearable=False,
                                 multi=False,
                                 value=lineage,
-                                # style={"width": "400px"},
+                                style={"width": "150px"},
                             ),
-                        ],
+                        ]
                     ),
                 ],
                 style={
