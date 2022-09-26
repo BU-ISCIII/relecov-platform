@@ -1,3 +1,5 @@
+from datetime import datetime
+from time import strptime
 from django.shortcuts import render
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     create_needle_plot_graph_ITER,
@@ -24,7 +26,12 @@ from relecov_core.utils.handling_variant import (
     get_variant_data_from_lineages,
 )
 
-from relecov_dashboard.utils.graphics.lineages_in_time_graph import testing_fisabio_data
+from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
+    create_dataframe,
+    create_lineage_in_time_graph,
+)
+
+from relecov_core.models import DateUpdateState
 
 
 def variants_index(request):
@@ -49,9 +56,28 @@ def lineages(request):
 
 
 def variants_lineage_variation_over_time(request):
+    sample_objs = DateUpdateState.objects.all()
+    date_list = []
+    list_of_dates = []
+    list_of_samples = []
+    list_of_lists = []
+    for sample_obj in sample_objs:
+        list_of_samples.append(sample_obj.get_sample_id())
+        date = sample_obj.get_date()
+        date_list = date.split(",")
+        year = date_list[1]
+        date_list = date_list[0].split(" ")
+        month = strptime(date_list[0], "%B").tm_mon
+        date_converted = datetime(int(year), month, int(date_list[1]))
+        list_of_dates.append(date_converted.strftime("%Y-%m-%d"))
+
+    list_of_lists.append(list_of_samples)
+    list_of_lists.append(list_of_dates)
+
     # waiting for the missing input file
     # make_lineage_variaton_plot()
-    testing_fisabio_data()
+    create_lineage_in_time_graph(create_dataframe(list_of_lists))
+
     return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
 
 

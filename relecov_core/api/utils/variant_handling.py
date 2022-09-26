@@ -83,7 +83,7 @@ def get_variant_id(data):
     ).last()
     if variant_obj is None:
         # Create the variant
-        filter_obj = create_or_get_filter_obj(data["Filter"]["filter"])
+        filter_obj = create_or_get_filter_obj(data["Filter"])
         if isinstance(filter_obj, dict):
             return filter_obj
         variant_dict = {}

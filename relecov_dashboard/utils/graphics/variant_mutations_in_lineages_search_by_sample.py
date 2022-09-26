@@ -54,15 +54,15 @@ def create_needle_plot_graph(sample_name, mdata):
             html.Div(
                 children=dashbio.NeedlePlot(
                     width="auto",
-                    margin={"t": 100, "l": 20, "r": 400, "b": 40},
+                    # margin={"t": 100, "l": 20, "r": 400, "b": 40},
                     id="dashbio-needleplot",
                     mutationData=mdata,
                     rangeSlider=True,
                     xlabel="Genome Position",
                     ylabel="Allele Frequency ",
                     domainStyle={
-                        "displayMinorDomains": True,
-                        "textangle": 0,
+                        # "displayMinorDomains": False,
+                        "textangle": 90,
                     },
                 ),
             ),
