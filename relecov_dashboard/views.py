@@ -27,7 +27,7 @@ from relecov_core.utils.handling_variant import (
 )
 
 from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
-    create_dataframe,
+    create_dataframe_variants_in_time,
     create_lineage_in_time_graph,
 )
 
@@ -76,7 +76,7 @@ def variants_lineage_variation_over_time(request):
 
     # waiting for the missing input file
     # make_lineage_variaton_plot()
-    create_lineage_in_time_graph(create_dataframe(list_of_lists))
+    create_lineage_in_time_graph(create_dataframe_variants_in_time(list_of_lists))
 
     return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
 
