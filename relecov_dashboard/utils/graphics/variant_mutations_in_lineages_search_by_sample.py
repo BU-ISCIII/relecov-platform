@@ -62,6 +62,7 @@ def create_needle_plot_graph(sample_name, mdata):
                     ylabel="Allele Frequency ",
                     domainStyle={
                         "displayMinorDomains": True,
+                        "textangle": 0,
                     },
                 ),
             ),

@@ -42,7 +42,6 @@ def create_or_get_effect_obj(effect_value):
     if effect_serializer.is_valid():
         effect_obj = effect_serializer.save()
         return effect_obj
-    print("Here")
 
     return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
@@ -73,16 +72,14 @@ def store_variant_in_sample(v_data):
 
 def get_variant_id(data):
     """look out for the necessary reference ids to create the variance instance"""
-    # chr = data["Chromosome"].split(".")[0]
-    print(data)
-    chr = "NC_045512"
+    chr = data["Chromosome"].split(".")[0]
     chr_obj = get_if_chromosomes_exists(chr)
     if chr_obj is None:
         return {"ERROR": ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE}
     variant_obj = Variant.objects.filter(
         chromosomeID_id=chr_obj,
-        pos__iexact=data["Position"]["pos"],
-        alt__iexact=data["Position"]["alt"],
+        pos__iexact=data["Variant"]["pos"],
+        alt__iexact=data["Variant"]["alt"],
     ).last()
     if variant_obj is None:
         # Create the variant
@@ -92,8 +89,8 @@ def get_variant_id(data):
         variant_dict = {}
         variant_dict["chromosomeID_id"] = chr_obj.get_chromosome_id()
         variant_dict["filterID_id"] = filter_obj.get_filter_id()
-        variant_dict["pos"] = data["Position"]["pos"]
-        variant_dict["alt"] = data["Position"]["alt"]
+        variant_dict["pos"] = data["Variant"]["pos"]
+        variant_dict["alt"] = data["Variant"]["alt"]
         variant_dict["ref"] = data["Variant"]["ref"]
         variant_serializer = CreateVariantSerializer(data=variant_dict)
         if not variant_serializer.is_valid():
@@ -105,12 +102,12 @@ def get_variant_id(data):
 def get_required_variant_ann_id(data):
     """Look for the ids that variant annotation needs"""
     v_ann_ids = {}
-    gene_obj = get_gene_obj_from_gene_name(data["Gene"]["gene"])
+    gene_obj = get_gene_obj_from_gene_name(data["Gene"])
 
     if gene_obj is None:
         return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
     v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
-    effect_obj = create_or_get_effect_obj(data["Effect"]["effect"])
+    effect_obj = create_or_get_effect_obj(data["Effect"])
     if isinstance(effect_obj, dict):
         return effect_obj
     v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
@@ -133,9 +130,6 @@ def split_variant_data(data, sample_obj):
         return v_ann_id
     split_data["variant_ann"] = v_ann_id
     split_data["variant_ann"]["variantID_id"] = variant_id
-    split_data["variant_ann"]["hgvs_c"] = data["Effect"]["hgvs_c"]
-    split_data["variant_ann"]["hgvs_p"] = data["Effect"]["hgvs_p"]
-    split_data["variant_ann"]["hgvs_p_1_letter"] = data["Effect"]["hgvs_p_1_letter"]
 
-    # split_data["variant_ann"].update(data["VariantAnnotation"])
+    split_data["variant_ann"].update(data["VariantAnnotation"])
     return split_data
