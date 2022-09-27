@@ -32,7 +32,6 @@ from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
 )
 
 
-
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
