@@ -1,5 +1,3 @@
-from datetime import datetime
-from time import strptime
 from django.shortcuts import render
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     create_needle_plot_graph_ITER,
@@ -27,13 +25,12 @@ from relecov_core.utils.handling_variant import (
 )
 
 from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
-    create_list_for_dataframe,
-    create_dataframe_variants_in_time,
+    # create_list_for_dataframe,
+    # create_dataframe_variants_in_time,
     create_lineage_in_time_graph,
     read_mutation_data,
 )
 
-from relecov_core.models import DateUpdateState
 
 
 def variants_index(request):
