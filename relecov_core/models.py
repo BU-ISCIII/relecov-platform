@@ -837,6 +837,9 @@ class DateUpdateState(models.Model):
     def __str__(self):
         return "%s_%s" % (self.stateID, self.sampleID)
 
+    def get_sample_id(self):
+        return "%s" % (self.sampleID)
+
     def get_state_name(self):
         if self.stateID is not None:
             return "%s" % (self.stateID.get_state_display_string())

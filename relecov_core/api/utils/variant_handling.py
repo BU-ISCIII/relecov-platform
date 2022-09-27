@@ -42,6 +42,7 @@ def create_or_get_effect_obj(effect_value):
     if effect_serializer.is_valid():
         effect_obj = effect_serializer.save()
         return effect_obj
+
     return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
 
@@ -129,5 +130,6 @@ def split_variant_data(data, sample_obj):
         return v_ann_id
     split_data["variant_ann"] = v_ann_id
     split_data["variant_ann"]["variantID_id"] = variant_id
+
     split_data["variant_ann"].update(data["VariantAnnotation"])
     return split_data

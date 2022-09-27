@@ -7,8 +7,9 @@ import dash_bio as dashbio
 from relecov_core.utils.handling_variant import create_dataframe
 
 
-def create_needle_plot_graph(sample, mdata):
-    app = DjangoDash("needle_plot")
+def create_needle_plot_graph(sample_name, mdata):
+    sample_list = [2018185, 210067]
+    app = DjangoDash("needle_plot_by_sample")
 
     app.layout = html.Div(
         children=[
@@ -35,10 +36,10 @@ def create_needle_plot_graph(sample, mdata):
                             "Select a Sample",
                             dcc.Dropdown(
                                 id="needleplot-select-sample",
-                                options=2018185,  # list of dictionaries of samples [{"label": "220685", "value": "220685"}]
+                                options=[{"label": i, "value": i} for i in sample_list],
                                 clearable=False,
                                 multi=False,
-                                value=sample,
+                                value=sample_list[0],
                                 style={"width": "150px"},
                             ),
                         ]
@@ -53,14 +54,15 @@ def create_needle_plot_graph(sample, mdata):
             html.Div(
                 children=dashbio.NeedlePlot(
                     width="auto",
-                    margin={"t": 100, "l": 20, "r": 400, "b": 40},
+                    # margin={"t": 100, "l": 20, "r": 400, "b": 40},
                     id="dashbio-needleplot",
                     mutationData=mdata,
-                    rangeSlider=False,
+                    rangeSlider=True,
                     xlabel="Genome Position",
                     ylabel="Allele Frequency ",
                     domainStyle={
-                        "displayMinorDomains": True,
+                        # "displayMinorDomains": False,
+                        "textangle": 90,
                     },
                 ),
             ),
@@ -71,11 +73,10 @@ def create_needle_plot_graph(sample, mdata):
         Output("dashbio-needleplot", "mutationData"),
         Input("needleplot-select-sample", "value"),
     )
-    def update_sample(selected_sample):
-        mdata = create_dataframe(sample=2018185, organism_code="NC_045512")
-        create_needle_plot_graph(selected_sample, mdata=mdata)
-        # mutationData = mdata
-        # return mutationData
+    def update_sample(selected_sample: int):
+        mdata = create_dataframe(sample_name=selected_sample, organism_code="NC_045512")
+        mutationData = mdata
+        return mutationData
 
     @app.callback(
         Output("dashbio-needleplot", "rangeSlider"),
