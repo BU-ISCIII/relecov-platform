@@ -24,6 +24,13 @@ from relecov_core.utils.handling_variant import (
     get_variant_data_from_lineages,
 )
 
+from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
+    # create_list_for_dataframe,
+    # create_dataframe_variants_in_time,
+    create_lineage_in_time_graph,
+    create_dataframe_from_json,
+)
+
 
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
@@ -34,6 +41,12 @@ def methodology_index(request):
     return render(request, "relecov_dashboard/methodologyIndex.html")
 
 
+def geo_json(request):
+    # include lineages_variation_over_time.html(Alejandro Sanz from Fisabio)
+    create_json("BA.1.1.1")
+    return render(request, "relecov_dashboard/graph_templates/geo_json.html")
+
+
 def lineages(request):
     # include lineages_variation_over_time.html(Alejandro Sanz from Fisabio)
     create_json("BA.1.1.1")
@@ -41,43 +54,55 @@ def lineages(request):
 
 
 def variants_lineage_variation_over_time(request):
-    # waiting for the missing input file
-    # make_lineage_variaton_plot()
+    df = create_dataframe_from_json()
+    # list_of_lists = create_list_for_dataframe()
+    # create_lineage_in_time_graph(create_dataframe_variants_in_time(df))
+    create_lineage_in_time_graph(df)
+
     return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
 
 
 def variants_mutations_in_lineages_heatmap(request):
-    create_hot_map(2018185)
+    gene_list = ["orf1ab", "ORF8", "S", "M", "N"]
+    sample_list = [2018185, 210067]
+    create_hot_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
 
 
 def mutations_in_lineages_by_lineage(request):
-    mdata = get_variant_data_from_lineages("B.1.1.7", "NC_045512")
+    # sample_list = [2018185, 210067]
+    mdata = get_variant_data_from_lineages(lineage="B.1.1.7", organism_code="NC_045512")
     create_needle_plot_graph_ITER("BA.1.1.7", mdata)
-    # create_lineage_in_time_graph()
-    # create_needle_plot_graph(sample=None)
-    # create_mutation_table(214821)
-    # create_hot_map()
     return render(request, "relecov_dashboard/variants_lineages_voc.html")
 
 
 def mutations_in_lineages_by_samples(request):
-    mdata = create_dataframe(sample=2018185, organism_code="NC_045512")
-    create_needle_plot_graph(sample=None, mdata=mdata)
+    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
+    create_needle_plot_graph(sample_name=2018185, mdata=mdata)
     return render(
         request, "relecov_dashboard/variantsMutationsInLineagesNeedlePlot.html"
     )
 
 
 def variants_mutations_in_lineages_table(request):
-    create_mutation_table(2018185)
+    sample_list = [2018185, 210067]
+    effect_list = ["upstream_gene_variant", "synonymous_variant", "missense_variant"]
+    create_mutation_table(sample_list, effect_list=effect_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesTable.html")
 
 
-def spike_mutations(request):
+def spike_mutations_3D_color(request):
     create_molecule3D_zoom_specific_residues()
+    return render(
+        request, "relecov_dashboard/dashboard_templates/spike_mutations_3D_Color.html"
+    )
+
+
+def spike_mutations_3D_BN(request):
     create_graph()
-    return render(request, "relecov_dashboard/dashboard_templates/spike_mutations.html")
+    return render(
+        request, "relecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html"
+    )
 
 
 def gauge_test(request):

@@ -16,10 +16,6 @@ from relecov_core.utils.handling_samples import (
     get_sample_obj_from_sample_name,
 )
 
-"""
-SAMPLE,CHROM,POS,REF,ALT,FILTER,DP,REF_DP,ALT_DP,AF,GENE,EFFECT,HGVS_C,HGVS_P,HGVS_P_1LETTER,CALLER,LINEAGE
-"""
-
 
 def get_variant_data_from_sample(sample_id):
     """Collect the variant information for the sample"""
@@ -130,21 +126,22 @@ def create_effect_list(sample_name, chromosome):
                 sampleID_id=sample_obj
             )
             for variant_in_sample_obj in variant_in_sample_objs:
+
                 variant_obj = variant_in_sample_obj.get_variantID_id()
                 variant_annotation_objs = VariantAnnotation.objects.filter(
                     variantID_id=variant_obj
                 )
+
                 for variant_annotation_obj in variant_annotation_objs:
                     list_of_effects.append(
-                        variant_annotation_obj.get_variant_in_sample_data()
+                        variant_annotation_obj.get_variant_in_sample_data()[1]
                     )
-
-        return list_of_effects
+                    break
+    return list_of_effects
 
 
 def get_position_per_sample(sample_name, chromosome):
     list_of_position = []
-    list_of_effects = []
     chrom_obj = get_if_chromosomes_exists(chromosome)
     if chrom_obj:
         sample_obj = get_sample_obj_from_sample_name(sample_name)
@@ -156,29 +153,13 @@ def get_position_per_sample(sample_name, chromosome):
                 list_of_position.append(variant_in_sample_obj.get_variant_pos())
             return list_of_position
 
-    if chrom_obj:
-        sample_obj = get_sample_obj_from_sample_name(sample_name)
-        if sample_obj:
-            variant_in_sample_objs = VariantInSample.objects.filter(
-                sampleID_id=sample_obj
-            )
-            for variant_in_sample_obj in variant_in_sample_objs:
-                variant_obj = variant_in_sample_obj.get_variantID_id()
-                variant_annotation_objs = VariantAnnotation.objects.filter(
-                    variantID_id=variant_obj
-                )
-                for variant_annotation_obj in variant_annotation_objs:
-                    list_of_effects.append(variant_annotation_obj.get_effectID_id())
 
-        return list_of_effects
-
-
-def create_dataframe(sample, organism_code):
+def create_dataframe(sample_name, organism_code):
     mdata = {}
     domains = create_domains_list_of_dict(organism_code)
-    af = get_alelle_frequency_per_sample(sample, organism_code)
-    pos = get_position_per_sample(sample, organism_code)
-    effects = create_effect_list(sample, organism_code)
+    af = get_alelle_frequency_per_sample(sample_name, organism_code)
+    pos = get_position_per_sample(sample_name, organism_code)
+    effects = create_effect_list(sample_name, organism_code)
 
     mdata["x"] = pos
     mdata["y"] = af
@@ -190,7 +171,6 @@ def create_dataframe(sample, organism_code):
 
 # ITER variant mutation
 def get_variant_data_from_lineages(lineage, organism_code):
-    # import pdb
     mdata = {}
     list_of_af = []
     list_of_pos = []
@@ -204,10 +184,8 @@ def get_variant_data_from_lineages(lineage, organism_code):
     lineage_value_obj = LineageValues.objects.filter(
         lineage_fieldID=lineage_fields_obj.get_lineage_field_id(), value=lineage
     ).last()
-    print(lineage_value_obj)
     sample_objs = Sample.objects.filter(linage_values=lineage_value_obj)
     for sample_obj in sample_objs:
-        print(sample_obj)
         af = get_alelle_frequency_per_sample(
             sample_obj.get_sequencing_sample_id(), organism_code
         )
@@ -221,7 +199,6 @@ def get_variant_data_from_lineages(lineage, organism_code):
         list_of_af += af
         list_of_pos += pos
         list_of_effects += effects
-        # pdb.set_trace()
 
     mdata["x"] = list_of_pos
     mdata["y"] = list_of_af

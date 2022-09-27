@@ -38,7 +38,17 @@ urlpatterns = [
         views.variants_mutations_in_lineages_table,
         name="variants_mutations_in_lineages_table",
     ),
-    path("spikeMutations", views.spike_mutations, name="spike_mutations"),
+    path(
+        "variants/spikeMutations3DColor",
+        views.spike_mutations_3D_color,
+        name="spike_mutations_3D_color",
+    ),
+    path(
+        "variants/spikeMutations3DBN",
+        views.spike_mutations_3D_BN,
+        name="spike_mutations_3D_BN",
+    ),
+    path("variants/geoJSON", views.geo_json, name="geo_json"),
     path("Gauge", views.gauge_test, name="gauge"),
     # Methodology graphics
     path("methodology", views.methodology_index, name="methodology_index"),
