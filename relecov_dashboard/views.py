@@ -27,8 +27,10 @@ from relecov_core.utils.handling_variant import (
 )
 
 from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
+    create_list_for_dataframe,
     create_dataframe_variants_in_time,
     create_lineage_in_time_graph,
+    read_mutation_data,
 )
 
 from relecov_core.models import DateUpdateState
@@ -56,27 +58,10 @@ def lineages(request):
 
 
 def variants_lineage_variation_over_time(request):
-    sample_objs = DateUpdateState.objects.all()
-    date_list = []
-    list_of_dates = []
-    list_of_samples = []
-    list_of_lists = []
-    for sample_obj in sample_objs:
-        list_of_samples.append(sample_obj.get_sample_id())
-        date = sample_obj.get_date()
-        date_list = date.split(",")
-        year = date_list[1]
-        date_list = date_list[0].split(" ")
-        month = strptime(date_list[0], "%B").tm_mon
-        date_converted = datetime(int(year), month, int(date_list[1]))
-        list_of_dates.append(date_converted.strftime("%Y-%m-%d"))
-
-    list_of_lists.append(list_of_samples)
-    list_of_lists.append(list_of_dates)
-
-    # waiting for the missing input file
-    # make_lineage_variaton_plot()
-    create_lineage_in_time_graph(create_dataframe_variants_in_time(list_of_lists))
+    df = read_mutation_data()
+    # list_of_lists = create_list_for_dataframe()
+    # create_lineage_in_time_graph(create_dataframe_variants_in_time(df))
+    create_lineage_in_time_graph(df)
 
     return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
 
