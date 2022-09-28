@@ -48,15 +48,12 @@ def geo_json(request):
 
 
 def lineages(request):
-    # include lineages_variation_over_time.html(Alejandro Sanz from Fisabio)
     create_json("BA.1.1.1")
     return render(request, "relecov_dashboard/dashboard_templates/lineages.html")
 
 
 def variants_lineage_variation_over_time(request):
     df = create_dataframe_from_json()
-    # list_of_lists = create_list_for_dataframe()
-    # create_lineage_in_time_graph(create_dataframe_variants_in_time(df))
     create_lineage_in_time_graph(df)
 
     return render(request, "relecov_dashboard/variantsLineageVariationOverTime.html")
