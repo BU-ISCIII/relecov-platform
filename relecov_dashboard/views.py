@@ -9,7 +9,7 @@ from relecov_dashboard.utils.graphics.molecule3D_graph import (
 from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_search_by_sample import (
     create_needle_plot_graph_mutation_by_sample,
 )
-from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_graph
+from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_model3D_bn
 from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
 
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_heatmap import (
@@ -101,7 +101,7 @@ def spike_mutations_3D_color(request):
 
 
 def spike_mutations_3D_BN(request):
-    create_graph()
+    create_model3D_bn()
     return render(
         request, "relecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html"
     )
