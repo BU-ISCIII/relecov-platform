@@ -82,7 +82,7 @@ def create_samples_received_over_time_map():
         color_continuous_scale="Viridis",
         range_color=ldata.NUMBER_OF_SAMPLES.max(),
         mapbox_style="carto-positron",
-        zoom=3.5,
+        zoom=3.8,
         center={"lat": 35.9, "lon": -5.3},
         opacity=0.5,
         # labels={"CCAA": ldata.CCAA_NAME},
@@ -96,17 +96,37 @@ def create_samples_received_over_time_map():
 
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
+        className="card",
         children=[
-            html.Br(),
-            "Number of sample received in Spain per CCAA",
-            html.Br(),
+            html.Div(
+                className="card-body bg-dark",
+                children=[
+                    html.H1(
+                        className="card-title",
+                        children="Samples in Spain",
+                    ),
+                    html.Div(
+                        className="card-text",
+                        children="Number of sample received in Spain per CCAA.",
+                    ),
+                ],
+            ),
             html.Br(),
             html.Div(
-                children=dcc.Graph(figure=fig, id="geomap-per-lineage"),
+                children=[
+                    html.Div(
+                        children=[
+                            dcc.Graph(
+                                className="card", id="geomap-per-lineage", figure=fig
+                            )
+                        ]
+                    )
+                ]
             ),
         ],
     )
     """
+    id="geomap-per-lineage"
     ccaa_dict = {
         "Unassigned": 0,
         "Andalucía": 1,

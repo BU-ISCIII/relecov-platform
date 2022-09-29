@@ -3,14 +3,16 @@ from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lin
     create_needle_plot_graph_mutation_by_lineage,
 )
 
-from relecov_dashboard.utils.graphics.molecule3D_graph import (
+from relecov_dashboard.utils.graphics.molecule3D_color_graph import (
     create_molecule3D_zoom_specific_residues,
 )
 from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_search_by_sample import (
     create_needle_plot_graph_mutation_by_sample,
 )
-from relecov_dashboard.utils.graphics.mutations_3D_molecule import create_model3D_bn
-from relecov_dashboard.utils.graphics.mutation_table import create_mutation_table
+from relecov_dashboard.utils.graphics.molecule3D_bn_graph import create_model3D_bn
+from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_mutation_table import (
+    create_mutation_table,
+)
 
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_heatmap import (
     create_heat_map,
@@ -20,7 +22,7 @@ from relecov_dashboard.utils.graphics.samples_received_over_time_map import (
     create_samples_received_over_time_map,
 )
 
-from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
+# from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
 from relecov_dashboard.utils.methodology_index import index_dash_fields
 
 from relecov_core.utils.handling_variant import (
@@ -28,11 +30,9 @@ from relecov_core.utils.handling_variant import (
     get_variant_data_from_lineages,
 )
 
-from relecov_dashboard.utils.graphics.lineages_in_time_graph import (
-    # create_list_for_dataframe,
-    # create_dataframe_variants_in_time,
-    create_samples_over_time_graph,
+from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
     create_dataframe_from_json,
+    create_samples_over_time_graph,
 )
 
 
@@ -50,11 +50,6 @@ def samples_received_over_time_map(request):
     return render(
         request, "relecov_dashboard/graph_templates/samplesReceivedOverTimeMap.html"
     )
-
-
-def lineages(request):
-    create_samples_received_over_time_map("BA.1.1.1")
-    return render(request, "relecov_dashboard/dashboard_templates/lineages.html")
 
 
 def samples_received_over_time_graph(request):
@@ -103,14 +98,15 @@ def spike_mutations_3D_color(request):
 def spike_mutations_3D_BN(request):
     create_model3D_bn()
     return render(
-        request, "relecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html"
+        request,
+        "rellineages_in_time_ecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html",
     )
 
 
 def gauge_test(request):
     # create_gauge()
     # create_medium_gauge()
-    query_to_database()
+    # query_to_database()
     return render(request, "relecov_dashboard/dashboard_templates/gauge2.html")
     # return render(request, "relecov_dashboard/dashboard_templates/gauge.html")
 
