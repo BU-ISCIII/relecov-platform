@@ -7,9 +7,9 @@ import dash_bio as dashbio
 from relecov_core.utils.handling_variant import create_dataframe
 
 
-def create_needle_plot_graph(sample_name, mdata):
+def create_needle_plot_graph_mutation_by_sample(sample_name, mdata):
     sample_list = [2018185, 210067]
-    app = DjangoDash("needle_plot_by_sample")
+    app = DjangoDash("needlePlotBySample")
 
     app.layout = html.Div(
         children=[

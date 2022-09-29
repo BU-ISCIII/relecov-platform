@@ -15,13 +15,13 @@ urlpatterns = [
     path(
         "variants/mutationsInLineagesByLineage",
         views.mutations_in_lineages_by_lineage,
-        name="variants_lineages_voc",
+        name="mutations_in_lineages_by_lineage",
     ),
     path("variants/lineages", views.lineages, name="lineages"),
     path(
-        "variants/lineageVariationOverTime",
-        views.variants_lineage_variation_over_time,
-        name="variants_lineage_variation_over_time",
+        "variants/samplesReceivedOverTimeGraph",
+        views.samples_received_over_time_graph,
+        name="variants_lineage_variation_over_time_graph",
     ),
     path(
         "variants/mutationsInLineagesHeatmap",
@@ -48,7 +48,11 @@ urlpatterns = [
         views.spike_mutations_3D_BN,
         name="spike_mutations_3D_BN",
     ),
-    path("variants/geoJSON", views.geo_json, name="geo_json"),
+    path(
+        "variants/samplesReceivedOverTimeMap",
+        views.samples_received_over_time_map,
+        name="samples_received_over_time_map",
+    ),
     path("Gauge", views.gauge_test, name="gauge"),
     # Methodology graphics
     path("methodology", views.methodology_index, name="methodology_index"),

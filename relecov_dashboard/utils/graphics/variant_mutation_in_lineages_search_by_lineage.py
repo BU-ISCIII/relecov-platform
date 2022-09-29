@@ -6,8 +6,8 @@ import dash_bio as dashbio
 from relecov_core.utils.handling_variant import get_variant_data_from_lineages
 
 
-def create_needle_plot_graph_ITER(lineage, mdata):
-    app = DjangoDash("needle_ITER")
+def create_needle_plot_graph_mutation_by_lineage(lineage, mdata):
+    app = DjangoDash("needlePlotMutationByLineage")
 
     app.layout = html.Div(
         children=[
@@ -115,7 +115,7 @@ def create_needle_plot_graph_ITER(lineage, mdata):
     )
     def update_sample(selected_lineage):
         mdata = get_variant_data_from_lineages("B.1.1.7", "NC_045512")
-        create_needle_plot_graph_ITER(selected_lineage, mdata)
+        create_needle_plot_graph_mutation_by_lineage(selected_lineage, mdata)
         # mutation_data = mdata
         # return mutation_data
 
