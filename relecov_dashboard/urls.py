@@ -5,23 +5,17 @@ from relecov_dashboard import views
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path("variants", views.variants_index, name="variants_index"),
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
+    path("variants", views.variants_index, name="variants_index"),
     path(
-        "methodology/fields_utilization",
-        views.methodology_fields_utilization,
-        name="methodology_fields_utilization",
+        "variants/mutationsInLineagesBySample",
+        views.mutations_in_lineages_by_samples,
+        name="variants_mutations_in_lineages_needle_plot",
     ),
     path(
         "variants/mutationsInLineagesByLineage",
         views.mutations_in_lineages_by_lineage,
-        name="variants_lineages_voc",
-    ),
-    path("variants/lineages", views.lineages, name="lineages"),
-    path(
-        "variants/lineageVariationOverTime",
-        views.variants_lineage_variation_over_time,
-        name="variants_lineage_variation_over_time",
+        name="mutations_in_lineages_by_lineage",
     ),
     path(
         "variants/mutationsInLineagesHeatmap",
@@ -29,14 +23,19 @@ urlpatterns = [
         name="variants_mutations_in_lineages_heatmap",
     ),
     path(
-        "variants/mutationsInLineagesBySample",
-        views.mutations_in_lineages_by_samples,
-        name="variants_mutations_in_lineages_needle_plot",
-    ),
-    path(
         "variants/mutationsInLineagesTable",
         views.variants_mutations_in_lineages_table,
         name="variants_mutations_in_lineages_table",
+    ),
+    path(
+        "variants/samplesReceivedOverTimeGraph",
+        views.samples_received_over_time_graph,
+        name="variants_lineage_variation_over_time_graph",
+    ),
+    path(
+        "variants/samplesReceivedOverTimeMap",
+        views.samples_received_over_time_map,
+        name="samples_received_over_time_map",
     ),
     path(
         "variants/spikeMutations3DColor",
@@ -48,10 +47,14 @@ urlpatterns = [
         views.spike_mutations_3D_BN,
         name="spike_mutations_3D_BN",
     ),
-    path("variants/geoJSON", views.geo_json, name="geo_json"),
     path("Gauge", views.gauge_test, name="gauge"),
     # Methodology graphics
     path("methodology", views.methodology_index, name="methodology_index"),
+    path(
+        "methodology/fields_utilization",
+        views.methodology_fields_utilization,
+        name="methodology_fields_utilization",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
