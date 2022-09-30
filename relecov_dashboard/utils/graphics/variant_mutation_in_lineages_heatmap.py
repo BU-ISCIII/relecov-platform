@@ -116,14 +116,14 @@ def get_figure(data: pd.DataFrame, sample_ids: list, genes: list):
     return fig
 
 
-def create_hot_map(sample_list, gene_list):
+def create_heat_map(sample_list, gene_list):
     df = create_data_for_dataframe(sample_list=sample_list, gene_list=gene_list)
     get_figure(df, sample_list, genes=gene_list)
 
     all_genes = list(df["GENE"].unique())
     all_sample_ids = list(df["SAMPLE"].unique())
 
-    app = DjangoDash("mutation_heatmap")
+    app = DjangoDash("mutationHeatmap")
     app.layout = html.Div(
         children=[
             html.Div(

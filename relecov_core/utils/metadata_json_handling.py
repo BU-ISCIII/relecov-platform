@@ -61,7 +61,6 @@ def load_metadata_json(json_file):
     except json.decoder.JSONDecodeError:
         return {"ERROR": ERROR_INVALID_JSON}
     data["file_name"] = store_file(json_file, METADATA_JSON_UPLOAD_FOLDER)
-    # print(data)
     return data
 
 
@@ -75,11 +74,9 @@ def check_heading_valid_json(metadata_data, m_structure):
     return True
 
 
-def store_metadata_properties(metadata_obj, s_properties):  # , required
+def store_metadata_properties(metadata_obj, s_properties):
     """Store the properties defined in the metadata"""
     for prop_key in s_properties.keys():
-        # print(prop_key)
-
         data = dict(s_properties[prop_key])
         data["metadataID"] = metadata_obj
         data["property"] = prop_key
@@ -134,7 +131,6 @@ def remove_existing_default_metadata(metadata_name, apps_name):
 def process_metadata_json_file(json_file, version, default, user, apps_name):
     """Check json file and store in database"""
     metadata_data = load_metadata_json(json_file)
-    # print(metadata_data)
 
     if "ERROR" in metadata_data:
         return metadata_data
@@ -172,7 +168,6 @@ def process_metadata_json_file(json_file, version, default, user, apps_name):
         "user_name": user,
     }
     new_metadata = Metadata.objects.create_new_metadata(data)
-    # print(new_metadata)
 
     result = store_metadata_properties(
         new_metadata,

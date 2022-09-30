@@ -268,7 +268,6 @@ def store_bioinfo_fields(schema_obj, s_properties):
             if not match:
                 continue
             # classification = data["classification"]
-            # print(classification)
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
 
