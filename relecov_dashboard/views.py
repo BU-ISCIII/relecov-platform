@@ -99,7 +99,7 @@ def spike_mutations_3D_BN(request):
     create_model3D_bn()
     return render(
         request,
-        "rellineages_in_time_ecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html",
+        "relecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html",
     )
 
 
