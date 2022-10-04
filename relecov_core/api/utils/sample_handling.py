@@ -8,6 +8,8 @@ from relecov_core.core_config import (
 )
 from relecov_core.models import SampleState, Sample
 
+from relecov_core.utils.handling_samples import increase_unique_value
+
 
 def check_if_sample_exists(sequencing_sample_id):
     """Check if sequencing_sample_id is already defined in database"""
@@ -35,13 +37,25 @@ def split_sample_data(data):
         if item in FIELDS_ON_ENA_TABLE:
             split_data["ena"][item] = value
             continue
-        print("Not match ", item)
+        if "schema" not in item:
+            print("Not match ", item)
+            # error_msg = "Not match " + item
+            # return {"ERROR": error_msg}
     # add user and state to sample data
     split_data["sample"]["state"] = (
         SampleState.objects.filter(state__exact="Defined").last().get_state_id()
     )
+    if split_data["author"]["author_submitter"] == "":
+        split_data["author"]["author_submitter"] = "Not provided yet"
     if len(split_data["sample"]) < len(FIELDS_ON_SAMPLE_TABLE):
         return {"ERROR": ERROR_MISSING_SAMPLE_DATA}
+    if Sample.objects.all().exists():
+        last_unique_value = Sample.objects.all().last().get_unique_id()
+        split_data["sample"]["sample_unique_id"] = increase_unique_value(
+            last_unique_value
+        )
+    else:
+        split_data["sample"]["sample_unique_id"] = "AAA-0001"
     return split_data
 
 

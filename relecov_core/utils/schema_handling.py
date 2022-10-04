@@ -5,9 +5,12 @@ from django.db import DataError
 from django.conf import settings
 from relecov_core.models import (
     BioinfoAnalysisField,
-    Classification,
+    # Classification,
+    LineageFields,
     MetadataVisualization,
     PropertyOptions,
+    PublicDatabaseFields,
+    PublicDatabaseType,
     Schema,
     SchemaProperties,
 )
@@ -167,6 +170,13 @@ def check_heading_valid_json(schema_data, m_structure):
     return True
 
 
+def get_default_schema():
+    """Return the default schema used for relecov"""
+    if Schema.objects.filter(schema_default=True).exists():
+        return Schema.objects.filter(schema_default=True).last()
+    return None
+
+
 def del_metadata_visualization():
     """Delete previous metadata visualization if already exists"""
     if MetadataVisualization.objects.all().exists():
@@ -174,6 +184,19 @@ def del_metadata_visualization():
         for m_vis_obj in m_vis_objs:
             m_vis_obj.delete()
     return None
+
+
+def get_schema_properties(schema):
+    """Fetch the list of the properties"""
+    s_prop_dict = {}
+    if SchemaProperties.objects.filter(schemaID=schema).exists():
+        s_prop_objs = SchemaProperties.objects.filter(schemaID=schema)
+        for s_prop_obj in s_prop_objs:
+            p_name = s_prop_obj.get_property_name()
+            s_prop_dict[p_name] = {}
+            s_prop_dict[p_name]["classification"] = s_prop_obj.get_classification()
+            s_prop_dict[p_name]["ontology"] = s_prop_obj.get_ontology()
+    return s_prop_dict
 
 
 def store_fields_metadata_visualization(data):
@@ -206,7 +229,7 @@ def store_schema_properties(schema_obj, s_properties, required):
         data["property"] = prop_key
         if prop_key in required:
             data["required"] = True
-        if "Enums" in data:
+        if "enum" in data:
             data["options"] = True
         try:
             new_property = SchemaProperties.objects.create_new_property(data)
@@ -215,12 +238,12 @@ def store_schema_properties(schema_obj, s_properties, required):
             # schema_obj.delete()
             # return {"ERROR": e}
         if "options" in data:
-            for item in s_properties[prop_key]["Enums"]:
+            for item in s_properties[prop_key]["enum"]:
                 enum = re.search(r"(.+) \[(.*)\]", item)
                 if enum:
-                    e_data = {"enums": enum.group(1), "ontology": enum.group(2)}
+                    e_data = {"enum": enum.group(1), "ontology": enum.group(2)}
                 else:
-                    e_data = {"enums": item, "ontology": None}
+                    e_data = {"enum": item, "ontology": None}
                 e_data["propertyID"] = new_property
                 try:
                     PropertyOptions.objects.create_property_options(e_data)
@@ -236,7 +259,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
     # p = re.compile(r"Bioinformatic?..*[\w+]")
     # p2 = re.compile(r"Lineage.+[\w+]")
     for prop_key in s_properties.keys():
-        classification = ""
+        # classification = ""
         data = dict(s_properties[prop_key])
         if "sample_name" in data:
             continue
@@ -244,22 +267,60 @@ def store_bioinfo_fields(schema_obj, s_properties):
             match = re.search(r"^Bioinformatic.*", data["classification"])
             if not match:
                 continue
-            classification = data["classification"]
-            # print(classification)
+            # classification = data["classification"]
             # match = re.search(r"(\w+) fields", data["classification"])
             # classification = match.group(1).strip()
 
             # fetch the Classification instance
+            """
             class_obj = Classification.objects.filter(
                 classification_name__iexact=classification
             ).last()
+            """
             fields = {}
-            fields["classificationID"] = class_obj
+            # fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
             n_field = BioinfoAnalysisField.objects.create_new_field(fields)
             n_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
+
+
+def store_lineage_fields(schema_obj, s_properties):
+    """Store the fields to be used for lineage analysis information"""
+    for prop_key in s_properties.keys():
+        data = dict(s_properties[prop_key])
+        if "classification" in data and data["classification"] == "Lineage fields":
+            fields = {}
+            fields["property_name"] = prop_key
+            fields["label_name"] = data["label"]
+            l_field = LineageFields.objects.create_new_field(fields)
+            l_field.schemaID.add(schema_obj)
+    return {"SUCCESS": ""}
+
+
+def store_public_data_fields(schema_obj, s_properties):
+    """Store the fiells to be usde for public database information"""
+    for prop_key in s_properties.keys():
+        data = dict(s_properties[prop_key])
+        if "classification" in data and data["classification"] == "Public databases":
+            fields = {}
+            fields["property_name"] = prop_key
+            fields["label_name"] = data["label"]
+            # find out the public database type
+
+            database_types = PublicDatabaseType.objects.values_list(
+                "public_type_name", flat=True
+            ).distinct()
+            for database_type in database_types:
+                if database_type in prop_key:
+                    break
+            p_database_type_obj = PublicDatabaseType.objects.filter(
+                public_type_name__exact=database_type
+            ).last()
+            fields["database_type"] = p_database_type_obj
+            p_field = PublicDatabaseFields.objects.create_new_field(fields)
+            p_field.schemaID.add(schema_obj)
 
 
 def remove_existing_default_schema(schema_name, apps_name):
@@ -276,7 +337,7 @@ def remove_existing_default_schema(schema_name, apps_name):
     return
 
 
-def process_schema_file(json_file, version, default, user, apps_name):
+def process_schema_file(json_file, default, user, apps_name):
     """Check json file and store in database"""
     schema_data = load_schema(json_file)
     if "ERROR" in schema_data:
@@ -285,6 +346,7 @@ def process_schema_file(json_file, version, default, user, apps_name):
     if not check_heading_valid_json(schema_data["full_schema"], MAIN_SCHEMA_STRUCTURE):
         return {"ERROR": ERROR_INVALID_SCHEMA}
     schema_name = schema_data["full_schema"]["schema"]
+    version = schema_data["full_schema"]["version"]
     if default == "on":
         remove_existing_default_schema(schema_name, apps_name)
         default = True
@@ -312,9 +374,8 @@ def process_schema_file(json_file, version, default, user, apps_name):
     )
     if "ERROR" in result:
         return result
-    s_fields = store_bioinfo_fields(
-        new_schema, schema_data["full_schema"]["properties"]
-    )
-    if "ERROR" in s_fields:
-        return s_fields
+    store_bioinfo_fields(new_schema, schema_data["full_schema"]["properties"])
+    store_lineage_fields(new_schema, schema_data["full_schema"]["properties"])
+    store_public_data_fields(new_schema, schema_data["full_schema"]["properties"])
+
     return {"SUCCESS": SCHEMA_SUCCESSFUL_LOAD}

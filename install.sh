@@ -166,16 +166,20 @@ cd /opt/relecov-platform
 
 mkdir -p /opt/relecov-platform/logs
 chown $user:apache /opt/relecov-platform/logs
+chmod 775 /opt/relecov-platform/logs
 mkdir -p /opt/relecov-platform/documents
 chown $user:apache /opt/relecov-platform/documents
+chmod 775 /opt/relecov-platform/documents
+mkdir -p /opt/relecov-platform/documents/schemas
+chown $user:apache /opt/relecov-platform/documents/schemas
+chmod 775 /opt/relecov-platform/documents/schemas
 echo "Created folders for logs and documents "
 
 # install virtual environment
 if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Creating virtual environment"
-    pip3 install virtualenv
-    virtualenv --python=/usr/bin/python3 virtualenv
-
+    su $user bash -c "pip3 install virtualenv"
+    su $user bash -c "virtualenv --python=/usr/bin/python3 virtualenv"
 fi
 
 if [[ $linux_distribution == "CentOS" ]]; then
@@ -208,6 +212,9 @@ grep ^SECRET relecov_platform/settings.py > ~/.secret
 # Copying config files and script
 cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
 cp conf/urls.py /opt/relecov-platform/relecov_platform/
+cp conf/asgi.py /opt/relecov-platform/relecov_platform/
+cp conf/routing.py /opt/relecov-platform/relecov_platform/
+cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
 
 sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
 sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
@@ -217,10 +224,10 @@ sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
-
+chown $user:$group -R relecov_platform
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-su $user bash -c "python3 manage.py makemigrations relecov_core"
+su $user bash -c "python3 manage.py makemigrations relecov_core django_plotly_dash"
 python3 manage.py migrate
 
 #echo "Change owner of files to Apache user"
@@ -242,15 +249,16 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
 fi
 
-if [[ $linux_distribution == "CentOs" ]]; then
-    # cp conf/httpd.conf /etc/httpd/conf.d/relecov_platform.conf
+if [[ $linux_distribution == "CentOS" ]]; then
+    cp conf/relecov_platform.conf /etc/httpd/conf.d/relecov_platform.conf
+fi
 echo "Creating super user "
 python3 manage.py createsuperuser
 
 printf "\n\n%s"
 printf "${BLUE}------------------${NC}\n"
 printf "%s"
-printf "${BLUE}Successfuly iSkyLIMS Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+printf "${BLUE}Successfuly Relecov Platform Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
 printf "%s"
 printf "${BLUE}------------------${NC}\n\n"
 

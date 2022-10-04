@@ -5,6 +5,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path(
+        "annotationDisplay=<int:annot_id>",
+        views.annotation_display,
+        name="annotation_display",
+    ),
     path("bioInfoHandling", views.bio_info_json_handling, name="bioInfo_handling"),
     path("Contact", views.contact, name="contact"),
     path("contributorInfo/", views.contributor_info, name="contributorInfo"),
@@ -36,6 +41,7 @@ urlpatterns = [
         views.upload_status_to_GISAID,
         name="uploadStatusToGISAID",
     ),
+    path("virusAnnotation", views.virus_annotation, name="virus_annotation"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,82 +1,81 @@
-"""
-from relecov_core.models import (
-    # BioinfoProcessField,
-    Sample,
-    Schema,
-)
-"""
-"""
+from relecov_core.models import BioinfoAnalysisField, LineageFields, Sample
+
 from relecov_core.core_config import (
-    ERROR_SCHEMA_NOT_DEFINED,
     ERROR_FIELD_NOT_DEFINED,
-    ERROR_SAMPLE_NOT_DEFINED,
-    ERROR_SAMPLE_NAME_NOT_INCLUDED,
-    ERROR_SAMPLE_NOT_IN_DEFINED_STATE,
     ERROR_UNABLE_TO_STORE_IN_DATABASE,
 )
-"""
-# from relecov_core.api.serializers import CreateBioInfoProcessValueSerializer
 
-"""
-def check_valid_data(data, schema_id):
-    ""Check if all fields in the request are defined in database""
-    for field in data:
-        if field == "sample_name":
-            continue
-        if not BioinfoProcessField.objects.filter(
-            schemaID=schema_id, property_name__iexact=field
-        ).exists():
-            return {"ERROR": str(field + " " + ERROR_FIELD_NOT_DEFINED)}
-    return True
-"""
-
-"""
-def store_field(field, value, sample_obj, schema_id):
-    ""Save the new field data in database""
-    data = {"value": value, "sampleID_id": sample_obj}
-    data["bioinfo_process_fieldID"] = BioinfoProcessField.objects.filter(
-        schemaID=schema_id, property_name__iexact=field
-    ).last()
-
-    bio_value_serializer = CreateBioInfoProcessValueSerializer(data=data)
-    if not bio_value_serializer.is_valid():
-        return False
-    bio_value_serializer.save()
-    return True
-"""
+from relecov_core.api.serializers import (
+    CreateBioInfoAnalysisValueSerializer,
+    CreateLineageValueSerializer,
+)
 
 
-def fetch_bioinfo_data(data):
-    """
-    if "sample_name" not in data:
-        return {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED}
-    sample_obj = Sample.objects.filter(
-        sequencing_sample_id__iexact=data["sample_name"]
-    ).last()
-    if not Sample.objects.filter(sequencing_sample_id__iexact=data["sample_name"]):
-        return {"ERROR": str(data["sample_name"] + " " + ERROR_SAMPLE_NOT_DEFINED)}
-    if sample_obj.get_state() != "Defined":
-        return {"ERROR": ERROR_SAMPLE_NOT_IN_DEFINED_STATE}
-
-    if not Schema.objects.filter(
-        schema_apps_name="relecov_core", schema_default=True
-    ).exists():
-        return {"ERROR": ERROR_SCHEMA_NOT_DEFINED}
-    schema_obj = Schema.objects.filter(
-        schema_apps_name="relecov_core", schema_default=True
-    ).last()
-
-    valid_data = check_valid_data(data, schema_obj)
-    if isinstance(valid_data, dict):
-        return valid_data
-
+def split_bioinfo_data(data, schema_obj):
+    """Check if all fields in the request are defined in database"""
+    split_data = {}
+    split_data["bioinfo"] = {}
+    split_data["lineage"] = {}
     for field, value in data.items():
         if field == "sample_name":
-            continue
+            split_data["sample"] = value
+        # if this field belongs to BioinfoAnalysisField table
+        if BioinfoAnalysisField.objects.filter(
+            schemaID=schema_obj, property_name__iexact=field
+        ).exists():
+            split_data["bioinfo"][field] = value
+        elif LineageFields.objects.filter(
+            schemaID=schema_obj, property_name__iexact=field
+        ).exists():
+            split_data["lineage"][field] = value
+        elif "schema" in field:
+            pass
+        else:
+            return {"ERROR": str(field + " " + ERROR_FIELD_NOT_DEFINED)}
+    return split_data
 
-        if not store_field(field, data[field], sample_obj, schema_obj):
-            return {"ERROR": ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
-    sample_obj.update_state("Bioinfo")
-    """
-    return
+def store_bioinfo_data(s_data, schema_obj):
+    """Save the new field data in database"""
+    # schema_id = schema_obj.get_schema_id()
+    sample_obj = Sample.objects.filter(
+        sequencing_sample_id__iexact=s_data["sample"]
+    ).last()
+    # field to BioinfoAnalysisField table
+    for field, value in s_data["bioinfo"].items():
+        field_id = (
+            BioinfoAnalysisField.objects.filter(
+                schemaID=schema_obj, property_name__iexact=field
+            )
+            .last()
+            .get_id()
+        )
+        data = {
+            "value": value,
+            "bioinfo_analysis_fieldID": field_id,
+        }
+
+        bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
+        if not bio_value_serializer.is_valid():
+            return {"ERROR": str(field + " " + ERROR_UNABLE_TO_STORE_IN_DATABASE)}
+        bio_value_obj = bio_value_serializer.save()
+        sample_obj.bio_analysis_values.add(bio_value_obj)
+
+    # field to LineageFields table
+    for field, value in s_data["lineage"].items():
+        lineage_id = (
+            LineageFields.objects.filter(
+                schemaID=schema_obj, property_name__iexact=field
+            )
+            .last()
+            .get_lineage_field_id()
+        )
+        data = {"value": value, "lineage_fieldID": lineage_id}
+        lineage_value_serializer = CreateLineageValueSerializer(data=data)
+
+        if not lineage_value_serializer.is_valid():
+            return {"ERROR": str(field + " " + ERROR_UNABLE_TO_STORE_IN_DATABASE)}
+        lineage_value_obj = lineage_value_serializer.save()
+        sample_obj.linage_values.add(lineage_value_obj)
+
+    return {"SUCCESS": "success"}

@@ -14,6 +14,8 @@ from relecov_core.core_config import (
     ERROR_SAMPLE_DOES_NOT_EXIST,
     HEADING_FOR_BASIC_SAMPLE_DATA,
     HEADING_FOR_FASTQ_SAMPLE_DATA,
+    HEADING_FOR_GISAID_SAMPLE_DATA,
+    HEADING_FOR_ENA_SAMPLE_DATA,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -24,21 +26,17 @@ from relecov_core.core_config import (
 
 
 from relecov_core.models import (
-    # Authors,
+    DateUpdateState,
     MetadataVisualization,
     SchemaProperties,
-    #
-    # TemporalSampleStorage,
-    # PropertyOptions,
-    # Schema,
     Sample,
     SampleState,
-    # User,
 )
 
 from relecov_core.utils.rest_api_handling import (
     get_sample_fields_data,
     get_sample_project_fields_data,
+    get_sample_information,
     # save_sample_form_data,
 )
 
@@ -80,6 +78,18 @@ def analyze_input_samples(request):
     if len(s_already_record) > 0:
         result["s_already_record"] = s_already_record
     return result
+
+
+def count_samples_in_all_tables():
+    """Count the number of entries that are in Sample,"""
+    data = {}
+    data["received"] = Sample.objects.all().count()
+    # data["ena"] = EnaInfo.objects.all().count()
+    # data["gisaid"] = GisaidInfo.objects.all().count()
+    # data["processed"] = AnalysisPerformed.objects.filter(
+    #    typeID__type_name__iexact="bioinfo_analysis"
+    # ).count()
+    return data
 
 
 def create_form_for_batch(schema_obj, user_obj):
@@ -150,7 +160,7 @@ def create_form_for_sample(schema_obj):
             try:
                 label = s_prop_dict[values["ontology"]]["label"]
                 iskylims_sample_data[label] = {}
-                # Collcct information to send back the values ot iSkyLIMS
+                # Collect information to send back the values to iSkyLIMS
                 l_iskylims.append(values["field_name"])
                 l_metadata.append(label)
                 if "options" in values:
@@ -230,8 +240,59 @@ def get_sample_display_data(sample_id, user):
     s_data["fastq"] = list(
         zip(HEADING_FOR_FASTQ_SAMPLE_DATA, sample_obj.get_fastq_data())
     )
-
+    # Fetch actions done on the sample
+    if DateUpdateState.objects.filter(sampleID=sample_obj).exists():
+        actions = []
+        actions_date_objs = DateUpdateState.objects.filter(
+            sampleID=sample_obj
+        ).order_by("-date")
+        for action_date_obj in actions_date_objs:
+            actions.append(
+                [action_date_obj.get_state_name(), action_date_obj.get_date()]
+            )
+        s_data["actions"] = actions
+    # Fetch gisaid and ena information
+    gisaid_data = sample_obj.get_gisaid_info()
+    if gisaid_data is not None:
+        s_data["gisaid"] = list(zip(HEADING_FOR_GISAID_SAMPLE_DATA, gisaid_data))
+    ena_data = sample_obj.get_ena_info()
+    if ena_data != "":
+        s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
+    lab_sample = sample_obj.get_collecting_lab_sample_id()
+    # Fetch information from iSkyLIMS
+    if lab_sample != "":
+        iskylims_data = get_sample_information(lab_sample)
+        if "ERROR" not in iskylims_data:
+            s_data["iskylims_basic"] = list(
+                zip(iskylims_data["heading"], iskylims_data["s_basic"])
+            )
+            s_data["iskylims_p_data"] = list(
+                zip(
+                    iskylims_data["sample_project_field_heading"],
+                    iskylims_data["sample_project_field_value"],
+                )
+            )
+            s_data["iskylims_project"] = iskylims_data["sample_project_name"]
     return s_data
+
+
+def get_sample_obj_from_sample_name(sample_name):
+    """Return the sample instance from its name"""
+    if Sample.objects.filter(sequencing_sample_id__exact=sample_name).exists():
+        return Sample.objects.filter(sequencing_sample_id__exact=sample_name).last()
+    return None
+
+
+def get_sample_obj_from_id(sample_id):
+    """Return the sample instance from its id"""
+    if Sample.objects.filter(pk__exact=sample_id).exists():
+        return Sample.objects.filter(pk__exact=sample_id).last()
+    return None
+
+
+def get_samples_count_per_schema(schema_name):
+    """Get the number of samples that are stored in the schema"""
+    return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
 
 
 def get_search_data():
@@ -248,20 +309,53 @@ def get_search_data():
     return s_data
 
 
-def search_samples(sample_name, user_name, sample_state, s_date):
+def increase_unique_value(old_unique_number):
+    """The function increases in one number the unique value
+    If number reaches the 9999 then the letter is stepped
+    """
+    split_value = old_unique_number.split("-")
+    number = int(split_value[1]) + 1
+    letter = split_value[0]
+
+    if number > 9999:
+        number = 1
+        index_letter = list(split_value[0])
+        if index_letter[2] == "Z":
+            if index_letter[1] == "Z":
+                index_letter[0] = chr(ord(index_letter[0]) + 1)
+                index_letter[1] = "A"
+                index_letter[2] = "A"
+            else:
+                index_letter[1] = chr(ord(index_letter[1]) + 1)
+                index_letter[2] = "A"
+
+            index_letter = "".join(index_letter)
+        else:
+            index_letter[2] = chr(ord(index_letter[2]) + 1)
+
+        letter = "".join(index_letter)
+
+    number_str = str(number)
+    number_str = number_str.zfill(4)
+    return str(letter + "-" + number_str)
+
+
+def search_samples(sample_name, user_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
     sample_objs = Sample.objects.all()
-    if user_name != "":
-        if User.objects.filter(username__exact=user_name).exists():
-            user_name_obj = User.objects.filter(username__exact=user_name).last()
-            user_friend_list = get_friend_list(user_name_obj)
-            if not sample_objs.filter(user__in=user_friend_list).exists():
-                return sample_list
+    group = Group.objects.get(name="RelecovManager")
+    if group not in user.groups.all():
+        if user_name != "":
+            if User.objects.filter(username__exact=user_name).exists():
+                user_name_obj = User.objects.filter(username__exact=user_name).last()
+                user_friend_list = get_friend_list(user_name_obj)
+                if not sample_objs.filter(user__in=user_friend_list).exists():
+                    return sample_list
+                else:
+                    sample_objs = sample_objs.filter(user__in=user_friend_list)
             else:
-                sample_objs = sample_objs.filter(user__in=user_friend_list)
-        else:
-            return sample_list
+                return sample_list
     if sample_name != "":
         if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
             sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)

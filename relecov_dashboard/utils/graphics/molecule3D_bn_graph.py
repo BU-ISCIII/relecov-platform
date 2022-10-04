@@ -86,9 +86,9 @@ def get_table_selection(df):
     return table_selection
 
 
-def create_graph():
+def create_model3D_bn():
 
-    app = DjangoDash("model3D")
+    app = DjangoDash("model3D_bn")
 
     pdb_file = PdbParser(
         os.path.join(

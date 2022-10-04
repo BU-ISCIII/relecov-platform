@@ -35,8 +35,7 @@ urlpatterns = [
     ),
     path("UploadToEna/", views.upload_to_ena, name="upload_to_ena"),
     path("UploadToGisaid/", views.upload_to_gisaid, name="upload_to_gisaid"),
-    path("Test/", views.test, name="test"),
-    path("Test2/", views.test2, name="test2"),
+    path("ApiUsage/", views.api_usage, name="api_usage"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

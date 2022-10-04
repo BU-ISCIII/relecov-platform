@@ -1,16 +1,39 @@
 # Documentation
 
-### How to access to relecov Intranet
+### Relecov-platform documentation
 
-Requirements:
+Below you will find all the necessary information about relecov-platform.
 
-- User account provided by the application administrator. More ifo, click here[How to login](/documentation/Login).
+This documentation is structured in the following points, from the installation and initial configuration of the application to its use by administrators and users.
 
+This is a summary of the contents of this document:
 
-On the home page of the relecov-platform application, we must click on the Intranet link, as shown in the following image:
-![relecov-platform navbar](../../static/relecov_documentation/img/relecov_platform_navbar.png)
+    Usage
+        Getting start
 
-Now we can see a panel to access the intranet.
-We must write the username and password provided by the administrator
+            Installation:
+                Installations steps.
 
-![relecov-platform login intranet](../../static/relecov_documentation/img/login_intranet.png)
+            Configuration
+                Initial Configuration
+            
+            Intranet
+                Create user intranet
+                Access to intranet
+                Upload Metadata Lab
+            
+            Upload Status
+                Upload to ENA
+                Upload to GISAID
+            
+            Result Info
+                Received
+                Processed
+            
+            Downloads
+                Results Download
+
+            Dashboard
+
+            API Rest
+            

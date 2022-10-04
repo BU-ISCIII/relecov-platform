@@ -3,26 +3,26 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from relecov_core.models import (
-    Authors,
     BioInfoAnalysisValue,
     BioinfoAnalysisField,
-    Caller,
     Classification,
     Chromosome,
     ConfigSetting,
-    Document,
     Effect,
-    EnaInfo,
     Error,
     Gene,
-    GisaidInfo,
     Filter,
-    # Lineage,
-    # LineageInfo,
+    LineageFields,
+    LineageValues,
+    LineageInfo,
     MetadataVisualization,
-    Position,
+    OrganismAnnotation,
+    # Position,
     Profile,
     PropertyOptions,
+    PublicDatabaseFields,
+    PublicDatabaseValues,
+    PublicDatabaseType,
     Sample,
     SampleState,
     Schema,
@@ -30,7 +30,15 @@ from relecov_core.models import (
     TemporalSampleStorage,
     Variant,
     VariantInSample,
+    VariantAnnotation,
+    DateUpdateState,
 )
+
+
+def custom_date_format(self):
+    if self.date:
+        return self.date.strftime("%d %b %Y")
+    return ""
 
 
 class ProfileInLine(admin.StackedInline):
@@ -49,22 +57,18 @@ class CustomUserAdmin(UserAdmin):
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
 
 
+class AnalysisPerformedAdmin(admin.ModelAdmin):
+    list_display = ["typeID", "sampleID"]
+
+
 class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
-    list_display = ["property_name", "classificationID", "label_name"]
+    list_display = ["property_name", "label_name"]
     search_fields = ("property_name__icontains",)
 
 
 class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
-    list_display = ["value", "bioinfo_analysis_fieldID", "sampleID_id"]
+    list_display = ["value", "bioinfo_analysis_fieldID"]
     search_fields = ("value__icontains",)
-
-
-class DocumentAdmin(admin.ModelAdmin):
-    list_display = ["title", "uploadedFile"]
-
-
-class CallerAdmin(admin.ModelAdmin):
-    list_display = ["name", "version"]
 
 
 class ClassificationAdmin(admin.ModelAdmin):
@@ -75,12 +79,16 @@ class ConfigSettingAdmin(admin.ModelAdmin):
     list_display = ["configuration_name", "configuration_value"]
 
 
+class DateUpdateStateAdmin(admin.ModelAdmin):
+    list_display = ["sampleID", "stateID", custom_date_format]
+
+
 class EffectAdmin(admin.ModelAdmin):
-    list_display = ["effect", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
+    list_display = ["effect"]
 
 
-class EnaInfoAdmin(admin.ModelAdmin):
-    list_display = ["biosample_accession_ENA", "SRA_accession", "study_title"]
+class ErrorAdmin(admin.ModelAdmin):
+    list_display = ["error_name", "display_string"]
 
 
 class FilterAdmin(admin.ModelAdmin):
@@ -88,11 +96,7 @@ class FilterAdmin(admin.ModelAdmin):
 
 
 class GeneAdmin(admin.ModelAdmin):
-    list_display = ["gene"]
-
-
-class GisaidInfoAdmin(admin.ModelAdmin):
-    list_display = ["gisaid_id", "submission_data"]
+    list_display = ["gene_name", "gene_start", "gene_end", "org_annotationID"]
 
 
 class ChromosomeAdmin(admin.ModelAdmin):
@@ -103,22 +107,35 @@ class LineageInfoAdmin(admin.ModelAdmin):
     list_display = ["lineage_name"]
 
 
-class LineageAdmin(admin.ModelAdmin):
-    list_display = [
-        "lineage_name",
-        "lineage_analysis_software_name",
-        "lineage_analysis_software_version",
-    ]
+class LineageFieldsAdmin(admin.ModelAdmin):
+    list_display = ["property_name", "label_name"]
 
 
-class PositionAdmin(admin.ModelAdmin):
-    list_display = ["pos", "nucleotide"]
+class LineageValuesAdmin(admin.ModelAdmin):
+    list_display = ["value", "lineage_fieldID"]
+
+
+class OrganismAnnotationAdmin(admin.ModelAdmin):
+    list_display = ["organism_code", "gff_version", "sequence_region"]
+
+
+class PublicDatabaseTypeAdmin(admin.ModelAdmin):
+    list_display = ["public_type_name", "public_type_display"]
+
+
+class PublicDatabaseFieldsAdmin(admin.ModelAdmin):
+    list_display = ["property_name", "database_type"]
+
+
+class PublicDatabaseValuesAdmin(admin.ModelAdmin):
+    list_display = ["value", "sampleID", "public_database_fieldID"]
 
 
 class SampleAdmin(admin.ModelAdmin):
     list_display = [
         "sequencing_sample_id",
         "submitting_lab_sample_id",
+        "collecting_lab_sample_id",
         "state",
     ]
     search_fields = ["sequencing_sample_id__icontains"]
@@ -130,15 +147,21 @@ class SampleStateAdmin(admin.ModelAdmin):
 
 
 class VariantAdmin(admin.ModelAdmin):
-    list_display = ["ref"]
+    list_display = [
+        "pos",
+        "ref",
+        "alt",
+        "chromosomeID_id",
+        "filterID_id",
+    ]
 
 
 class VariantInSampleAdmin(admin.ModelAdmin):
-    list_display = ["dp", "alt_dp", "ref_dp", "af"]
+    list_display = ["sampleID_id", "variantID_id", "dp", "alt_dp", "ref_dp", "af"]
 
 
-class AuthorsAdmin(admin.ModelAdmin):
-    list_display = ["analysis_authors", "author_submitter", "authors"]
+class VariantAnnotationAdmin(admin.ModelAdmin):
+    list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
 
 
 class SchemaAdmin(admin.ModelAdmin):
@@ -161,7 +184,7 @@ class TemporalSampleStorageAdmin(admin.ModelAdmin):
 
 
 class PropertyOptionsAdmin(admin.ModelAdmin):
-    list_display = ["propertyID", "enums", "ontology"]
+    list_display = ["propertyID", "enum", "ontology"]
 
 
 class MetadataVisualizationAdmin(admin.ModelAdmin):
@@ -176,30 +199,30 @@ class MetadataVisualizationAdmin(admin.ModelAdmin):
 # Register models
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Document, DocumentAdmin)
-admin.site.register(Caller, CallerAdmin)
 admin.site.register(ConfigSetting, ConfigSettingAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(Effect, EffectAdmin)
-admin.site.register(EnaInfo, EnaInfoAdmin)
 admin.site.register(Gene, GeneAdmin)
-admin.site.register(GisaidInfo, GisaidInfoAdmin)
 admin.site.register(Chromosome, ChromosomeAdmin)
-# admin.site.register(Lineage, LineageAdmin)
-admin.site.register(Position, PositionAdmin)
+admin.site.register(LineageFields, LineageFieldsAdmin)
+admin.site.register(LineageValues, LineageValuesAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(SampleState, SampleStateAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(VariantInSample, VariantInSampleAdmin)
-admin.site.register(Authors, AuthorsAdmin)
+admin.site.register(VariantAnnotation, VariantAnnotationAdmin)
 admin.site.register(Schema, SchemaAdmin)
 admin.site.register(SchemaProperties, SchemaPropertiesAdmin)
 admin.site.register(PropertyOptions, PropertyOptionsAdmin)
+admin.site.register(PublicDatabaseType, PublicDatabaseTypeAdmin)
+admin.site.register(PublicDatabaseFields, PublicDatabaseFieldsAdmin)
+admin.site.register(PublicDatabaseValues, PublicDatabaseValuesAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
-
 admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
 admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
-admin.site.register(Error)
-# admin.site.register(LineageInfo, LineageInfoAdmin)
+admin.site.register(Error, ErrorAdmin)
+admin.site.register(DateUpdateState, DateUpdateStateAdmin)
+admin.site.register(LineageInfo, LineageInfoAdmin)
+admin.site.register(OrganismAnnotation, OrganismAnnotationAdmin)
