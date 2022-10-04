@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
+    count_samples_in_all_tables,
     create_metadata_form,
     get_sample_display_data,
     get_search_data,
@@ -22,11 +23,22 @@ from relecov_core.utils.schema_handling import (
     store_fields_metadata_visualization,
 )
 
+from relecov_core.utils.handling_bioinfo_analysis import (
+    get_bioinfo_analysis_data_from_sample,
+)
+
+from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.contributor_info_handling import get_data_from_form
 from relecov_core.utils.generic_functions import check_valid_date_format
-
-from relecov_core.models import Sample
+from relecov_core.utils.handling_annotation import (
+    read_gff_file,
+    stored_gff,
+    get_annotations,
+    check_if_annotation_exists,
+    get_annotation_data,
+)
+from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
@@ -36,11 +48,12 @@ from relecov_core.core_config import (
 
 
 def index(request):
-    number_of_samples_received = Sample.objects.count()
+    number_of_samples = count_samples_in_all_tables()
+
     return render(
         request,
         "relecov_core/index.html",
-        {"number_of_samples_received": number_of_samples_received},
+        {"number_of_samples": number_of_samples},
     )
 
 
@@ -85,6 +98,9 @@ def sample_display(request, sample_id):
         return render(
             request, "relecov_core/sampleDisplay.html", {"ERROR": sample_data["ERROR"]}
         )
+    sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
+    sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
+    sample_data["variant"] = get_variant_data_from_sample(sample_id)
     return render(
         request, "relecov_core/sampleDisplay.html", {"sample_data": sample_data}
     )
@@ -97,7 +113,6 @@ def schema_handling(request):
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
         schema_data = process_schema_file(
             request.FILES["schemaFile"],
-            request.POST["schemaVersion"],
             request.POST["schemaDefault"],
             request.user,
             __package__,
@@ -166,7 +181,9 @@ def search_sample(request):
                     "warning": ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
                 },
             )
-        sample_list = search_samples(sample_name, user_name, sample_state, s_date)
+        sample_list = search_samples(
+            sample_name, user_name, sample_state, s_date, request.user
+        )
         if len(sample_list) == 0:
             return render(
                 request,
@@ -177,7 +194,7 @@ def search_sample(request):
                 },
             )
         if len(sample_list) == 1:
-            return redirect("display_sample", sample_id=sample_list)
+            return redirect("sample_display", sample_id=sample_list[0])
         else:
             sample = {"s_data": sample_list, "heading": HEADING_FOR_SAMPLE_LIST}
             return render(
@@ -279,6 +296,47 @@ def metadata_form(request):
                 request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
             )
         return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
+
+
+@login_required()
+def annotation_display(request, annot_id):
+    """Display the full information about the organism annotation stored in
+    database
+    """
+    if request.user.username != "admin":
+        return redirect("/")
+    if not check_if_annotation_exists(annot_id):
+        return render(request, "relecov_core/error_404.html")
+    annot_data = get_annotation_data(annot_id)
+    return render(
+        request, "relecov_core/annotationDisplay.html", {"annotation_data": annot_data}
+    )
+
+
+@login_required()
+def virus_annotation(request):
+    """Store the organism annotation gff file"""
+    if request.user.username != "admin":
+        return redirect("/")
+    annotations = get_annotations()
+    if request.method == "POST" and request.POST["action"] == "uploadAnnotation":
+        gff_parsed = read_gff_file(request.FILES["gffFile"])
+        if "ERROR" in gff_parsed:
+            return render(
+                request,
+                "relecov_core/virusAnnotation.html",
+                {"ERROR": gff_parsed["ERROR"], "annotations": annotations},
+            )
+        stored_gff(gff_parsed, request.user)
+        annotations = get_annotations()
+        return render(
+            request,
+            "relecov_core/virusAnnotation.html",
+            {"SUCCESS": "Success", "annotations": annotations},
+        )
+    return render(
+        request, "relecov_core/virusAnnotation.html", {"annotations": annotations}
+    )
 
 
 @login_required()

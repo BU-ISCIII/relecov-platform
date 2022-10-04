@@ -1,50 +1,27 @@
 from rest_framework import serializers
 
 from relecov_core.models import (
-    # BioInfoProcessValue,
-    Authors,
-    EnaInfo,
-    GisaidInfo,
-    # Lineage,
+    BioInfoAnalysisValue,
+    LineageValues,
     Sample,
-    Chromosome,
-    Gene,
     Effect,
+    VariantAnnotation,
     VariantInSample,
     Filter,
-    Position,
     Variant,
+    DateUpdateState,
 )
 
-"""
-class CreateBioInfoProcessValueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BioInfoProcessValue
-        fields = "__all__"
-"""
 
-
-class UpdateSampleSerializer(serializers.ModelSerializer):
+class CreateDateAfterChangeStateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Sample
+        model = DateUpdateState
         fields = "__all__"
 
 
-class CreateAuthorSerializer(serializers.ModelSerializer):
+class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Authors
-        fields = "__all__"
-
-
-class CreateGisaidSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GisaidInfo
-        fields = "__all__"
-
-
-class CreateEnaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EnaInfo
+        model = BioInfoAnalysisValue
         fields = "__all__"
 
 
@@ -54,21 +31,15 @@ class CreateSampleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CreateChromosomeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chromosome
-        fields = "__all__"
-
-
-class CreateGeneSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gene
-        fields = "__all__"
-
-
 class CreateEffectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Effect
+        fields = "__all__"
+
+
+class CreateErrorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
         fields = "__all__"
 
 
@@ -78,15 +49,15 @@ class CreateVariantInSampleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CreateFilterSerializer(serializers.ModelSerializer):
+class CreateVariantAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Filter
+        model = VariantAnnotation
         fields = "__all__"
 
 
-class CreatePositionSerializer(serializers.ModelSerializer):
+class CreateFilterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Position
+        model = Filter
         fields = "__all__"
 
 
@@ -96,9 +67,13 @@ class CreateVariantSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-"""
-class CreateLineageSerializer(serializers.ModelSerializer):
+class CreateLineageValueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Lineage
-        fields = ["lineage_name"]
-"""
+        model = LineageValues
+        fields = "__all__"
+
+
+class UpdateStateSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = "__all__"
