@@ -61,7 +61,7 @@ def samples_received_over_time_graph(request):
 
 def variants_mutations_in_lineages_heatmap(request):
     gene_list = ["orf1ab", "ORF8", "S", "M", "N"]
-    sample_list = [220880,210067]
+    sample_list = [220880, 210067]
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
 
