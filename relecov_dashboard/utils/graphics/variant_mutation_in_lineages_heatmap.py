@@ -39,9 +39,11 @@ def create_data_for_dataframe(sample_list, gene_list):
     sample_list_df = []
     lineage_list = []
     # chromosome = "NC_045512"
+    
     for sample_name in sample_list:
+        # print(sample_name)
         sample_obj = get_sample_obj_from_sample_name(sample_name=sample_name)
-
+        
         if sample_obj is not None:
             variant_in_sample_objs = VariantInSample.objects.filter(
                 sampleID_id=sample_obj
@@ -74,8 +76,9 @@ def create_data_for_dataframe(sample_list, gene_list):
     df["EFFECT"] = effect_list
     df["GENE"] = gene_list_df
     df["LINEAGE"] = lineage_list
-
+    
     pandas_df = pd.DataFrame.from_dict(df)
+    print(pandas_df)
 
     return pandas_df
 
