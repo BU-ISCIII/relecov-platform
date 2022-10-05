@@ -40,11 +40,12 @@ def get_annotation_data(annot_id):
     """Get tha annotation genes defined for the annotation id"""
     annot_data = {}
     annot_obj = get_annotation_obj_from_id(annot_id)
-
+    chromosome_obj = annot_obj.get_chromosome_obj()
     annot_data["organism"] = annot_obj.get_organism_code()
     annot_data["version"] = annot_obj.get_organism_code_version()
-    if Gene.objects.filter(org_annotationID=annot_obj).exists():
-        gene_objs = Gene.objects.filter(org_annotationID=annot_obj).order_by(
+
+    if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
+        gene_objs = Gene.objects.filter(chromosomeID=chromosome_obj).order_by(
             "gene_start"
         )
         genes = []
@@ -102,16 +103,17 @@ def read_gff_file(a_file):
 
 def stored_gff(gff_parsed, user):
     """Save in database the gff information"""
-    if not Chromosome.objects.filter(
-        chromosome__iexact=gff_parsed["organism_code"]
-    ).exists():
-        Chromosome.objects.create_new_chromosome(gff_parsed["organism_code"])
+    organism = gff_parsed["organism_code"] + "." + gff_parsed["organism_code_version"]
+    if not Chromosome.objects.filter(chromosome__iexact=organism).exists():
+        chromosome_obj = Chromosome.objects.create_new_chromosome(organism)
+    else:
+        chromosome_obj = Chromosome.objects.filter(chromosome__iexact=organism)
     gff_parsed["user"] = user
-    annotation_obj = OrganismAnnotation.objects.create_new_annotation(gff_parsed)
+    gff_parsed["chromosomeID"] = chromosome_obj
+    OrganismAnnotation.objects.create_new_annotation(gff_parsed)
 
     for gene in gff_parsed["genes"]:
-        gene["annotationID"] = annotation_obj
         gene["user"] = user
-        gene["org_annotationID"] = annotation_obj
+        gene["chromosomeID"] = chromosome_obj
         Gene.objects.create_new_gene(gene)
     return
