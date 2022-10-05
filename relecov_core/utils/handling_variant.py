@@ -89,8 +89,8 @@ def get_gene_obj_from_gene_name(gene_name):
 def get_gene_list(chromosome_obj):
     """Get the list of genes defined for the requested chromosome"""
     gene_list = []
-    if Gene.objects.filter(org_annotationID=chromosome_obj).exists():
-        gene_objs = Gene.objects.filter(org_annotationID=chromosome_obj)
+    if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
+        gene_objs = Gene.objects.filter(chromosomeID=chromosome_obj)
         for gene_obj in gene_objs:
             gene_list.append(gene_obj.get_gene_name())
     return gene_list
