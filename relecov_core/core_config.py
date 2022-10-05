@@ -195,6 +195,7 @@ ERROR_ANNOTATION_ORGANISM_ALREADY_EXISTS = (
     "Annotation file for the organism already loaded"
 )
 ERROR_VARIANT_INFORMATION_NOT_DEFINED = "Variant field is not included in the request"
+ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED = "So far there is no variants defined on database "
 
 HEADING_FOR_BASIC_SAMPLE_DATA = [
     "Sample ID given for sequencing",
