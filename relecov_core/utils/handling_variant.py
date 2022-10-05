@@ -17,6 +17,36 @@ from relecov_core.utils.handling_samples import (
 )
 
 
+def get_all_chromosome_objs():
+    """Get the instance of all defined chromosomes"""
+    if Chromosome.objects.all().exists():
+        return Chromosome.objects.all()
+    return None
+
+
+def get_all_organism_objs():
+    """Get the instances of all defined organism"""
+    if OrganismAnnotation.objects.all().exists():
+        return OrganismAnnotation.objects.all()
+    return None
+
+
+def get_sample_in_variant_list(chromosome_obj):
+    """Get all samples defined in variant in sample for the requested
+    instance chromosome
+    """
+    v_in_sample = []
+    if VariantInSample.objects.filter(
+        variantID_id__chromosomeID_id=chromosome_obj
+    ).exists():
+        v_in_sample_objs = VariantInSample.objects.filter(
+            variantID_id__chromosomeID_id=chromosome_obj
+        ).order_by("-sampleID_id")
+        for v_in_sample_obj in v_in_sample_objs:
+            v_in_sample.append(v_in_sample_obj.get_sample_name())
+    return v_in_sample
+
+
 def get_variant_data_from_sample(sample_id):
     """Collect the variant information for the sample"""
     sample_obj = get_sample_obj_from_id(sample_id)
@@ -54,6 +84,16 @@ def get_gene_obj_from_gene_name(gene_name):
     if Gene.objects.filter(gene_name__iexact=gene_name).exists():
         return Gene.objects.filter(gene_name__iexact=gene_name).last()
     return None
+
+
+def get_gene_list(chromosome_obj):
+    """Get the list of genes defined for the requested chromosome"""
+    gene_list = []
+    if Gene.objects.filter(org_annotationID=chromosome_obj).exists():
+        gene_objs = Gene.objects.filter(org_annotationID=chromosome_obj)
+        for gene_obj in gene_objs:
+            gene_list.append(gene_obj.get_gene_name())
+    return gene_list
 
 
 """
