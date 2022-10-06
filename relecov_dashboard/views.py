@@ -48,7 +48,7 @@ from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
     create_samples_over_time_graph,
 )
 
-
+# dashboard/variants
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
@@ -99,6 +99,7 @@ def spike_mutations_3d_dashboard(request):
     )
 
 
+# dashboard/methodology
 def methodology_index(request):
     index_dash_fields()
     return render(request, "relecov_dashboard/methodologyIndex.html")
