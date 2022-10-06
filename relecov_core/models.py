@@ -438,51 +438,6 @@ class LineageValues(models.Model):
         return "%s" % (self.lineage_fieldID)
 
 
-class OrganismAnnotationManger(models.Manager):
-    def create_new_annotation(self, data):
-        new_annotation = self.create(
-            user=data["user"],
-            gff_version=data["gff_version"],
-            gff_spec_version=data["gff_spec_version"],
-            sequence_region=data["sequence_region"],
-            organism_code=data["organism_code"],
-            organism_code_version=data["organism_code_version"],
-        )
-        return new_annotation
-
-
-class OrganismAnnotation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    gff_version = models.CharField(max_length=5)
-    gff_spec_version = models.CharField(max_length=10)
-    sequence_region = models.CharField(max_length=30)
-    organism_code = models.CharField(max_length=20)
-    organism_code_version = models.CharField(max_length=10)
-
-    class Meta:
-        db_table = "OrganismAnnotation"
-
-    def __str__(self):
-        return "%s" % (self.organism_code)
-
-    def get_organism_code(self):
-        return "%s" % (self.organism_code)
-
-    def get_organism_code_version(self):
-        return "%s" % (self.organism_code_version)
-
-    def get_full_information(self):
-        data = []
-        data.append(self.pk)
-        data.append(self.organism_code)
-        data.append(self.organism_code_version)
-        data.append(self.gff_spec_version)
-        data.append(self.sequence_region)
-        return data
-
-    objects = OrganismAnnotationManger()
-
-
 class Filter(models.Model):
     filter = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
@@ -517,47 +472,6 @@ class Effect(models.Model):
         return "%s" % (self.effect)
 
 
-# Gene Table
-class GeneManager(models.Manager):
-    def create_new_gene(self, data):
-        new_gene = self.create(
-            gene_name=data["gene_name"],
-            gene_start=data["gene_start"],
-            gene_end=data["gene_end"],
-            user=data["user"],
-            org_annotationID=data["org_annotationID"],
-        )
-        return new_gene
-
-
-class Gene(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    org_annotationID = models.ForeignKey(
-        OrganismAnnotation, on_delete=models.CASCADE, null=True, blank=True
-    )
-    gene_name = models.CharField(max_length=50)
-    gene_start = models.IntegerField()
-    gene_end = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "Gene"
-
-    def __str__(self):
-        return "%s" % (self.gene_name)
-
-    def get_gene_name(self):
-        return "%s" % (self.gene_name)
-
-    def get_gene_id(self):
-        return "%s" % (self.pk)
-
-    def get_gene_positions(self):
-        return [str(self.gene_start), str(self.gene_end)]
-
-    objects = GeneManager()
-
-
 # Chromosome Table
 class ChromosomeManager(models.Manager):
     def create_new_chromosome(self, data):
@@ -582,6 +496,104 @@ class Chromosome(models.Model):
         return "%s" % (self.pk)
 
     objects = ChromosomeManager()
+
+
+class OrganismAnnotationManger(models.Manager):
+    def create_new_annotation(self, data):
+        new_annotation = self.create(
+            user=data["user"],
+            gff_version=data["gff_version"],
+            gff_spec_version=data["gff_spec_version"],
+            sequence_region=data["sequence_region"],
+            chromosomeID=data["chromosomeID"],
+            organism_code=data["organism_code"],
+            organism_code_version=data["organism_code_version"],
+        )
+        return new_annotation
+
+
+class OrganismAnnotation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    chromosomeID = models.ForeignKey(
+        Chromosome, on_delete=models.CASCADE, null=True, blank=True
+    )
+    gff_version = models.CharField(max_length=5)
+    gff_spec_version = models.CharField(max_length=10)
+    sequence_region = models.CharField(max_length=30)
+    organism_code = models.CharField(max_length=20, null=True, blank=True)
+    organism_code_version = models.CharField(max_length=10)
+
+    class Meta:
+        db_table = "OrganismAnnotation"
+
+    def __str__(self):
+        return "%s.%s" % (self.organism_code, self.organism_code_version)
+
+    def get_organism_code(self):
+        return "%s" % (self.organism_code)
+
+    def get_organism_id(self):
+        return "%s" % (self.pk)
+
+    def get_organism_code_version(self):
+        return "%s" % (self.organism_code_version)
+
+    def get_chromosome_obj(self):
+        if self.chromosomeID is not None:
+            return self.chromosomeID
+        return None
+
+    def get_full_information(self):
+        data = []
+        data.append(self.pk)
+        data.append(self.organism_code)
+        data.append(self.organism_code_version)
+        data.append(self.gff_spec_version)
+        data.append(self.sequence_region)
+        return data
+
+    objects = OrganismAnnotationManger()
+
+
+# Gene Table
+class GeneManager(models.Manager):
+    def create_new_gene(self, data):
+        new_gene = self.create(
+            gene_name=data["gene_name"],
+            gene_start=data["gene_start"],
+            gene_end=data["gene_end"],
+            user=data["user"],
+            chromosomeID=data["chromosomeID"],
+        )
+        return new_gene
+
+
+class Gene(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    chromosomeID = models.ForeignKey(
+        Chromosome, on_delete=models.CASCADE, null=True, blank=True
+    )
+    gene_name = models.CharField(max_length=50)
+    gene_start = models.IntegerField()
+    gene_end = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "Gene"
+
+    def __str__(self):
+        return "%s" % (self.gene_name)
+
+    def get_gene_name(self):
+        return "%s" % (self.gene_name)
+
+    def get_gene_id(self):
+        return "%s" % (self.pk)
+
+    def get_gene_positions(self):
+        return [str(self.gene_start), str(self.gene_end)]
+
+    objects = GeneManager()
 
 
 # Sample states table
@@ -677,6 +689,9 @@ class Sample(models.Model):
         db_table = "Sample"
 
     def __str__(self):
+        return "%s" % (self.sequencing_sample_id)
+
+    def get_sample_name(self):
         return "%s" % (self.sequencing_sample_id)
 
     def get_lineage_values(self):
@@ -919,6 +934,11 @@ class VariantInSample(models.Model):  # include Foreign Keys
 
     def get_af(self):
         return "%s" % (self.af)
+
+    def get_sample_name(self):
+        if self.sampleID_id is not None:
+            return self.sampleID_id.get_sample_name()
+        return None
 
     def get_variant_pos(self):
         return self.variantID_id.get_pos()

@@ -1,28 +1,10 @@
 #!/bin/bash
 
-#=============================================================
-# HEADER
-#=============================================================
-
-#INSTITUTION:ISCIII
-#CENTRE:BU-ISCIII
-#AUTHOR: Luis Chapado
-#CREATED: 02 August 2022
-#
-#
-#DESCRIPTION: This script install on your local server the latest stable
-#   version of relecov-platform application
-#
-#
-#================================================================
-# END_OF_HEADER
-#================================================================
-
 RELECOVPLATFORM_VERSION="0.2.0"
-. ./install_settings.txt
+. ./initial_settings.txt
 
 db_check(){
-    mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >/tmp/null ###user should have mysql permission on remote server.
+	mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >/tmp/null ###user should have mysql permission on remote server.
 
     if ! [ $? -eq 0 ]; then
         echo -e "${RED}ERROR : Unable to connect to database. Check if your database is running and accessible${NC}"
@@ -129,11 +111,11 @@ linux_distribution=$(lsb_release -i | cut -f 2-)
 
 echo "Checking main requirements"
 python_check
-echo "Valid version of Python"
+printf "${BLUE}Valid version of Python${NC}\n"
 db_check
-echo "Successful check for database"
+printf "${BLUE}Successful check for database${NC}\n"
 apache_check
-echo "Successful check for apache"
+printf "${BLUE}Successful check for apache${NC}\n"
 
 #================================================================
 
@@ -149,7 +131,7 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Software installation for Ubuntu"
     apt-get update && apt-get upgrade -y
     apt-get install -y \
-        lightdm git apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
+        apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
         libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3
 fi
 
@@ -157,7 +139,7 @@ if [[ $linux_distribution == "CentOS" ]]; then
     echo "Software installation for Centos"
     yum groupinstall “Development tools”
     yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
-    yum install git libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
+    yum install libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
 fi
 
 echo "Starting relecov-platform installation"
