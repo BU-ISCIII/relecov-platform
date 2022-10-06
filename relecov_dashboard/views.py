@@ -1,4 +1,17 @@
 from django.shortcuts import render
+
+# import fucntions from core
+from relecov_core.utils.handling_variant import (
+    get_all_chromosome_objs,
+    get_gene_list,
+    get_sample_in_variant_list,
+)
+
+from relecov_core.core_config import (
+    ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE,
+    ERROR_GENE_NOT_DEFINED_IN_DATABASE,
+    ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED,
+)
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     create_needle_plot_graph_mutation_by_lineage,
 )
@@ -60,8 +73,41 @@ def samples_received_over_time_graph(request):
 
 
 def variants_mutations_in_lineages_heatmap(request):
-    gene_list = ["orf1ab", "ORF8", "S", "M", "N"]
-    sample_list = [2018185, 210067]
+    chromesome_objs = get_all_chromosome_objs()
+    if chromesome_objs is None:
+        return render(
+            request,
+            "relecov_dashboard/variantsMutationsInLineagesHeatmap.html",
+            {"ERROR": ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE},
+        )
+    if len(chromesome_objs) > 1:
+        chromesome_list = []
+        for chromesome_obj in chromesome_objs:
+            chromesome_list.append(
+                [
+                    chromesome_objs.get_chromesome_id(),
+                    chromesome_objs.get_chromesome_name(),
+                ]
+            )
+        return render(
+            request,
+            "relecov_dashboard/variantsMutationsInLineagesHeatmap.html",
+            {"ORGANISM": chromesome_list},
+        )
+    gene_list = get_gene_list(chromesome_objs[0])
+    if len(gene_list) == 0:
+        return render(
+            request,
+            "relecov_dashboard/variantsMutationsInLineagesHeatmap.html",
+            {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE},
+        )
+    sample_list = get_sample_in_variant_list(chromesome_objs[0])
+    if len(sample_list) == 0:
+        return render(
+            request,
+            "relecov_dashboard/variantsMutationsInLineagesHeatmap.html",
+            {"ERROR": ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED},
+        )
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
 

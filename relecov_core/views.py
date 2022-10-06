@@ -111,9 +111,13 @@ def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
+        if "schemaDefault" in request.POST:
+            schemaDefault = True
+        else:
+            schemaDefault = False
         schema_data = process_schema_file(
             request.FILES["schemaFile"],
-            request.POST["schemaDefault"],
+            schemaDefault,
             request.user,
             __package__,
         )
