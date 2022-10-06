@@ -90,7 +90,10 @@ def schema_fields_utilization():
                 sum_never_used += 1
             else:
                 f_values.append(value)
-        value = int("%.0f" % (mean(f_values) * 100))
+        if len(f_values) > 1:
+            value = int("%.0f" % (mean(f_values) * 100))
+        else:
+            value = 0
     # graph_not_empty_fields(value)
     # match once fields are collected from different ways
     get_schema_properties(schema_obj)
