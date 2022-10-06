@@ -132,7 +132,6 @@ def get_gene_objs(organism_code):
         # if Gene.objects.filter(chromosomeID=organism_obj).exists():
         #    return Gene.objects.filter(chromosomeID=organism_obj).last()
         if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
-            print(Gene.objects.filter(chromosomeID=chromosome_obj).last())
             # return Gene.objects.filter(chromosomeID=chromosome_obj).last()
             return Gene.objects.filter(chromosomeID=chromosome_obj)
     return None
