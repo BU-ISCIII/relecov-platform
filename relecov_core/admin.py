@@ -96,7 +96,7 @@ class FilterAdmin(admin.ModelAdmin):
 
 
 class GeneAdmin(admin.ModelAdmin):
-    list_display = ["gene_name", "gene_start", "gene_end", "org_annotationID"]
+    list_display = ["gene_name", "gene_start", "gene_end", "chromosomeID"]
 
 
 class ChromosomeAdmin(admin.ModelAdmin):
