@@ -48,6 +48,7 @@ from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
     create_samples_over_time_graph,
 )
 
+
 # dashboard/variants
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
