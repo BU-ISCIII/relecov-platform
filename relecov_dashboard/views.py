@@ -155,8 +155,17 @@ def variants_mutations_in_lineages_heatmap(request):
             {"ERROR": ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED},
         )
     create_heat_map(sample_list, gene_list)
-    return render(request, "relecov_dashbprint(Gene.objects.filter(chromosomeID=chromosome_obj).last())
-            
+    return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
+
+def mutations_in_lineages_by_lineage(request):
+    # sample_list = [2018185, 210067]
+    mdata = get_variant_data_from_lineages(lineage="B.1.1.7", organism_code="NC_045512")
+    create_needle_plot_graph_mutation_by_lineage("BA.1.1.7", mdata)
+    return render(
+        request, "relecov_dashboard/variantsMutationsInLineagesByLineage.html"
+    )
+
 
 def mutations_in_lineages_by_samples(request):
     mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
