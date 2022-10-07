@@ -16,6 +16,9 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+    def get_lab_name(self):
+        return "%s" % (self.laboratory)
+
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
@@ -991,15 +994,20 @@ class VariantAnnotation(models.Model):
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
         new_t_data = self.create(
-            sample_idx=data["sample_idx"], field=data["field"], value=data["value"]
+            sample_name=data["sample_name"],
+            field=data["field"],
+            value=data["value"],
+            user=data["user"],
         )
         return new_t_data
 
 
 class TemporalSampleStorage(models.Model):
-    sample_idx = models.IntegerField()
-    field = models.CharField(max_length=100)
-    value = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    # sample_idx = models.IntegerField()
+    sample_name = models.CharField(max_length=100, null=True)
+    field = models.CharField(max_length=100, null=True)
+    value = models.CharField(max_length=100, null=True)
     sent = models.BooleanField(default=False)
     generated_at = models.DateTimeField(auto_now_add=True)
 
