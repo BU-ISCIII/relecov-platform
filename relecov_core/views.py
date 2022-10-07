@@ -112,9 +112,9 @@ def schema_handling(request):
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
         if "schemaDefault" in request.POST:
-            schemaDefault = True
+            schemaDefault = "on"
         else:
-            schemaDefault = False
+            schemaDefault = "off"
         schema_data = process_schema_file(
             request.FILES["schemaFile"],
             schemaDefault,
