@@ -20,14 +20,6 @@ class PdbParser:
     """
 
     def __init__(self, s: str):
-        """
-        if re.search(r"^[1-9][0-9A-z]{3}$", s):
-            # d is PDB id (https://proteopedia.org/wiki/index.php/PDB_code)
-            self.structure = pmd.download_PDB(s)
-        else:
-            # d is HTTP url or local file
-            self.structure = pmd.load_file(s)
-        """
         self.structure = pmd.load_file(s)
         self.atoms = self.structure.atoms
         self.bonds = self.structure.bonds
@@ -105,6 +97,7 @@ def create_model3D_bn():
 
     app.layout = html.Div(
         [
+            html.P("Data table"),
             dash_table.DataTable(
                 id="selecting-specific-spike-residue-table",
                 columns=[{"name": i, "id": i} for i in df.columns],
@@ -112,11 +105,26 @@ def create_model3D_bn():
                 row_selectable="single",
                 page_size=10,
             ),
-            dashbio.Molecule3dViewer(
-                id="zooming-specific-molecule3d-zoomto",
-                modelData=data,
-                styles=styles,
-                selectionType="residue",
+            html.Br(),
+            html.Br(),
+            html.Hr(),
+            html.P("Molecule 3D Viewer"),
+            html.Div(
+                children=[
+                    dashbio.Molecule3dViewer(
+                        id="zooming-specific-molecule3d-zoomto",
+                        modelData=data,
+                        styles=styles,
+                        selectionType="residue",
+                        height=800,
+                        width=900,
+                    ),
+                ],
+                style={
+                    "display": "flex",
+                    "justify-content": "flex-start",
+                    "align-items": "center",
+                },
             ),
         ]
     )
