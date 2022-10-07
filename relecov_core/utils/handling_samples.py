@@ -140,6 +140,8 @@ def create_form_for_sample(schema_obj):
         iskylims_sample_raw = get_sample_fields_data()
     except AttributeError:
         return {"ERROR": ERROR_ISKYLIMS_NOT_REACHEABLE}
+    if "ERROR" in iskylims_sample_raw:
+        return iskylims_sample_raw
 
     i_sam_proj_raw = get_sample_project_fields_data(schema_name)
     i_sam_proj_data = {}

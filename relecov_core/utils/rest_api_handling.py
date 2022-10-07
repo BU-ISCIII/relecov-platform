@@ -57,7 +57,7 @@ def get_sample_fields_data():
     r_api = RestApi(iskylims_server, iskylims_url)
     data = r_api.get_request(request, "", "")
     if "ERROR" in data:
-        return {"ERROR": data}
+        return data
     return data["DATA"]
 
 
