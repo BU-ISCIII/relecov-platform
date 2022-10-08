@@ -4,9 +4,11 @@ from django.contrib.auth.decorators import login_required
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     count_samples_in_all_tables,
+    create_form_for_batch,
     create_metadata_form,
     get_sample_display_data,
     get_search_data,
+    pending_samples_in_metadata_form,
     save_temp_sample_data,
     search_samples,
 )
@@ -41,6 +43,7 @@ from relecov_core.utils.handling_annotation import (
 from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
+    ERROR_USER_IS_NOT_ASSIGNED_TO_LAB,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
     ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
     HEADING_FOR_SAMPLE_LIST,
@@ -273,31 +276,47 @@ def variants(request):
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
-    m_form = create_metadata_form(schema_obj, request.user)
-    if "ERROR" in m_form:
-        return render(
-            request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
-        )
     if request.method == "POST" and request.POST["action"] == "defineSamples":
         res_analyze = analyze_input_samples(request)
         # empty form
         if len(res_analyze) == 0:
+            m_form = create_metadata_form(schema_obj, request.user)
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
-            s_saved = save_temp_sample_data(res_analyze["save_samples"])
+            s_saved = save_temp_sample_data(res_analyze["save_samples"], request.user)
         if "s_incomplete" in res_analyze:
             return render(
                 request,
                 "relecov_core/metadataForm.html",
                 {"s_incomplete": res_analyze["s_incomplete"], "m_form": m_form},
             )
-        return render(request, "relecov_core/metadataForm.html", {"s_saved": s_saved})
+        m_batch_form = create_form_for_batch(schema_obj, request.user)
+        return render(
+            request,
+            "relecov_core/metadataForm.html",
+            {"m_batch_form": m_batch_form, "sample_saved": s_saved},
+        )
     if request.method == "POST" and request.POST["action"] == "defineBatch":
         pass
     else:
+        if pending_samples_in_metadata_form(request.user):
+            m_batch_form = create_form_for_batch(schema_obj, request.user)
+
+            return render(
+                request,
+                "relecov_core/metadataForm.html",
+                {"m_batch_form": m_batch_form},
+            )
+        m_form = create_metadata_form(schema_obj, request.user)
         if "ERROR" in m_form:
             return render(
                 request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
+            )
+        if m_form["lab_name"] == "":
+            return render(
+                request,
+                "relecov_core/metadataForm.html",
+                {"ERROR": ERROR_USER_IS_NOT_ASSIGNED_TO_LAB},
             )
         return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
 
