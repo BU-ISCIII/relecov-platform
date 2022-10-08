@@ -1,17 +1,19 @@
 import json
 from collections import OrderedDict
 from django.contrib.auth.models import User, Group
+from django.db.models import Max
 
 # from django.db.models import Max
 
 from relecov_core.core_config import (
+    ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM,
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
-    FIELD_FOR_GETTING_SAMPLE_ID,
     ERROR_ISKYLIMS_NOT_REACHEABLE,
     ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE,
     ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
     ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
     ERROR_SAMPLE_DOES_NOT_EXIST,
+    FIELD_FOR_GETTING_SAMPLE_ID,
     HEADING_FOR_BASIC_SAMPLE_DATA,
     HEADING_FOR_FASTQ_SAMPLE_DATA,
     HEADING_FOR_GISAID_SAMPLE_DATA,
@@ -31,7 +33,10 @@ from relecov_core.models import (
     SchemaProperties,
     Sample,
     SampleState,
+    TemporalSampleStorage,
 )
+
+from relecov_core.utils.handling_lab import get_lab_name
 
 from relecov_core.utils.rest_api_handling import (
     get_sample_fields_data,
@@ -52,6 +57,9 @@ def analyze_input_samples(request):
     l_iskylims = request.POST["l_iskylims"].split(",")
     # Select the sample field that will be used in Sample class
     idx_sample = heading_in_form.index(FIELD_FOR_GETTING_SAMPLE_ID)
+    allowed_empty_index = []
+    for item in ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM:
+        allowed_empty_index.append(heading_in_form.index(item))
     for row in s_json_data:
         row_data = {}
         sample_name = row[idx_sample]
@@ -61,7 +69,7 @@ def analyze_input_samples(request):
             s_already_record.append(row)
             continue
         for idx in range(len(heading_in_form)):
-            if row[idx] == "":
+            if row[idx] == "" and idx not in allowed_empty_index:
                 s_incomplete.append(row)
                 break
             if heading_in_form[idx] in l_metadata:
@@ -96,23 +104,61 @@ def create_form_for_batch(schema_obj, user_obj):
     """Collect information for creating for batch from. This form is displayed
     only if previously was defined sample in sample form
     """
+    schema_name = schema_obj.get_schema_name()
+    try:
+        iskylims_sample_raw = get_sample_fields_data()
+    except AttributeError:
+        return {"ERROR": ERROR_ISKYLIMS_NOT_REACHEABLE}
+    if "ERROR" in iskylims_sample_raw:
+        return iskylims_sample_raw
+    i_sam_proj_raw = get_sample_project_fields_data(schema_name)
+    i_sam_proj_data = {}
+    # Create the structure from the sample project fields get from iSkyLIMS
+    for item in i_sam_proj_raw:
+        key = item["sampleProjectFieldDescription"]
+        i_sam_proj_data[key] = {}
+        i_sam_proj_data[key]["format"] = item["sampleProjectFieldType"]
+        if item["sampleProjectFieldType"] == "Options List":
+            i_sam_proj_data[key]["options"] = []
+            for opt in item["sampleProjectOptionList"]:
+                i_sam_proj_data[key]["options"].append(opt["optionValue"])
     b_form = []
-    if Sample.objects.filter(
-        state__state__exact="Pre-recorded", user=user_obj
-    ).exists():
-        s_objs = Sample.objects.filter(
-            state__state__exact="Pre-recorded", user=user_obj
-        )
-        for s_obj in s_objs:
-            pass
-    return b_form
+    if not MetadataVisualization.objects.filter(fill_mode="sample").exists():
+        return {"ERROR": ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED}
+    m_batch_objs = MetadataVisualization.objects.filter(fill_mode="batch").order_by(
+        "order"
+    )
+
+    m_batch_form = {}
+    field_data = {}
+    iskylims_sample_data = {}
+    for m_batch_obj in m_batch_objs:
+        label = m_batch_obj.get_label()
+        field_data[label] = {}
+
+        if label in i_sam_proj_data:
+            field_data[label]["format"] = i_sam_proj_data[label]["format"]
+            if "options" in i_sam_proj_data[label]:
+                field_data[label]["options"] = i_sam_proj_data[label]["options"]
+        else:
+            print("The field not be recorded in iSkyLIMS", label)
+
+    m_batch_form["fields"] = field_data
+    m_batch_form["username"] = user_obj.username
+    m_batch_form["lab_name"] = get_lab_name(user_obj)
+
+    sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
+    for sample_obj in sample_objs:
+        pass
+
+    return m_batch_form
 
 
 def create_form_for_sample(schema_obj):
     """Collect information from iSkyLIMS and from metadata table to
     create the metadata form for filling sample data
     """
-    schema_name = schema_obj.get_schema_name()
+    # schema_name = schema_obj.get_schema_name()
     m_form = OrderedDict()
     f_data = {}
     l_iskylims = []  # variable name in iSkyLIMS
@@ -122,7 +168,7 @@ def create_form_for_sample(schema_obj):
     m_sam_objs = MetadataVisualization.objects.filter(fill_mode="sample").order_by(
         "order"
     )
-    schema_obj = m_sam_objs[0].get_schema_obj()
+    # schema_obj = m_sam_objs[0].get_schema_obj()
     schema_name = schema_obj.get_schema_name()
     # Get the properties in schema for mapping
     s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj)
@@ -151,7 +197,7 @@ def create_form_for_sample(schema_obj):
         key = item["sampleProjectFieldDescription"]
         i_sam_proj_data[key] = {}
         i_sam_proj_data[key]["format"] = item["sampleProjectFieldType"]
-        if item["sampleProjectFieldType"] == "Option List":
+        if item["sampleProjectFieldType"] == "Options List":
             i_sam_proj_data[key]["options"] = []
             for opt in item["sampleProjectOptionList"]:
                 i_sam_proj_data[key]["options"].append(opt["optionValue"])
@@ -171,9 +217,16 @@ def create_form_for_sample(schema_obj):
                 print("Error in map ontology ", e)
 
     # Prepare for each label the information to show in form
+    # Exclude the Originating Laboratory because value is fetched from user
+    # profilc.
+    # Exclude Submitting Institution becaue it is fixed to ISCIII
+    exclude_fields = ["Originating Laboratory", "Submitting Institution"]
     for m_sam_obj in m_sam_objs:
         label = m_sam_obj.get_label()
+        if label in exclude_fields:
+            continue
         m_form[label] = {}
+
         if label in i_sam_proj_data:
             m_form[label]["format"] = i_sam_proj_data[label]["format"]
             if "options" in i_sam_proj_data[label]:
@@ -182,7 +235,7 @@ def create_form_for_sample(schema_obj):
             if "options" in iskylims_sample_data[label]:
                 m_form[label]["options"] = iskylims_sample_data[label]["options"]
         else:
-            print("ERROR not found in iSkyLIMS", label)
+            print("The field not be recorded in iSkyLIMS", label)
         if "date" in label.lower():
             m_form[label]["format"] = "date"
         # check label belongs to iskylims to get t
@@ -204,7 +257,8 @@ def create_metadata_form(schema_obj, user_obj):
     m_form["sample"] = create_form_for_sample(schema_obj)
     if "ERROR" in m_form["sample"]:
         return m_form["sample"]
-    m_form["batch"] = create_form_for_batch(schema_obj, user_obj)
+    m_form["username"] = user_obj.username
+    m_form["lab_name"] = get_lab_name(user_obj)
     return m_form
 
 
@@ -342,6 +396,13 @@ def increase_unique_value(old_unique_number):
     return str(letter + "-" + number_str)
 
 
+def pending_samples_in_metadata_form(user_obj):
+    """Check if there are samples waiting to be completed for the metadata form"""
+    if TemporalSampleStorage.objects.filter(user=user_obj).exists():
+        return True
+    return False
+
+
 def search_samples(sample_name, user_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
@@ -387,7 +448,7 @@ def search_samples(sample_name, user_name, sample_state, s_date, user):
     return sample_list
 
 
-def save_temp_sample_data(samples):
+def save_temp_sample_data(samples, user_obj):
     """Store the valid sample into the temporary table"""
     # get the latest value of sample_index
     """
@@ -396,13 +457,15 @@ def save_temp_sample_data(samples):
     )
     if last_value is None:
         last_value = 0
-
+    """
+    sample_saved_list = []
     for sample in samples:
-        last_value += 1
+        # last_value += 1
         for item, value in sample.items():
-            data = {"sample_idx": last_value}
+            data = {"sample_name": sample[FIELD_FOR_GETTING_SAMPLE_ID]}
             data["field"] = item
             data["value"] = value
+            data["user"] = user_obj
             TemporalSampleStorage.objects.save_temp_data(data)
-    """
+        sample_saved_list.append(sample[FIELD_FOR_GETTING_SAMPLE_ID])
     return
