@@ -170,6 +170,13 @@
                                                         </select>
                                                     </div>
                                             </div>
+                                        {% elif values.format == "Date" %}
+                                            <div class="row mb-3">
+                                                <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
+                                                <div class="col-sm-8">
+                                                <input type="date" class="form-control" id="{{key}}" name="{{key}}">
+                                                </div>
+                                            </div>
                                         {% else %}
                                             <div class="row mb-3">
                                                 <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
