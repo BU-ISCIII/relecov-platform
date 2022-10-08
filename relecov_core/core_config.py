@@ -1,3 +1,4 @@
+"""
 HEADING_FOR_RECORD_SAMPLES = {
     "Sample ID given by the submitting laboratory": "submitting_lab_sample_id",
     "Originating Laboratory": "collecting_lab_sample_id",
@@ -35,7 +36,8 @@ HEADING_FOR_RECORD_SAMPLES = {
     "Author Submitter": "Author_submitter",
     "Authors": "authors",
 }
-
+"""
+"""
 HEADING_FOR_SAMPLE_TABLE = {
     "Sample ID given by originating laboratory": "collecting_lab_sample_id",
     "Sample ID given for sequencing": "sequencing_sample_id",
@@ -44,8 +46,8 @@ HEADING_FOR_SAMPLE_TABLE = {
     "GISAID Id": "gisaid_id",
     "Sequencing Date": "sequencing_date",
 }
-
-
+"""
+"""
 HEADINGS_FOR_ISkyLIMS = {
     "Originating Laboratory": "collecting_institution",
     "Submitting Institution": "submitting_institution",
@@ -57,7 +59,8 @@ HEADINGS_FOR_ISkyLIMS = {
     "Sequence file R2 fastq": "sequence_file_R2_fastq",
     "Sample ID given if multiple rna-extraction or passages": "isolate_sample_id",
 }
-
+"""
+"""
 HEADINGS_FOR_ISkyLIMS_BATCH = {
     "Sequencing Instrument Model": "sequencing_instrument_model",
     "Biological Sample Storage Condition": "sample_storage_conditions",
@@ -80,6 +83,8 @@ HEADINGS_FOR_ISkyLIMS_BATCH = {
     "Diagnostic Pcr Ct Value 2": "diagnostic_pcr_Ct_value_2",
     "Source material": "library_source",
 }
+"""
+ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM = ["GISAID id", "GISAID Virus Name"]
 
 HEADING_FOR_LINEAGE_TABLE = {
     "Lineage identification date": "lineage_identification_date",
@@ -169,6 +174,7 @@ ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE = "Error Chromosome not defined in data
 ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS = (
     "User name must have al least 5 characters"
 )
+ERROR_USER_IS_NOT_ASSIGNED_TO_LAB = "Your account is not assigned to any laboratory"
 ERROR_INVALID_DEFINED_SAMPLE_FORMAT = "The format for the defined Date is incorrect"
 ERROR_NOT_MATCHED_ITEMS_IN_SEARCH = "Your query does not return any match"
 
