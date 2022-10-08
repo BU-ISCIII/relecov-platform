@@ -1,7 +1,6 @@
 import json
 from collections import OrderedDict
 from django.contrib.auth.models import User, Group
-from django.db.models import Max
 
 # from django.db.models import Max
 
@@ -122,7 +121,6 @@ def create_form_for_batch(schema_obj, user_obj):
             i_sam_proj_data[key]["options"] = []
             for opt in item["sampleProjectOptionList"]:
                 i_sam_proj_data[key]["options"].append(opt["optionValue"])
-    b_form = []
     if not MetadataVisualization.objects.filter(fill_mode="sample").exists():
         return {"ERROR": ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED}
     m_batch_objs = MetadataVisualization.objects.filter(fill_mode="batch").order_by(
@@ -131,7 +129,6 @@ def create_form_for_batch(schema_obj, user_obj):
 
     m_batch_form = {}
     field_data = {}
-    iskylims_sample_data = {}
     for m_batch_obj in m_batch_objs:
         label = m_batch_obj.get_label()
         field_data[label] = {}
