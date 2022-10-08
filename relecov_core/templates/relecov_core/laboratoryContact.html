@@ -1,0 +1,86 @@
+{% extends "relecov_core/base.html"%}
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/intranetSidebar.html" %}
+
+
+<section style="">
+    <br><br>
+    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
+        <div class="container" style="">
+            <div class="row justify-content-center">
+                <div class="row m-5">
+                    <div class="col-sm-10">
+                        <div class="card  border-default mb-3">
+                            <div class="card-header text-center">
+                                <h3 style="text-align:center">You are logged as staff of :</h3>
+                                <h5 style="text-align:center">{{lab_data.lab_name}}</h5>
+                             </div>
+                            <div class="card-body  text-center">
+                                <p>The contact information recorded is:</p>
+                                <table class="table table-hover">
+                                    <tr>
+                                        <td>Contact Name</td>
+                                        {% if lab_data.contact_name != "" %}
+                                            <td>{{lab_data.contact_name}}</td>
+                                        {% else %}
+                                            <td>Not Provided</td>
+                                        {% endif %}
+                                    </tr>
+                                    <tr>
+                                        <td>Contact Telephone</td>
+                                        {% if lab_data.contact_telephone != "" %}
+                                            <td>{{lab_data.contact_telephone}}</td>
+                                        {% else %}
+                                            <td>Not Provided</td>
+                                        {% endif %}
+                                    </tr>
+                                    <tr>
+                                        <td>Contact email</td>
+                                        {% if lab_data.contact_email != "" %}
+                                            <td>{{lab_data.contact_email}}</td>
+                                        {% else %}
+                                            <td>Not Provided</td>
+                                        {% endif %}
+                                    </tr>
+                                </table>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-10 -->
+                </div> <!--// end row -->
+                <div class="row m-5">
+                    <div class="col-sm-10">
+                        <div class="card  border-default mb-3">
+                            <div class="card-header text-center">
+                                <h3 style="text-align:center">Use the form below to update your contact details</h3>
+                            </div>
+                            <div class="card-body  text-center">
+                                <form class="row g-3"  method="post"  enctype="multipart/form-data" name="updateLabData"  id="updateLabData" class="form-horizontal well" style="min-height: 100px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="updateLabData">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="floatingInput" name="contactName" placeholder="contactName">
+                                        <label for="floatingInput">Update contact name</label>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="floatingInput" name="conctatPhone" placeholder="conctatPhone">
+                                        <label for="floatingInput">Update contact Phone Number</label>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="floatingInput" name="contactEmail" placeholder="contactEmail">
+                                        <label for="floatingInput">Update contact Email</label>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-primary mb-3">Submit Info</button>
+                                    </div>
+                                </form>
+                            </div> <!-- end card body  -->
+                        </div> <!-- end card  -->
+                    </div> <!--// end col-sm-9 -->
+                </div> <!--// end row -->
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -28,10 +28,9 @@ from relecov_core.utils.schema_handling import (
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
 )
-
+from relecov_core.utils.handling_lab import get_lab_contact_details
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
-from relecov_core.utils.contributor_info_handling import get_data_from_form
 from relecov_core.utils.generic_functions import check_valid_date_format
 from relecov_core.utils.handling_annotation import (
     read_gff_file,
@@ -363,26 +362,18 @@ def virus_annotation(request):
 
 
 @login_required()
-def contributor_info(request):
-    if request.method == "POST":
-        contributor_info_dict = get_data_from_form(request)
-        print(contributor_info_dict)
-    return render(request, "relecov_core/contributorInfo.html", {})
+def laboratory_contact(request):
+    lab_data = get_lab_contact_details(request.user)
+    if request.method == "POST" and request.POST["action"] == "updateLabData":
+        pass
+    return render(
+        request, "relecov_core/laboratoryContact.html", {"lab_data": lab_data}
+    )
 
 
 @login_required()
 def upload_status(request):
     return render(request, "relecov_core/uploadStatus.html", {})
-
-
-@login_required()
-def upload_status_to_ENA(request):
-    return render(request, "relecov_core/uploadStatusToENA.html", {})
-
-
-@login_required()
-def upload_status_to_GISAID(request):
-    return render(request, "relecov_core/uploadStatusToGISAID.html", {})
 
 
 @login_required()
