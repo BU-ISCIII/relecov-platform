@@ -34,6 +34,11 @@ from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_heatmap impor
 from relecov_dashboard.utils.graphics.samples_received_over_time_map import (
     create_samples_received_over_time_map,
 )
+from relecov_dashboard.utils.graphics.samples_received_over_time_pie import (
+    parse_json_file,
+    create_samples_received_over_time_per_ccaa_pieChart,
+    create_samples_received_over_time_per_laboratory_pieChart,
+)
 
 # from relecov_dashboard.utils.graphics.samples_per_ccaa_geojson import query_to_database
 from relecov_dashboard.utils.methodology_index import index_dash_fields
@@ -61,6 +66,10 @@ def lineages_dashboard(request):
     # samples receive over time graph
     df = create_dataframe_from_json()
     create_samples_over_time_graph(df)
+    # Pie charts
+    data = parse_json_file()
+    create_samples_received_over_time_per_ccaa_pieChart(data)
+    create_samples_received_over_time_per_laboratory_pieChart(data)
 
     return render(
         request, "relecov_dashboard/dashboard_templates/lineagesDashboard.html"
@@ -125,6 +134,24 @@ def samples_received_over_time_graph(request):
     create_samples_over_time_graph(df)
 
     return render(request, "relecov_dashboard/samplesReceivedOverTimeGraph.html")
+
+
+def samples_received_over_time_pie(request):
+    data = parse_json_file()
+    create_samples_received_over_time_per_ccaa_pieChart(data)
+    create_samples_received_over_time_per_laboratory_pieChart(data)
+
+    return render(request, "relecov_dashboard/samplesReceivedOverTimePie.html")
+
+
+def samples_received_over_time_pie_laboratory(request):
+    data = parse_json_file()
+    create_samples_received_over_time_per_ccaa_pieChart(data)
+    create_samples_received_over_time_per_laboratory_pieChart(data)
+
+    return render(
+        request, "relecov_dashboard/samplesReceivedOverTimePieLaboratory.html"
+    )
 
 
 def variants_mutations_in_lineages_heatmap(request):
