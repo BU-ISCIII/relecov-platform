@@ -30,6 +30,7 @@ from relecov_core.utils.handling_bioinfo_analysis import (
 )
 from relecov_core.utils.handling_lab import (
     get_lab_contact_details,
+    get_submitted_history_data,
     update_contact_lab
 )
 
@@ -270,7 +271,11 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    return render(request, "relecov_core/intranet.html")
+    lab_all_submits = get_submitted_history_data(request.user)
+
+    if "ERROR" in lab_all_submits:
+        return render(request, "relecov_core/intranet.html", {"ERROR": lab_all_submits["ERROR"]})
+    return render(request, "relecov_core/intranet.html", {"data": lab_all_submits})
 
 
 def variants(request):
