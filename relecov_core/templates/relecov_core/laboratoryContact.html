@@ -23,7 +23,7 @@
                                     <tr>
                                         <td>Contact Name</td>
                                         {% if lab_data.contact_name != "" %}
-                                            <td>{{lab_data.contact_name}}</td>
+                                            <td>{{lab_data.lab_contact_name}}</td>
                                         {% else %}
                                             <td>Not Provided</td>
                                         {% endif %}
@@ -31,7 +31,7 @@
                                     <tr>
                                         <td>Contact Telephone</td>
                                         {% if lab_data.contact_telephone != "" %}
-                                            <td>{{lab_data.contact_telephone}}</td>
+                                            <td>{{lab_data.lab_contact_telephone}}</td>
                                         {% else %}
                                             <td>Not Provided</td>
                                         {% endif %}
@@ -39,7 +39,7 @@
                                     <tr>
                                         <td>Contact email</td>
                                         {% if lab_data.contact_email != "" %}
-                                            <td>{{lab_data.contact_email}}</td>
+                                            <td>{{lab_data.lab_contact_email}}</td>
                                         {% else %}
                                             <td>Not Provided</td>
                                         {% endif %}
@@ -59,16 +59,17 @@
                                 <form class="row g-3"  method="post"  enctype="multipart/form-data" name="updateLabData"  id="updateLabData" class="form-horizontal well" style="min-height: 100px;">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="updateLabData">
+                                    <input type="hidden" name="lab_name" value="{{lab_data.lab_name}}">
                                     <div class="form-floating mb-3">
-                                        <input type="text" class="form-control" id="floatingInput" name="contactName" placeholder="contactName">
+                                        <input type="text" class="form-control" id="floatingInput" name="lab_contact_name" placeholder="lab_contact_name">
                                         <label for="floatingInput">Update contact name</label>
                                     </div>
                                     <div class="form-floating mb-3">
-                                        <input type="text" class="form-control" id="floatingInput" name="conctatPhone" placeholder="conctatPhone">
+                                        <input type="text" class="form-control" id="floatingInput" name="lab_contact_telephone" placeholder="lab_contact_telephone">
                                         <label for="floatingInput">Update contact Phone Number</label>
                                     </div>
                                     <div class="form-floating mb-3">
-                                        <input type="text" class="form-control" id="floatingInput" name="contactEmail" placeholder="contactEmail">
+                                        <input type="text" class="form-control" id="floatingInput" name="lab_contact_email" placeholder="lab_contact_email">
                                         <label for="floatingInput">Update contact Email</label>
                                     </div>
                                     <div class="col-auto">
