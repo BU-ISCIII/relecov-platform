@@ -8,6 +8,26 @@ urlpatterns = [
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
     path("variants", views.variants_index, name="variants_index"),
     path(
+        "variants/lineagesDashboard",
+        views.lineages_dashboard,
+        name="lineages_dashboard",
+    ),
+    path(
+        "variants/mutationsInLineagesDashboard",
+        views.mutations_in_lineages_dashboard,
+        name="mutations_in_lineages_dashboard",
+    ),
+    path(
+        "variants/spikeMutations3dDashboard",
+        views.spike_mutations_3d_dashboard,
+        name="spike_mutations_3d_dashboard",
+    ),
+    path(
+        "variants/lineagesVocDashboard",
+        views.lineages_voc_dashboard,
+        name="lineages_voc_dashboard",
+    ),
+    path(
         "variants/mutationsInLineagesBySample",
         views.mutations_in_lineages_by_samples,
         name="variants_mutations_in_lineages_needle_plot",
