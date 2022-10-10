@@ -310,10 +310,8 @@ def create_variant_data(request):
 def update_state(request):
     if request.method == "PUT":
         data = request.data
-
         if isinstance(data, QueryDict):
             data = data.dict()
-
         data["user"] = request.user.pk
         sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
         if sample_obj is None:

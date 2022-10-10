@@ -28,7 +28,11 @@ from relecov_core.utils.schema_handling import (
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
 )
-from relecov_core.utils.handling_lab import get_lab_contact_details
+from relecov_core.utils.handling_lab import (
+    get_lab_contact_details,
+    update_contact_lab
+)
+
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import check_valid_date_format
@@ -40,6 +44,7 @@ from relecov_core.utils.handling_annotation import (
     get_annotation_data,
 )
 from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
+
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_USER_IS_NOT_ASSIGNED_TO_LAB,
@@ -365,7 +370,9 @@ def virus_annotation(request):
 def laboratory_contact(request):
     lab_data = get_lab_contact_details(request.user)
     if request.method == "POST" and request.POST["action"] == "updateLabData":
-        pass
+        result = update_contact_lab(lab_data, request.POST)
+        if result == "OK":
+            request, "relecov_core/laboratoryContact.html", {"success": "success"}
     return render(
         request, "relecov_core/laboratoryContact.html", {"lab_data": lab_data}
     )
