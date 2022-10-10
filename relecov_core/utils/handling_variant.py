@@ -122,9 +122,18 @@ def get_if_chromosomes_exists(chromosome):
 
 def get_gene_objs(organism_code):
     organism_obj = get_if_organism_exists(organism_code=organism_code)
+    organism_obj_name = organism_obj.get_organism_code()
+    organism_obj_name_split = organism_obj_name.split(".")
+    chromosome_obj = Chromosome.objects.filter(
+        chromosome=organism_obj_name_split[0]
+    ).last()
+
     if organism_obj:
-        if Gene.objects.filter(org_annotationID=organism_obj).exists():
-            return Gene.objects.filter(org_annotationID=organism_obj)
+        # if Gene.objects.filter(chromosomeID=organism_obj).exists():
+        #    return Gene.objects.filter(chromosomeID=organism_obj).last()
+        if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
+            # return Gene.objects.filter(chromosomeID=chromosome_obj).last()
+            return Gene.objects.filter(chromosomeID=chromosome_obj)
     return None
 
 
