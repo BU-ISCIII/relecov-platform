@@ -49,10 +49,65 @@ from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
 )
 
 
+# dashboard/variants
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
 
+def lineages_dashboard(request):
+    # samples receive over time map
+    create_samples_received_over_time_map()
+
+    # samples receive over time graph
+    df = create_dataframe_from_json()
+    create_samples_over_time_graph(df)
+
+    return render(
+        request, "relecov_dashboard/dashboard_templates/lineagesDashboard.html"
+    )
+
+
+def mutations_in_lineages_dashboard(request):
+    # mutations in lineages by sample
+    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
+    create_needle_plot_graph_mutation_by_sample(sample_name=2018185, mdata=mdata)
+
+    # mutations in lineages by lineage
+    mdata = get_variant_data_from_lineages(lineage="B.1.1.7", organism_code="NC_045512")
+    create_needle_plot_graph_mutation_by_lineage("BA.1.1.7", mdata)
+
+    # mutations in lineages heatmap
+    gene_list = ["orf1ab", "ORF8", "S", "M", "N"]
+    sample_list = [220880, 210067]
+    create_heat_map(sample_list, gene_list)
+
+    # mutations in lineages table format
+    sample_list = [2018185, 210067]
+    effect_list = ["upstream_gene_variant", "synonymous_variant", "missense_variant"]
+    create_mutation_table(sample_list, effect_list=effect_list)
+
+    return render(
+        request,
+        "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
+    )
+
+
+def spike_mutations_3d_dashboard(request):
+    create_molecule3D_zoom_specific_residues()
+    create_model3D_bn()
+    return render(
+        request, "relecov_dashboard/dashboard_templates/spikeMutations3dDashboard.html"
+    )
+
+
+def lineages_voc_dashboard(request):
+
+    return render(
+        request, "relecov_dashboard/dashboard_templates/lineagesVocDashboard.html"
+    )
+
+
+# dashboard/methodology
 def methodology_index(request):
     index_dash_fields()
     return render(request, "relecov_dashboard/methodologyIndex.html")
@@ -124,6 +179,7 @@ def mutations_in_lineages_by_lineage(request):
 def mutations_in_lineages_by_samples(request):
     mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
     create_needle_plot_graph_mutation_by_sample(sample_name=2018185, mdata=mdata)
+
     return render(request, "relecov_dashboard/variantsMutationsInLineagesBySample.html")
 
 

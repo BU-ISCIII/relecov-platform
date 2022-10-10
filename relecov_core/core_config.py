@@ -268,9 +268,6 @@ FIELDS_ON_ENA_TABLE = [
     "GenBank_ENA_DDBJ_accession",
     "study_alias",
     "study_id",
-    "study_title",
-    "study_type",
-    "experiment_alias",
     "experiment_title",
 ]
 FIELDS_ON_GISAID_TABLE = ["gisaid_id", "GISAID_accession", "virus_name"]
