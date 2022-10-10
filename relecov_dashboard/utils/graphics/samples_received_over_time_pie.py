@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import json
 import plotly.express as px
-import plotly.graph_objects as go
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
@@ -35,10 +34,6 @@ def create_samples_per_ccaa_dataframe(data):
     list_of_ccaa_names = region_data.keys()
     list_of_number_of_samples_per_ccaa = region_data.values()
 
-    # laboratory_data = data["laboratory"]
-    # samples_number_from_ISkyLims = data["samples_number"]
-    # list_of_lists.append(list_of_ccaa_id)
-
     list_of_lists.append(list_of_ccaa_names)
     list_of_lists.append(list_of_number_of_samples_per_ccaa)
 
@@ -55,10 +50,6 @@ def create_samples_per_laboratory_dataframe(data):
     laboratory_data = data["laboratory"]
     list_of_laboratory_names = laboratory_data.keys()
     list_of_number_of_samples_per_laboratory = laboratory_data.values()
-
-    # laboratory_data = data["laboratory"]
-    # samples_number_from_ISkyLims = data["samples_number"]
-    # list_of_lists.append(list_of_ccaa_id)
 
     list_of_lists.append(list_of_laboratory_names)
     list_of_lists.append(list_of_number_of_samples_per_laboratory)
