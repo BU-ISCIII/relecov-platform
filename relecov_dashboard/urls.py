@@ -23,6 +23,11 @@ urlpatterns = [
         name="spike_mutations_3d_dashboard",
     ),
     path(
+        "variants/lineagesVocDashboard",
+        views.lineages_voc_dashboard,
+        name="lineages_voc_dashboard",
+    ),
+    path(
         "variants/mutationsInLineagesBySample",
         views.mutations_in_lineages_by_samples,
         name="variants_mutations_in_lineages_needle_plot",
