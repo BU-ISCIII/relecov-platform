@@ -52,7 +52,6 @@ def set_laboratory_data(lab_data):
     request = ISKLIMS_PUT_LABORATORY_PARAMETER
     r_api = RestApi(iskylims_server, iskylims_url)
     credentials = get_user_credentials()
-    import pdb; pdb.set_trace()
     data = r_api.put_request(lab_data, credentials, request)
     if "ERROR" in data:
         return {"ERROR": data}

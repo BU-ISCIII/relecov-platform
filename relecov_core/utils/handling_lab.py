@@ -8,7 +8,7 @@ def get_lab_contact_details(user_obj):
     if lab_name != "":
         data = get_laboratory_data(lab_name)
         if "ERROR" in data:
-            return data
+            return data["ERROR"]
         lab_data["lab_contact_email"] = data["DATA"]["labEmail"]
         lab_data["lab_contact_telephone"] = data["DATA"]["labPhone"]
         lab_data["lab_contact_name"] = data["DATA"]["labContactName"]
@@ -38,6 +38,5 @@ def update_contact_lab(old_data, new_data):
             data[key] = new_data[key]
     result = set_laboratory_data(data)
     if "ERROR" in result:
-        import pdb; pdb.set_trace()
-
+        return result
     return "OK"
