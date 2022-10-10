@@ -1,5 +1,20 @@
 from relecov_core.models import Profile
-from relecov_core.utils.rest_api_handling import get_laboratory_data, set_laboratory_data
+from relecov_core.utils.rest_api_handling import get_laboratory_data, get_summarize_data, set_laboratory_data
+
+
+def get_submitted_history_data(user_obj):
+    """Get information about the submitted samples for the lab"""
+    data = {}
+    lab_name = get_lab_name(user_obj)
+    if lab_name != "":
+        sum_data = get_summarize_data({"laboratory": lab_name})
+        import pdb; pdb.set_trace()
+        if "ERROR" in sum_data:
+            return sum_data["ERROR"]
+        if sum_data["samples_number"] == 0:
+            return {"samples": 0}
+            # create_history_grapnics()
+    return data
 
 
 def get_lab_contact_details(user_obj):
