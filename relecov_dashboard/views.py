@@ -99,8 +99,9 @@ def spike_mutations_3d_dashboard(request):
         request, "relecov_dashboard/dashboard_templates/spikeMutations3dDashboard.html"
     )
 
+
 def lineages_voc_dashboard(request):
-    
+
     return render(
         request, "relecov_dashboard/dashboard_templates/lineagesVocDashboard.html"
     )
