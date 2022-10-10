@@ -369,10 +369,13 @@ def virus_annotation(request):
 @login_required()
 def laboratory_contact(request):
     lab_data = get_lab_contact_details(request.user)
+    if "ERROR" in lab_data:
+        return render(request, "relecov_core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]})
     if request.method == "POST" and request.POST["action"] == "updateLabData":
         result = update_contact_lab(lab_data, request.POST)
-        if result == "OK":
-            request, "relecov_core/laboratoryContact.html", {"success": "success"}
+        if isinstance(result, dict):
+            return render(request, "relecov_core/laboratoryContact.html", {"ERROR": result["ERROR"]})
+        return render(request, "relecov_core/laboratoryContact.html", {"Success": "Success"})
     return render(
         request, "relecov_core/laboratoryContact.html", {"lab_data": lab_data}
     )
