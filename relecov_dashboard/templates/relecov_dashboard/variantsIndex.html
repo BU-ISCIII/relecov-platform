@@ -6,74 +6,43 @@
 {% block content %}
 <br><br><br><br><br><br>
 <div class="container-fluid" style="text-align: center;">
-  <div class="card d-inline-flex p-2 m-1" style="width: 35%">
-    <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" class="card-img-top" alt="needle plot" style="width: 70%">
-    <div class="card-body" style="text-align: left;">
-      <h5 class="card-title">Mutations in Lineages</h5>
-      <!--<p class="card-text">
-        <ul>
-          <li><a href="/dashboard/variants/mutationsInLineagesBySample">Variant mutations in Lineages search by sample</a></li>
-          <li><a href="/dashboard/variants/mutationsInLineagesByLineage">Variant mutations in Lineages search by lineage</a></li>
-          <li><a href="/dashboard/variants/mutationsInLineagesTable">Variant mutations in lineages filter by table</a></li>
-          <li><a href="/dashboard/variants/mutationsInLineagesHeatmap">Variant mutations in lineages heatmap</a></li>
-        </ul>
-      </p>-->
-      <a href="/dashboard/variants/mutationsInLineagesDashboard" class="btn btn-primary">Go</a>
+  <!--header-->
+  <div class="card bg-light d-inline-flex p-3 " style="width: 80%;">
+    <div class="container-fluid" style="text-align: center;">
+      <p class="fs-1 text-uppercase">Variants Dashboard</p>
     </div>
   </div>
   <!---->
-  <div class="card d-inline-flex p-2 m-1" style="width: 35%">
-    <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" class="card-img-top" alt="molecular 3D" style="width: 70%">
-    <div class="card-body" style="text-align: left;">
-      <h5 class="card-title">Lineages</h5>
-      <!--<p class="card-text">
-        <ul>
-          <li><a href="/dashboard/variants/samplesReceivedOverTimeGraph">Samples received over time Graph</a></li>
-          <li><a href="/dashboard/variants/samplesReceivedOverTimeMap">Samples received over time by CCAA map</a></li>
-          <li><a href="#">Table to filter and download</a></li>
-        </ul>
-      </p>-->
-      <a href="/dashboard/variants/lineagesDashboard" class="btn btn-primary">Go</a>
-    </div>
+  <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
+    <h2 class="card-title">Mutations in Lineages</h2>
+    <a href="/dashboard/variants/mutationsInLineagesDashboard">
+      <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" class="card-img-top variant_index_img_3d" alt="Mutations in Lineages dashboard" style="width: 70%">
+    </a>
   </div>
   <!---->
-  <div class="card d-inline-flex p-2 m-1" style="width: 35%">
-    <img src="{% static 'relecov_dashboard/img/molecular3D.png' %}" class="card-img-top" alt="needle plot" style="width:48.2%">
-    <div class="card-body" style="text-align: left;">
-      <h5 class="card-title">Spike mutations</h5>
-      <!--<p class="card-text">
-        <ul>
-          
-          <li>
-            <a href="/dashboard/variants/spikeMutations3DColor">Spike Mutation specific residues</a>
-          </li>
-          <li>
-            <a href="/dashboard/variants/spikeMutations3DBN">Spike Mutation</a>
-          </li>
-        </ul>
-      </p>-->
-      <a href="/dashboard/variants/spikeMutations3dDashboard" class="btn btn-primary">Go</a>
-    </div>
+  <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
+    <h2 class="card-title">Lineages</h2>
+    <a href="/dashboard/variants/lineagesDashboard">  
+      <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" class="card-img-top variant_index_img_3d" alt="molecular 3D" style="width: 72%">
+    </a>  
   </div>
   <!---->
-  <div class="card d-inline-flex p-2 m-1" style="width: 35%">
-    <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" class="card-img-top" alt="needle plot" style="width: 70%">
-    <div class="card-body" style="text-align: left;">
-      <h5 class="card-title">Lineages VOC</h5>
-      <!--<p class="card-text">
-        <ul>
-          <li><a href="#">Graph by time</a></li>
-          <li><a href="#">Graph by Autonomous Community</a></li>
-          <li><a href="#">Table to filter and download</a></li>
-        </ul>
-      </p>-->
-      <!--<a href="/dashboard/variants/lineagesDashboard" class="btn btn-primary">Go</a>-->
-      <a href="#" class="btn btn-primary">Go</a>
-    </div>
+  <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
+    <h2 class="card-title">Spike mutations</h2>
+    <a href="/dashboard/variants/spikeMutations3dDashboard">
+      <img src="{% static 'relecov_dashboard/img/molecular3D.png' %}" class="card-img-top variant_index_img_3d" alt="needle plot" style="width:50%">
+    </a>
   </div>
+  <!---->
+  <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d " style="width: 40%">
+    <h2 class="card-title">Lineages VOC</h2>
+    <a href="/dashboard/variants/lineagesVocDashboard">
+      <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" class="card-img-top variant_index_img_3d" alt="lineages VOC dashboard" style="width: 70%">
+    </a>
+  </div>
+  <!---->
 
 </div>
 <br>
-<!--<br><br><br><br>-->
 
 {% endblock %}
