@@ -90,7 +90,8 @@ def create_mutation_table(sample_list, effect_list):
 
     app.layout = html.Div(
         children=[
-            html.P(id="mutation_table-message"),
+            # html.P(id="mutation_table-message"),
+            html.P("Select effects"),
             dcc.Dropdown(
                 id="mutation_table-effect_dropdown",
                 options=[{"label": i, "value": i} for i in all_effects],
@@ -128,6 +129,7 @@ def create_mutation_table(sample_list, effect_list):
             data = df.to_dict("records")
         return data
 
+    """
     @app.callback(
         Output("mutation_table-message", "children"),
         Input("mutation_datatable", "active_cell"),
@@ -137,3 +139,4 @@ def create_mutation_table(sample_list, effect_list):
             return str(active_cell)
         else:
             return "Click the table"
+    """

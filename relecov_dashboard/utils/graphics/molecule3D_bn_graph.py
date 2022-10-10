@@ -6,6 +6,10 @@ import pandas as pd
 import dash_bio as dashbio
 import dash_html_components as html
 from relecov_platform import settings
+from relecov_dashboard.utils.graphics.graphics_handling import (
+    screen_size,
+    set_screen_size,
+)
 
 # PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
 import parmed as pmd
@@ -20,14 +24,6 @@ class PdbParser:
     """
 
     def __init__(self, s: str):
-        """
-        if re.search(r"^[1-9][0-9A-z]{3}$", s):
-            # d is PDB id (https://proteopedia.org/wiki/index.php/PDB_code)
-            self.structure = pmd.download_PDB(s)
-        else:
-            # d is HTTP url or local file
-            self.structure = pmd.load_file(s)
-        """
         self.structure = pmd.load_file(s)
         self.atoms = self.structure.atoms
         self.bonds = self.structure.bonds
@@ -87,6 +83,7 @@ def get_table_selection(df):
 
 
 def create_model3D_bn():
+    size = set_screen_size(screen_size())
 
     app = DjangoDash("model3D_bn")
 
@@ -105,6 +102,7 @@ def create_model3D_bn():
 
     app.layout = html.Div(
         [
+            html.P("Data table"),
             dash_table.DataTable(
                 id="selecting-specific-spike-residue-table",
                 columns=[{"name": i, "id": i} for i in df.columns],
@@ -112,11 +110,31 @@ def create_model3D_bn():
                 row_selectable="single",
                 page_size=10,
             ),
-            dashbio.Molecule3dViewer(
-                id="zooming-specific-molecule3d-zoomto",
-                modelData=data,
-                styles=styles,
-                selectionType="residue",
+            html.Br(),
+            html.Br(),
+            html.Hr(),
+            html.P("Molecule 3D Viewer"),
+            html.Div(
+                children=[
+                    dashbio.Molecule3dViewer(
+                        id="zooming-specific-molecule3d-zoomto",
+                        modelData=data,
+                        styles=styles,
+                        selectionType="residue",
+                        height=size[1],
+                        width=size[0],
+                        zoom={
+                            "factor": 1.2,
+                            "animationDuration": 0,
+                            "fixedPath": False,
+                        },
+                    ),
+                ],
+                style={
+                    "display": "inline-flex",
+                    "justify-content": "center",
+                    "align-self": "auto",
+                },
             ),
         ]
     )

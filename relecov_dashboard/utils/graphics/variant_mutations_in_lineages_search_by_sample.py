@@ -15,6 +15,7 @@ def create_needle_plot_graph_mutation_by_sample(sample_name, mdata):
         children=[
             html.Div(
                 children=[
+                    # html.Div("Hello"),
                     html.Div(
                         children=[
                             "Show or hide range slider",
@@ -61,8 +62,8 @@ def create_needle_plot_graph_mutation_by_sample(sample_name, mdata):
                     xlabel="Genome Position",
                     ylabel="Allele Frequency ",
                     domainStyle={
-                        # "displayMinorDomains": False,
-                        "textangle": 90,
+                        "displayMinorDomains": False,
+                        # "textangle": 90,
                     },
                 ),
             ),

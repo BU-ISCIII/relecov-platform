@@ -39,6 +39,7 @@ def create_data_for_dataframe(sample_list, gene_list):
     sample_list_df = []
     lineage_list = []
     # chromosome = "NC_045512"
+
     for sample_name in sample_list:
         sample_obj = get_sample_obj_from_sample_name(sample_name=sample_name)
 
@@ -129,6 +130,18 @@ def create_heat_map(sample_list, gene_list):
             html.Div(
                 style={
                     "display": "flex",
+                    "justify-content": "space-between",
+                    "align-items": "flex-start",
+                },
+                children=[
+                    html.P("Select samples"),
+                    html.P("Select genes"),
+                ],
+            ),
+            # html.P("Select samples"),
+            html.Div(
+                style={
+                    "display": "flex",
                     "justify-content": "start",
                     "align-items": "flex-start",
                 },
@@ -139,16 +152,18 @@ def create_heat_map(sample_list, gene_list):
                         clearable=False,
                         multi=True,
                         value=all_sample_ids,
-                        style={"width": "500px", "margin-right": "30px"},
+                        style={"width": "390px", "margin-right": "30px"},
+                        # placeholder="Select samples",
                     ),
                     dcc.Dropdown(
+                        # "Select genes",
                         id="mutation_heatmap_gene_dropdown",
                         options=[{"label": i, "value": i} for i in all_genes],
                         clearable=False,
                         multi=True,
                         value=all_genes,
-                        style={"width": "400px", "margin-right": "30px"},
-                        placeholder="Filter genes",
+                        style={"width": "390px", "margin-right": "35px"},
+                        # placeholder="Select genes",
                     ),
                 ],
             ),

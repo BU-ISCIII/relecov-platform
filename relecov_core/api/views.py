@@ -137,16 +137,17 @@ def create_sample_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
+        print(data)
         schema_obj = get_schema_version_if_exists(data)
         if schema_obj is None:
             error = {"ERROR": "schema name and version is not defined"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         # check if sample is already defined
         # if "sequencing_sample_id" not in data:
-        if "sample_name" not in data:
+        if "sequencing_sample_id" not in data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if get_sample_obj_from_sample_name(data["sample_name"]):
+        if get_sample_obj_from_sample_name(data["sequencing_sample_id"]):
             error = {"ERROR": "sample already defined"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         data["user"] = request.user.pk
@@ -154,9 +155,9 @@ def create_sample_data(request):
         if "ERROR" in split_data:
             return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
 
-        split_data["sample_name"]["ena_obj"] = None
-        split_data["sample_name"]["schema_obj"] = schema_obj.get_schema_id()
-        sample_serializer = CreateSampleSerializer(data=split_data["sample_name"])
+        split_data["sample"]["ena_obj"] = None
+        split_data["sample"]["schema_obj"] = schema_obj.get_schema_id()
+        sample_serializer = CreateSampleSerializer(data=split_data["sample"])
 
         if not sample_serializer.is_valid():
             return Response(
@@ -167,7 +168,7 @@ def create_sample_data(request):
         # update sample state date
         data = {
             "sampleID": sample_obj.get_sample_id(),
-            "stateID": split_data["sample_name"]["state"],
+            "stateID": split_data["sample"]["state"],
         }
         date_serilizer = CreateDateAfterChangeStateSerializer(data=data)
         if date_serilizer.is_valid():
