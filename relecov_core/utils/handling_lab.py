@@ -8,7 +8,7 @@ def get_submitted_history_data(user_obj):
     lab_name = get_lab_name(user_obj)
     if lab_name != "":
         sum_data = get_summarize_data({"laboratory": lab_name})
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if "ERROR" in sum_data:
             return sum_data["ERROR"]
         if sum_data["samples_number"] == 0:
