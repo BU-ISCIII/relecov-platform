@@ -111,7 +111,7 @@ class ClassificationManager(models.Manager):
 
 
 class Classification(models.Model):
-    classification_name = models.CharField(max_length=100)
+    classification_name = models.CharField(max_length=150)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
