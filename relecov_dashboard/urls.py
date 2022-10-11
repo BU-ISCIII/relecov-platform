@@ -58,6 +58,16 @@ urlpatterns = [
         name="samples_received_over_time_map",
     ),
     path(
+        "variants/samplesReceivedOverTimePie",
+        views.samples_received_over_time_pie,
+        name="samples_received_over_time_pie",
+    ),
+    path(
+        "variants/samplesReceivedOverTimePieLaboratory",
+        views.samples_received_over_time_pie_laboratory,
+        name="samples_received_over_time_pie_laboratory",
+    ),
+    path(
         "variants/spikeMutations3DColor",
         views.spike_mutations_3D_color,
         name="spike_mutations_3D_color",

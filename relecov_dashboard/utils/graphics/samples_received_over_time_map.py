@@ -86,12 +86,17 @@ def create_samples_received_over_time_map():
         center={"lat": 35.9, "lon": -5.3},
         opacity=0.5,
         labels={
-            "CCAA_ID": "CCAA ID",
-            "CCAA_NAME": "CCAA NAME",
-            "NUMBER_OF_SAMPLES": "NUMBER OF SAMPLES PER CCAA",
+            "CCAA_ID": "ID",
+            "CCAA_NAME": "CCAA",
+            "NUMBER_OF_SAMPLES": "NUMBER OF SAMPLES",
         },
+        # hover_data=['CCAA_NAME',"NUMBER_OF_SAMPLES"],
+        custom_data=[
+            "NUMBER_OF_SAMPLES",
+        ],
+        hover_name="CCAA_NAME",
     )
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    fig.update_layout(margin={"r": 0, "t": 20, "l": 0, "b": 0})
 
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
@@ -165,7 +170,7 @@ def create_samples_received_over_time_map():
             geojson=counties,
             locations=ldata.CCAA_ID,
             color=ldata.NUMBER_OF_SAMPLES,
-            color_continuous_scale="Viridis",
+            color_continuous_scale="Viridgraph_templates/is",
             range_color=ldata.NUMBER_OF_SAMPLES.max(),
             mapbox_style="carto-positron",
             zoom=5,
