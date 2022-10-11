@@ -31,7 +31,7 @@ from relecov_core.utils.handling_bioinfo_analysis import (
 from relecov_core.utils.handling_lab import (
     get_lab_contact_details,
     get_submitted_history_data,
-    update_contact_lab
+    update_contact_lab,
 )
 
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
@@ -274,7 +274,9 @@ def intranet(request):
     lab_all_submits = get_submitted_history_data(request.user)
 
     if "ERROR" in lab_all_submits:
-        return render(request, "relecov_core/intranet.html", {"ERROR": lab_all_submits["ERROR"]})
+        return render(
+            request, "relecov_core/intranet.html", {"ERROR": lab_all_submits["ERROR"]}
+        )
     return render(request, "relecov_core/intranet.html", {"data": lab_all_submits})
 
 
@@ -375,12 +377,20 @@ def virus_annotation(request):
 def laboratory_contact(request):
     lab_data = get_lab_contact_details(request.user)
     if "ERROR" in lab_data:
-        return render(request, "relecov_core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]})
+        return render(
+            request, "relecov_core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]}
+        )
     if request.method == "POST" and request.POST["action"] == "updateLabData":
         result = update_contact_lab(lab_data, request.POST)
         if isinstance(result, dict):
-            return render(request, "relecov_core/laboratoryContact.html", {"ERROR": result["ERROR"]})
-        return render(request, "relecov_core/laboratoryContact.html", {"Success": "Success"})
+            return render(
+                request,
+                "relecov_core/laboratoryContact.html",
+                {"ERROR": result["ERROR"]},
+            )
+        return render(
+            request, "relecov_core/laboratoryContact.html", {"Success": "Success"}
+        )
     return render(
         request, "relecov_core/laboratoryContact.html", {"lab_data": lab_data}
     )

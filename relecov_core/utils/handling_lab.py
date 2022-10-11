@@ -1,5 +1,9 @@
 from relecov_core.models import Profile
-from relecov_core.utils.rest_api_handling import get_laboratory_data, get_summarize_data, set_laboratory_data
+from relecov_core.utils.rest_api_handling import (
+    get_laboratory_data,
+    get_summarize_data,
+    set_laboratory_data,
+)
 
 
 def get_submitted_history_data(user_obj):
