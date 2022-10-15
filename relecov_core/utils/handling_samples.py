@@ -17,6 +17,7 @@ from relecov_core.core_config import (
     HEADING_FOR_FASTQ_SAMPLE_DATA,
     HEADING_FOR_GISAID_SAMPLE_DATA,
     HEADING_FOR_ENA_SAMPLE_DATA,
+    ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -110,6 +111,9 @@ def create_form_for_batch(schema_obj, user_obj):
         return {"ERROR": ERROR_ISKYLIMS_NOT_REACHEABLE}
     if "ERROR" in iskylims_sample_raw:
         return iskylims_sample_raw
+    # Remove the characters "schema" if exist in the name of the schema
+    if "schema" in schema_name:
+        schema_name = schema_name.replace("schema", "").strip()
     i_sam_proj_raw = get_sample_project_fields_data(schema_name)
     i_sam_proj_data = {}
     # Create the structure from the sample project fields get from iSkyLIMS
@@ -186,7 +190,12 @@ def create_form_for_sample(schema_obj):
     if "ERROR" in iskylims_sample_raw:
         return iskylims_sample_raw
 
+    # Remove the characters "schema" if exist in the name of the schema
+    if "schema" in schema_name:
+        schema_name = schema_name.replace("schema", "").strip()
     i_sam_proj_raw = get_sample_project_fields_data(schema_name)
+    if "ERROR" in i_sam_proj_raw:
+        return {"ERROR": ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS + "for " + schema_name}
     i_sam_proj_data = {}
     # Format the information from sample Project to have label as key
     # format of the field and the option list in aa list

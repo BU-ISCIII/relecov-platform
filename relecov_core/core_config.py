@@ -194,6 +194,7 @@ ERROR_ISKYLIMS_NOT_REACHEABLE = "iSkyLIMS server is not accessible"
 ERROR_FIELD_NOT_DEFINED = "Field is not defined in database"
 
 ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
+ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS = "Unable to fetch project fields from iSkyLIMS "
 
 ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
 
