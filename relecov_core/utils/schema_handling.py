@@ -102,12 +102,12 @@ def get_fields_from_schema(schema_obj):
 def get_latest_schema(schema_name, apps_name):
     """Get the latest schema that is defined in database"""
     if Schema.objects.filter(
-        schema_name__iexact=schema_name,
+        schema_name__icontains=schema_name,
         schema_apps_name__exact=apps_name,
         schema_default=True,
     ).exists():
         return Schema.objects.filter(
-            schema_name__iexact=schema_name,
+            schema_name__icontains=schema_name,
             schema_apps_name__exact=apps_name,
             schema_default=True,
         ).last()
