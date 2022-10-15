@@ -1017,6 +1017,9 @@ class TemporalSampleStorage(models.Model):
     def __str__(self):
         return "%s,%s" % (self.sample_name, self.field)
 
+    def get_sample_name(self):
+        return "%s" % (self.sample_name)
+
     def get_temp_values(self):
         return {self.field: self.value}
 
