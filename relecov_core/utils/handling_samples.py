@@ -195,7 +195,9 @@ def create_form_for_sample(schema_obj):
         schema_name = schema_name.replace("schema", "").strip()
     i_sam_proj_raw = get_sample_project_fields_data(schema_name)
     if "ERROR" in i_sam_proj_raw:
-        return {"ERROR": ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS + "for " + schema_name}
+        return {
+            "ERROR": ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS + "for " + schema_name
+        }
     i_sam_proj_data = {}
     # Format the information from sample Project to have label as key
     # format of the field and the option list in aa list
