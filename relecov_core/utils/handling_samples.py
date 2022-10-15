@@ -12,12 +12,13 @@ from relecov_core.core_config import (
     ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
     ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
     ERROR_SAMPLE_DOES_NOT_EXIST,
+    ERROR_SAMPLES_NOT_DEFINED_IN_FORM,
+    ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS,
     FIELD_FOR_GETTING_SAMPLE_ID,
     HEADING_FOR_BASIC_SAMPLE_DATA,
     HEADING_FOR_FASTQ_SAMPLE_DATA,
     HEADING_FOR_GISAID_SAMPLE_DATA,
     HEADING_FOR_ENA_SAMPLE_DATA,
-    ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS,
     # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
     # HEADING_FOR_RECORD_SAMPLES,
     # HEADINGS_FOR_ISkyLIMS,
@@ -98,6 +99,17 @@ def count_samples_in_all_tables():
     #    typeID__type_name__iexact="bioinfo_analysis"
     # ).count()
     return data
+
+
+def check_if_empty_data(data):
+    """Check if user has not set any data in the form"""
+    ignore_fields = ["csrfmiddlewaretoken", "action"]
+    for key, value in data.items():
+        if key in ignore_fields:
+            continue
+        if value != "":
+            return True
+    return False
 
 
 def create_form_for_batch(schema_obj, user_obj):
@@ -372,6 +384,45 @@ def get_search_data():
     for s_state_obj in s_state_objs:
         s_data["s_state"].append(s_state_obj.get_state())
     return s_data
+
+
+def join_sample_and_batch(b_data, user_obj, schema_obj):
+    """Get the sample information stored on temporary tables and join with the
+    batch data.
+    """
+    join_data = []
+    sample_dict = {}
+    if not TemporalSampleStorage.objects.filter(user=user_obj).exists():
+        return {"ERROR": ERROR_SAMPLES_NOT_DEFINED_IN_FORM}
+    field_list = list(
+        MetadataVisualization.objects.filter(schemaID=schema_obj)
+        .order_by("order")
+        .values_list("label_name", flat=True)
+    )
+    join_data.append(field_list)
+    t_sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
+    for t_sample_obj in t_sample_objs:
+        s_name = t_sample_obj.get_sample_name()
+        if s_name not in sample_dict:
+            sample_dict[s_name] = {}
+        sample_dict[s_name].update(t_sample_obj.get_temp_values())
+
+    for key in sample_dict.keys():
+        row_data = []
+        for field_name in field_list:
+            if field_name in b_data:
+                row_data.append(b_data[field_name])
+            elif field_name in sample_dict[key]:
+                row_data.append(sample_dict[key][field_name])
+            else:
+                print("error not defined", field_name, " for sample ", key)
+                row_data.append("")
+                import pdb
+
+                pdb.set_trace()
+        join_data.append(row_data)
+
+    return join_data
 
 
 def increase_unique_value(old_unique_number):
