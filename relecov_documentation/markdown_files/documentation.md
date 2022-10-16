@@ -11,7 +11,7 @@ Documentation is structured in 2 main parts:
 
 ## Table of Contents
 
-- [· Installation](installation)
+- [Installation](installation)
 - [Initial Configuration](initialConfiguration)
 - [User definition](userDefinition)
 - [Intranet](intranet)
