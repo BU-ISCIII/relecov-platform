@@ -15,7 +15,7 @@ urlpatterns = [
         views.initial_configuration,
         name="initial_configuration",
     ),
-    path("installation/", views.installation, name="installation"),
+    path("installation.md/", views.installation, name="installation"),
     path("intranet/", views.intranet, name="intranet"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("metadataLabForm/", views.upload_metadata_lab, name="upload_metadata_lab"),
