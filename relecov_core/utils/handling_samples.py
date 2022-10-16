@@ -1,6 +1,9 @@
 import json
+import os
 from collections import OrderedDict
 from django.contrib.auth.models import User, Group
+from django.conf import settings
+from relecov_tools.utils import write_to_excel_file
 
 # from django.db.models import Max
 
@@ -19,18 +22,13 @@ from relecov_core.core_config import (
     HEADING_FOR_FASTQ_SAMPLE_DATA,
     HEADING_FOR_GISAID_SAMPLE_DATA,
     HEADING_FOR_ENA_SAMPLE_DATA,
-    # HEADING_FOR_PUBLICDATABASEFIELDS_TABLE,
-    # HEADING_FOR_RECORD_SAMPLES,
-    # HEADINGS_FOR_ISkyLIMS,
-    # HEADING_FOR_AUTHOR_TABLE,
-    # HEADING_FOR_SAMPLE_TABLE,
-    # HEADINGS_FOR_ISkyLIMS_BATCH,
 )
 
 
 from relecov_core.models import (
     DateUpdateState,
     MetadataVisualization,
+    Profile,
     SchemaProperties,
     Sample,
     SampleState,
@@ -46,6 +44,8 @@ from relecov_core.utils.rest_api_handling import (
     # save_sample_form_data,
 )
 
+from relecov_core.utils.generic_functions import get_configuration_value
+
 
 def analyze_input_samples(request):
     result = {}
@@ -56,6 +56,8 @@ def analyze_input_samples(request):
     heading_in_form = request.POST["heading"].split(",")
     l_metadata = request.POST["l_metadata"].split(",")
     l_iskylims = request.POST["l_iskylims"].split(",")
+    user_lab = Profile.objects.filter(user=request.user).get_lab_name()
+    submmit_institution = get_configuration_value("SUBMITTING_INSTITUTION")
     # Select the sample field that will be used in Sample class
     idx_sample = heading_in_form.index(FIELD_FOR_GETTING_SAMPLE_ID)
     allowed_empty_index = []
@@ -78,6 +80,8 @@ def analyze_input_samples(request):
                 row_data[l_iskylims[idj]] = row[idx]
             else:
                 row_data[heading_in_form[idx]] = row[idx]
+        row_data["Originating Laboratory"] = user_lab
+        row_data["Submitting Institution"] = submmit_institution
         save_samples.append(row_data)
 
     if len(save_samples) > 0:
@@ -510,22 +514,35 @@ def search_samples(sample_name, user_name, sample_state, s_date, user):
 
 def save_temp_sample_data(samples, user_obj):
     """Store the valid sample into the temporary table"""
-    # get the latest value of sample_index
-    """
-    last_value = TemporalSampleStorage.objects.aggregate(Max("sample_idx")).get(
-        "sample_idx__max"
-    )
-    if last_value is None:
-        last_value = 0
-    """
     sample_saved_list = []
     for sample in samples:
-        # last_value += 1
         for item, value in sample.items():
             data = {"sample_name": sample[FIELD_FOR_GETTING_SAMPLE_ID]}
             data["field"] = item
             data["value"] = value
             data["user"] = user_obj
             TemporalSampleStorage.objects.save_temp_data(data)
+        # Include Originating Laboratory and Submitting Institution
+
         sample_saved_list.append(sample[FIELD_FOR_GETTING_SAMPLE_ID])
+    return
+
+
+def update_temporary_sample_table(user_obj):
+    """Set for all samples in the temporary table for the user that are sent
+    to folder to start the process for validatation
+    """
+    if TemporalSampleStorage.objects.filter(user=user_obj).exists():
+        t_sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
+        for t_sample_obj in t_sample_objs:
+            t_sample_obj.update_sent_status()
+    return True
+
+
+def write_form_data_to_excel(data, user_obj):
+    """Write data to excel using relecov-tools"""
+    folder_tmp = os.path.join(settings.MEDIA_ROOT, "tmp")
+    os.makedirs(folder_tmp, exist_ok=True)
+    f_name = os.path.join(folder_tmp, "Metadata_lab_" + user_obj.username + ".xlsx")
+    write_to_excel_file(data, f_name, "METADATA_LAB", True)
     return

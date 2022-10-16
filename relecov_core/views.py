@@ -13,6 +13,8 @@ from relecov_core.utils.handling_samples import (
     pending_samples_in_metadata_form,
     save_temp_sample_data,
     search_samples,
+    update_temporary_sample_table,
+    write_form_data_to_excel,
 )
 
 from relecov_core.utils.schema_handling import (
@@ -317,9 +319,11 @@ def metadata_form(request):
                 {"m_batch_form": m_batch_form},
             )
         meta_data = join_sample_and_batch(request.POST, request.user, schema_obj)
-        import pdb
-
-        pdb.set_trace()
+        # write date to excel using relecov tools
+        write_form_data_to_excel(meta_data, request.user)
+        update_temporary_sample_table(request.user)
+        # Display page to indicate that process is starting
+        return render(request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"})
     else:
         if pending_samples_in_metadata_form(request.user):
             m_batch_form = create_form_for_batch(schema_obj, request.user)
