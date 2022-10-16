@@ -10,7 +10,6 @@ urlpatterns = [
         views.annotation_display,
         name="annotation_display",
     ),
-    path("bioInfoHandling", views.bio_info_json_handling, name="bioInfo_handling"),
     path("Contact", views.contact, name="contact"),
     path("intranet/", views.intranet, name="intranet"),
     path("laboratoryContact/", views.laboratory_contact, name="laboratory_contact"),
@@ -20,23 +19,10 @@ urlpatterns = [
         views.metadata_visualization,
         name="metadataVisualization",
     ),
-    path("relecovProject", views.relecov_project, name="relecov_project"),
-    path(
-        "resultsInfoProcessed/",
-        views.results_info_processed,
-        name="results_info_processed",
-    ),
-    path(
-        "resultsInfoReceived/",
-        views.results_info_received,
-        name="results_info_received",
-    ),
-    path("resultsDownload/", views.results_download, name="results_download"),
     path("sampleDisplay=<int:sample_id>", views.sample_display, name="sample_display"),
     path("schemaDisplay=<int:schema_id>", views.schema_display, name="schema_display"),
     path("schemaHandling", views.schema_handling, name="schema_handling"),
     path("searchSample", views.search_sample, name="search_sample"),
-    path("uploadStatus/", views.upload_status, name="upload_status"),
     path("virusAnnotation", views.virus_annotation, name="virus_annotation"),
 ]
 if settings.DEBUG:
