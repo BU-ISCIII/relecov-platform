@@ -84,7 +84,11 @@ HEADINGS_FOR_ISkyLIMS_BATCH = {
     "Source material": "library_source",
 }
 """
-ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM = ["GISAID id", "GISAID Virus Name"]
+ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM = [
+    "GISAID id",
+    "GISAID Virus Name",
+    "Sequence file R2 fastq",
+]
 
 HEADING_FOR_LINEAGE_TABLE = {
     "Lineage identification date": "lineage_identification_date",
