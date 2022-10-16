@@ -413,35 +413,5 @@ def laboratory_contact(request):
     )
 
 
-@login_required()
-def upload_status(request):
-    return render(request, "relecov_core/uploadStatus.html", {})
-
-
-@login_required()
-def results_info_received(request):
-    return render(request, "relecov_core/resultsInfoReceived.html", {})
-
-
-@login_required()
-def results_info_processed(request):
-    return render(request, "relecov_core/resultsInfoProcessed.html", {})
-
-
-@login_required()
-def results_download(request):
-    return render(request, "relecov_core/resultsDownload.html", {})
-
-
-# @login_required()
-
-
 def contact(request):
     return render(request, "relecov_core/contact.html", {})
-
-
-# @login_required()
-
-
-def relecov_project(request):
-    return render(request, "relecov_core/relecov_project.html", {})
