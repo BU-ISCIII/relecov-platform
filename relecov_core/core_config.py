@@ -167,7 +167,9 @@ ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 ERROR_SCHEMA_NOT_DEFINED = "No schemas have been defined yet"
 ERROR_SAMPLE_NAME_NOT_INCLUDED = "Sample name field is not included in the request"
 ERROR_SAMPLE_NOT_DEFINED = "Sample id is not defined"
-ERROR_SAMPLES_NOT_DEFINED_IN_FORM = "Samples were not defined when loading data for batch "
+ERROR_SAMPLES_NOT_DEFINED_IN_FORM = (
+    "Samples were not defined when loading data for batch "
+)
 ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED = "So far there are no samples defined"
 ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED = "Missing configuration for sample states"
 ERROR_GENE_NOT_DEFINED_IN_DATABASE = "Error Gene not defined in database"
@@ -195,7 +197,9 @@ ERROR_ISKYLIMS_NOT_REACHEABLE = "iSkyLIMS server is not accessible"
 ERROR_FIELD_NOT_DEFINED = "Field is not defined in database"
 
 ERROR_UNABLE_TO_STORE_IN_DATABASE = "Unable to store data in database "
-ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS = "Unable to fetch project fields from iSkyLIMS "
+ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS = (
+    "Unable to fetch project fields from iSkyLIMS "
+)
 
 ERROR_MISSING_SAMPLE_DATA = "Missing data information for Sample"
 
