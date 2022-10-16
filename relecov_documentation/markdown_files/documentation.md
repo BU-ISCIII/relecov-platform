@@ -11,13 +11,14 @@ Documentation is structured in 2 main Guides:
 
 ## Table of Contents
 - Admin Guide
+    - [Overview](structureOverview.md)
     - [Installation](installation.md)
     - [Initial Configuration](initialConfiguration.md)
     - [User definition](userDefinition)
 
 - User Guide
-    - [Intranet](intranet)
-    - [Dashboard](dashboard)
+    - [Intranet](intranet.md)
+    - [Dashboard](dashboard.md)
 
 The Installation, configuration and user definition steps are referred to bioinformatic
 responsible for getting the application up and running, and in charge to provide
