@@ -54,9 +54,7 @@ def analyze_input_samples(request):
     s_incomplete = []
     s_json_data = json.loads(request.POST["table_data"])
     heading_in_form = request.POST["heading"].split(",")
-    l_metadata = request.POST["l_metadata"].split(",")
-    l_iskylims = request.POST["l_iskylims"].split(",")
-    user_lab = Profile.objects.filter(user=request.user).get_lab_name()
+    user_lab = Profile.objects.filter(user=request.user).last().get_lab_name()
     submmit_institution = get_configuration_value("SUBMITTING_INSTITUTION")
     # Select the sample field that will be used in Sample class
     idx_sample = heading_in_form.index(FIELD_FOR_GETTING_SAMPLE_ID)
@@ -75,11 +73,7 @@ def analyze_input_samples(request):
             if row[idx] == "" and idx not in allowed_empty_index:
                 s_incomplete.append(row)
                 break
-            if heading_in_form[idx] in l_metadata:
-                idj = l_metadata.index(heading_in_form[idx])
-                row_data[l_iskylims[idj]] = row[idx]
-            else:
-                row_data[heading_in_form[idx]] = row[idx]
+            row_data[heading_in_form[idx]] = row[idx]
         row_data["Originating Laboratory"] = user_lab
         row_data["Submitting Institution"] = submmit_institution
         save_samples.append(row_data)
