@@ -9,6 +9,7 @@ from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     laboratory = models.CharField(max_length=60, null=True, blank=True)
+    code_id = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
         db_table = "Profile"
@@ -18,6 +19,9 @@ class Profile(models.Model):
 
     def get_lab_name(self):
         return "%s" % (self.laboratory)
+
+    def get_lab_code(self):
+        return "%s" % (self.code_id)
 
 
 @receiver(post_save, sender=User)
