@@ -180,7 +180,7 @@ class SchemaPropertiesAdmin(admin.ModelAdmin):
 
 
 class TemporalSampleStorageAdmin(admin.ModelAdmin):
-    list_display = ["sample_idx", "field", "value", "sent"]
+    list_display = ["sample_name", "field", "value", "user", "sent"]
 
 
 class PropertyOptionsAdmin(admin.ModelAdmin):

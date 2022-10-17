@@ -102,12 +102,12 @@ def get_fields_from_schema(schema_obj):
 def get_latest_schema(schema_name, apps_name):
     """Get the latest schema that is defined in database"""
     if Schema.objects.filter(
-        schema_name__iexact=schema_name,
+        schema_name__icontains=schema_name,
         schema_apps_name__exact=apps_name,
         schema_default=True,
     ).exists():
         return Schema.objects.filter(
-            schema_name__iexact=schema_name,
+            schema_name__icontains=schema_name,
             schema_apps_name__exact=apps_name,
             schema_default=True,
         ).last()
@@ -345,7 +345,7 @@ def process_schema_file(json_file, default, user, apps_name):
     # store root data of json schema
     if not check_heading_valid_json(schema_data["full_schema"], MAIN_SCHEMA_STRUCTURE):
         return {"ERROR": ERROR_INVALID_SCHEMA}
-    schema_name = schema_data["full_schema"]["schema"]
+    schema_name = schema_data["full_schema"]["title"]
     version = schema_data["full_schema"]["version"]
     if default == "on":
         remove_existing_default_schema(schema_name, apps_name)

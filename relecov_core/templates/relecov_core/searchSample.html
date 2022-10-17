@@ -13,6 +13,7 @@
                     <h2 class="card-title">Search form is not available</h2>
                     <p class="card-text">{{ERROR}}</p>
                 </div>
+                <br><br><br>
             </div>
         {% elif list_display %}
             {% include "relecov_core/cdn_table_functionality.html" %}
@@ -112,7 +113,7 @@
 
                                 <div class="row mb-3">
 
-                                    {% if request.user|has_group:"WetlabManager" %}
+                                    {% if request.user|has_group:"RelecovManager" %}
                                     <label for="username" >Search from user name</label>
                                        <div class="col-sm-5"><input class="form-control" type="text" name="username" id="username" size="100" maxlength="100"></div>
                                     {% else %}
