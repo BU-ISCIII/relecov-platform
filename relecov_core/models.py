@@ -9,12 +9,19 @@ from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     laboratory = models.CharField(max_length=60, null=True, blank=True)
+    code_id = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
         db_table = "Profile"
 
     def __str__(self):
         return self.user.username
+
+    def get_lab_name(self):
+        return "%s" % (self.laboratory)
+
+    def get_lab_code(self):
+        return "%s" % (self.code_id)
 
 
 @receiver(post_save, sender=User)
@@ -108,7 +115,7 @@ class ClassificationManager(models.Manager):
 
 
 class Classification(models.Model):
-    classification_name = models.CharField(max_length=100)
+    classification_name = models.CharField(max_length=150)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
@@ -991,15 +998,20 @@ class VariantAnnotation(models.Model):
 class TemporalSampleStorageManager(models.Manager):
     def save_temp_data(self, data):
         new_t_data = self.create(
-            sample_idx=data["sample_idx"], field=data["field"], value=data["value"]
+            sample_name=data["sample_name"],
+            field=data["field"],
+            value=data["value"],
+            user=data["user"],
         )
         return new_t_data
 
 
 class TemporalSampleStorage(models.Model):
-    sample_idx = models.IntegerField()
-    field = models.CharField(max_length=100)
-    value = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    # sample_idx = models.IntegerField()
+    sample_name = models.CharField(max_length=100, null=True)
+    field = models.CharField(max_length=100, null=True)
+    value = models.CharField(max_length=100, null=True)
     sent = models.BooleanField(default=False)
     generated_at = models.DateTimeField(auto_now_add=True)
 
@@ -1007,7 +1019,10 @@ class TemporalSampleStorage(models.Model):
         db_table = "TemporalSampleStorage"
 
     def __str__(self):
-        return "%s,%s" % (self.sample, self.field)
+        return "%s,%s" % (self.sample_name, self.field)
+
+    def get_sample_name(self):
+        return "%s" % (self.sample_name)
 
     def get_temp_values(self):
         return {self.field: self.value}

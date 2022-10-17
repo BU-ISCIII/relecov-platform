@@ -6,14 +6,109 @@
 {% include "relecov_core/intranetSidebar.html" %}
 <br><br>
 <section style="margin-top: 4%">
-    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
-        <div class="card d-inline-flex flex-column w-auto p-5 border border-success" style="width: 18rem;">
-            <div class="card-body">
-            <h2 class="card-title">Welcome to the relecov-platform Intranet</h2>
-            <p class="card-text">Some steps to upload your metadata.</p>
-            <a href="/" class="btn btn-primary mt-5">Home</a>
-            </div>
-        </div>
+    <div class="container d-flex flex-column text-center position-relative" style="width:68%">
+        {% if ERROR %}
+            <div class="row m-5">
+                <div class="col-sm-12" >
+                    <div class="card  border-danger mb-3">
+                        <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                        <div class="card-body  text-center">
+                            <br>
+                            <p><strong>{{ERROR}}</strong></p>
+                        </div> <!-- end card body  -->
+                    </div> <!-- end card  -->
+                </div> <!--// end col-sm-9 -->
+            </div> <!--// end row -->
+        {% else %}
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        			    <li class="nav-item" role="presentation">
+        			    	<button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="true">Sample History</button>
+        			    </li>
+        			    <li class="nav-item" role="presentation">
+        			   	    <button class="nav-link" id="action-tab" data-bs-toggle="tab" data-bs-target="#actions" type="button" role="tab" aria-controls="actions" aria-selected="false">Actions</button>
+        			    </li>
+                        <li class="nav-item" role="presentation">
+                           <button class="nav-link" id="ena-tab" data-bs-toggle="tab" data-bs-target="#ena" type="button" role="tab" aria-controls="ena" aria-selected="false">ENA</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                           <button class="nav-link" id="gisaid-tab" data-bs-toggle="tab" data-bs-target="#gisaid" type="button" role="tab" aria-controls="gisaid" aria-selected="false">GISAID</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="history" role="tabpanel" aria-labelledby="info-tab">
+                           <div class="container-md">
+                                <div class="row mt-4">
+                                    <div class="col-md-10">
+                                        {% if data.sample > 0 %}
+                                            <div class="card">
+
+                                                <div class="card-header text-center"><h2 style="text-align:center">Sample upload to Relecov Platform</h2> </div>
+                                            </div> <!-- end card  -->
+                                        {% else %}
+                                            <div class="card border-warning mb-3">
+                                                <div class="card-header text-center text-warning"><h2 style="text-align:center">No sample are upload yet to Relecov Platform</h2> </div>
+                                            </div> <!-- end card  -->
+                                        {% endif %}
+
+                                    </div> <!-- end col-md-10 -->
+                                </div> <!-- end row-->
+                            </div> <!-- end continer-->
+                        </div>  <!-- end tab history -->
+
+                        <div class="tab-pane fade" id="actions" role="tabpanel" aria-labelledby="grupo-tab">
+                            <div class="container-md">
+                                <div class="row mt-5">
+                                    <div class="col-md-10">
+                                        <div class="card">
+                                            <div class="card-header"><h2 style="text-align:center">Action done on the last submit</h2> </div>
+                                            <div class="card-body">
+
+
+                                            </div> <!-- end card body-->
+                                        </div> <!-- end card  -->
+                                    </div> <!-- end col-md-10 -->
+                                </div> <!-- end row-->
+                            </div> <!-- end continer-->
+                        </div>  <!-- end tab actions -->
+
+                        <div class="tab-pane fade" id="ena" role="tabpanel" aria-labelledby="grupo-tab">
+                            <div class="container-md">
+                                <div class="row mt-5">
+                                    <div class="col-md-10">
+                                        <div class="card">
+                                            <div class="card-header"><h2 style="text-align:center">Samples upload to ENA </h2> </div>
+                                            <div class="card-body">
+
+
+                                            </div> <!-- end card body-->
+                                        </div> <!-- end card  -->
+                                    </div> <!-- end col-md-10 -->
+                                </div> <!-- end row-->
+                            </div> <!-- end continer-->
+                        </div>  <!-- end tab ena -->
+
+
+                        <div class="tab-pane fade" id="gisaid" role="tabpanel" aria-labelledby="grupo-tab">
+                            <div class="container-md">
+                                <div class="row mt-5">
+                                    <div class="col-md-10">
+                                        <div class="card">
+                                            <div class="card-header"><h2 style="text-align:center">Samples upload to GISAID </h2> </div>
+                                            <div class="card-body">
+
+
+                                            </div> <!-- end card body-->
+                                        </div> <!-- end card  -->
+                                    </div> <!-- end col-md-10 -->
+                                </div> <!-- end row-->
+                            </div> <!-- end continer-->
+                        </div>  <!-- end tab gisaid -->
+                    </div>  <!-- end tab contacto -->
+                </div>  <!-- end myTabContent -->
+            </div>  <!-- end container -->
+        {% endif %}
     </div>
 </section>
 {% endblock %}

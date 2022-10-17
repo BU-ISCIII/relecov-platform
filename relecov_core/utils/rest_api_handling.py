@@ -35,6 +35,14 @@ def get_laboratory_data(lab_name):
     return data
 
 
+def get_user_credentials():
+    """Fetch the user and password taht are stored in database"""
+    credentials = {}
+    credentials["user"] = get_configuration_value("ISKYLIMS_USER")
+    credentials["pass"] = get_configuration_value("ISKYLIMS_PASSWORD")
+    return credentials
+
+
 def set_laboratory_data(lab_data):
     """Send api request to iSkyLIMS to update laboratory data"""
 
@@ -43,7 +51,8 @@ def set_laboratory_data(lab_data):
 
     request = ISKLIMS_PUT_LABORATORY_PARAMETER
     r_api = RestApi(iskylims_server, iskylims_url)
-    data = r_api.put_request(request, lab_data)
+    credentials = get_user_credentials()
+    data = r_api.put_request(lab_data, credentials, request)
     if "ERROR" in data:
         return {"ERROR": data}
     return data
@@ -57,7 +66,7 @@ def get_sample_fields_data():
     r_api = RestApi(iskylims_server, iskylims_url)
     data = r_api.get_request(request, "", "")
     if "ERROR" in data:
-        return {"ERROR": data}
+        return data
     return data["DATA"]
 
 
