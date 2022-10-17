@@ -1,39 +1,28 @@
-# Documentation
-
-### Relecov-platform documentation
+# Relecov documentation
 
 Below you will find all the necessary information about relecov-platform.
 
-This documentation is structured in the following points, from the installation and initial configuration of the application to its use by administrators and users.
+Documentation is structured in 2 main Guides:
 
-This is a summary of the contents of this document:
+- Installation and configuration.
+- User Guide.
 
-    Usage
-        Getting start
 
-            Installation:
-                Installations steps.
 
-            Configuration
-                Initial Configuration
-            
-            Intranet
-                Create user intranet
-                Access to intranet
-                Upload Metadata Lab
-            
-            Upload Status
-                Upload to ENA
-                Upload to GISAID
-            
-            Result Info
-                Received
-                Processed
-            
-            Downloads
-                Results Download
+## Table of Contents
+- Admin Guide
+    - [Overview](structureOverview.md)
+    - [Installation](installation.md)
+    - [Initial Configuration](initialConfiguration.md)
+    - [User definition](userDefinition)
 
-            Dashboard
+- User Guide
+    - [Intranet](intranet.md)
+    - [Dashboard](dashboard.md)
 
-            API Rest
-            
+The Installation, configuration and user definition steps are referred to bioinformatic
+responsible for getting the application up and running, and in charge to provide
+access to new laboratories.
+
+Intranet and Dashboard chapters is used for laboratory personal to get access to
+ their own data and/or see the graphics available through dashboard

@@ -4,11 +4,17 @@ from django.contrib.auth.decorators import login_required
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     count_samples_in_all_tables,
+    check_if_empty_data,
+    create_form_for_batch,
     create_metadata_form,
     get_sample_display_data,
     get_search_data,
+    join_sample_and_batch,
+    pending_samples_in_metadata_form,
     save_temp_sample_data,
     search_samples,
+    update_temporary_sample_table,
+    write_form_data_to_excel,
 )
 
 from relecov_core.utils.schema_handling import (
@@ -26,10 +32,14 @@ from relecov_core.utils.schema_handling import (
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
 )
+from relecov_core.utils.handling_lab import (
+    get_lab_contact_details,
+    get_submitted_history_data,
+    update_contact_lab,
+)
 
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
-from relecov_core.utils.contributor_info_handling import get_data_from_form
 from relecov_core.utils.generic_functions import check_valid_date_format
 from relecov_core.utils.handling_annotation import (
     read_gff_file,
@@ -39,8 +49,10 @@ from relecov_core.utils.handling_annotation import (
     get_annotation_data,
 )
 from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
+
 from relecov_core.core_config import (
     ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
+    ERROR_USER_IS_NOT_ASSIGNED_TO_LAB,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
     ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
     HEADING_FOR_SAMPLE_LIST,
@@ -112,9 +124,9 @@ def schema_handling(request):
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "uploadSchema":
         if "schemaDefault" in request.POST:
-            schemaDefault = True
+            schemaDefault = "on"
         else:
-            schemaDefault = False
+            schemaDefault = "off"
         schema_data = process_schema_file(
             request.FILES["schemaFile"],
             schemaDefault,
@@ -204,7 +216,6 @@ def search_sample(request):
             return render(
                 request, "relecov_core/searchSample.html", {"list_display": sample}
             )
-    # import pdb; pdb.set_trace()
     if "ERROR" in search_data:
         return render(
             request, "relecov_core/searchSample.html", {"ERROR": search_data["ERROR"]}
@@ -263,7 +274,13 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    return render(request, "relecov_core/intranet.html")
+    lab_all_submits = get_submitted_history_data(request.user)
+
+    if "ERROR" in lab_all_submits:
+        return render(
+            request, "relecov_core/intranet.html", {"ERROR": lab_all_submits["ERROR"]}
+        )
+    return render(request, "relecov_core/intranet.html", {"data": lab_all_submits})
 
 
 def variants(request):
@@ -273,31 +290,61 @@ def variants(request):
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
-    m_form = create_metadata_form(schema_obj, request.user)
-    if "ERROR" in m_form:
-        return render(
-            request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
-        )
     if request.method == "POST" and request.POST["action"] == "defineSamples":
         res_analyze = analyze_input_samples(request)
         # empty form
         if len(res_analyze) == 0:
+            m_form = create_metadata_form(schema_obj, request.user)
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
-            s_saved = save_temp_sample_data(res_analyze["save_samples"])
+            s_saved = save_temp_sample_data(res_analyze["save_samples"], request.user)
         if "s_incomplete" in res_analyze:
             return render(
                 request,
                 "relecov_core/metadataForm.html",
                 {"s_incomplete": res_analyze["s_incomplete"], "m_form": m_form},
             )
-        return render(request, "relecov_core/metadataForm.html", {"s_saved": s_saved})
+        m_batch_form = create_form_for_batch(schema_obj, request.user)
+        return render(
+            request,
+            "relecov_core/metadataForm.html",
+            {"m_batch_form": m_batch_form, "sample_saved": s_saved},
+        )
     if request.method == "POST" and request.POST["action"] == "defineBatch":
-        pass
+        if not check_if_empty_data(request.POST):
+            m_batch_form = create_form_for_batch(schema_obj, request.user)
+            return render(
+                request,
+                "relecov_core/metadataForm.html",
+                {"m_batch_form": m_batch_form},
+            )
+        meta_data = join_sample_and_batch(request.POST, request.user, schema_obj)
+        # write date to excel using relecov tools
+        write_form_data_to_excel(meta_data, request.user)
+        update_temporary_sample_table(request.user)
+        # Display page to indicate that process is starting
+        return render(
+            request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
+        )
     else:
+        if pending_samples_in_metadata_form(request.user):
+            m_batch_form = create_form_for_batch(schema_obj, request.user)
+
+            return render(
+                request,
+                "relecov_core/metadataForm.html",
+                {"m_batch_form": m_batch_form},
+            )
+        m_form = create_metadata_form(schema_obj, request.user)
         if "ERROR" in m_form:
             return render(
                 request, "relecov_core/metadataForm.html", {"ERROR": m_form["ERROR"]}
+            )
+        if m_form["lab_name"] == "":
+            return render(
+                request,
+                "relecov_core/metadataForm.html",
+                {"ERROR": ERROR_USER_IS_NOT_ASSIGNED_TO_LAB},
             )
         return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
 
@@ -344,52 +391,27 @@ def virus_annotation(request):
 
 
 @login_required()
-def contributor_info(request):
-    if request.method == "POST":
-        contributor_info_dict = get_data_from_form(request)
-        print(contributor_info_dict)
-    return render(request, "relecov_core/contributorInfo.html", {})
-
-
-@login_required()
-def upload_status(request):
-    return render(request, "relecov_core/uploadStatus.html", {})
-
-
-@login_required()
-def upload_status_to_ENA(request):
-    return render(request, "relecov_core/uploadStatusToENA.html", {})
-
-
-@login_required()
-def upload_status_to_GISAID(request):
-    return render(request, "relecov_core/uploadStatusToGISAID.html", {})
-
-
-@login_required()
-def results_info_received(request):
-    return render(request, "relecov_core/resultsInfoReceived.html", {})
-
-
-@login_required()
-def results_info_processed(request):
-    return render(request, "relecov_core/resultsInfoProcessed.html", {})
-
-
-@login_required()
-def results_download(request):
-    return render(request, "relecov_core/resultsDownload.html", {})
-
-
-# @login_required()
+def laboratory_contact(request):
+    lab_data = get_lab_contact_details(request.user)
+    if "ERROR" in lab_data:
+        return render(
+            request, "relecov_core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]}
+        )
+    if request.method == "POST" and request.POST["action"] == "updateLabData":
+        result = update_contact_lab(lab_data, request.POST)
+        if isinstance(result, dict):
+            return render(
+                request,
+                "relecov_core/laboratoryContact.html",
+                {"ERROR": result["ERROR"]},
+            )
+        return render(
+            request, "relecov_core/laboratoryContact.html", {"Success": "Success"}
+        )
+    return render(
+        request, "relecov_core/laboratoryContact.html", {"lab_data": lab_data}
+    )
 
 
 def contact(request):
     return render(request, "relecov_core/contact.html", {})
-
-
-# @login_required()
-
-
-def relecov_project(request):
-    return render(request, "relecov_core/relecov_project.html", {})
