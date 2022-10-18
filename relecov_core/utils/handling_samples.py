@@ -352,7 +352,6 @@ def get_sample_display_data(sample_id, user):
 
 def get_sample_obj_from_sample_name(sample_name):
     """Return the sample instance from its name"""
-    print(sample_name)
     if Sample.objects.filter(sequencing_sample_id__iexact=sample_name).exists():
         return Sample.objects.filter(sequencing_sample_id__iexact=sample_name).last()
     return None
@@ -382,6 +381,15 @@ def get_search_data():
     for s_state_obj in s_state_objs:
         s_data["s_state"].append(s_state_obj.get_state())
     return s_data
+
+
+def get_user_from_collecting_institution(lab):
+    """Use the laboratory name defined in the Profile to find out the user.
+    if no user is not defined with this lab it retruns None
+    """
+    if Profile.objects.filter(laboratory__iexact=lab).exists():
+        return Profile.objects.filter(laboratory__iexact=lab).last().user
+    return None
 
 
 def join_sample_and_batch(b_data, user_obj, schema_obj):
