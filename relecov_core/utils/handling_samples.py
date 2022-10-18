@@ -383,12 +383,12 @@ def get_search_data():
     return s_data
 
 
-def get_user_from_collecting_institution(lab):
+def get_user_id_from_collecting_institution(lab):
     """Use the laboratory name defined in the Profile to find out the user.
     if no user is not defined with this lab it retruns None
     """
     if Profile.objects.filter(laboratory__iexact=lab).exists():
-        return Profile.objects.filter(laboratory__iexact=lab).last().user
+        return Profile.objects.filter(laboratory__iexact=lab).last().user.pk
     return None
 
 
