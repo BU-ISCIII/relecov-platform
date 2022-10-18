@@ -1,62 +1,10 @@
-from relecov_core.core_config import (
-    FIELDS_ON_SAMPLE_TABLE,
-    FIELDS_ON_AUTHOR_TABLE,
-    FIELDS_ON_GISAID_TABLE,
-    FIELDS_ON_ENA_TABLE,
-    ERROR_INTIAL_SETTINGS_NOT_DEFINED,
-    ERROR_MISSING_SAMPLE_DATA,
-)
+from relecov_core.core_config import ERROR_INTIAL_SETTINGS_NOT_DEFINED
 from relecov_core.models import SampleState, Sample
 
-from relecov_core.utils.handling_samples import increase_unique_value
-
-
-def check_if_sample_exists(sequencing_sample_id):
-    """Check if sequencing_sample_id is already defined in database"""
-    if Sample.objects.filter(
-        sequencing_sample_id__iexact=sequencing_sample_id
-    ).exists():
-        return True
-    return False
-
-
-def split_sample_data(data):
-    """Split the json request into dictionnaries with the right fields"""
-    split_data = {"sample": {}, "author": {}, "gisaid": {}, "ena": {}}
-
-    for item, value in data.items():
-        if item in FIELDS_ON_SAMPLE_TABLE:
-            split_data["sample"][item] = value
-            continue
-        if item in FIELDS_ON_AUTHOR_TABLE:
-            split_data["author"][item] = value
-            continue
-        if item in FIELDS_ON_GISAID_TABLE:
-            split_data["gisaid"][item] = value
-            continue
-        if item in FIELDS_ON_ENA_TABLE:
-            split_data["ena"][item] = value
-            continue
-        if "schema" not in item:
-            print("Not match ", item)
-            # error_msg = "Not match " + item
-            # return {"ERROR": error_msg}
-    # add user and state to sample data
-    split_data["sample"]["state"] = (
-        SampleState.objects.filter(state__exact="Defined").last().get_state_id()
-    )
-    if split_data["author"]["author_submitter"] == "":
-        split_data["author"]["author_submitter"] = "Not provided yet"
-    if len(split_data["sample"]) < len(FIELDS_ON_SAMPLE_TABLE):
-        return {"ERROR": ERROR_MISSING_SAMPLE_DATA}
-    if Sample.objects.all().exists():
-        last_unique_value = Sample.objects.all().last().get_unique_id()
-        split_data["sample"]["sample_unique_id"] = increase_unique_value(
-            last_unique_value
-        )
-    else:
-        split_data["sample"]["sample_unique_id"] = "AAA-0001"
-    return split_data
+from relecov_core.utils.handling_samples import (
+    increase_unique_value,
+    get_user_id_from_collecting_institution,
+)
 
 
 def prepare_fields_in_sample(s_data):
@@ -73,3 +21,36 @@ def prepare_fields_in_sample(s_data):
     if "gisaid_id" not in s_data:
         s_data["gisaid_id"] = None
     return s_data
+
+
+def split_sample_data(data):
+    """Split the json request into dictionnaries with the right fields"""
+    split_data = {"sample": {}, "author": {}, "gisaid": {}, "ena": {}}
+
+    for item, value in data.items():
+        if "author" in item:
+            split_data["author"][item] = value
+            continue
+        if "gisaid" in item:
+            split_data["gisaid"][item] = value
+            continue
+        if "ena" in item:
+            split_data["ena"][item] = value
+            continue
+        split_data["sample"][item] = value
+
+    # add user and state to sample data
+    split_data["sample"]["state"] = (
+        SampleState.objects.filter(state__exact="Defined").last().get_state_id()
+    )
+    split_data["sample"]["user"] = get_user_id_from_collecting_institution(
+        split_data["sample"]["collecting_institution"]
+    )
+    if Sample.objects.all().exists():
+        last_unique_value = Sample.objects.all().last().get_unique_id()
+        split_data["sample"]["sample_unique_id"] = increase_unique_value(
+            last_unique_value
+        )
+    else:
+        split_data["sample"]["sample_unique_id"] = "AAA-0001"
+    return split_data
