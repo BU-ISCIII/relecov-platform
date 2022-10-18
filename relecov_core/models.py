@@ -822,6 +822,9 @@ class PublicDatabaseFields(models.Model):
     def get_label_name(self):
         return "%s" % (self.label_name)
 
+    def get_id(self):
+        return "%s" % (self.pk)
+
     objects = PublicDatabaseFieldsManager()
 
 
@@ -832,7 +835,7 @@ class PublicDatabaseValues(models.Model):
     sampleID = models.ForeignKey(
         Sample, on_delete=models.CASCADE, null=True, blank=True
     )
-    value = models.CharField(max_length=240)
+    value = models.CharField(max_length=240, null=True, blank=True)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
