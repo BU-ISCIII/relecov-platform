@@ -5,11 +5,13 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
     api_view,
-    # action,
-    #    parser_classes,
 )
 from rest_framework import status
 from rest_framework.response import Response
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 from django.http import QueryDict
 from relecov_core.api.serializers import (
     CreateDateAfterChangeStateSerializer,
@@ -18,14 +20,10 @@ from relecov_core.api.serializers import (
     UpdateStateSampleSerializer,
 )
 
-from relecov_core.api.utils.variant_handling import (
-    split_variant_data,
-    store_variant_annotation,
-    store_variant_in_sample,
-    delete_created_variancs,
-)
+from relecov_core.models import SampleState, Error
+
+
 from relecov_core.api.utils.sample_handling import (
-    # check_if_sample_exists,
     split_sample_data,
 )
 from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
@@ -35,9 +33,14 @@ from relecov_core.api.utils.bioinfo_metadata_handling import (
     store_bioinfo_data,
 )
 
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from relecov_core.models import SampleState, Error
+from relecov_core.api.utils.public_db_handling import store_pub_databases_data
+
+from relecov_core.api.utils.variant_handling import (
+    split_variant_data,
+    store_variant_annotation,
+    store_variant_in_sample,
+    delete_created_variancs,
+)
 
 from relecov_core.api.utils.common_functions import (
     get_schema_version_if_exists,
@@ -137,34 +140,31 @@ def create_sample_data(request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
-        print(data)
+
         schema_obj = get_schema_version_if_exists(data)
+        schema_id = schema_obj.get_schema_id()
         if schema_obj is None:
             error = {"ERROR": "schema name and version is not defined"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        # check if sample is already defined
-        # if "sequencing_sample_id" not in data:
-        if "sequencing_sample_id" not in data:
+        # check if sample id field and collecting_institution are in the request
+        if "sequencing_sample_id" not in data or "collecting_institution" not in data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
+        # check if sample is already defined
         if get_sample_obj_from_sample_name(data["sequencing_sample_id"]):
             error = {"ERROR": "sample already defined"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        data["user"] = request.user.pk
+        # get the user to assign the sample based on the collecting_institution
+        # value. If lab is not define user field is set t
         split_data = split_sample_data(data)
-        if "ERROR" in split_data:
-            return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
-
-        split_data["sample"]["ena_obj"] = None
-        split_data["sample"]["schema_obj"] = schema_obj.get_schema_id()
+        # Add schema id to store in databasee
+        split_data["sample"]["schema_obj"] = schema_id
         sample_serializer = CreateSampleSerializer(data=split_data["sample"])
-
         if not sample_serializer.is_valid():
             return Response(
                 sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-
         sample_obj = sample_serializer.save()
+        sample_id = sample_obj.get_sample_id()
         # update sample state date
         data = {
             "sampleID": sample_obj.get_sample_id(),
@@ -173,6 +173,28 @@ def create_sample_data(request):
         date_serilizer = CreateDateAfterChangeStateSerializer(data=data)
         if date_serilizer.is_valid():
             date_serilizer.save()
+
+        # Save ENA info if included
+        if len(split_data["ena"]) > 0:
+            result = store_pub_databases_data(
+                split_data["ena"], "ena", schema_obj, sample_id
+            )
+            if "ERROR" in result:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # Save GISAID info if included
+        if len(split_data["gisaid"]) > 0:
+            result = store_pub_databases_data(
+                split_data["gisaid"], "gisaid", schema_obj, sample_id
+            )
+            if "ERROR" in result:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # Save AUTHOR info if included
+        if len(split_data["author"]) > 0:
+            result = store_pub_databases_data(
+                split_data["author"], "author", schema_obj, sample_id
+            )
+            if "ERROR" in result:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
