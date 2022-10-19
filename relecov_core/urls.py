@@ -13,7 +13,7 @@ urlpatterns = [
     path(
         "assignSamplesToUser",
         views.assign_samples_to_user,
-        name="assign_samples_to_user"
+        name="assign_samples_to_user",
     ),
     path("Contact", views.contact, name="contact"),
     path("intranet/", views.intranet, name="intranet"),
