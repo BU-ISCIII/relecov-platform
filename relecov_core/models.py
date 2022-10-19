@@ -685,10 +685,11 @@ class Sample(models.Model):
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R2_fastq = models.CharField(max_length=80, null=True, blank=True)
-    fastq_r1_md5 = models.CharField(max_length=80, null=True, blank=True)
-    fastq_r2_md5 = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R1_md5 = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R2_md5 = models.CharField(max_length=80, null=True, blank=True)
     r1_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
     r2_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
+    sequencing_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -759,8 +760,8 @@ class Sample(models.Model):
         data.append(self.sequence_file_R2_fastq)
         data.append(self.r1_fastq_filepath)
         data.append(self.r2_fastq_filepath)
-        data.append(self.fastq_r1_md5)
-        data.append(self.fastq_r2_md5)
+        data.append(self.sequence_file_R1_md5)
+        data.append(self.sequence_file_R2_md5)
         return data
 
     def update_state(self, state):
