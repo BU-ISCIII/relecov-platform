@@ -683,6 +683,7 @@ class Sample(models.Model):
     collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
+    collecting_institution = models.CharField(max_length=120, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R2_fastq = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_md5 = models.CharField(max_length=80, null=True, blank=True)
@@ -713,6 +714,9 @@ class Sample(models.Model):
 
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
+
+    def get_collecting_institution(self):
+        return "%s" % (self.collecting_institution)
 
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
