@@ -1,7 +1,7 @@
 import json
 import os
 from collections import OrderedDict
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
 
@@ -20,8 +20,6 @@ from relecov_core.core_config import (
     FIELD_FOR_GETTING_SAMPLE_ID,
     HEADING_FOR_BASIC_SAMPLE_DATA,
     HEADING_FOR_FASTQ_SAMPLE_DATA,
-    HEADING_FOR_GISAID_SAMPLE_DATA,
-    HEADING_FOR_ENA_SAMPLE_DATA,
 )
 
 
@@ -29,6 +27,8 @@ from relecov_core.models import (
     DateUpdateState,
     MetadataVisualization,
     Profile,
+    PublicDatabaseFields,
+    PublicDatabaseValues,
     SchemaProperties,
     Sample,
     SampleState,
@@ -280,34 +280,56 @@ def create_metadata_form(schema_obj, user_obj):
     return m_form
 
 
-def get_friend_list(user_name):
-    friend_list = []
-    user_groups = user_name.groups.values_list("name", flat=True)
-    if len(user_groups) > 0:
-        for user in user_groups:
-            if User.objects.filter(username__exact=user).exists():
-                # friend_list.append(User.objects.get(username__exact = user).id)
-                friend_list.append(User.objects.get(username__exact=user))
+def get_gisaid_info(sample_obj, schema_obj):
+    """Get the Gisaid information that is stored for the sample"""
+    gisaid_info = []
+    field_objs = get_public_database_fields(schema_obj, "gisaid")
+    if field_objs is None:
+        return gisaid_info
+    for field_obj in field_objs:
+        label = field_obj.get_label_name()
+        value = ""
+        if PublicDatabaseValues.objects.filter(
+            public_database_fieldID=field_obj, sampleID=sample_obj
+        ).exists():
+            value = (
+                PublicDatabaseValues.objects.filter(
+                    public_database_fieldID=field_obj, sampleID=sample_obj
+                )
+                .last()
+                .get_value()
+            )
+        gisaid_info.append([label, value])
+    return gisaid_info
 
-    friend_list.append(user_name)
-    return friend_list
+
+def get_public_database_fields(schema_obj, db_type):
+    """Return the fields allocated for databse type"""
+    if PublicDatabaseFields.objects.filter(
+        schemaID=schema_obj, database_type__public_type_name__iexact=db_type
+    ).exists():
+        return PublicDatabaseFields.objects.filter(
+            schemaID=schema_obj, database_type__public_type_name__iexact=db_type
+        )
+    return None
 
 
 def get_sample_display_data(sample_id, user):
     """Check if user is allow to see the data and if true collect all info
     from sample to display
     """
-    if not Sample.objects.filter(pk__exact=sample_id).exists():
+    sample_obj = get_sample_obj_from_id(sample_id)
+    if sample_obj is None:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
+    schema_obj = sample_obj.get_schema_obj()
+    # Allow to see information obut sample to relecovManager
     group = Group.objects.get(name="RelecovManager")
     if group not in user.groups.all():
-        if not Sample.objects.filter(pk__exact=sample_id, user=user).exists():
-            f_list = get_friend_list(user)
-            if not Sample.objects.filter(pk__exact=sample_id, user__in=f_list).exists():
-                return {"ERROR": ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
-    sample_obj = Sample.objects.filter(pk__exact=sample_id).last()
-    s_data = {}
+        lab_name = sample_obj.get_collecting_institution()
+        if not Profile.objects.filter(user=user, laboratory__iexact=lab_name).exists():
+            return {"ERROR": ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
 
+    s_data = {}
     s_data["basic"] = list(
         zip(HEADING_FOR_BASIC_SAMPLE_DATA, sample_obj.get_sample_basic_data())
     )
@@ -326,12 +348,10 @@ def get_sample_display_data(sample_id, user):
             )
         s_data["actions"] = actions
     # Fetch gisaid and ena information
-    gisaid_data = sample_obj.get_gisaid_info()
-    if gisaid_data is not None:
-        s_data["gisaid"] = list(zip(HEADING_FOR_GISAID_SAMPLE_DATA, gisaid_data))
-    ena_data = sample_obj.get_ena_info()
-    if ena_data != "":
-        s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
+
+    s_data["gisaid_data"] = get_gisaid_info(sample_obj, schema_obj)
+    s_data["ena_data"] = []
+
     lab_sample = sample_obj.get_collecting_lab_sample_id()
     # Fetch information from iSkyLIMS
     if lab_sample != "":
@@ -469,22 +489,12 @@ def pending_samples_in_metadata_form(user_obj):
     return False
 
 
-def search_samples(sample_name, user_name, sample_state, s_date, user):
+def search_samples(sample_name, lab_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
     sample_objs = Sample.objects.all()
-    group = Group.objects.get(name="RelecovManager")
-    if group not in user.groups.all():
-        if user_name != "":
-            if User.objects.filter(username__exact=user_name).exists():
-                user_name_obj = User.objects.filter(username__exact=user_name).last()
-                user_friend_list = get_friend_list(user_name_obj)
-                if not sample_objs.filter(user__in=user_friend_list).exists():
-                    return sample_list
-                else:
-                    sample_objs = sample_objs.filter(user__in=user_friend_list)
-            else:
-                return sample_list
+    if lab_name != "":
+        sample_objs.filter(collecting_institution__iexact=lab_name)
     if sample_name != "":
         if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
             sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)

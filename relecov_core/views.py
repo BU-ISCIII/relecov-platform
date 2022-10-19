@@ -51,7 +51,6 @@ from relecov_core.utils.handling_annotation import (
 from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
 
 from relecov_core.core_config import (
-    ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_USER_IS_NOT_ASSIGNED_TO_LAB,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
     ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
@@ -166,26 +165,12 @@ def search_sample(request):
     if request.method == "POST" and request.POST["action"] == "searchSample":
         sample_name = request.POST["sampleName"]
         s_date = request.POST["sDate"]
-        user_name = request.POST["lab"]
+        lab_name = request.POST["lab"]
         sample_state = request.POST["sampleState"]
         # check that some values are in the request if not return the form
-        if (
-            user_name == ""
-            and s_date == ""
-            and sample_name == ""
-            and sample_state == ""
-        ):
+        if lab_name == "" and s_date == "" and sample_name == "" and sample_state == "":
             return render(
                 request, "relecov_core/searchSample.html", {"search_data": search_data}
-            )
-        if user_name != "" and len(user_name) < 5:
-            return render(
-                request,
-                "relecov_core/searchSample.html",
-                {
-                    "search_data": search_data,
-                    "warning": ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
-                },
             )
         # check the right format of s_date
         if s_date != "" and not check_valid_date_format(s_date):
@@ -198,7 +183,7 @@ def search_sample(request):
                 },
             )
         sample_list = search_samples(
-            sample_name, user_name, sample_state, s_date, request.user
+            sample_name, lab_name, sample_state, s_date, request.user
         )
         if len(sample_list) == 0:
             return render(

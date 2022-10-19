@@ -1,3 +1,4 @@
+from datetime import datetime
 from relecov_core.core_config import ERROR_INTIAL_SETTINGS_NOT_DEFINED
 from relecov_core.models import SampleState, Sample
 
@@ -37,6 +38,8 @@ def split_sample_data(data):
         if "ena" in item:
             split_data["ena"][item] = value
             continue
+        if "date" in item:
+            value = datetime.strptime(value, "%Y-%m-%d")
         split_data["sample"][item] = value
 
     # add user and state to sample data

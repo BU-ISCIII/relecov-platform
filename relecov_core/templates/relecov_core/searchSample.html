@@ -32,12 +32,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for pk, s_name, state, r_date in list_display.s_data %}
+                            {% for pk, s_name, state, seq_date, r_date in list_display.s_data %}
                                 <tr>
                                     <td><a href="sampleDisplay={{pk}}">{{s_name}}</a></td>
                                     <td>{{state}}</td>
+                                    <td>{{seq_date}}</td>
                                     <td>{{r_date}}</td>
-
                                 </tr>
                             {% endfor %}
                         </tbody>
