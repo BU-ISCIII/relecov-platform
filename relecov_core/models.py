@@ -741,10 +741,15 @@ class Sample(models.Model):
 
     def get_info_for_searching(self):
         recorded_date = self.created_at.strftime("%d , %B , %Y")
+        try:
+            seq_date = self.sequencing_date.strftime("%d , %B , %Y")
+        except ValueError:
+            seq_date = ""
         data = []
         data.append(self.pk)
         data.append(self.sequencing_sample_id)
         data.append(self.get_state())
+        data.append(seq_date)
         data.append(recorded_date)
         return data
 
