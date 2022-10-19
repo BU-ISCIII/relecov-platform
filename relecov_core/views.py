@@ -166,7 +166,7 @@ def search_sample(request):
     if request.method == "POST" and request.POST["action"] == "searchSample":
         sample_name = request.POST["sampleName"]
         s_date = request.POST["sDate"]
-        user_name = request.POST["userName"]
+        user_name = request.POST["lab"]
         sample_state = request.POST["sampleState"]
         # check that some values are in the request if not return the form
         if (
