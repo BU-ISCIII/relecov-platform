@@ -33,6 +33,7 @@ from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
 )
 from relecov_core.utils.handling_lab import (
+    get_all_defined_labs,
     get_lab_contact_details,
     get_submitted_history_data,
     update_contact_lab,
@@ -40,7 +41,10 @@ from relecov_core.utils.handling_lab import (
 
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
-from relecov_core.utils.generic_functions import check_valid_date_format
+from relecov_core.utils.generic_functions import (
+    check_valid_date_format,
+    get_defined_users,
+)
 from relecov_core.utils.handling_annotation import (
     read_gff_file,
     stored_gff,
@@ -65,6 +69,22 @@ def index(request):
         request,
         "relecov_core/index.html",
         {"number_of_samples": number_of_samples},
+    )
+
+
+@login_required
+def assign_samples_to_user(request):
+    if request.user.username != "admin":
+        return redirect("/")
+    if request.method == "POST" and request.POST["action"] == "assignSamples":
+        pass
+    lab_data = {}
+    lab_data["labs"] = get_all_defined_labs()
+    lab_data["users"] = get_defined_users()
+    return render(
+        request,
+        "relecov_core/assignSamplesToUser.html",
+        {"lab_data": lab_data},
     )
 
 

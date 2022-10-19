@@ -36,6 +36,12 @@ def get_lab_contact_details(user_obj):
     return ""
 
 
+def get_all_defined_labs():
+    """Get a list of laboratories that are defined in iSkyLIMS"""
+    sum_data = get_summarize_data(None)
+    return list(sum_data["laboratory"].keys())
+
+
 def get_lab_name(user_obj):
     """Get the laboratory name for the user"""
     if Profile.objects.filter(user=user_obj).exists():
