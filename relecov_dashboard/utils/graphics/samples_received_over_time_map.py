@@ -72,7 +72,7 @@ def create_samples_received_over_time_map():
 
     with open(geojson_file) as geo_json:
         counties = json.load(geo_json)
-    
+
     fig = px.choropleth_mapbox(
         ldata,
         geojson=counties,
@@ -93,12 +93,12 @@ def create_samples_received_over_time_map():
             "NUMBER_OF_SAMPLES",
         ],
         hover_name="CCAA_NAME",
-        hover_data = {'CCAA_ID':False},
+        hover_data={"CCAA_ID": False},
     )
     fig.update_layout(margin={"r": 0, "t": 30, "l": 0, "b": 0})
     # Don't show legend in plotly.express
     fig.update_traces(showlegend=False)
-    
+
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
         className="card",
@@ -130,4 +130,3 @@ def create_samples_received_over_time_map():
             ),
         ],
     )
-    
