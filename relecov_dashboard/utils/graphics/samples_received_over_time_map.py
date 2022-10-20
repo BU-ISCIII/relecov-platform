@@ -7,7 +7,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
 
-# sfrom dash.dependencies import Input, Output
 from relecov_platform import settings
 
 
@@ -73,13 +72,13 @@ def create_samples_received_over_time_map():
 
     with open(geojson_file) as geo_json:
         counties = json.load(geo_json)
+    
     fig = px.choropleth_mapbox(
         ldata,
         geojson=counties,
         locations=ldata.CCAA_ID,
         color=ldata.NUMBER_OF_SAMPLES,
         color_continuous_scale="Viridis",
-        # range_color=ldata.NUMBER_OF_SAMPLES.max(),
         range_color=ldata.CCAA_NAME,
         mapbox_style="carto-positron",
         zoom=3.8,
@@ -90,14 +89,16 @@ def create_samples_received_over_time_map():
             "CCAA_NAME": "CCAA",
             "NUMBER_OF_SAMPLES": "NUMBER OF SAMPLES",
         },
-        # hover_data=['CCAA_NAME',"NUMBER_OF_SAMPLES"],
         custom_data=[
             "NUMBER_OF_SAMPLES",
         ],
         hover_name="CCAA_NAME",
+        hover_data = {'CCAA_ID':False},
     )
-    fig.update_layout(margin={"r": 0, "t": 20, "l": 0, "b": 0})
-
+    fig.update_layout(margin={"r": 0, "t": 30, "l": 0, "b": 0})
+    # Don't show legend in plotly.express
+    fig.update_traces(showlegend=False)
+    
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
         className="card",
@@ -129,56 +130,4 @@ def create_samples_received_over_time_map():
             ),
         ],
     )
-    """
-    id="geomap-per-lineage"
-    ccaa_dict = {
-        "Unassigned": 0,
-        "Andalucía": 1,
-        "Aragón": 2,
-        "Islas Baleares": 3,
-        "Islas Canarias": 4,
-        "Cantabria": 5,
-        "Castilla-La Mancha": 6,
-        "Castilla y León": 7,
-        # "Cataluña": 8,
-        "Catalonia": 8,
-        "Ceuta": 9,
-        "Extremadura": 10,
-        "Galicia": 11,
-        "La Rioja": 12,
-        "Madrid": 13,
-        "Melilla": 14,
-        "Murcia": 15,
-        "Navarra": 16,
-        "País Vasco": 17,
-        "Asturias": 18,
-        "Comunidad Valenciana": 19,
-    }
-    """
-
-    """
-    @app.callback(
-        Output("geomap-per-lineage", "figure"),
-        Input("geomap-select-lineage", "value"),
-    )
-    def update_sample(selected_lineage):
-        # lineage_by_ccaa = preprocess_json_data_with_csv(json_data, csv_data)
-        # ldata = set_dataframe_geo_plot(lineage_by_ccaa, selected_lineage)
-        ldata = parse_json_file()
-        fig = px.choropleth_mapbox(
-            data_frame=ldata,
-            geojson=counties,
-            locations=ldata.CCAA_ID,
-            color=ldata.NUMBER_OF_SAMPLES,
-            color_continuous_scale="Viridgraph_templates/is",
-            range_color=ldata.NUMBER_OF_SAMPLES.max(),
-            mapbox_style="carto-positron",
-            zoom=5,
-            center={"lat": 35.9, "lon": -5.3},
-            opacity=0.5,
-            #labels={"Count": "Number of samples"},
-            labels={"CCAA_NAME": "CCAA NAME"},
-        )
-        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-        return fig
-    """
+    
