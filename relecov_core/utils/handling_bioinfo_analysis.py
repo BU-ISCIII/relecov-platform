@@ -1,11 +1,31 @@
-from relecov_core.models import BioinfoAnalysisField, BioInfoAnalysisValue, Schema
+from relecov_core.models import (
+    BioinfoAnalysisField,
+    BioInfoAnalysisValue,
+    DateUpdateState,
+    Sample,
+    Schema,
+)
 
 from relecov_core.utils.handling_samples import (
     get_sample_obj_from_id,
     get_samples_count_per_schema,
 )
-
+from relecov_core.utils.handling_lab import get_lab_name
 from relecov_core.utils.schema_handling import get_schema_obj_from_id
+
+
+def get_bio_analysis_stats_from_lab(user_obj):
+    """Get the number of samples that are analized and compare with the number
+    of recieved samples. It checks the updates in
+    """
+    bio_stats = {}
+    lab_name = get_lab_name(user_obj)
+    sample_objs = Sample.objects.filter(collecting_institution__iexact=lab_name)
+    bio_stats["analized"] = DateUpdateState.objects.filter(
+        stateID__state__iexact="Bioinfo", sampleID__in=sample_objs
+    ).count()
+    bio_stats["received"] = len(sample_objs)
+    return bio_stats
 
 
 def get_bioinfo_analysis_data_from_sample(sample_id):

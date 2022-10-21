@@ -1,6 +1,8 @@
 import json
 import os
 from collections import OrderedDict
+from datetime import datetime
+import pandas as pd
 from django.contrib.auth.models import Group
 from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
@@ -36,6 +38,8 @@ from relecov_core.models import (
 )
 
 from relecov_core.utils.handling_lab import get_lab_name
+
+from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
 from relecov_core.utils.rest_api_handling import (
     get_sample_fields_data,
@@ -280,6 +284,51 @@ def create_metadata_form(schema_obj, user_obj):
     return m_form
 
 
+def create_date_sample_bar(lab_sample):
+    """Create bar graph where X-axis are the dates and Y-axis the number of
+    samples
+    """
+
+    # df = pd.DataFrame(lab_sample, index=[0])
+    col_names = ["Sequencing Date", "Value"]
+    df = pd.DataFrame(lab_sample.items(), columns=col_names)
+
+    options = {
+        "title": "Samples received",
+        "xaxis_title": "Sequencing date",
+        "yaxis_title": "Number of samples",
+        "height": "300",
+        "width": 700,
+    }
+    bar_graph = histogram_graphic(df, col_names, options)
+    # import pdb; pdb.set_trace()
+    return bar_graph
+
+
+def create_percentage_gauge_graphic(values):
+    data = {}
+    x = values["analized"] / values["received"] * 100
+    data["value"] = float("{:.2f}".format(x))
+
+    gauge_graph = gauge_graphic(data)
+    return gauge_graph
+
+
+def get_lab_last_actions(user_obj):
+    actions = {}
+    lab_name = get_lab_name(user_obj)
+    last_sample_obj = Sample.objects.filter(
+        collecting_institution__iexact=lab_name
+    ).last()
+    action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
+    action_list = ["analized", "gisaid", "ena"]
+    for action_obj in action_objs:
+        s_state = action_obj.get_state()
+        if s_state in action_list:
+            actions[s_state] = action_obj.get_date()
+    return actions
+
+
 def get_gisaid_info(sample_obj, schema_obj):
     """Get the Gisaid information that is stored for the sample"""
     gisaid_info = []
@@ -387,6 +436,26 @@ def get_sample_obj_from_id(sample_id):
 def get_samples_count_per_schema(schema_name):
     """Get the number of samples that are stored in the schema"""
     return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
+
+
+def get_sample_per_date_per_lab(user_obj):
+    """Get the historic of submitted sample, creating a dictionary with dates
+    and number of samples
+    """
+    samples_per_date = OrderedDict()
+    lab_name = get_lab_name(user_obj)
+    s_dates = (
+        Sample.objects.filter(collecting_institution__iexact=lab_name)
+        .values_list("sequencing_date", flat=True)
+        .distinct()
+        .order_by("-sequencing_date")
+    )
+    for s_date in s_dates:
+        date = datetime.strftime(s_date, "%d-%B-%Y")
+        samples_per_date[date] = Sample.objects.filter(
+            collecting_institution__iexact=lab_name, sequencing_date=s_date
+        ).count()
+    return samples_per_date
 
 
 def get_search_data():

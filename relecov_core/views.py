@@ -7,8 +7,12 @@ from relecov_core.utils.handling_samples import (
     check_if_empty_data,
     create_form_for_batch,
     create_metadata_form,
+    create_percentage_gauge_graphic,
+    create_date_sample_bar,
+    get_lab_last_actions,
     get_sample_display_data,
     get_search_data,
+    get_sample_per_date_per_lab,
     join_sample_and_batch,
     pending_samples_in_metadata_form,
     save_temp_sample_data,
@@ -31,11 +35,11 @@ from relecov_core.utils.schema_handling import (
 
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
+    get_bio_analysis_stats_from_lab,
 )
 from relecov_core.utils.handling_lab import (
     get_all_defined_labs,
     get_lab_contact_details,
-    get_submitted_history_data,
     update_contact_lab,
 )
 
@@ -279,13 +283,18 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    lab_all_submits = get_submitted_history_data(request.user)
-
-    if "ERROR" in lab_all_submits:
-        return render(
-            request, "relecov_core/intranet.html", {"ERROR": lab_all_submits["ERROR"]}
+    intra_data = {}
+    lab_samples = get_sample_per_date_per_lab(request.user)
+    if len(lab_samples) > 0:
+        analysis_percent = get_bio_analysis_stats_from_lab(request.user)
+        intra_data["sample_bar_graph"] = create_date_sample_bar(lab_samples)
+        intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
+            analysis_percent
         )
-    return render(request, "relecov_core/intranet.html", {"data": lab_all_submits})
+        intra_data["actions"] = get_lab_last_actions(request.user)
+
+    # import pdb; pdb.set_trace()
+    return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
 
 
 def variants(request):
