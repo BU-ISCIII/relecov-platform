@@ -24,7 +24,7 @@
                 <div class="card-body">
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
         			    <li class="nav-item" role="presentation">
-        			    	<button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="true">Sample History</button>
+        			    	<button class="nav-link active" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="history" aria-selected="true">Sample Figures</button>
         			    </li>
         			    <li class="nav-item" role="presentation">
         			   	    <button class="nav-link" id="action-tab" data-bs-toggle="tab" data-bs-target="#actions" type="button" role="tab" aria-controls="actions" aria-selected="false">Actions</button>
@@ -37,22 +37,36 @@
                         </li>
                     </ul>
                     <div class="tab-content" id="myTabContent">
-                        <div class="tab-pane fade show active" id="history" role="tabpanel" aria-labelledby="info-tab">
+                        <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
                            <div class="container-md">
                                 <div class="row mt-4">
-                                    <div class="col-md-10">
-                                        {% if data.sample > 0 %}
-                                            <div class="card">
 
-                                                <div class="card-header text-center"><h2 style="text-align:center">Sample upload to Relecov Platform</h2> </div>
+                                    {% if intra_data.sample_bar_graph %}
+                                        <div class="col-md-7">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="card-title text-center"><h2 style="text-align:center">Sample upload to Relecov Platform</h2> </div>
+                                                    {{ intra_data.sample_bar_graph | safe }}
+                                                </div> <!-- end card-body -->
                                             </div> <!-- end card  -->
-                                        {% else %}
+                                        </div> <!-- end col-md-7 -->
+                                        <div class="col-md-5">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="card-title text-center"><h2 style="text-align:center">Samples Analized</h2> </div>
+                                                    {{ intra_data.sample_gauge_graph | safe }}
+                                                </div> <!-- end card-body -->
+                                            </div> <!-- end card  -->
+                                        </div> <!-- end col-md-5 -->
+
+                                    {% else %}
+                                        <div class="col-md-7">
                                             <div class="card border-warning mb-3">
                                                 <div class="card-header text-center text-warning"><h2 style="text-align:center">No sample are upload yet to Relecov Platform</h2> </div>
                                             </div> <!-- end card  -->
-                                        {% endif %}
+                                        </div> <!-- end col-md-4 -->
+                                    {% endif %}
 
-                                    </div> <!-- end col-md-10 -->
                                 </div> <!-- end row-->
                             </div> <!-- end continer-->
                         </div>  <!-- end tab history -->
