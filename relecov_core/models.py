@@ -740,9 +740,9 @@ class Sample(models.Model):
         return "%s" % (self.user)
 
     def get_info_for_searching(self):
-        recorded_date = self.created_at.strftime("%d , %B , %Y")
+        recorded_date = self.created_at.strftime("%d-%B-%Y")
         try:
-            seq_date = self.sequencing_date.strftime("%d , %B , %Y")
+            seq_date = self.sequencing_date.strftime("%d-%B-%Y")
         except ValueError:
             seq_date = ""
         data = []
@@ -754,7 +754,7 @@ class Sample(models.Model):
         return data
 
     def get_sample_basic_data(self):
-        recorded_date = self.created_at.strftime("%d , %B , %Y")
+        recorded_date = self.created_at.strftime("%d-%B-%Y")
         data = []
         data.append(self.sequencing_sample_id)
         data.append(self.microbiology_lab_sample_id)
@@ -878,9 +878,10 @@ class DateUpdateState(models.Model):
     def get_state_name(self):
         if self.stateID is not None:
             return "%s" % (self.stateID.get_state_display_string())
+        return ""
 
     def get_date(self):
-        return self.date.strftime("%B %d, %Y")
+        return self.date.strftime("%d-%B-%Y")
 
 
 # CHROM	POS	REF	ALT
