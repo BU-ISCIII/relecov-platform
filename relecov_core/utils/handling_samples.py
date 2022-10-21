@@ -326,7 +326,6 @@ def get_lab_last_actions(user_obj):
         s_state = action_obj.get_state_name()
         if s_state in action_list:
             actions[s_state] = action_obj.get_date()
-    import pdb; pdb.set_trace()
     return actions
 
 
