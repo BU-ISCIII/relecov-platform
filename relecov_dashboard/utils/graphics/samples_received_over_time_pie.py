@@ -78,7 +78,7 @@ def create_samples_received_over_time_per_ccaa_pieChart(data):
     )
 
     fig.update_traces(textposition="inside", textinfo="percent+label")
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    fig.update_layout(margin={"r": 0, "t": 20, "l": 0, "b": 0})
 
     app = DjangoDash("samplesReceivedOverTimePerCCAAPie")
     app.layout = html.Div(
@@ -134,7 +134,7 @@ def create_samples_received_over_time_per_laboratory_pieChart(data):
     )
 
     fig.update_traces(textposition="inside", textinfo="percent+label")
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    fig.update_layout(margin={"r": 0, "t": 20, "l": 0, "b": 0})
 
     app = DjangoDash("samplesReceivedOverTimePerLaboratoryPie")
     app.layout = html.Div(
