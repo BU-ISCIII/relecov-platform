@@ -321,11 +321,12 @@ def get_lab_last_actions(user_obj):
         collecting_institution__iexact=lab_name
     ).last()
     action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
-    action_list = ["analized", "gisaid", "ena"]
+    action_list = ["Defined", "Analysis", "Gisaid", "Ena"]
     for action_obj in action_objs:
-        s_state = action_obj.get_state()
+        s_state = action_obj.get_state_name()
         if s_state in action_list:
             actions[s_state] = action_obj.get_date()
+    import pdb; pdb.set_trace()
     return actions
 
 
@@ -393,7 +394,7 @@ def get_sample_display_data(sample_id, user):
         ).order_by("-date")
         for action_date_obj in actions_date_objs:
             actions.append(
-                [action_date_obj.get_state_name(), action_date_obj.get_date()]
+                [action_date_obj.get_state_display_name(), action_date_obj.get_date()]
             )
         s_data["actions"] = actions
     # Fetch gisaid and ena information
