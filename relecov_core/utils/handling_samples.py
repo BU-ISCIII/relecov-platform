@@ -96,7 +96,9 @@ def assign_samples_to_new_user(data):
     """Assign all samples from a laboratory to a new userID"""
     user_obj = User.objects.filter(pk__exact=data["userName"])
     if Sample.objects.filter(collecting_institution__iexact=data["lab"]).exists():
-        Sample.objects.filter(collecting_institution__iexact=data["lab"]).update(user=user_obj[0])
+        Sample.objects.filter(collecting_institution__iexact=data["lab"]).update(
+            user=user_obj[0]
+        )
         return {"Success": "Success"}
     return {"ERROR": ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB + " " + data["lab"]}
 
