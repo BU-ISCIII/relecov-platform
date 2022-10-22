@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from datetime import datetime
 import pandas as pd
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
 
@@ -13,6 +13,7 @@ from relecov_core.core_config import (
     ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM,
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
     ERROR_ISKYLIMS_NOT_REACHEABLE,
+    ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB,
     ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE,
     ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
     ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
@@ -89,6 +90,15 @@ def analyze_input_samples(request):
     if len(s_already_record) > 0:
         result["s_already_record"] = s_already_record
     return result
+
+
+def assign_samples_to_new_user(data):
+    """Assign all samples from a laboratory to a new userID"""
+    user_obj = User.objects.filter(pk__exact=data["userName"])
+    if Sample.objects.filter(collecting_institution__iexact=data["lab"]).exists():
+        Sample.objects.filter(collecting_institution__iexact=data["lab"]).update(user=user_obj[0])
+        return {"Success": "Success"}
+    return {"ERROR": ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB + " " + data["lab"]}
 
 
 def count_samples_in_all_tables():
