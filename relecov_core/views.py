@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
+    assign_samples_to_new_user,
     count_samples_in_all_tables,
     check_if_empty_data,
     create_form_for_batch,
@@ -81,7 +82,9 @@ def assign_samples_to_user(request):
     if request.user.username != "admin":
         return redirect("/")
     if request.method == "POST" and request.POST["action"] == "assignSamples":
-        pass
+        assign = assign_samples_to_new_user(request.POST)
+        return render(request, "relecov_core/assignSamplesToUser.html", assign)
+
     lab_data = {}
     lab_data["labs"] = get_all_defined_labs()
     lab_data["users"] = get_defined_users()
