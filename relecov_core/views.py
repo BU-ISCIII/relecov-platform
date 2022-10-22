@@ -14,6 +14,7 @@ from relecov_core.utils.handling_samples import (
     get_sample_display_data,
     get_search_data,
     get_sample_per_date_per_lab,
+    get_sample_objs_per_lab,
     join_sample_and_batch,
     pending_samples_in_metadata_form,
     save_temp_sample_data,
@@ -43,7 +44,7 @@ from relecov_core.utils.handling_lab import (
     get_lab_contact_details,
     update_contact_lab,
 )
-
+from relecov_core.utils.handling_public_database import get_gisaid_accession_from_sample_lab, get_ena_accession_from_sample_lab
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import (
@@ -287,16 +288,22 @@ def metadata_visualization(request):
 @login_required
 def intranet(request):
     intra_data = {}
-    lab_samples = get_sample_per_date_per_lab(request.user)
-    if len(lab_samples) > 0:
+    date_lab_samples = get_sample_per_date_per_lab(request.user)
+    if len(date_lab_samples) > 0:
+        sample_lab_objs = get_sample_objs_per_lab(request.user)
         analysis_percent = get_bio_analysis_stats_from_lab(request.user)
-        intra_data["sample_bar_graph"] = create_date_sample_bar(lab_samples)
+        intra_data["sample_bar_graph"] = create_date_sample_bar(date_lab_samples)
         intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
             analysis_percent
         )
         intra_data["actions"] = get_lab_last_actions(request.user)
-
-    # import pdb; pdb.set_trace()
+        gisaid_acc = get_gisaid_accession_from_sample_lab(sample_lab_objs)
+        if len(gisaid_acc) > 0:
+            intra_data["gisaid_accession"] = gisaid_acc
+        ena_acc = get_ena_accession_from_sample_lab(sample_lab_objs)
+        if len(ena_acc) > 0:
+            intra_data["ena_accession"] = ena_acc
+    import pdb; pdb.set_trace()
     return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
 
 
