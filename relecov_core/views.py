@@ -44,7 +44,10 @@ from relecov_core.utils.handling_lab import (
     get_lab_contact_details,
     update_contact_lab,
 )
-from relecov_core.utils.handling_public_database import get_gisaid_accession_from_sample_lab, get_ena_accession_from_sample_lab
+from relecov_core.utils.handling_public_database import (
+    get_gisaid_accession_from_sample_lab,
+    get_ena_accession_from_sample_lab,
+)
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import (
@@ -303,7 +306,9 @@ def intranet(request):
         ena_acc = get_ena_accession_from_sample_lab(sample_lab_objs)
         if len(ena_acc) > 0:
             intra_data["ena_accession"] = ena_acc
-    import pdb; pdb.set_trace()
+    import pdb
+
+    pdb.set_trace()
     return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
 
 
