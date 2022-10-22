@@ -47,6 +47,7 @@ from relecov_core.utils.handling_lab import (
 from relecov_core.utils.handling_public_database import (
     get_gisaid_accession_from_sample_lab,
     get_ena_accession_from_sample_lab,
+    percentage_graphic,
 )
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
@@ -303,12 +304,15 @@ def intranet(request):
         gisaid_acc = get_gisaid_accession_from_sample_lab(sample_lab_objs)
         if len(gisaid_acc) > 0:
             intra_data["gisaid_accession"] = gisaid_acc
+        intra_data["gisaid_graph"] = percentage_graphic(
+            len(sample_lab_objs), len(gisaid_acc), ""
+        )
         ena_acc = get_ena_accession_from_sample_lab(sample_lab_objs)
         if len(ena_acc) > 0:
             intra_data["ena_accession"] = ena_acc
-    import pdb
-
-    pdb.set_trace()
+            intra_data["ena_graph"] = percentage_graphic(
+                len(sample_lab_objs), len(ena_acc), ""
+            )
     return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
 
 

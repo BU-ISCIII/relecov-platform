@@ -151,15 +151,24 @@
                                             </div> <!-- end card body-->
                                         </div> <!-- end card  -->
                                     </div> <!-- end col-md-10 -->
+                                    {% if intra_data.ena_graph %}
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-header"><h4 style="text-align:center">ENA Upload </h4> </div>
+                                                <div class="card-body">
+                                                    {{intra_data.ena_graph | safe}}
+                                                </div> <!-- end card body-->
+                                            </div> <!-- end card  -->
+                                        </div> <!-- end col-md-9 -->
+                                    {% endif %}
                                 </div> <!-- end row-->
                             </div> <!-- end continer-->
                         </div>  <!-- end tab ena -->
 
-
                         <div class="tab-pane fade" id="gisaid" role="tabpanel" aria-labelledby="grupo-tab">
                             <div class="container-md">
                                 <div class="row mt-5">
-                                    <div class="col-md-10">
+                                    <div class="col-md-8">
                                         <div class="card">
                                             <div class="card-header"><h2 style="text-align:center">GISAID Accession IDs </h2> </div>
                                             <div class="card-body">
@@ -202,7 +211,17 @@
 
                                             </div> <!-- end card body-->
                                         </div> <!-- end card  -->
-                                    </div> <!-- end col-md-10 -->
+                                    </div> <!-- end col-md-9 -->
+                                    {% if intra_data.gisaid_graph %}
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-header"><h4 style="text-align:center">GISAID Upload </h4> </div>
+                                                <div class="card-body">
+                                                    {{intra_data.gisaid_graph | safe}}
+                                                </div> <!-- end card body-->
+                                            </div> <!-- end card  -->
+                                        </div> <!-- end col-md-9 -->
+                                    {% endif %}
                                 </div> <!-- end row-->
                             </div> <!-- end continer-->
                         </div>  <!-- end tab gisaid -->
