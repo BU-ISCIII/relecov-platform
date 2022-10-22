@@ -2,6 +2,7 @@ from plotly.offline import plot
 
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.figure_factory as ff
 
 
 def histogram_graphic(data, col_names, option):
@@ -38,4 +39,38 @@ def gauge_graphic(data):
     )
     plot_div = plot(graph, output_type="div")
 
+    return plot_div
+
+
+def bullet_graphic(value, title):
+    point = str(value)
+    top_value = int(value)
+    data = [
+        {
+            "label": "Upload %",
+            "range": [40, 70, 100],
+            "performance": [40, top_value],
+            "point": [point],
+        }
+    ]
+
+    measure_colors = ["rgb(68, 107, 162)", "rgb(0, 153, 0)"]
+    fig = ff.create_bullet(
+        data,
+        titles="label",
+        title="",
+        markers="point",
+        measures="performance",
+        ranges="range",
+        orientation="v",
+        measure_colors=measure_colors,
+        margin=dict(
+            t=25,
+            r=0,
+            b=0,
+            l=0,
+        ),
+    )
+    fig.update_layout(height=450, width=330)
+    plot_div = plot(fig, output_type="div")
     return plot_div

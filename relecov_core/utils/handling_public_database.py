@@ -1,4 +1,5 @@
 from relecov_core.models import PublicDatabaseValues
+from relecov_core.utils.plotly_graphics import bullet_graphic
 
 
 def get_gisaid_accession_from_sample_lab(sample_objs):
@@ -24,3 +25,8 @@ def get_ena_accession_from_sample_lab(sample_objs):
         .values_list("sampleID__sequencing_sample_id", "value")
     )
     return ena_acc
+
+
+def percentage_graphic(len_sample, len_acc, title):
+
+    return bullet_graphic(round(len_acc / len_sample, 2) * 100, title)
