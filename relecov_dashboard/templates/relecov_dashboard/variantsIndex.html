@@ -2,7 +2,7 @@
 
 {% load static %}
 {%load plotly_dash%}
-
+<link href="{% static 'relecov_dashboard/dashboard/css/dashboard_isciii_styles.css'%}" rel="stylesheet"/>
 {% block content %}
 <br><br><br><br><br><br>
 <div class="container-fluid" style="text-align: center;">
@@ -22,9 +22,9 @@
   <!---->
   <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
     <p class=" card-title text-center fs-2">Lineages</p>
-    <a href="/dashboard/variants/lineagesDashboard">  
+    <a href="/dashboard/variants/lineagesDashboard">
       <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" class="card-img-top variant_index_img_3d" alt="molecular 3D" style="width: 90%">
-    </a>  
+    </a>
   </div>
   <!---->
   <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
