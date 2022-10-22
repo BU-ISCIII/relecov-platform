@@ -31,10 +31,10 @@
         			   	    <button class="nav-link" id="action-tab" data-bs-toggle="tab" data-bs-target="#actions" type="button" role="tab" aria-controls="actions" aria-selected="false">Actions</button>
         			    </li>
                         <li class="nav-item" role="presentation">
-                           <button class="nav-link" id="ena-tab" data-bs-toggle="tab" data-bs-target="#ena" type="button" role="tab" aria-controls="ena" aria-selected="false">ENA</button>
+                           <button class="nav-link" id="ena-tab" data-bs-toggle="tab" data-bs-target="#ena" type="button" role="tab" aria-controls="ena" aria-selected="false">ENA Accession</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                           <button class="nav-link" id="gisaid-tab" data-bs-toggle="tab" data-bs-target="#gisaid" type="button" role="tab" aria-controls="gisaid" aria-selected="false">GISAID</button>
+                           <button class="nav-link" id="gisaid-tab" data-bs-toggle="tab" data-bs-target="#gisaid" type="button" role="tab" aria-controls="gisaid" aria-selected="false">GISAID Accession</button>
                         </li>
                     </ul>
                     <div class="tab-content" id="myTabContent">
@@ -112,20 +112,19 @@
                                         <div class="card">
                                             <div class="card-header"><h2 style="text-align:center">ENA Samples accession</h2> </div>
                                             <div class="card-body">
-                                                {% if intra_data.ena %}
+                                                {% if intra_data.ena_accession %}
                                                     <table id="enaTable" class="table table-striped table-bordered">
                                                         <thead>
                                                             <tr scope="row">
-                                                                {% for item in intra_data.ena.heading %}
-                                                                    <th>{{item}}</th>
-                                                                {% endfor %}
+                                                                <th>Sample Name ID</th>
+                                                                <th>ENA sample accession </th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {% for sample, acc in intra_data.ena.accession %}
+                                                            {% for sample, acc in intra_data.ena_accession %}
                                                                 <tr>
                                                                     <td>{{sample}}</td>
-                                                                    <td>{{accesion}}</td>
+                                                                    <td>{{acc}}</td>
                                                                 </tr>
                                                             {% endfor %}
                                                         </tbody>
@@ -164,17 +163,16 @@
                                         <div class="card">
                                             <div class="card-header"><h2 style="text-align:center">GISAID Accession IDs </h2> </div>
                                             <div class="card-body">
-                                                {% if intra_data.gisaid %}
+                                                {% if intra_data.gisaid_accession %}
                                                     <table id="gisaidTable" class="table table-striped table-bordered">
                                                         <thead>
                                                             <tr scope="row">
-                                                                {% for item in schema_data.heading %}
-                                                                    <th>{{item}}</th>
-                                                                {% endfor %}
+                                                                <th>Sample Name ID</th>
+                                                                <th>GISAID Accession ID</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {% for sample, acc in intra_data.gisaid.accession %}
+                                                            {% for sample, acc in intra_data.gisaid_accession %}
                                                                 <tr>
                                                                     <td>{{sample}}</td>
                                                                     <td>{{acc}}</td>

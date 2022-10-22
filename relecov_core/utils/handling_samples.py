@@ -469,6 +469,10 @@ def get_sample_per_date_per_lab(user_obj):
         ).count()
     return samples_per_date
 
+def get_sample_objs_per_lab(user_obj):
+    lab_name = get_lab_name(user_obj)
+    return  Sample.objects.filter(collecting_institution__iexact=lab_name)
+
 
 def get_search_data():
     """Fetch data to show in form"""
