@@ -167,7 +167,7 @@ def create_sample_data(request):
         sample_id = sample_obj.get_sample_id()
         # update sample state date
         data = {
-            "sampleID": sample_obj.get_sample_id(),
+            "sampleID": sample_id,
             "stateID": split_data["sample"]["state"],
         }
         date_serilizer = CreateDateAfterChangeStateSerializer(data=data)
@@ -181,6 +181,15 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            if split_data["ena"]["ena_sample_accession"] != "Not Provided":
+                sample_obj.update_state("Ena")
+                state_id = (
+                    SampleState.objects.filter(state__exact="Ena").last().get_state_id()
+                )
+                data = {"sampleID": sample_id, "stateID": state_id}
+                date_serilizer = CreateDateAfterChangeStateSerializer(data=data)
+                if date_serilizer.is_valid():
+                    date_serilizer.save()
         # Save GISAID info if included
         if len(split_data["gisaid"]) > 0:
             result = store_pub_databases_data(
@@ -188,6 +197,17 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            if split_data["gisaid"]["gisaid_accession_id"] != "Not Provided":
+                sample_obj.update_state("Ena")
+                state_id = (
+                    SampleState.objects.filter(state__exact="Gisaid")
+                    .last()
+                    .get_state_id()
+                )
+                data = {"sampleID": sample_id, "stateID": state_id}
+                date_serilizer = CreateDateAfterChangeStateSerializer(data=data)
+                if date_serilizer.is_valid():
+                    date_serilizer.save()
         # Save AUTHOR info if included
         if len(split_data["author"]) > 0:
             result = store_pub_databases_data(
