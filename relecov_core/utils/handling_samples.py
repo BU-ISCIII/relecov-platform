@@ -39,6 +39,8 @@ from relecov_core.models import (
 
 from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
 
+from relecov_core.utils.handling_public_database import get_samples_upload_public_database
+
 from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
 from relecov_core.utils.rest_api_handling import (
@@ -106,11 +108,12 @@ def count_samples_in_all_tables():
     """Count the number of entries that are in Sample,"""
     data = {}
     data["received"] = Sample.objects.all().count()
-    # data["ena"] = EnaInfo.objects.all().count()
-    # data["gisaid"] = GisaidInfo.objects.all().count()
+    data["ena"] = get_samples_upload_public_database("ena_sample_accession")
+    data["gisaid"] = get_samples_upload_public_database("gisaid_accession_id")
     # data["processed"] = AnalysisPerformed.objects.filter(
     #    typeID__type_name__iexact="bioinfo_analysis"
     # ).count()
+    import pdb; pdb.set_trace()
     return data
 
 
