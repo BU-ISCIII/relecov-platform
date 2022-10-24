@@ -4,7 +4,7 @@ from relecov_core.utils.plotly_graphics import bullet_graphic
 
 def get_public_accession_from_sample_lab(p_field, sample_objs):
     """Get the list of the accesion values with their sample"""
-    gisaid_acc = (
+    return (
         PublicDatabaseValues.objects.filter(
             sampleID__in=sample_objs,
             public_database_fieldID__property_name__exact=p_field,
@@ -12,24 +12,24 @@ def get_public_accession_from_sample_lab(p_field, sample_objs):
         .exclude(value="Not Provided")
         .values_list("sampleID__sequencing_sample_id", "value")
     )
-    return gisaid_acc
-
-
-def get_ena_accession_from_sample_lab(sample_objs):
-    ena_acc = (
-        PublicDatabaseValues.objects.filter(
-            sampleID__in=sample_objs,
-            public_database_fieldID__property_name__exact="ena_sample_accession",
-        )
-        .exclude(value="Not Provided")
-        .values_list("sampleID__sequencing_sample_id", "value")
-    )
-    return ena_acc
 
 
 def percentage_graphic(len_sample, len_acc, title):
 
     return bullet_graphic(round(len_acc / len_sample, 2) * 100, title)
+
+
+def get_public_information_from_sample(p_type, sample_id):
+    """Return all values that are stored for the sample and for the public type"""
+    if PublicDatabaseValues.objects.filter(
+        sampleID__pk=sample_id,
+        public_database_fieldID__database_type__public_type_name__iexact=p_type,
+    ).exists():
+        return PublicDatabaseValues.objects.filter(
+            sampleID__pk=sample_id,
+            public_database_fieldID__database_type__public_type_name__iexact=p_type,
+        ).values_list("public_database_fieldID__label_name", "value")
+    return []
 
 
 def get_samples_upload_public_database(field_db, s_names=False):
