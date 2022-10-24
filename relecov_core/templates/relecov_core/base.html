@@ -7,11 +7,8 @@
         <meta content="" name="Relecov">
         <meta content="" name="COVID">
         <title>Relecov Platform</title>
-
         <!-- Favicons -->
         <link href="{% static 'relecov_core/img/favicon.png' %}" rel="icon">
-        <!--buISCIII style sheet css-->
-        <link href="{% static 'dashboard/css/buISCIII_styles.css'%}" rel="stylesheet"/>
 
         <!-- Bootstrap -->
         <link href="{% static 'relecov_core/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -65,8 +62,8 @@
                     <i class="bi bi-list mobile-nav-toggle d-none"></i>
                 </nav><!-- .navbar -->
                 {% if user.is_authenticated %}
-                {% include "registration/login_inline.html" %}
-            {% endif %}
+                    {% include "registration/login_inline.html" %}
+                {% endif %}
             </div>
 
         </header><!-- End Header -->
