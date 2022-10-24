@@ -39,10 +39,6 @@ from relecov_core.models import (
 
 from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
 
-from relecov_core.utils.handling_public_database import (
-    get_samples_upload_public_database,
-)
-
 from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
 from relecov_core.utils.rest_api_handling import (
