@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     assign_samples_to_new_user,
-    count_samples_in_all_tables,
+    count_defined_samples,
     check_if_empty_data,
     create_form_for_batch,
     create_metadata_form,
@@ -38,6 +38,7 @@ from relecov_core.utils.schema_handling import (
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
     get_bio_analysis_stats_from_lab,
+    get_bioinfo_analized_samples,
 )
 from relecov_core.utils.handling_lab import (
     get_all_defined_labs,
@@ -47,6 +48,7 @@ from relecov_core.utils.handling_lab import (
 from relecov_core.utils.handling_public_database import (
     get_gisaid_accession_from_sample_lab,
     get_ena_accession_from_sample_lab,
+    get_samples_upload_public_database,
     percentage_graphic,
 )
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
@@ -73,8 +75,14 @@ from relecov_core.core_config import (
 
 
 def index(request):
-    number_of_samples = count_samples_in_all_tables()
-
+    number_of_samples = count_defined_samples()
+    number_of_samples["ena"] = get_samples_upload_public_database(
+        "ena_sample_accession"
+    )
+    number_of_samples["gisaid"] = get_samples_upload_public_database(
+        "gisaid_accession_id"
+    )
+    number_of_samples["processed"] = get_bioinfo_analized_samples("analysis")
     return render(
         request,
         "relecov_core/index.html",
