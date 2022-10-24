@@ -2,26 +2,27 @@ from rest_framework import serializers
 
 from relecov_core.models import (
     BioInfoAnalysisValue,
+    DateUpdateState,
+    Effect,
+    Filter,
     LineageValues,
     Sample,
-    Effect,
+    Variant,
     VariantAnnotation,
     VariantInSample,
-    Filter,
-    Variant,
-    DateUpdateState,
+    PublicDatabaseValues,
 )
-
-
-class CreateDateAfterChangeStateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DateUpdateState
-        fields = "__all__"
 
 
 class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = BioInfoAnalysisValue
+        fields = "__all__"
+
+
+class CreateDateAfterChangeStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DateUpdateState
         fields = "__all__"
 
 
@@ -70,6 +71,12 @@ class CreateVariantSerializer(serializers.ModelSerializer):
 class CreateLineageValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = LineageValues
+        fields = "__all__"
+
+
+class CreatePublicDatabaseValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PublicDatabaseValues
         fields = "__all__"
 
 

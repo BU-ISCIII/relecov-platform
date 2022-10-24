@@ -10,6 +10,11 @@ urlpatterns = [
         views.annotation_display,
         name="annotation_display",
     ),
+    path(
+        "assignSamplesToUser",
+        views.assign_samples_to_user,
+        name="assign_samples_to_user",
+    ),
     path("Contact", views.contact, name="contact"),
     path("intranet/", views.intranet, name="intranet"),
     path("laboratoryContact/", views.laboratory_contact, name="laboratory_contact"),
