@@ -16,7 +16,6 @@ from relecov_core.core_config import (
     ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB,
     ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE,
     ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
-    ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
     ERROR_SAMPLE_DOES_NOT_EXIST,
     ERROR_SAMPLES_NOT_DEFINED_IN_FORM,
     ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS,
@@ -38,7 +37,7 @@ from relecov_core.models import (
     TemporalSampleStorage,
 )
 
-from relecov_core.utils.handling_lab import get_lab_name
+from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
 
 from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
@@ -475,17 +474,19 @@ def get_sample_objs_per_lab(user_obj):
     return Sample.objects.filter(collecting_institution__iexact=lab_name)
 
 
-def get_search_data():
+def get_search_data(user_obj):
     """Fetch data to show in form"""
-
+    s_data = {}
     if Sample.objects.count() == 0:
         return {"ERROR": ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
-    s_state_objs = SampleState.objects.all()
-    if len(s_state_objs) == 0:
-        return {"ERROR": ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED}
-    s_data = {"s_state": []}
-    for s_state_obj in s_state_objs:
-        s_data["s_state"].append(s_state_obj.get_state())
+    s_data["s_state"] = SampleState.objects.all().values_list("pk", "display_string")
+    # Allow to search information from any laboratoryr
+    group = Group.objects.get(name="RelecovManager")
+    if group in user_obj.groups.all():
+        s_data["labs"] = get_all_defined_labs()
+    else:
+        s_data["labs"] = get_lab_name(user_obj)
+
     return s_data
 
 
@@ -580,7 +581,7 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
     sample_list = []
     sample_objs = Sample.objects.all()
     if lab_name != "":
-        sample_objs.filter(collecting_institution__iexact=lab_name)
+        sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
     if sample_name != "":
         if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
             sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)
@@ -598,8 +599,7 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
         else:
             return sample_list
     if sample_state != "":
-        sample_objs = sample_objs.filter(state__state__exact=sample_state)
-
+        sample_objs = sample_objs.filter(state__pk__exact=sample_state)
     if s_date != "":
         sample_objs = sample_objs.filter(created_at__exact=s_date)
     if len(sample_objs) == 1:
