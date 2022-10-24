@@ -1,4 +1,4 @@
-from relecov_core.models import PublicDatabaseFields, PublicDatabaseValues
+from relecov_core.models import PublicDatabaseValues
 from relecov_core.utils.plotly_graphics import bullet_graphic
 
 
