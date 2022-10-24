@@ -39,7 +39,9 @@ from relecov_core.models import (
 
 from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
 
-from relecov_core.utils.handling_public_database import get_samples_upload_public_database
+from relecov_core.utils.handling_public_database import (
+    get_samples_upload_public_database,
+)
 
 from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
@@ -104,16 +106,10 @@ def assign_samples_to_new_user(data):
     return {"ERROR": ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB + " " + data["lab"]}
 
 
-def count_samples_in_all_tables():
+def count_defined_samples():
     """Count the number of entries that are in Sample,"""
     data = {}
     data["received"] = Sample.objects.all().count()
-    data["ena"] = get_samples_upload_public_database("ena_sample_accession")
-    data["gisaid"] = get_samples_upload_public_database("gisaid_accession_id")
-    # data["processed"] = AnalysisPerformed.objects.filter(
-    #    typeID__type_name__iexact="bioinfo_analysis"
-    # ).count()
-    import pdb; pdb.set_trace()
     return data
 
 
