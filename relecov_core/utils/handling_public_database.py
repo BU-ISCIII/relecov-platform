@@ -1,5 +1,5 @@
 from relecov_core.models import PublicDatabaseValues
-from relecov_core.utils.plotly_graphics import bullet_graphic
+from relecov_core.utils.plotly_graphics import pie_graphic
 
 
 def get_public_accession_from_sample_lab(p_field, sample_objs):
@@ -15,8 +15,12 @@ def get_public_accession_from_sample_lab(p_field, sample_objs):
 
 
 def percentage_graphic(len_sample, len_acc, title):
-
-    return bullet_graphic(round(len_acc / len_sample, 2) * 100, title)
+    """Display Pie graphic with upload samples as len_acc and not upload as the
+    difference from total sample minus the ones that are uploaded
+    """
+    data = [len_acc, len_sample - len_acc]
+    names = ["Upload", "Pending"]
+    return pie_graphic(data, names, title)
 
 
 def get_public_information_from_sample(p_type, sample_id):

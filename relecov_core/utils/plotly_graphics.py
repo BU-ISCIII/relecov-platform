@@ -22,10 +22,6 @@ def histogram_graphic(data, col_names, option):
     return plot_div
 
 
-def pie_graphic(d_frame, option):
-    return
-
-
 def gauge_graphic(data):
     graph = go.Figure(
         go.Indicator(
@@ -73,4 +69,31 @@ def bullet_graphic(value, title):
     )
     fig.update_layout(height=450, width=330)
     plot_div = plot(fig, output_type="div")
+    return plot_div
+
+
+def pie_graphic(data, names, title, show_legend=False):
+    colors = [
+        "cyan",
+        "red",
+        "gold",
+        "darkblue",
+        "darkred",
+        "magenta",
+        "darkorange",
+        "turquoise",
+    ]
+    fig = go.Figure(
+        data=go.Pie(
+            labels=names,
+            values=data,
+        )
+    )
+    fig.update_traces(
+        title=title,
+        title_font=dict(size=15, family="Verdana", color="darkgreen"),
+        marker=dict(colors=colors, line=dict(color="black", width=1)),
+    )
+    fig.update_layout(height=350, width=270, showlegend=show_legend)
+    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
