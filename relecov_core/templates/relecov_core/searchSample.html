@@ -69,82 +69,74 @@
 
                 </div>
             {% endif %}
-            {% if not_result %}
-                <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
-                    <div class="card-body">
-
-                    </div>
-                </div>
-            {% else %}
             {% load user_groups %}
-                <div class="card d-inline-flex flex-column w-auto p-5 border border-success">
-                    <div class="card-body">
-                        <h2 class="card-title">Search sample</h2>
-                        <br><br>
-                        <form method="post" enctype="multipart/form-data" name="searchSample"  id="searchSample" class="form-horizontal well" style="min-height: 100px;">
-                            <div class="card-body">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="searchSample">
-                                <div class="row mb-3">
-                                    <label for="sampleState" class="col-sm-4 col-form-label">Sample State</label>
-                                     <div class="col-sm-7">
-                                        <select name="sampleState" id="sampleState" class="form-select">
-                                        	<option value="">Choose a value</option>
-                                            {% for value in search_data.s_state %}
-                                                <option value="{{value}}">{{value}}</option>
+            <div class="card d-inline-flex flex-column w-auto p-5 border border-success">
+                <div class="card-body">
+                    {% if request.user|has_group:"RelecovManager" %}
+                        <h2 class="card-title">Search sample for any Laboratory</h2>
+                    {% else %}
+                        <h2 class="card-title">Search sample for {{search_data.labs}}</h2>
+                    {% endif %}
+                    <br><br>
+                    <form method="post" enctype="multipart/form-data" name="searchSample"  id="searchSample" class="form-horizontal well" style="min-height: 100px;">
+                        <div class="card-body">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="searchSample">
+                            <div class="row mb-3">
+                                <label for="sampleState" class="col-sm-4 col-form-label">Sample State</label>
+                                 <div class="col-sm-7">
+                                    <select name="sampleState" id="sampleState" class="form-select">
+                                    	<option value="">Choose a value</option>
+                                        {% for id, value in search_data.s_state %}
+                                            <option value="{{id}}">{{value}}</option>
+                                        {% endfor %}
+                                    </select>
+                               </div>  <!-- end select input -->
+                            </div>  <!-- end from-group   -->
+                            <div class="row mb-3">
+                                <label for="sampleName" class="col-sm-4 col-form-label">Search by Name</label>
+                                <div class="col-sm-7">
+                                    <input class="form-control" type="text" id="sampleName", name="sampleName"  placeholder="Search by Name">
+                                </div>  <!-- end text input -->
+                            </div>
+                            <div class="row mb-3">
+                                <label class="col-sm-4 control-label" for="sDate" >Sample defined Date</label>
+                                <div class="col-sm-7">
+                                    <input class="form-control" type="date" name="sDate" id="sDate">
+                                </div>
+                               <br>
+                            </div>  <!-- end from-group   -->
+                            <br>
+                            <br>
+
+                            <div class="row mb-3">
+                                {% if request.user|has_group:"RelecovManager" %}
+                                    <label for="lab"  class="col-sm-4 col-form-label">Search from Laboratory name</label>
+                                    <div class="col-sm-7">
+                                        <select class="form-select" aria-label="Select the Laboratory" name="lab">
+                                            <option value="">Choose a Laboratory </option>
+                                            {% for lab in search_data.labs %}
+                                                <<option value={{lab}}>{{lab}}</option>
                                             {% endfor %}
                                         </select>
-                                   </div>  <!-- end select input -->
-                                </div>  <!-- end from-group   -->
-                                <div class="row mb-3">
-                                    <label for="sampleName" class="col-sm-4 col-form-label">Search by Name</label>
-                                    <div class="col-sm-7">
-                                        <input class="form-control" type="text" id="sampleName", name="sampleName"  placeholder="Search by Name">
-                                    </div>  <!-- end text input -->
+                                    </div>
+                                {% else %}
+                                    <input type="hidden" name="lab" value="{{search_data.labs}}">
+                                {% endif %}
+                            </div>  <!-- end from-group   -->
+                            <br>
+                            <br>
+                            <div class="card-body">
+                                <div class="text-left">
+                                    <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                    <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-sm-4 control-label" for="sDate" >Sample defined Date</label>
-                                    <div class="col-sm-7">
-                                        <input class="form-control" type="date" name="sDate" id="sDate">
-                                    </div>
-                                   <br>
-                                </div>  <!-- end from-group   -->
-                                <br>
-                                <br>
+                            </div>     <!-- end card body  -->
+                        </div>  <!-- end card body   -->
+                    </form>
 
-                                <div class="row mb-3">
-
-                                    {% if request.user|has_group:"RelecovManager" %}
-                                        <label for="lab"  class="col-sm-4 col-form-label">Search from Laboratory name</label>
-                                        <div class="col-sm-7">
-                                            <select class="form-select" aria-label="Select the Laboratory" name="lab">
-                                                <option value="">Choose a Laboratory </option>
-                                                {% for id, lab in search_data.labs %}
-                                                    <<option value="id">{{lab}}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    {% else %}
-
-                                        <label class="col-sm-8 col-form-label col-form-label-lg text-info" for="username" >Samples are filtered by laboratory {{user.get_lab_name}} </label>
-                                        <input type="hidden" name="lab" value="{{search_data.lab_id}}">
-
-                                    {% endif %}
-                                </div>  <!-- end from-group   -->
-                                <br>
-                                <br>
-                                <div class="card-body">
-                                    <div class="text-left">
-                                        <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                        <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
-                                    </div>
-                                </div>     <!-- end card body  -->
-                            </div>  <!-- end card body   -->
-                        </form>
-
-                    </div>
                 </div>
-            {% endif %}
+            </div>
         {% endif %}
     </div>
 </section>

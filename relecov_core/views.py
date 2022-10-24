@@ -193,7 +193,7 @@ def schema_display(request, schema_id):
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
-    search_data = get_search_data()
+    search_data = get_search_data(request.user)
     if request.method == "POST" and request.POST["action"] == "searchSample":
         sample_name = request.POST["sampleName"]
         s_date = request.POST["sDate"]
