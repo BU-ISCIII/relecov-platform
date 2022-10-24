@@ -376,7 +376,6 @@ def get_sample_display_data(sample_id, user):
     sample_obj = get_sample_obj_from_id(sample_id)
     if sample_obj is None:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
-    schema_obj = sample_obj.get_schema_obj()
     # Allow to see information obut sample to relecovManager
     group = Group.objects.get(name="RelecovManager")
     if group not in user.groups.all():
@@ -402,10 +401,6 @@ def get_sample_display_data(sample_id, user):
                 [action_date_obj.get_state_display_name(), action_date_obj.get_date()]
             )
         s_data["actions"] = actions
-    # Fetch gisaid and ena information
-
-    s_data["gisaid_data"] = get_gisaid_info(sample_obj, schema_obj)
-    s_data["ena_data"] = []
 
     lab_sample = sample_obj.get_collecting_lab_sample_id()
     # Fetch information from iSkyLIMS
