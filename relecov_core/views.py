@@ -46,8 +46,7 @@ from relecov_core.utils.handling_lab import (
     update_contact_lab,
 )
 from relecov_core.utils.handling_public_database import (
-    get_gisaid_accession_from_sample_lab,
-    get_ena_accession_from_sample_lab,
+    get_public_accession_from_sample_lab,
     get_samples_upload_public_database,
     percentage_graphic,
 )
@@ -149,6 +148,7 @@ def sample_display(request, sample_id):
         return render(
             request, "relecov_core/sampleDisplay.html", {"ERROR": sample_data["ERROR"]}
         )
+    sample_data["gisaid"] = ""
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
     sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     sample_data["variant"] = get_variant_data_from_sample(sample_id)
@@ -309,13 +309,13 @@ def intranet(request):
             analysis_percent
         )
         intra_data["actions"] = get_lab_last_actions(request.user)
-        gisaid_acc = get_gisaid_accession_from_sample_lab(sample_lab_objs)
+        gisaid_acc = get_public_accession_from_sample_lab("gisaid_accession_id", sample_lab_objs)
         if len(gisaid_acc) > 0:
             intra_data["gisaid_accession"] = gisaid_acc
         intra_data["gisaid_graph"] = percentage_graphic(
             len(sample_lab_objs), len(gisaid_acc), ""
         )
-        ena_acc = get_ena_accession_from_sample_lab(sample_lab_objs)
+        ena_acc = get_public_accession_from_sample_lab("ena_sample_accession", sample_lab_objs)
         if len(ena_acc) > 0:
             intra_data["ena_accession"] = ena_acc
             intra_data["ena_graph"] = percentage_graphic(
