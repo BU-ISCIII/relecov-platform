@@ -174,13 +174,11 @@ ERROR_SAMPLE_NOT_DEFINED = "Sample id is not defined"
 ERROR_SAMPLES_NOT_DEFINED_IN_FORM = (
     "Samples were not defined when loading data for batch "
 )
+ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB = "There is no sample recorded for laboratory"
 ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED = "So far there are no samples defined"
 ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED = "Missing configuration for sample states"
 ERROR_GENE_NOT_DEFINED_IN_DATABASE = "Error Gene not defined in database"
 ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE = "Error Chromosome not defined in database"
-ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS = (
-    "User name must have al least 5 characters"
-)
 ERROR_USER_IS_NOT_ASSIGNED_TO_LAB = "Your account is not assigned to any laboratory"
 ERROR_INVALID_DEFINED_SAMPLE_FORMAT = "The format for the defined Date is incorrect"
 ERROR_NOT_MATCHED_ITEMS_IN_SEARCH = "Your query does not return any match"
@@ -228,13 +226,6 @@ HEADING_FOR_FASTQ_SAMPLE_DATA = [
     "Fastq md5 r1",
     "Fastq md5 r2",
 ]
-HEADING_FOR_GISAID_SAMPLE_DATA = [
-    "GIDAID ID",
-    "Submittion date",
-    "Length",
-    "Virus Name",
-]
-HEADING_FOR_ENA_SAMPLE_DATA = []
 HEADING_SCHEMA_DISPLAY = [
     "Property",
     "Label",
@@ -245,7 +236,12 @@ HEADING_SCHEMA_DISPLAY = [
 
 HEADING_FOR_ANNOTATION_GENE = ["Gene name", "Position start", "Position end"]
 
-HEADING_FOR_SAMPLE_LIST = ["Sequencing Sample ID", "State", "Recorded date"]
+HEADING_FOR_SAMPLE_LIST = [
+    "Sequencing Sample ID",
+    "State",
+    "Sequenced date",
+    "Recorded date",
+]
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
 
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]

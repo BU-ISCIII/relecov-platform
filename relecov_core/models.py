@@ -683,12 +683,14 @@ class Sample(models.Model):
     collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
+    collecting_institution = models.CharField(max_length=120, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R2_fastq = models.CharField(max_length=80, null=True, blank=True)
-    fastq_r1_md5 = models.CharField(max_length=80, null=True, blank=True)
-    fastq_r2_md5 = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R1_md5 = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R2_md5 = models.CharField(max_length=80, null=True, blank=True)
     r1_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
     r2_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
+    sequencing_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -713,6 +715,9 @@ class Sample(models.Model):
     def get_collecting_lab_sample_id(self):
         return "%s" % (self.collecting_lab_sample_id)
 
+    def get_collecting_institution(self):
+        return "%s" % (self.collecting_institution)
+
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
 
@@ -735,16 +740,21 @@ class Sample(models.Model):
         return "%s" % (self.user)
 
     def get_info_for_searching(self):
-        recorded_date = self.created_at.strftime("%d , %B , %Y")
+        recorded_date = self.created_at.strftime("%d-%B-%Y")
+        try:
+            seq_date = self.sequencing_date.strftime("%d-%B-%Y")
+        except ValueError:
+            seq_date = ""
         data = []
         data.append(self.pk)
         data.append(self.sequencing_sample_id)
         data.append(self.get_state())
+        data.append(seq_date)
         data.append(recorded_date)
         return data
 
     def get_sample_basic_data(self):
-        recorded_date = self.created_at.strftime("%d , %B , %Y")
+        recorded_date = self.created_at.strftime("%d-%B-%Y")
         data = []
         data.append(self.sequencing_sample_id)
         data.append(self.microbiology_lab_sample_id)
@@ -759,8 +769,8 @@ class Sample(models.Model):
         data.append(self.sequence_file_R2_fastq)
         data.append(self.r1_fastq_filepath)
         data.append(self.r2_fastq_filepath)
-        data.append(self.fastq_r1_md5)
-        data.append(self.fastq_r2_md5)
+        data.append(self.sequence_file_R1_md5)
+        data.append(self.sequence_file_R2_md5)
         return data
 
     def update_state(self, state):
@@ -822,6 +832,9 @@ class PublicDatabaseFields(models.Model):
     def get_label_name(self):
         return "%s" % (self.label_name)
 
+    def get_id(self):
+        return "%s" % (self.pk)
+
     objects = PublicDatabaseFieldsManager()
 
 
@@ -832,7 +845,7 @@ class PublicDatabaseValues(models.Model):
     sampleID = models.ForeignKey(
         Sample, on_delete=models.CASCADE, null=True, blank=True
     )
-    value = models.CharField(max_length=240)
+    value = models.CharField(max_length=240, null=True, blank=True)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
@@ -864,10 +877,16 @@ class DateUpdateState(models.Model):
 
     def get_state_name(self):
         if self.stateID is not None:
+            return "%s" % (self.stateID.get_state())
+        return ""
+
+    def get_state_display_name(self):
+        if self.stateID is not None:
             return "%s" % (self.stateID.get_state_display_string())
+        return ""
 
     def get_date(self):
-        return self.date.strftime("%B %d, %Y")
+        return self.date.strftime("%d-%B-%Y")
 
 
 # CHROM	POS	REF	ALT

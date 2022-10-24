@@ -1,7 +1,9 @@
 import json
 import os
 from collections import OrderedDict
-from django.contrib.auth.models import User, Group
+from datetime import datetime
+import pandas as pd
+from django.contrib.auth.models import Group, User
 from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
 
@@ -11,17 +13,15 @@ from relecov_core.core_config import (
     ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM,
     ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED,
     ERROR_ISKYLIMS_NOT_REACHEABLE,
+    ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB,
     ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE,
     ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED,
-    ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED,
     ERROR_SAMPLE_DOES_NOT_EXIST,
     ERROR_SAMPLES_NOT_DEFINED_IN_FORM,
     ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS,
     FIELD_FOR_GETTING_SAMPLE_ID,
     HEADING_FOR_BASIC_SAMPLE_DATA,
     HEADING_FOR_FASTQ_SAMPLE_DATA,
-    HEADING_FOR_GISAID_SAMPLE_DATA,
-    HEADING_FOR_ENA_SAMPLE_DATA,
 )
 
 
@@ -29,13 +29,17 @@ from relecov_core.models import (
     DateUpdateState,
     MetadataVisualization,
     Profile,
+    PublicDatabaseFields,
+    PublicDatabaseValues,
     SchemaProperties,
     Sample,
     SampleState,
     TemporalSampleStorage,
 )
 
-from relecov_core.utils.handling_lab import get_lab_name
+from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
+
+from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
 from relecov_core.utils.rest_api_handling import (
     get_sample_fields_data,
@@ -87,15 +91,21 @@ def analyze_input_samples(request):
     return result
 
 
-def count_samples_in_all_tables():
+def assign_samples_to_new_user(data):
+    """Assign all samples from a laboratory to a new userID"""
+    user_obj = User.objects.filter(pk__exact=data["userName"])
+    if Sample.objects.filter(collecting_institution__iexact=data["lab"]).exists():
+        Sample.objects.filter(collecting_institution__iexact=data["lab"]).update(
+            user=user_obj[0]
+        )
+        return {"Success": "Success"}
+    return {"ERROR": ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB + " " + data["lab"]}
+
+
+def count_defined_samples():
     """Count the number of entries that are in Sample,"""
     data = {}
     data["received"] = Sample.objects.all().count()
-    # data["ena"] = EnaInfo.objects.all().count()
-    # data["gisaid"] = GisaidInfo.objects.all().count()
-    # data["processed"] = AnalysisPerformed.objects.filter(
-    #    typeID__type_name__iexact="bioinfo_analysis"
-    # ).count()
     return data
 
 
@@ -280,34 +290,100 @@ def create_metadata_form(schema_obj, user_obj):
     return m_form
 
 
-def get_friend_list(user_name):
-    friend_list = []
-    user_groups = user_name.groups.values_list("name", flat=True)
-    if len(user_groups) > 0:
-        for user in user_groups:
-            if User.objects.filter(username__exact=user).exists():
-                # friend_list.append(User.objects.get(username__exact = user).id)
-                friend_list.append(User.objects.get(username__exact=user))
+def create_date_sample_bar(lab_sample):
+    """Create bar graph where X-axis are the dates and Y-axis the number of
+    samples
+    """
 
-    friend_list.append(user_name)
-    return friend_list
+    # df = pd.DataFrame(lab_sample, index=[0])
+    col_names = ["Sequencing Date", "Value"]
+    df = pd.DataFrame(lab_sample.items(), columns=col_names)
+
+    options = {
+        "title": "Samples received",
+        "xaxis_title": "Sequencing date",
+        "yaxis_title": "Number of samples",
+        "height": "300",
+        "width": 700,
+    }
+    bar_graph = histogram_graphic(df, col_names, options)
+    # import pdb; pdb.set_trace()
+    return bar_graph
+
+
+def create_percentage_gauge_graphic(values):
+    data = {}
+    x = values["analized"] / values["received"] * 100
+    data["value"] = float("{:.2f}".format(x))
+
+    gauge_graph = gauge_graphic(data)
+    return gauge_graph
+
+
+def get_lab_last_actions(user_obj):
+    actions = {}
+    lab_name = get_lab_name(user_obj)
+    last_sample_obj = Sample.objects.filter(
+        collecting_institution__iexact=lab_name
+    ).last()
+    action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
+    action_list = ["Defined", "Analysis", "Gisaid", "Ena"]
+    for action_obj in action_objs:
+        s_state = action_obj.get_state_name()
+        if s_state in action_list:
+            actions[s_state] = action_obj.get_date()
+    return actions
+
+
+def get_gisaid_info(sample_obj, schema_obj):
+    """Get the Gisaid information that is stored for the sample"""
+    gisaid_info = []
+    field_objs = get_public_database_fields(schema_obj, "gisaid")
+    if field_objs is None:
+        return gisaid_info
+    for field_obj in field_objs:
+        label = field_obj.get_label_name()
+        value = ""
+        if PublicDatabaseValues.objects.filter(
+            public_database_fieldID=field_obj, sampleID=sample_obj
+        ).exists():
+            value = (
+                PublicDatabaseValues.objects.filter(
+                    public_database_fieldID=field_obj, sampleID=sample_obj
+                )
+                .last()
+                .get_value()
+            )
+        gisaid_info.append([label, value])
+    return gisaid_info
+
+
+def get_public_database_fields(schema_obj, db_type):
+    """Return the fields allocated for databse type"""
+    if PublicDatabaseFields.objects.filter(
+        schemaID=schema_obj, database_type__public_type_name__iexact=db_type
+    ).exists():
+        return PublicDatabaseFields.objects.filter(
+            schemaID=schema_obj, database_type__public_type_name__iexact=db_type
+        )
+    return None
 
 
 def get_sample_display_data(sample_id, user):
     """Check if user is allow to see the data and if true collect all info
     from sample to display
     """
-    if not Sample.objects.filter(pk__exact=sample_id).exists():
+    sample_obj = get_sample_obj_from_id(sample_id)
+    if sample_obj is None:
         return {"ERROR": ERROR_SAMPLE_DOES_NOT_EXIST}
+    # Allow to see information obut sample to relecovManager
     group = Group.objects.get(name="RelecovManager")
     if group not in user.groups.all():
-        if not Sample.objects.filter(pk__exact=sample_id, user=user).exists():
-            f_list = get_friend_list(user)
-            if not Sample.objects.filter(pk__exact=sample_id, user__in=f_list).exists():
-                return {"ERROR": ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
-    sample_obj = Sample.objects.filter(pk__exact=sample_id).last()
-    s_data = {}
+        lab_name = sample_obj.get_collecting_institution()
+        if not Profile.objects.filter(user=user, laboratory__iexact=lab_name).exists():
+            return {"ERROR": ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
 
+    s_data = {}
     s_data["basic"] = list(
         zip(HEADING_FOR_BASIC_SAMPLE_DATA, sample_obj.get_sample_basic_data())
     )
@@ -322,16 +398,10 @@ def get_sample_display_data(sample_id, user):
         ).order_by("-date")
         for action_date_obj in actions_date_objs:
             actions.append(
-                [action_date_obj.get_state_name(), action_date_obj.get_date()]
+                [action_date_obj.get_state_display_name(), action_date_obj.get_date()]
             )
         s_data["actions"] = actions
-    # Fetch gisaid and ena information
-    gisaid_data = sample_obj.get_gisaid_info()
-    if gisaid_data is not None:
-        s_data["gisaid"] = list(zip(HEADING_FOR_GISAID_SAMPLE_DATA, gisaid_data))
-    ena_data = sample_obj.get_ena_info()
-    if ena_data != "":
-        s_data["ena"] = list(zip(HEADING_FOR_ENA_SAMPLE_DATA, gisaid_data))
+
     lab_sample = sample_obj.get_collecting_lab_sample_id()
     # Fetch information from iSkyLIMS
     if lab_sample != "":
@@ -352,7 +422,6 @@ def get_sample_display_data(sample_id, user):
 
 def get_sample_obj_from_sample_name(sample_name):
     """Return the sample instance from its name"""
-    print(sample_name)
     if Sample.objects.filter(sequencing_sample_id__iexact=sample_name).exists():
         return Sample.objects.filter(sequencing_sample_id__iexact=sample_name).last()
     return None
@@ -370,18 +439,54 @@ def get_samples_count_per_schema(schema_name):
     return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
 
 
-def get_search_data():
-    """Fetch data to show in form"""
+def get_sample_per_date_per_lab(user_obj):
+    """Get the historic of submitted sample, creating a dictionary with dates
+    and number of samples
+    """
+    samples_per_date = OrderedDict()
+    lab_name = get_lab_name(user_obj)
+    s_dates = (
+        Sample.objects.filter(collecting_institution__iexact=lab_name)
+        .values_list("sequencing_date", flat=True)
+        .distinct()
+        .order_by("-sequencing_date")
+    )
+    for s_date in s_dates:
+        date = datetime.strftime(s_date, "%d-%B-%Y")
+        samples_per_date[date] = Sample.objects.filter(
+            collecting_institution__iexact=lab_name, sequencing_date=s_date
+        ).count()
+    return samples_per_date
 
+
+def get_sample_objs_per_lab(user_obj):
+    lab_name = get_lab_name(user_obj)
+    return Sample.objects.filter(collecting_institution__iexact=lab_name)
+
+
+def get_search_data(user_obj):
+    """Fetch data to show in form"""
+    s_data = {}
     if Sample.objects.count() == 0:
         return {"ERROR": ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
-    s_state_objs = SampleState.objects.all()
-    if len(s_state_objs) == 0:
-        return {"ERROR": ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED}
-    s_data = {"s_state": []}
-    for s_state_obj in s_state_objs:
-        s_data["s_state"].append(s_state_obj.get_state())
+    s_data["s_state"] = SampleState.objects.all().values_list("pk", "display_string")
+    # Allow to search information from any laboratoryr
+    group = Group.objects.get(name="RelecovManager")
+    if group in user_obj.groups.all():
+        s_data["labs"] = get_all_defined_labs()
+    else:
+        s_data["labs"] = get_lab_name(user_obj)
+
     return s_data
+
+
+def get_user_id_from_collecting_institution(lab):
+    """Use the laboratory name defined in the Profile to find out the user.
+    if no user is not defined with this lab it retruns None
+    """
+    if Profile.objects.filter(laboratory__iexact=lab).exists():
+        return Profile.objects.filter(laboratory__iexact=lab).last().user.pk
+    return None
 
 
 def join_sample_and_batch(b_data, user_obj, schema_obj):
@@ -461,22 +566,12 @@ def pending_samples_in_metadata_form(user_obj):
     return False
 
 
-def search_samples(sample_name, user_name, sample_state, s_date, user):
+def search_samples(sample_name, lab_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
     sample_objs = Sample.objects.all()
-    group = Group.objects.get(name="RelecovManager")
-    if group not in user.groups.all():
-        if user_name != "":
-            if User.objects.filter(username__exact=user_name).exists():
-                user_name_obj = User.objects.filter(username__exact=user_name).last()
-                user_friend_list = get_friend_list(user_name_obj)
-                if not sample_objs.filter(user__in=user_friend_list).exists():
-                    return sample_list
-                else:
-                    sample_objs = sample_objs.filter(user__in=user_friend_list)
-            else:
-                return sample_list
+    if lab_name != "":
+        sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
     if sample_name != "":
         if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
             sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)
@@ -494,8 +589,7 @@ def search_samples(sample_name, user_name, sample_state, s_date, user):
         else:
             return sample_list
     if sample_state != "":
-        sample_objs = sample_objs.filter(state__state__exact=sample_state)
-
+        sample_objs = sample_objs.filter(state__pk__exact=sample_state)
     if s_date != "":
         sample_objs = sample_objs.filter(created_at__exact=s_date)
     if len(sample_objs) == 1:

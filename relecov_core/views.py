@@ -3,12 +3,18 @@ from django.contrib.auth.decorators import login_required
 
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
-    count_samples_in_all_tables,
+    assign_samples_to_new_user,
+    count_defined_samples,
     check_if_empty_data,
     create_form_for_batch,
     create_metadata_form,
+    create_percentage_gauge_graphic,
+    create_date_sample_bar,
+    get_lab_last_actions,
     get_sample_display_data,
     get_search_data,
+    get_sample_per_date_per_lab,
+    get_sample_objs_per_lab,
     join_sample_and_batch,
     pending_samples_in_metadata_form,
     save_temp_sample_data,
@@ -31,16 +37,26 @@ from relecov_core.utils.schema_handling import (
 
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
+    get_bio_analysis_stats_from_lab,
+    get_bioinfo_analized_samples,
 )
 from relecov_core.utils.handling_lab import (
+    get_all_defined_labs,
     get_lab_contact_details,
-    get_submitted_history_data,
     update_contact_lab,
 )
-
+from relecov_core.utils.handling_public_database import (
+    get_public_accession_from_sample_lab,
+    get_public_information_from_sample,
+    get_samples_upload_public_database,
+    percentage_graphic,
+)
 from relecov_core.utils.handling_variant import get_variant_data_from_sample
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
-from relecov_core.utils.generic_functions import check_valid_date_format
+from relecov_core.utils.generic_functions import (
+    check_valid_date_format,
+    get_defined_users,
+)
 from relecov_core.utils.handling_annotation import (
     read_gff_file,
     stored_gff,
@@ -51,7 +67,6 @@ from relecov_core.utils.handling_annotation import (
 from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
 
 from relecov_core.core_config import (
-    ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
     ERROR_USER_IS_NOT_ASSIGNED_TO_LAB,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
     ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
@@ -60,12 +75,36 @@ from relecov_core.core_config import (
 
 
 def index(request):
-    number_of_samples = count_samples_in_all_tables()
-
+    number_of_samples = count_defined_samples()
+    number_of_samples["ena"] = get_samples_upload_public_database(
+        "ena_sample_accession"
+    )
+    number_of_samples["gisaid"] = get_samples_upload_public_database(
+        "gisaid_accession_id"
+    )
+    number_of_samples["processed"] = get_bioinfo_analized_samples("analysis")
     return render(
         request,
         "relecov_core/index.html",
         {"number_of_samples": number_of_samples},
+    )
+
+
+@login_required
+def assign_samples_to_user(request):
+    if request.user.username != "admin":
+        return redirect("/")
+    if request.method == "POST" and request.POST["action"] == "assignSamples":
+        assign = assign_samples_to_new_user(request.POST)
+        return render(request, "relecov_core/assignSamplesToUser.html", assign)
+
+    lab_data = {}
+    lab_data["labs"] = get_all_defined_labs()
+    lab_data["users"] = get_defined_users()
+    return render(
+        request,
+        "relecov_core/assignSamplesToUser.html",
+        {"lab_data": lab_data},
     )
 
 
@@ -110,6 +149,8 @@ def sample_display(request, sample_id):
         return render(
             request, "relecov_core/sampleDisplay.html", {"ERROR": sample_data["ERROR"]}
         )
+    sample_data["gisaid"] = get_public_information_from_sample("gisaid", sample_id)
+    sample_data["ena"] = get_public_information_from_sample("ena", sample_id)
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
     sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     sample_data["variant"] = get_variant_data_from_sample(sample_id)
@@ -162,30 +203,16 @@ def schema_display(request, schema_id):
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
-    search_data = get_search_data()
+    search_data = get_search_data(request.user)
     if request.method == "POST" and request.POST["action"] == "searchSample":
         sample_name = request.POST["sampleName"]
         s_date = request.POST["sDate"]
-        user_name = request.POST["userName"]
+        lab_name = request.POST["lab"]
         sample_state = request.POST["sampleState"]
         # check that some values are in the request if not return the form
-        if (
-            user_name == ""
-            and s_date == ""
-            and sample_name == ""
-            and sample_state == ""
-        ):
+        if lab_name == "" and s_date == "" and sample_name == "" and sample_state == "":
             return render(
                 request, "relecov_core/searchSample.html", {"search_data": search_data}
-            )
-        if user_name != "" and len(user_name) < 5:
-            return render(
-                request,
-                "relecov_core/searchSample.html",
-                {
-                    "search_data": search_data,
-                    "warning": ERROR_USER_FIELD_DOES_NOT_ENOUGH_CHARACTERS,
-                },
             )
         # check the right format of s_date
         if s_date != "" and not check_valid_date_format(s_date):
@@ -198,7 +225,7 @@ def search_sample(request):
                 },
             )
         sample_list = search_samples(
-            sample_name, user_name, sample_state, s_date, request.user
+            sample_name, lab_name, sample_state, s_date, request.user
         )
         if len(sample_list) == 0:
             return render(
@@ -274,13 +301,33 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    lab_all_submits = get_submitted_history_data(request.user)
-
-    if "ERROR" in lab_all_submits:
-        return render(
-            request, "relecov_core/intranet.html", {"ERROR": lab_all_submits["ERROR"]}
+    intra_data = {}
+    date_lab_samples = get_sample_per_date_per_lab(request.user)
+    if len(date_lab_samples) > 0:
+        sample_lab_objs = get_sample_objs_per_lab(request.user)
+        analysis_percent = get_bio_analysis_stats_from_lab(request.user)
+        intra_data["sample_bar_graph"] = create_date_sample_bar(date_lab_samples)
+        intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
+            analysis_percent
         )
-    return render(request, "relecov_core/intranet.html", {"data": lab_all_submits})
+        intra_data["actions"] = get_lab_last_actions(request.user)
+        gisaid_acc = get_public_accession_from_sample_lab(
+            "gisaid_accession_id", sample_lab_objs
+        )
+        if len(gisaid_acc) > 0:
+            intra_data["gisaid_accession"] = gisaid_acc
+        intra_data["gisaid_graph"] = percentage_graphic(
+            len(sample_lab_objs), len(gisaid_acc), ""
+        )
+        ena_acc = get_public_accession_from_sample_lab(
+            "ena_sample_accession", sample_lab_objs
+        )
+        if len(ena_acc) > 0:
+            intra_data["ena_accession"] = ena_acc
+            intra_data["ena_graph"] = percentage_graphic(
+                len(sample_lab_objs), len(ena_acc), ""
+            )
+    return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
 
 
 def variants(request):
