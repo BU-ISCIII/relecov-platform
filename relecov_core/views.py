@@ -412,7 +412,7 @@ def annotation_display(request, annot_id):
 
 
 @login_required()
-def virus_annotation(request):
+def organism_annotation(request):
     """Store the organism annotation gff file"""
     if request.user.username != "admin":
         return redirect("/")
@@ -422,18 +422,18 @@ def virus_annotation(request):
         if "ERROR" in gff_parsed:
             return render(
                 request,
-                "relecov_core/virusAnnotation.html",
+                "relecov_core/organismAnnotation.html",
                 {"ERROR": gff_parsed["ERROR"], "annotations": annotations},
             )
         stored_gff(gff_parsed, request.user)
         annotations = get_annotations()
         return render(
             request,
-            "relecov_core/virusAnnotation.html",
+            "relecov_core/organismAnnotation.html",
             {"SUCCESS": "Success", "annotations": annotations},
         )
     return render(
-        request, "relecov_core/virusAnnotation.html", {"annotations": annotations}
+        request, "relecov_core/organismAnnotation.html", {"annotations": annotations}
     )
 
 
