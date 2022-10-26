@@ -201,6 +201,7 @@ def get_position_per_sample(sample_name, chromosome):
                 list_of_position.append(variant_in_sample_obj.get_variant_pos())
             return list_of_position
 
+
 """
 def create_dataframe(sample_name, organism_code):
     mdata = {}
