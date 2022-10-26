@@ -1,5 +1,4 @@
 from relecov_core.models import (
-    LineageFields,
     LineageValues,
     Variant,
     VariantAnnotation,
@@ -202,7 +201,7 @@ def get_position_per_sample(sample_name, chromosome):
                 list_of_position.append(variant_in_sample_obj.get_variant_pos())
             return list_of_position
 
-
+"""
 def create_dataframe(sample_name, organism_code):
     mdata = {}
     domains = create_domains_list_of_dict(organism_code)
@@ -216,7 +215,7 @@ def create_dataframe(sample_name, organism_code):
     mdata["domains"] = domains
 
     return mdata
-
+"""
 
 # ITER variant mutation
 def get_variant_data_from_lineages(lineage=None, chromosome=None):

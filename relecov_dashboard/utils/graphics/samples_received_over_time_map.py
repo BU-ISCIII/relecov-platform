@@ -65,7 +65,7 @@ def parse_json_file():
 
 def create_samples_received_over_time_map():
     from datetime import datetime
-    from flask_caching import Cache
+    # from flask_caching import Cache
 
     ldata = parse_json_file()
 

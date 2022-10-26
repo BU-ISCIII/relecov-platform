@@ -57,6 +57,7 @@ from relecov_dashboard.dashboard_config import (
     ERROR_NO_LINEAGES_ARE_DEFINED_YET,
 )
 
+
 # dashboard/variants
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
