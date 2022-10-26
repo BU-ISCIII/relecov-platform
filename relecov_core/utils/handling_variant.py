@@ -218,6 +218,7 @@ def create_dataframe(sample_name, organism_code):
     return mdata
 """
 
+
 # ITER variant mutation
 def get_variant_data_from_lineages(lineage=None, chromosome=None):
     if chromosome is None:
