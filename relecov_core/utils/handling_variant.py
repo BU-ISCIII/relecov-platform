@@ -202,9 +202,9 @@ def get_position_per_sample(sample_name, chromosome):
             return list_of_position
 
 
-"""
 def create_dataframe(sample_name, organism_code):
     mdata = {}
+    """
     domains = create_domains_list_of_dict(organism_code)
     af = get_alelle_frequency_per_sample(sample_name, organism_code)
     pos = get_position_per_sample(sample_name, organism_code)
@@ -214,9 +214,8 @@ def create_dataframe(sample_name, organism_code):
     mdata["y"] = af
     mdata["mutationGroups"] = effects
     mdata["domains"] = domains
-
+    """
     return mdata
-"""
 
 
 # ITER variant mutation
