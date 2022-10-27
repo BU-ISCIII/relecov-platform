@@ -197,7 +197,6 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
-            import pdb; pdb.set_trace()
             if split_data["gisaid"]["gisaid_accession_id"] != "Not Provided":
                 sample_obj.update_state("Gisaid")
                 state_id = (
