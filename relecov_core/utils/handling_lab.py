@@ -24,6 +24,8 @@ def get_lab_contact_details(user_obj):
 def get_all_defined_labs():
     """Get a list of laboratories that are defined in iSkyLIMS"""
     sum_data = get_summarize_data(None)
+    if "ERROR" in sum_data:
+       return sum_data 
     return list(sum_data["laboratory"].keys())
 
 
