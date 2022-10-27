@@ -218,9 +218,6 @@ def create_sample_data(request):
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
-y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
-
-
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -235,12 +232,12 @@ def create_bioinfo_metadata(request):
     if schema_obj is None:
         error = {"ERROR": "schema name and version is not defined"}
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-    if "sample_name" not in data:
+    if "sequencing_sample_id" not in data:
         return Response(
             {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
+    sample_obj = get_sample_obj_from_sample_name(data["sequencing_sample_id"])
     if sample_obj is None:
         return Response(
             {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
@@ -294,6 +291,8 @@ def create_variant_data(request):
                 error = {"ERROR": split_data}
                 found_error = True
                 break
+            import pdb
+            pdb.set_trace()
             variant_in_sample_obj = store_variant_in_sample(
                 split_data["variant_in_sample"]
             )
