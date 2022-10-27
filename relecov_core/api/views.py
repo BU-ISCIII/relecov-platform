@@ -291,8 +291,6 @@ def create_variant_data(request):
                 error = {"ERROR": split_data}
                 found_error = True
                 break
-            import pdb
-            pdb.set_trace()
             variant_in_sample_obj = store_variant_in_sample(
                 split_data["variant_in_sample"]
             )
