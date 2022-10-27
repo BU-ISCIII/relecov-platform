@@ -1,7 +1,6 @@
 from relecov_core.models import BioinfoAnalysisField, LineageFields, Sample
 
 from relecov_core.core_config import (
-    ERROR_FIELD_NOT_DEFINED,
     ERROR_UNABLE_TO_STORE_IN_DATABASE,
 )
 
@@ -17,7 +16,7 @@ def split_bioinfo_data(data, schema_obj):
     split_data["bioinfo"] = {}
     split_data["lineage"] = {}
     for field, value in data.items():
-        if field == "sample_name":
+        if field == "sequencing_sample_id":
             split_data["sample"] = value
         # if this field belongs to BioinfoAnalysisField table
         if BioinfoAnalysisField.objects.filter(
@@ -28,10 +27,8 @@ def split_bioinfo_data(data, schema_obj):
             schemaID=schema_obj, property_name__iexact=field
         ).exists():
             split_data["lineage"][field] = value
-        elif "schema" in field:
-            pass
         else:
-            return {"ERROR": str(field + " " + ERROR_FIELD_NOT_DEFINED)}
+            pass  # ignoring the values that not belongs to bioinfo
     return split_data
 
 
