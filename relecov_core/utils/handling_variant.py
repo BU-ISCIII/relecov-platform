@@ -1,6 +1,5 @@
 from relecov_core.models import (
     LineageValues,
-    Variant,
     VariantAnnotation,
     VariantInSample,
     Chromosome,
@@ -9,11 +8,12 @@ from relecov_core.models import (
     Sample,
 )
 
-
 from relecov_core.utils.handling_samples import (
     get_sample_obj_from_id,
     get_sample_obj_from_sample_name,
 )
+
+from relecov_core.core_config import HEADING_FOR_VARIANT_TABLE_DISPLAY
 
 
 def get_all_chromosome_objs():
@@ -58,35 +58,42 @@ def get_sample_in_variant_list(chromosome_obj):
 
 def get_variant_data_from_sample(sample_id):
     """Collect the variant information for the sample"""
+    data = {}
     sample_obj = get_sample_obj_from_id(sample_id)
-    if not sample_obj:
-        return None
+    if sample_obj is None:
+        return data
     variant_data = []
     if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
+        data["heading"] = HEADING_FOR_VARIANT_TABLE_DISPLAY
         v_in_s_objs = VariantInSample.objects.filter(sampleID_id=sample_obj)
         for v_in_s_obj in v_in_s_objs:
             # DP,REF_DP,ALT_DP,AF
             v_in_s_data = v_in_s_obj.get_variant_in_sample_data()
-            v_objs = Variant.objects.filter(variant_in_sampleID_id=v_in_s_obj)
-            for v_obj in v_objs:
-                # CHROM,POS,REF,ALT,FILTER
-                v_data = v_obj.get_variant_in_sample_data()
-                v_ann_objs = VariantAnnotation.objects.filter(variantID_id=v_obj)
+            v_obj = v_in_s_obj.get_variantID_obj()
+            # CHROM,POS,REF,ALT,FILTER
+            v_data = v_obj.get_variant_data()
+            v_ann_objs = VariantAnnotation.objects.filter(variantID_id=v_obj)
+            if len(v_ann_objs) > 1:
                 v_ann_data_p = []
                 for v_ann_obj in v_ann_objs:
                     # HGVS_C	HGVS_P	HGVS_P_1LETTER
-                    v_ann_data_p.append(v_ann_obj.get_variant_in_sample_data())
-                if len(v_ann_data_p) > 1:
-                    v_ann_data = []
-                    for idx in range(len(v_ann_data_p)):
-                        if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
-                            v_ann_data.append(v_ann_data_p[0][idx])
-                        else:
-                            v_ann_data.append(
-                                str(v_ann_data_p[0][idx] + " - " + v_ann_data_p[1][idx])
-                            )
-        variant_data.append([v_data + v_in_s_data + v_ann_data])
-    return variant_data
+                    v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
+                v_ann_data = []
+                # import pdb; pdb.set_trace()
+                for idx in range(len(v_ann_data_p[0])):
+                    if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
+                        v_ann_data.append(v_ann_data_p[0][idx])
+                    else:
+                        v_ann_data.append(
+                            str(v_ann_data_p[0][idx] + " - " + v_ann_data_p[1][idx])
+                        )
+                v_ann_data_p = v_ann_data
+            else:
+                v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
+            # import pdb; pdb.set_trace()
+            variant_data.append(v_data + v_in_s_data + v_ann_data_p)
+    data["variant_data"] = variant_data
+    return data
 
 
 def get_gene_obj_from_gene_name(gene_name):
