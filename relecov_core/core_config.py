@@ -242,6 +242,18 @@ HEADING_FOR_SAMPLE_LIST = [
     "Sequenced date",
     "Recorded date",
 ]
+HEADING_FOR_VARIANT_TABLE_DISPLAY = [
+    "Ref",
+    "Pos",
+    "Alt",
+    "dp",
+    "ref_dp",
+    "alt_dp",
+    "af",
+    "hgvs_c",
+    "hgvs_p",
+    "hgvs_p_1_letter",
+]
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
 
 MAIN_SCHEMA_STRUCTURE = ["schema", "required", "type", "properties"]
