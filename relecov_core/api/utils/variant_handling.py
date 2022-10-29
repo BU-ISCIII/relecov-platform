@@ -15,6 +15,7 @@ from relecov_core.models import (
     Effect,
     Filter,
     Variant,
+    VariantAnnotation,
 )
 
 from relecov_core.utils.handling_variant import (
@@ -132,3 +133,14 @@ def split_variant_data(data, sample_obj):
 
     split_data["variant_ann"].update(data["VariantAnnotation"])
     return split_data
+
+
+def variant_annotation_exists(data):
+    """Check if variant annotation exists. Return True if exists"""
+    if VariantAnnotation.objects.filter(
+        hgvs_c__iexact=data["hgvs_c"],
+        hgvs_p__iexact=data["hgvs_p"],
+        hgvs_p_1_letter__iexact=data["hgvs_p_1_letter"],
+    ).exists():
+        return True
+    return False

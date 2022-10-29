@@ -40,6 +40,7 @@ from relecov_core.api.utils.variant_handling import (
     store_variant_annotation,
     store_variant_in_sample,
     delete_created_variancs,
+    variant_annotation_exists,
 )
 
 from relecov_core.api.utils.common_functions import (
@@ -299,12 +300,13 @@ def create_variant_data(request):
                 found_error = True
                 break
             v_in_sample_list.append(variant_in_sample_obj)
-            variant_ann_obj = store_variant_annotation(split_data["variant_ann"])
-            if isinstance(variant_ann_obj, dict):
-                error = {"ERROR": variant_ann_obj}
-                found_error = True
-                break
-            v_an_list.append(variant_ann_obj)
+            if not variant_annotation_exists(split_data["variant_ann"]):
+                variant_ann_obj = store_variant_annotation(split_data["variant_ann"])
+                if isinstance(variant_ann_obj, dict):
+                    error = {"ERROR": variant_ann_obj}
+                    found_error = True
+                    break
+                v_an_list.append(variant_ann_obj)
         if found_error:
             delete_created_variancs(v_in_sample_list, v_an_list)
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
