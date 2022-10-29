@@ -922,6 +922,9 @@ class Variant(models.Model):
     def get_alt(self):
         return "%s" % (self.alt)
 
+    def get_variant_data(self):
+        return [self.ref, self.pos, self.alt]
+
 
 # FILTER	DP	REF_DP	ALT_DP	AF
 class VariantInSample(models.Model):  # include Foreign Keys
@@ -941,13 +944,20 @@ class VariantInSample(models.Model):  # include Foreign Keys
         db_table = "VariantInSample"
 
     def __str__(self):
-        return "%s" % (self.dp)
+        return "%s_%s" % (self.sampleID_id, self.variantID_id)
 
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
 
     def get_variantID_id(self):
+        if self.variantID_id is None:
+            return None
         return "%s" % (self.variantID_id.get_variant_id())
+
+    def get_variantID_obj(self):
+        if self.variantID_id is None:
+            return None
+        return self.variantID_id
 
     def get_dp(self):
         return "%s" % (self.dp)
@@ -1006,7 +1016,7 @@ class VariantAnnotation(models.Model):
     def get_effectID_id(self):
         return "%s" % (self.effectID_id)
 
-    def get_variant_in_sample_data(self):
+    def get_variant_annot_data(self):
         data = []
         data.append(self.hgvs_c)
         data.append(self.hgvs_p)
