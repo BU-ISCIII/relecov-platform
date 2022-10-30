@@ -123,23 +123,20 @@ def needle_plot():
         [
             "Show or hide range slider",
             dcc.Dropdown(
-                id='default-needleplot-rangeslider',
-                options=[
-                    {'label': 'Show', 'value': 1},
-                    {'label': 'Hide', 'value': 0}
-                ],
+                id="default-needleplot-rangeslider",
+                options=[{"label": "Show", "value": 1}, {"label": "Hide", "value": 0}],
                 clearable=False,
                 multi=False,
                 value=1,
-                style={'width': '400px'}
+                style={"width": "400px"},
             ),
             dashbio.NeedlePlot(
                 id="dashbio-default-needleplot",
                 mutationData=mdata,
                 height=550,
                 width=800,
-                domainStyle={"textangle" : -45}
-            )
+                domainStyle={"textangle": -45},
+            ),
         ]
     )
 
