@@ -11,8 +11,7 @@ Mutation heatmap
 """
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 import plotly.express as px
 import pandas as pd
 from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name

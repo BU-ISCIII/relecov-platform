@@ -3,8 +3,7 @@ import pandas as pd
 import json
 import plotly.express as px
 
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 from django_plotly_dash import DjangoDash
 
 from relecov_platform import settings
