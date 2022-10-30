@@ -4,7 +4,7 @@ cryptography
 django==3.2.10
 dash==2.6.2
 dash-core-components==2.0.0
-dash-bootstrap-components==0.13.1
+dash-bootstrap-components==1.2.1
 dash-bio==1.0.2
 django_extensions
 django-plotly-dash==2.0.0
