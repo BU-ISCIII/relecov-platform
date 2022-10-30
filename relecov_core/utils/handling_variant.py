@@ -16,6 +16,8 @@ from relecov_core.utils.handling_samples import (
 from relecov_core.core_config import HEADING_FOR_VARIANT_TABLE_DISPLAY
 
 
+from relecov_core.utils.plotly_graphics import needle_plot
+
 def get_all_chromosome_objs():
     """Get the instance of all defined chromosomes"""
     if Chromosome.objects.all().exists():
@@ -95,6 +97,9 @@ def get_variant_data_from_sample(sample_id):
     data["variant_data"] = variant_data
     return data
 
+
+def get_variant_graphic():
+    return needle_plot()
 
 def get_gene_obj_from_gene_name(gene_name):
     if Gene.objects.filter(gene_name__iexact=gene_name).exists():

@@ -1,6 +1,6 @@
 {% extends "relecov_core/base.html" %}
 {% load static %}
-
+{%load plotly_dash%}
 {% block content %}
 {% include "relecov_core/intranetSidebar.html" %}
 {% include "relecov_core/cdn_table_functionality.html" %}
@@ -400,7 +400,10 @@
                                 <div class="card">
                                     <div class="card-header"><h3 style="text-align:center">Variant Graphic</h3> </div>
                                     <div class="card-body  text-center">
-                                        {% if sample_data.variant.graphic %}
+                                        {% if sample_data.variant.variant_data %}
+                                            <div class="card-body">
+                                                {% plotly_app name="sampleVariantGraphic" ratio=1 %}
+                                            </div>
                                         {% else %}
                                                 <h5>Not Available information </h5>
                                             {% endif %}
