@@ -1,10 +1,10 @@
 import os
 from django_plotly_dash import DjangoDash
-import dash_table
+from dash import dash_table
 from dash.dependencies import Input, Output
 import pandas as pd
 import dash_bio as dashbio
-import dash_html_components as html
+from dash import html
 from relecov_platform import settings
 from relecov_dashboard.utils.graphics.graphics_handling import (
     screen_size,
