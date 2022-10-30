@@ -102,44 +102,50 @@ def pie_graphic(data, names, title, show_legend=False):
 def needle_plot():
     import json
     import urllib.request as urlreq
-    
+
     import dash_bio as dashbio
 
-    # import dash_core_components as dcc
     from dash import dcc, html
     from django_plotly_dash import DjangoDash
     from dash.dependencies import Input, Output
-        
 
-
-
-    data = urlreq.urlopen(
-        'https://git.io/needle_PIK3CA.json'
-    ).read().decode('utf-8')
+    data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
     app = DjangoDash("sampleVariantGraphic")
-    fig = dashbio.NeedlePlot(
+    """ fig = dashbio.NeedlePlot(
         id='dashbio-default-needleplot',
         mutationData=mdata,
         height=450,
-    )
-    
-    app.layout = html.Div(
-        className="card",
-        children=[
-            
-            html.Div(fig),
-        ],
-    )
-        
-    
-    # plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    ) """
 
+    app.layout = html.Div(
+        [
+            "Show or hide range slider",
+            dcc.Dropdown(
+                id='default-needleplot-rangeslider',
+                options=[
+                    {'label': 'Show', 'value': 1},
+                    {'label': 'Hide', 'value': 0}
+                ],
+                clearable=False,
+                multi=False,
+                value=1,
+                style={'width': '400px'}
+            ),
+            dashbio.NeedlePlot(
+                id="dashbio-default-needleplot",
+                mutationData=mdata,
+                height=550,
+                width=800,
+                domainStyle={"textangle" : -45}
+            )
+        ]
+    )
 
     @app.callback(
-        Output('dashbio-default-needleplot', 'rangeSlider'),
-        Input('default-needleplot-rangeslider', 'value')
+        Output("dashbio-default-needleplot", "rangeSlider"),
+        Input("default-needleplot-rangeslider", "value"),
     )
     def update_needleplot(show_rangeslider):
         return True if show_rangeslider else False
