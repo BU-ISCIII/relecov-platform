@@ -243,8 +243,8 @@ HEADING_FOR_SAMPLE_LIST = [
     "Recorded date",
 ]
 HEADING_FOR_VARIANT_TABLE_DISPLAY = [
-    "Ref",
     "Pos",
+    "Ref",
     "Alt",
     "dp",
     "ref_dp",

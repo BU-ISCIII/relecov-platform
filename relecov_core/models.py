@@ -923,7 +923,7 @@ class Variant(models.Model):
         return "%s" % (self.alt)
 
     def get_variant_data(self):
-        return [self.ref, self.pos, self.alt]
+        return [self.pos, self.ref, self.alt]
 
 
 # FILTER	DP	REF_DP	ALT_DP	AF
