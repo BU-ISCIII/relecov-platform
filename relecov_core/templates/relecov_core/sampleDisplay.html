@@ -17,22 +17,25 @@
         {% else %}
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Data</button>
+                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Data</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#database" type="button" role="tab" aria-controls="database" aria-selected="false">Public Databases</button>
+                    <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database" type="button" role="tab" aria-controls="database" aria-selected="false">Public Databases</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#iskylims" type="button" role="tab" aria-controls="iskylims" aria-selected="false">Lab data</button>
+                    <button class="nav-link" id="meta-lab-tab" data-bs-toggle="tab" data-bs-target="#meta-lab" type="button" role="tab" aria-controls="iskylims" aria-selected="false">Lab data</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">Analysis</button>
+                    <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">Analysis</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#lineage" type="button" role="tab" aria-controls="analysis" aria-selected="false">Lineage</button>
+                    <button class="nav-link" id="lineage-tab" data-bs-toggle="tab" data-bs-target="#lineage" type="button" role="tab" aria-controls="analysis" aria-selected="false">Lineage</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#variant" type="button" role="tab" aria-controls="analysis" aria-selected="false">Variant</button>
+                    <button class="nav-link" id="variant-tab" data-bs-toggle="tab" data-bs-target="#variant" type="button" role="tab" aria-controls="analysis" aria-selected="false">Variant</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="graphic-tab" data-bs-toggle="tab" data-bs-target="#graphic" type="button" role="tab" aria-controls="analysis" aria-selected="false">Graphic</button>
                 </li>
             </ul>
             <div class="tab-content" id="myTabContent">
@@ -194,7 +197,7 @@
                         </div> <!-- end row-->
                     </div> <!-- end continer-->
                 </div>  <!-- end tab database -->
-                <div class="tab-pane fade" id="iskylims" role="tabpanel" aria-labelledby="grupo-tab">
+                <div class="tab-pane fade" id="meta-lab" role="tabpanel" aria-labelledby="grupo-tab">
                     <div class="container-md">
                         <div class="row mt-5">
                             <div class="col-md-12">
@@ -259,7 +262,7 @@
                              </div> <!-- end row-->
                         {% endif %}
                     </div> <!-- end continer-->
-                </div>  <!-- end tab database -->
+                </div>  <!-- end tab meta-lab -->
                 <script type="text/javascript">
                     $(document).ready(function() {
                         $('#i_project').DataTable({
@@ -299,7 +302,7 @@
                             </div> <!-- end col-md-12 -->
                         </div> <!-- end row-->
                     </div> <!-- end continer-->
-                </div>  <!-- end tab database -->
+                </div>  <!-- end tab analysis -->
                 <script type="text/javascript">
                     $(document).ready(function() {
                         $('#bio_data').DataTable({
@@ -339,7 +342,7 @@
                             </div> <!-- end col-md-12 -->
                         </div> <!-- end row-->
                     </div> <!-- end continer-->
-                </div>  <!-- end tab database -->
+                </div>  <!-- end tab lineage -->
                 <script type="text/javascript">
                     $(document).ready(function() {
                         $('#lineage_data').DataTable({
@@ -381,7 +384,7 @@
                             </div> <!-- end col-md-12 -->
                         </div> <!-- end row-->
                     </div> <!-- end continer-->
-                </div>  <!-- end tab database -->
+                </div>  <!-- end tab variant -->
                 <script type="text/javascript">
                     $(document).ready(function() {
                         $('#variant_table_data').DataTable({
@@ -389,7 +392,25 @@
                         });
                    });
                 </script>
-            </div>  <!-- end myTabContent -->
+            
+                <div class="tab-pane fade" id="graphic" role="tabpanel" aria-labelledby="grupo-tab">
+                    <div class="container-md">
+                        <div class="row mt-5">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header"><h3 style="text-align:center">Variant Graphic</h3> </div>
+                                    <div class="card-body  text-center">
+                                        {% if sample_data.variant.graphic %}
+                                        {% else %}
+                                                <h5>Not Available information </h5>
+                                            {% endif %}
+                                    </div>     <!-- end card body  -->
+                                </div> <!-- end card  -->
+                            </div> <!-- end col-md-12 -->
+                        </div> <!-- end row-->
+                    </div> <!-- end continer-->
+                </div>  <!-- end tab graphic -->
+            </div>  <!-- end TabContent -->
         {% endif %}
     </div>  <!-- end container -->
 </section>
