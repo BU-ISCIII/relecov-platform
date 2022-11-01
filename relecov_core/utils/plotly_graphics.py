@@ -133,7 +133,7 @@ def needle_plot():
                 id="dashbio-default-needleplot",
                 mutationData=mdata,
                 height=550,
-                width=800,
+                width=700,
                 domainStyle={"textangle": -45},
             ),
         ]
