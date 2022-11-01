@@ -118,7 +118,6 @@ def needle_plot():
         mutationData=mdata,
         height=450,
     ) """
-    import pdb; pdb.set_trace()
     app.layout = html.Div(
         [
             "Show or hide range slider",
