@@ -3,8 +3,7 @@ import pandas as pd
 import json
 import plotly.express as px
 
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 from django_plotly_dash import DjangoDash
 
 from relecov_platform import settings
@@ -64,6 +63,10 @@ def parse_json_file():
 
 
 def create_samples_received_over_time_map():
+    from datetime import datetime
+
+    # from flask_caching import Cache
+
     ldata = parse_json_file()
 
     geojson_file = os.path.join(
@@ -72,6 +75,7 @@ def create_samples_received_over_time_map():
 
     with open(geojson_file) as geo_json:
         counties = json.load(geo_json)
+    print("file_readed ", datetime.now().strftime("%H:%M:%S"))
 
     fig = px.choropleth_mapbox(
         ldata,
@@ -98,7 +102,7 @@ def create_samples_received_over_time_map():
     fig.update_layout(margin={"r": 0, "t": 30, "l": 0, "b": 0})
     # Don't show legend in plotly.express
     fig.update_traces(showlegend=False)
-
+    print("image_processed ", datetime.now().strftime("%H:%M:%S"))
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
         className="card",

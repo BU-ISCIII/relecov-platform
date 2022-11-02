@@ -473,7 +473,11 @@ def get_search_data(user_obj):
     # Allow to search information from any laboratoryr
     group = Group.objects.get(name="RelecovManager")
     if group in user_obj.groups.all():
-        s_data["labs"] = get_all_defined_labs()
+        def_labs = get_all_defined_labs()
+        if "ERROR" in def_labs:
+            s_data["labs"] = ["", ""]
+        else:
+            s_data["labs"] = def_labs
     else:
         s_data["labs"] = get_lab_name(user_obj)
 

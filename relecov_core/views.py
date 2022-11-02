@@ -51,7 +51,10 @@ from relecov_core.utils.handling_public_database import (
     get_samples_upload_public_database,
     percentage_graphic,
 )
-from relecov_core.utils.handling_variant import get_variant_data_from_sample
+from relecov_core.utils.handling_variant import (
+    get_variant_data_from_sample,
+    get_variant_graphic,
+)
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import (
     check_valid_date_format,
@@ -154,6 +157,7 @@ def sample_display(request, sample_id):
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
     sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     sample_data["variant"] = get_variant_data_from_sample(sample_id)
+    sample_data["graphic"] = get_variant_graphic()
     return render(
         request, "relecov_core/sampleDisplay.html", {"sample_data": sample_data}
     )
@@ -412,7 +416,7 @@ def annotation_display(request, annot_id):
 
 
 @login_required()
-def virus_annotation(request):
+def organism_annotation(request):
     """Store the organism annotation gff file"""
     if request.user.username != "admin":
         return redirect("/")
@@ -422,18 +426,18 @@ def virus_annotation(request):
         if "ERROR" in gff_parsed:
             return render(
                 request,
-                "relecov_core/virusAnnotation.html",
+                "relecov_core/organismAnnotation.html",
                 {"ERROR": gff_parsed["ERROR"], "annotations": annotations},
             )
         stored_gff(gff_parsed, request.user)
         annotations = get_annotations()
         return render(
             request,
-            "relecov_core/virusAnnotation.html",
+            "relecov_core/organismAnnotation.html",
             {"SUCCESS": "Success", "annotations": annotations},
         )
     return render(
-        request, "relecov_core/virusAnnotation.html", {"annotations": annotations}
+        request, "relecov_core/organismAnnotation.html", {"annotations": annotations}
     )
 
 

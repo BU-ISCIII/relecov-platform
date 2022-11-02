@@ -257,7 +257,6 @@ class PropertyOptions(models.Model):
     objects = PropertyOptionsManager()
 
 
-# Metadata_json
 class MetadataVisualizationManager(models.Manager):
     def create_metadata_visualization(self, data):
         new_met_visual = self.create(
@@ -354,7 +353,6 @@ class BioInfoAnalysisValue(models.Model):
     bioinfo_analysis_fieldID = models.ForeignKey(
         BioinfoAnalysisField, on_delete=models.CASCADE
     )
-    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
@@ -424,7 +422,6 @@ class LineageFields(models.Model):
 
 
 class LineageValues(models.Model):
-    # sampleID_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
     value = models.CharField(max_length=240)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -479,7 +476,6 @@ class Effect(models.Model):
         return "%s" % (self.effect)
 
 
-# Chromosome Table
 class ChromosomeManager(models.Manager):
     def create_new_chromosome(self, data):
         new_chromosome = self.create(chromosome=data)
@@ -562,7 +558,6 @@ class OrganismAnnotation(models.Model):
     objects = OrganismAnnotationManger()
 
 
-# Gene Table
 class GeneManager(models.Manager):
     def create_new_gene(self, data):
         new_gene = self.create(
@@ -603,7 +598,6 @@ class Gene(models.Model):
     objects = GeneManager()
 
 
-# Sample states table
 class SampleState(models.Model):
     state = models.CharField(max_length=80)
     display_string = models.CharField(max_length=80, null=True, blank=True)
@@ -650,7 +644,6 @@ class Error(models.Model):
         return "%s" % (self.description)
 
 
-# Sample Table
 class SampleManager(models.Manager):
     def create_new_sample(self, data):
         state = SampleState.objects.filter(state__exact=data["state"]).last()
@@ -889,7 +882,6 @@ class DateUpdateState(models.Model):
         return self.date.strftime("%d-%B-%Y")
 
 
-# CHROM	POS	REF	ALT
 class Variant(models.Model):
     chromosomeID_id = models.ForeignKey(
         Chromosome, on_delete=models.CASCADE, null=True, blank=True
@@ -922,9 +914,11 @@ class Variant(models.Model):
     def get_alt(self):
         return "%s" % (self.alt)
 
+    def get_variant_data(self):
+        return [self.pos, self.ref, self.alt]
 
-# FILTER	DP	REF_DP	ALT_DP	AF
-class VariantInSample(models.Model):  # include Foreign Keys
+
+class VariantInSample(models.Model):
     sampleID_id = models.ForeignKey(
         Sample, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -941,13 +935,20 @@ class VariantInSample(models.Model):  # include Foreign Keys
         db_table = "VariantInSample"
 
     def __str__(self):
-        return "%s" % (self.dp)
+        return "%s_%s" % (self.sampleID_id, self.variantID_id)
 
     def get_variant_in_sample_id(self):
         return "%s" % (self.pk)
 
     def get_variantID_id(self):
+        if self.variantID_id is None:
+            return None
         return "%s" % (self.variantID_id.get_variant_id())
+
+    def get_variantID_obj(self):
+        if self.variantID_id is None:
+            return None
+        return self.variantID_id
 
     def get_dp(self):
         return "%s" % (self.dp)
@@ -978,7 +979,6 @@ class VariantInSample(models.Model):  # include Foreign Keys
         return data
 
 
-# variant annotation GENE	EFFECT??	HGVS_C	HGVS_P	HGVS_P_1LETTER
 class VariantAnnotation(models.Model):
     geneID_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
     effectID_id = models.ForeignKey(
@@ -1006,7 +1006,7 @@ class VariantAnnotation(models.Model):
     def get_effectID_id(self):
         return "%s" % (self.effectID_id)
 
-    def get_variant_in_sample_data(self):
+    def get_variant_annot_data(self):
         data = []
         data.append(self.hgvs_c)
         data.append(self.hgvs_p)
@@ -1027,7 +1027,6 @@ class TemporalSampleStorageManager(models.Manager):
 
 class TemporalSampleStorage(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    # sample_idx = models.IntegerField()
     sample_name = models.CharField(max_length=100, null=True)
     field = models.CharField(max_length=100, null=True)
     value = models.CharField(max_length=100, null=True)

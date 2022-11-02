@@ -40,6 +40,7 @@ from relecov_core.api.utils.variant_handling import (
     store_variant_annotation,
     store_variant_in_sample,
     delete_created_variancs,
+    variant_annotation_exists,
 )
 
 from relecov_core.api.utils.common_functions import (
@@ -198,7 +199,7 @@ def create_sample_data(request):
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
             if split_data["gisaid"]["gisaid_accession_id"] != "Not Provided":
-                sample_obj.update_state("Ena")
+                sample_obj.update_state("Gisaid")
                 state_id = (
                     SampleState.objects.filter(state__exact="Gisaid")
                     .last()
@@ -218,9 +219,6 @@ def create_sample_data(request):
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
-y_param = openapi.Parameter("y", "query", openapi.IN_FORM, type=openapi.TYPE_STRING)
-
-
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -235,12 +233,12 @@ def create_bioinfo_metadata(request):
     if schema_obj is None:
         error = {"ERROR": "schema name and version is not defined"}
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-    if "sample_name" not in data:
+    if "sequencing_sample_id" not in data:
         return Response(
             {"ERROR": ERROR_SAMPLE_NAME_NOT_INCLUDED},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    sample_obj = get_sample_obj_from_sample_name(data["sample_name"])
+    sample_obj = get_sample_obj_from_sample_name(data["sequencing_sample_id"])
     if sample_obj is None:
         return Response(
             {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
@@ -302,12 +300,13 @@ def create_variant_data(request):
                 found_error = True
                 break
             v_in_sample_list.append(variant_in_sample_obj)
-            variant_ann_obj = store_variant_annotation(split_data["variant_ann"])
-            if isinstance(variant_ann_obj, dict):
-                error = {"ERROR": variant_ann_obj}
-                found_error = True
-                break
-            v_an_list.append(variant_ann_obj)
+            if not variant_annotation_exists(split_data["variant_ann"]):
+                variant_ann_obj = store_variant_annotation(split_data["variant_ann"])
+                if isinstance(variant_ann_obj, dict):
+                    error = {"ERROR": variant_ann_obj}
+                    found_error = True
+                    break
+                v_an_list.append(variant_ann_obj)
         if found_error:
             delete_created_variancs(v_in_sample_list, v_an_list)
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
