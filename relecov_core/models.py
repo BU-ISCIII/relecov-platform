@@ -423,7 +423,7 @@ class LineageFields(models.Model):
 
 class LineageValues(models.Model):
     lineage_fieldID = models.ForeignKey(LineageFields, on_delete=models.CASCADE)
-    value = models.CharField(max_length=240)
+    value = models.CharField(max_length=240, null=True, blank=True)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
