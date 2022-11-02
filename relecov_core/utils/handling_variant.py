@@ -1,7 +1,5 @@
 from relecov_core.models import (
-    LineageFields,
     LineageValues,
-    Variant,
     VariantAnnotation,
     VariantInSample,
     Chromosome,
@@ -10,11 +8,15 @@ from relecov_core.models import (
     Sample,
 )
 
-
 from relecov_core.utils.handling_samples import (
     get_sample_obj_from_id,
     get_sample_obj_from_sample_name,
 )
+
+from relecov_core.core_config import HEADING_FOR_VARIANT_TABLE_DISPLAY
+
+
+from relecov_core.utils.plotly_graphics import needle_plot
 
 
 def get_all_chromosome_objs():
@@ -29,6 +31,16 @@ def get_all_organism_objs():
     if OrganismAnnotation.objects.all().exists():
         return OrganismAnnotation.objects.all()
     return None
+
+
+def get_default_chromosome():
+    """Get the first defined chromosome in database as the default value.
+    None is returned if no Chromosome is defined in database
+    """
+    if Chromosome.objects.all().exists():
+        return Chromosome.objects.order_by("created_at").first()
+    else:
+        return None
 
 
 def get_sample_in_variant_list(chromosome_obj):
@@ -49,35 +61,46 @@ def get_sample_in_variant_list(chromosome_obj):
 
 def get_variant_data_from_sample(sample_id):
     """Collect the variant information for the sample"""
+    data = {}
     sample_obj = get_sample_obj_from_id(sample_id)
-    if not sample_obj:
-        return None
+    if sample_obj is None:
+        return data
     variant_data = []
     if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
+        data["heading"] = HEADING_FOR_VARIANT_TABLE_DISPLAY
         v_in_s_objs = VariantInSample.objects.filter(sampleID_id=sample_obj)
         for v_in_s_obj in v_in_s_objs:
             # DP,REF_DP,ALT_DP,AF
             v_in_s_data = v_in_s_obj.get_variant_in_sample_data()
-            v_objs = Variant.objects.filter(variant_in_sampleID_id=v_in_s_obj)
-            for v_obj in v_objs:
-                # CHROM,POS,REF,ALT,FILTER
-                v_data = v_obj.get_variant_in_sample_data()
-                v_ann_objs = VariantAnnotation.objects.filter(variantID_id=v_obj)
+            v_obj = v_in_s_obj.get_variantID_obj()
+            # CHROM,POS,REF,ALT,FILTER
+            v_data = v_obj.get_variant_data()
+            v_ann_objs = VariantAnnotation.objects.filter(variantID_id=v_obj)
+            if len(v_ann_objs) > 1:
                 v_ann_data_p = []
                 for v_ann_obj in v_ann_objs:
                     # HGVS_C	HGVS_P	HGVS_P_1LETTER
-                    v_ann_data_p.append(v_ann_obj.get_variant_in_sample_data())
-                if len(v_ann_data_p) > 1:
-                    v_ann_data = []
-                    for idx in range(len(v_ann_data_p)):
-                        if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
-                            v_ann_data.append(v_ann_data_p[0][idx])
-                        else:
-                            v_ann_data.append(
-                                str(v_ann_data_p[0][idx] + " - " + v_ann_data_p[1][idx])
-                            )
-        variant_data.append([v_data + v_in_s_data + v_ann_data])
-    return variant_data
+                    v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
+                v_ann_data = []
+                # import pdb; pdb.set_trace()
+                for idx in range(len(v_ann_data_p[0])):
+                    if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
+                        v_ann_data.append(v_ann_data_p[0][idx])
+                    else:
+                        v_ann_data.append(
+                            str(v_ann_data_p[0][idx] + " - " + v_ann_data_p[1][idx])
+                        )
+                v_ann_data_p = v_ann_data
+            else:
+                v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
+            # import pdb; pdb.set_trace()
+            variant_data.append(v_data + v_in_s_data + v_ann_data_p)
+    data["variant_data"] = variant_data
+    return data
+
+
+def get_variant_graphic():
+    return needle_plot()
 
 
 def get_gene_obj_from_gene_name(gene_name):
@@ -120,33 +143,23 @@ def get_if_chromosomes_exists(chromosome):
         return None
 
 
-def get_gene_objs(organism_code):
-    organism_obj = get_if_organism_exists(organism_code=organism_code)
-    organism_obj_name = organism_obj.get_organism_code()
-    organism_obj_name_split = organism_obj_name.split(".")
-    chromosome_obj = Chromosome.objects.filter(
-        chromosome=organism_obj_name_split[0]
-    ).last()
+def get_gene_objs(chromosome):
+    """Get gene objs defined for the chromosome"""
+    chromosome_obj = Chromosome.objects.filter(chromosome=chromosome).last()
 
-    if organism_obj:
-        # if Gene.objects.filter(chromosomeID=organism_obj).exists():
-        #    return Gene.objects.filter(chromosomeID=organism_obj).last()
-        if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
-            # return Gene.objects.filter(chromosomeID=chromosome_obj).last()
-            return Gene.objects.filter(chromosomeID=chromosome_obj)
+    if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
+        return Gene.objects.filter(chromosomeID=chromosome_obj)
     return None
 
 
-def create_domains_list_of_dict(organism_code):
-    separator = "-"
-    dict_of_domain = {}
+def get_domains_list(chromosome):
     domains = []
-    gene_data_objs = get_gene_objs(organism_code)
-    for gene_data_obj in gene_data_objs:
-        list_of_coordenates = gene_data_obj.get_gene_positions()
-        coords = separator.join(list_of_coordenates)
-        dict_of_domain = {"name": gene_data_obj.get_gene_name(), "coord": coords}
-        domains.append(dict_of_domain)
+    gene_objs = get_gene_objs(chromosome)
+    for gene_obj in gene_objs:
+        gene_data = {}
+        coords = "-".join(gene_obj.get_gene_positions())
+        gene_data = {"name": gene_obj.get_gene_name(), "coord": coords}
+        domains.append(gene_data)
 
     return domains
 
@@ -205,6 +218,7 @@ def get_position_per_sample(sample_name, chromosome):
 
 def create_dataframe(sample_name, organism_code):
     mdata = {}
+    """
     domains = create_domains_list_of_dict(organism_code)
     af = get_alelle_frequency_per_sample(sample_name, organism_code)
     pos = get_position_per_sample(sample_name, organism_code)
@@ -214,19 +228,42 @@ def create_dataframe(sample_name, organism_code):
     mdata["y"] = af
     mdata["mutationGroups"] = effects
     mdata["domains"] = domains
-
+    """
     return mdata
 
 
 # ITER variant mutation
-def get_variant_data_from_lineages(lineage, organism_code):
+def get_variant_data_from_lineages(lineage=None, chromosome=None):
+    if chromosome is None:
+        chromosome = get_default_chromosome()
     mdata = {}
     list_of_af = []
     list_of_pos = []
     list_of_effects = []
 
-    domains = create_domains_list_of_dict(organism_code)
+    domains = get_domains_list(chromosome)
+    if not LineageValues.objects.filter(
+        lineage_fieldID__property_name__iexact="lineage_name"
+    ).exists():
+        return None
+    if lineage is None:
+        lineage = (
+            LineageValues.objects.filter(
+                lineage_fieldID__property_name__iexact="lineage_name"
+            )
+            .first()
+            .value("value")
+        )
+    else:
+        if not LineageValues.objects.filter(
+            lineage_fieldID__property_name__iexact="lineage_name", value__iexact=lineage
+        ).exists():
+            return None
 
+    lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
+    sample_objs = Sample.objects.filter(linage_values=lineage_value_objs)
+
+    """
     lineage_fields_obj = LineageFields.objects.filter(
         property_name="lineage_name"
     ).last()
@@ -234,16 +271,13 @@ def get_variant_data_from_lineages(lineage, organism_code):
         lineage_fieldID=lineage_fields_obj.get_lineage_field_id(), value=lineage
     ).last()
     sample_objs = Sample.objects.filter(linage_values=lineage_value_obj)
+    """
     for sample_obj in sample_objs:
         af = get_alelle_frequency_per_sample(
-            sample_obj.get_sequencing_sample_id(), organism_code
+            sample_obj.get_sequencing_sample_id(), chromosome
         )
-        pos = get_position_per_sample(
-            sample_obj.get_sequencing_sample_id(), organism_code
-        )
-        effects = create_effect_list(
-            sample_obj.get_sequencing_sample_id(), organism_code
-        )
+        pos = get_position_per_sample(sample_obj.get_sequencing_sample_id(), chromosome)
+        effects = create_effect_list(sample_obj.get_sequencing_sample_id(), chromosome)
 
         list_of_af += af
         list_of_pos += pos

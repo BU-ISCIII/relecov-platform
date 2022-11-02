@@ -53,6 +53,10 @@ from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
     create_samples_over_time_graph,
 )
 
+from relecov_dashboard.dashboard_config import (
+    ERROR_NO_LINEAGES_ARE_DEFINED_YET,
+)
+
 
 # dashboard/variants
 def variants_index(request):
@@ -62,7 +66,7 @@ def variants_index(request):
 def lineages_dashboard(request):
     # samples receive over time map
     create_samples_received_over_time_map()
-
+    """
     # samples receive over time graph
     df = create_dataframe_from_json()
     create_samples_over_time_graph(df)
@@ -70,7 +74,7 @@ def lineages_dashboard(request):
     data = parse_json_file()
     create_samples_received_over_time_per_ccaa_pieChart(data)
     create_samples_received_over_time_per_laboratory_pieChart(data)
-
+    """
     return render(
         request, "relecov_dashboard/dashboard_templates/lineagesDashboard.html"
     )
@@ -78,13 +82,22 @@ def lineages_dashboard(request):
 
 def mutations_in_lineages_dashboard(request):
     # mutations in lineages by sample
-    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
+    """
+    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512.2")
     create_needle_plot_graph_mutation_by_sample(sample_name=2018185, mdata=mdata)
-
+    """
     # mutations in lineages by lineage
-    mdata = get_variant_data_from_lineages(lineage="B.1.1.7", organism_code="NC_045512")
+    # def_chrom = get_default_chromosome()
+    mdata = get_variant_data_from_lineages()
+    if not mdata:
+        return render(
+            request,
+            "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
+            {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
+        )
     create_needle_plot_graph_mutation_by_lineage("BA.1.1.7", mdata)
-
+    # v_lineage_data = get_variant_all_lineage_data()
+    """
     # mutations in lineages heatmap
     gene_list = ["orf1ab", "ORF8", "S", "M", "N"]
     sample_list = [220880, 210067]
@@ -94,7 +107,7 @@ def mutations_in_lineages_dashboard(request):
     sample_list = [2018185, 210067]
     effect_list = ["upstream_gene_variant", "synonymous_variant", "missense_variant"]
     create_mutation_table(sample_list, effect_list=effect_list)
-
+    """
     return render(
         request,
         "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
