@@ -4,6 +4,12 @@ import plotly.graph_objects as go
 import plotly.express as px
 import plotly.figure_factory as ff
 
+import dash_bio as dashbio
+
+from dash import dcc, html
+from django_plotly_dash import DjangoDash
+from dash.dependencies import Input, Output
+
 
 def histogram_graphic(data, col_names, option):
 
@@ -99,25 +105,21 @@ def pie_graphic(data, names, title, show_legend=False):
     return plot_div
 
 
-def needle_plot():
-    import json
-    import urllib.request as urlreq
+def needle_plot(m_data):
 
-    import dash_bio as dashbio
-
-    from dash import dcc, html
-    from django_plotly_dash import DjangoDash
-    from dash.dependencies import Input, Output
-
+    """
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
-    app = DjangoDash("sampleVariantGraphic")
-    """ fig = dashbio.NeedlePlot(
+
+     fig = dashbio.NeedlePlot(
         id='dashbio-default-needleplot',
         mutationData=mdata,
         height=450,
-    ) """
+    )
+    """
+    app = DjangoDash("sampleVariantGraphic")
+    # import pdb; pdb.set_trace()
     app.layout = html.Div(
         [
             "Show or hide range slider",
@@ -131,10 +133,10 @@ def needle_plot():
             ),
             dashbio.NeedlePlot(
                 id="dashbio-default-needleplot",
-                mutationData=mdata,
+                mutationData=m_data,
                 height=550,
                 width=700,
-                domainStyle={"textangle": -45},
+                domainStyle={"textangle": 90},
             ),
         ]
     )

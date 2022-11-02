@@ -53,7 +53,7 @@ from relecov_core.utils.handling_public_database import (
 )
 from relecov_core.utils.handling_variant import (
     get_variant_data_from_sample,
-    get_variant_graphic,
+    get_variant_graphic_from_sample,
 )
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import (
@@ -157,7 +157,7 @@ def sample_display(request, sample_id):
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
     sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     sample_data["variant"] = get_variant_data_from_sample(sample_id)
-    sample_data["graphic"] = get_variant_graphic()
+    sample_data["graphic"] = get_variant_graphic_from_sample(sample_id)
     return render(
         request, "relecov_core/sampleDisplay.html", {"sample_data": sample_data}
     )
