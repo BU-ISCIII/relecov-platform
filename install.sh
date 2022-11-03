@@ -119,7 +119,7 @@ printf "${BLUE}Successful check for apache${NC}\n"
 
 #================================================================
 
-read -p "Are you sure you want to install Relecov-platform in this server? " -n 1 -r
+read -p "Are you sure you want to install Relecov-platform in this server? (Y/N) " -n 1 -r
 echo    # (optional) move to a new line
 if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
     echo "Exiting without running relecov_platform installation"
@@ -143,7 +143,10 @@ if [[ $linux_distribution == "CentOS" ]]; then
 fi
 
 echo "Starting relecov-platform installation"
-cd /opt/relecov-platform
+cd $INSTALL_PATH
+git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+cd relecov_platform
+
 # git checkout main
 
 mkdir -p /opt/relecov-platform/logs
