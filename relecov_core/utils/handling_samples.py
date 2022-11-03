@@ -532,6 +532,32 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
     return join_data
 
 
+def get_all_recieved_samples_with_dates(accumulated=False):
+    """Gett all samples that are received in the platform. If accumulated is
+    True then functions return the value of the date the sum of the predecesor
+    values. If False just the value received for each date
+    """
+    r_samples = {}
+    if not Sample.objects.all().exists():
+        return r_samples
+    dates = (
+        Sample.objects.all()
+        .values_list("sequencing_date")
+        .distinct()
+        .order_by("sequencing_date")
+    )
+    sum = 0
+    for date in dates:
+        value = Sample.objects.filter(sequencing_date__contains=dates[0]).count()
+        s_date = date[0].strftime("%Y-%m-%d")
+        if accumulated:
+            sum += value
+            r_samples[s_date] = sum
+        else:
+            r_samples[s_date] = value
+    return r_samples
+
+
 def increase_unique_value(old_unique_number):
     """The function increases in one number the unique value
     If number reaches the 9999 then the letter is stepped
