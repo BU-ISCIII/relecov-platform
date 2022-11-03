@@ -14,32 +14,6 @@ from relecov_core.utils.handling_lab import get_lab_name
 from relecov_core.utils.schema_handling import get_schema_obj_from_id
 
 
-def get_bioinfo_analized_samples(a_field, s_names=False):
-    """Fetch the samples that are analized by checking analysis field is not
-    empty. if s_names is set to True, function returns name of samples and
-    if False returns just the number
-    """
-    if (
-        BioInfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID__property_name__iexact=a_field
-        )
-        .exclude(value=None)
-        .exists()
-    ):
-        if s_names:
-            return BioInfoAnalysisValue.objects.filter(
-                bioinfo_analysis_fieldID__property_name__iexact=a_field
-            ).exclude(value=None)
-        else:
-            BioInfoAnalysisValue.objects.filter(
-                bioinfo_analysis_fieldID__property_name__iexact=a_field
-            ).exclude(value=None).count()
-    if s_names:
-        return []
-    else:
-        return 0
-
-
 def get_bio_analysis_stats_from_lab(user_obj):
     """Get the number of samples that are analized and compare with the number
     of recieved samples. It checks the updates in

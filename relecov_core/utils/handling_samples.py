@@ -102,10 +102,12 @@ def assign_samples_to_new_user(data):
     return {"ERROR": ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB + " " + data["lab"]}
 
 
-def count_defined_samples():
-    """Count the number of entries that are in Sample,"""
+def count_handled_samples():
+    """Count the number of samples handled in each process"""
     data = {}
-    data["received"] = Sample.objects.all().count()
+    process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
+    for proc in process:
+        data[proc] = DateUpdateState.objects.filter(stateID__state__iexact=proc).count()
     return data
 
 
