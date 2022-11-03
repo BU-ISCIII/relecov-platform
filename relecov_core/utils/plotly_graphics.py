@@ -106,13 +106,14 @@ def pie_graphic(data, names, title, show_legend=False):
 
 
 def needle_plot(m_data):
-
+    """
     import json
     import urllib.request as urlreq
 
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
+    """
     """
     fig = dashbio.NeedlePlot(
         id='dashbio-default-needleplot',
