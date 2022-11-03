@@ -1,9 +1,4 @@
-# from datetime import datetime
-
-# from time import strptime
-from relecov_dashboard.utils.graphics.plotly_dashboard_graphics import (
-    create_line_plot
-)
+from relecov_dashboard.utils.graphics.plotly_dashboard_graphics import create_line_plot
 
 
 from relecov_core.utils.handling_samples import get_all_recieved_samples_with_dates
@@ -21,6 +16,6 @@ def display_received_samples_graph():
         "height": 450,
         "width": 500,
         "title": "Received samples",
-        "lines": "Samples"
+        "lines": "Samples",
     }
     return create_line_plot(data, options)
