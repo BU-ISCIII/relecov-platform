@@ -185,9 +185,15 @@ echo "Created folders for logs and documents "
 # install virtual environment
 echo "Creating virtual environment"
 if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
-    echo "virtualenv alredy defined. Skipping."
-else
-    bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
+    read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+        rm -rf $INSTALL_PATH/relecov-platform
+        bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    else
+        echo "virtualenv alredy defined. Skipping."
+    fi
 fi
 
 echo "activate the virtualenv"
