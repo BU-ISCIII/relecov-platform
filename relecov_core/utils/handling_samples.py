@@ -618,7 +618,12 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
         else:
             return sample_list
     if sample_state != "":
-        sample_objs = sample_objs.filter(state__pk__exact=sample_state)
+        state_ids = list(
+            DateUpdateState.objects.filter(stateID__pk__exact=sample_state).values_list(
+                "sampleID__pk", flat=True
+            )
+        )
+        sample_objs = sample_objs.filter(pk__in=state_ids)
     if s_date != "":
         sample_objs = sample_objs.filter(created_at__exact=s_date)
     if len(sample_objs) == 1:
