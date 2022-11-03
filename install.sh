@@ -143,7 +143,7 @@ if [[ $linux_distribution == "CentOS" ]]; then
 fi
 
 echo "Starting relecov-platform installation"
-if [ -f $INSTALL_PATH/relecov_platform ]; then
+if [ -f $INSTALL_PATH/relecov-platform ]; then
     echo "There already is an installation of relecov-platform in $INSTALL_PATH."
     read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
     echo    # (optional) move to a new line
@@ -153,6 +153,7 @@ if [ -f $INSTALL_PATH/relecov_platform ]; then
     else
         rm -rf $INSTALL_PATH/relecov_platform
     fi
+fi
 
 ## Clone relecov-platform repository
 cd $INSTALL_PATH
@@ -165,7 +166,6 @@ if ! grep -q apache /etc/group
 then
     groupadd apache
 fi
-
 
 ## Fix permissions and owners
 mkdir -p /opt/relecov-platform/logs
