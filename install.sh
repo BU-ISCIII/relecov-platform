@@ -143,7 +143,7 @@ if [[ $linux_distribution == "CentOS" ]]; then
 fi
 
 echo "Starting relecov-platform installation"
-if [ -f $INSTALL_PATH/relecov-platform ]; then
+if [ -d $INSTALL_PATH/relecov-platform ]; then
     echo "There already is an installation of relecov-platform in $INSTALL_PATH."
     read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
     echo    # (optional) move to a new line
@@ -151,14 +151,17 @@ if [ -f $INSTALL_PATH/relecov-platform ]; then
         echo "Exiting without running relecov_platform installation"
         exit 1
     else
-        rm -rf $INSTALL_PATH/relecov_platform
+        rm -rf $INSTALL_PATH/relecov-platform
     fi
 fi
 
 ## Clone relecov-platform repository
 cd $INSTALL_PATH
 git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+
 cd relecov-platform
+## move to develop branch if --dev param
+##git checkout develop
 
 # git checkout main
 ## Create apache group if it does not exist.
@@ -181,10 +184,10 @@ echo "Created folders for logs and documents "
 
 # install virtual environment
 echo "Creating virtual environment"
-if [ -f $INSTALL_PATH/relecov_platform/virtualenv ]; then
+if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
     echo "virtualenv alredy defined. Skipping."
 else
-    su $user bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
 fi
 
 echo "activate the virtualenv"
@@ -192,7 +195,7 @@ source virtualenv/bin/activate
 
 # Starting Relecov Platform
 echo "Loading python necessary packages"
-su $user bash -c "$PYTHON_BIN_PATH -m pip install -r conf/requirements.txt"
+python3 -m pip install -r conf/requirements.txt
 echo ""
 echo "Creating relecov_platform project"
 django-admin startproject relecov_platform .
