@@ -5,11 +5,8 @@ from relecov_dashboard.utils.graphics.plotly_dashboard_graphics import (
     create_line_plot
 )
 
-import pdb
 
-from relecov_core.utils.handling_samples import (
-    get_all_recieved_samples_with_dates,
-)
+from relecov_core.utils.handling_samples import get_all_recieved_samples_with_dates
 
 
 def display_received_samples_graph():
@@ -22,9 +19,8 @@ def display_received_samples_graph():
             data["y"].append(value)
     options = {
         "height": 450,
-        "width" : 500,
-        "title" : "Received samples",
-        "lines" : "Samples"
+        "width": 500,
+        "title": "Received samples",
+        "lines": "Samples"
     }
-    pdb.set_trace()
     return create_line_plot(data, options)
