@@ -4,6 +4,7 @@
 
 from dash import dcc, html
 from django_plotly_dash import DjangoDash
+
 # from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
@@ -46,19 +47,18 @@ def create_dataframe_from_database():
     df.columns = ["SAMPLE", "DATE"]
     df = df.sort_values(by=["DATE"])
     """
-    return 
+    return
 
 
 def display_received_samples_graph():
-    """Fetch the number of samples received in the plaftorm and show them
-    """
+    """Fetch the number of samples received in the plaftorm and show them"""
     data = get_all_recieved_samples_with_dates()
     app = DjangoDash(name="TotalReceivedSamplesGraph")
     df = data
     app.layout = create_samples_received_over_time(df)
 
     # @app.callback(Output("graph-with-slider", "figure"), Input("date_slider", "value"))
-    
+
 
 def create_samples_received_over_time(df):
     dates_unique = df["DATE"].unique()

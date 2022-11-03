@@ -84,7 +84,7 @@ def get_variant_data_from_sample(sample_id):
                     # HGVS_C	HGVS_P	HGVS_P_1LETTER
                     v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
                 v_ann_data = []
-                
+
                 for idx in range(len(v_ann_data_p[0])):
                     if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
                         v_ann_data.append(v_ann_data_p[0][idx])
@@ -95,7 +95,7 @@ def get_variant_data_from_sample(sample_id):
                 v_ann_data_p = v_ann_data
             else:
                 v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
-           
+
             variant_data.append(v_data + v_in_s_data + v_ann_data_p)
     data["variant_data"] = variant_data
     return data

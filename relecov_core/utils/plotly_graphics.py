@@ -107,9 +107,9 @@ def pie_graphic(data, names, title, show_legend=False):
 
 def needle_plot(m_data):
 
-    
     import json
     import urllib.request as urlreq
+
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
@@ -144,7 +144,7 @@ def needle_plot(m_data):
                 height=550,
                 width=700,
                 domainStyle={
-                    'displayMinorDomains': True,
+                    "displayMinorDomains": True,
                     # 'domainColor': ['#FFDD00', '#00FFDD', '#0F0F0F', '#D3D3D3']
                 },
                 # domainStyle={"textangle": -45},
