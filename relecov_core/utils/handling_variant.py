@@ -84,7 +84,7 @@ def get_variant_data_from_sample(sample_id):
                     # HGVS_C	HGVS_P	HGVS_P_1LETTER
                     v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
                 v_ann_data = []
-                # import pdb; pdb.set_trace()
+                
                 for idx in range(len(v_ann_data_p[0])):
                     if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
                         v_ann_data.append(v_ann_data_p[0][idx])
@@ -95,7 +95,7 @@ def get_variant_data_from_sample(sample_id):
                 v_ann_data_p = v_ann_data
             else:
                 v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
-            # import pdb; pdb.set_trace()
+           
             variant_data.append(v_data + v_in_s_data + v_ann_data_p)
     data["variant_data"] = variant_data
     return data
@@ -111,7 +111,6 @@ def get_variant_graphic_from_sample(sample_id):
         raw_data = VariantInSample.objects.filter(sampleID_id=sample_obj).values(
             x=F("dp"), y=F("af"), v_id=F("variantID_id__pk")
         )
-        # v_in_s_objs = VariantInSample.objects.filter(sampleID_id=sample_obj) # .values("dp", "af" , "variantID_id__alt")
         for r_data in raw_data:
             for key, value in r_data.items():
                 v_data[key].append(value)
@@ -121,13 +120,13 @@ def get_variant_graphic_from_sample(sample_id):
                 variantID_id__pk__in=v_data["v_id"]
             ).values_list("effectID_id__effect", flat=True)
         )
-
         chromosome_obj = (
             VariantAnnotation.objects.filter(variantID_id__pk=v_data["v_id"][0])
             .last()
             .variantID_id.chromosomeID_id
         )
         v_data["domains"] = get_domains_and_coordenates(chromosome_obj)
+        # delete no longer needed ids
         v_data.pop("v_id")
 
     return needle_plot(v_data)
@@ -287,6 +286,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     list_of_effects = []
 
     domains = get_domains_list(chromosome)
+
     if not LineageValues.objects.filter(
         lineage_fieldID__property_name__iexact="lineage_name"
     ).exists():
