@@ -148,6 +148,11 @@ git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
 cd relecov_platform
 
 # git checkout main
+## Create apache group if it does not exist.
+if ! grep -q apache /etc/group
+then
+    groupadd apache
+fi
 
 mkdir -p /opt/relecov-platform/logs
 chown $user:apache /opt/relecov-platform/logs
