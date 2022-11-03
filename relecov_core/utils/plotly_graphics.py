@@ -107,18 +107,25 @@ def pie_graphic(data, names, title, show_legend=False):
 
 def needle_plot(m_data):
 
-    """
+    
+    import json
+    import urllib.request as urlreq
     data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
 
     mdata = json.loads(data)
-
-     fig = dashbio.NeedlePlot(
+    """
+    fig = dashbio.NeedlePlot(
         id='dashbio-default-needleplot',
         mutationData=mdata,
         height=450,
     )
     """
     app = DjangoDash("sampleVariantGraphic")
+    # mdata["domains"] = m_data["domains"]
+    # m_data["x"] = mdata["x"][48:72]
+    # m_data["y"] = mdata["y"][48:72]
+    # m_data["mutationGroups"] = mdata["mutationGroups"][48:72]
+    # m_data["domains"] = mdata["domains"]
     # import pdb; pdb.set_trace()
     app.layout = html.Div(
         [
@@ -136,7 +143,11 @@ def needle_plot(m_data):
                 mutationData=m_data,
                 height=550,
                 width=700,
-                domainStyle={"textangle": 90},
+                domainStyle={
+                    'displayMinorDomains': True,
+                    # 'domainColor': ['#FFDD00', '#00FFDD', '#0F0F0F', '#D3D3D3']
+                },
+                # domainStyle={"textangle": -45},
             ),
         ]
     )

@@ -89,6 +89,7 @@ def mutations_in_lineages_dashboard(request):
     # mutations in lineages by lineage
     # def_chrom = get_default_chromosome()
     mdata = get_variant_data_from_lineages()
+    import pdb; pdb.set_trace()
     if not mdata:
         return render(
             request,
