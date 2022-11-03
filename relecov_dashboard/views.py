@@ -66,7 +66,7 @@ def variants_index(request):
 def lineages_dashboard(request):
     # samples receive over time map
     create_samples_received_over_time_map()
-    """
+    
     # samples receive over time graph
     df = create_dataframe_from_json()
     create_samples_over_time_graph(df)
@@ -74,7 +74,7 @@ def lineages_dashboard(request):
     data = parse_json_file()
     create_samples_received_over_time_per_ccaa_pieChart(data)
     create_samples_received_over_time_per_laboratory_pieChart(data)
-    """
+    
     return render(
         request, "relecov_dashboard/dashboard_templates/lineagesDashboard.html"
     )
