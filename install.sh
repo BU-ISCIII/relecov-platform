@@ -143,9 +143,21 @@ if [[ $linux_distribution == "CentOS" ]]; then
 fi
 
 echo "Starting relecov-platform installation"
+if [ -f $INSTALL_PATH/relecov_platform ]; then
+    echo "There already is an installation of relecov-platform in $INSTALL_PATH."
+    read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+        echo "Exiting without running relecov_platform installation"
+        exit 1
+    else
+        rm -rf $INSTALL_PATH/relecov_platform
+    fi
+
+## Clone relecov-platform repository
 cd $INSTALL_PATH
 git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
-cd relecov_platform
+cd relecov-platform
 
 # git checkout main
 ## Create apache group if it does not exist.
@@ -154,6 +166,8 @@ then
     groupadd apache
 fi
 
+
+## Fix permissions and owners
 mkdir -p /opt/relecov-platform/logs
 chown $user:apache /opt/relecov-platform/logs
 chmod 775 /opt/relecov-platform/logs
@@ -166,33 +180,19 @@ chmod 775 /opt/relecov-platform/documents/schemas
 echo "Created folders for logs and documents "
 
 # install virtual environment
-if [[ $linux_distribution == "Ubuntu" ]]; then
-    echo "Creating virtual environment"
-    su $user bash -c "pip3 install virtualenv"
-    su $user bash -c "virtualenv --python=/usr/bin/python3 virtualenv"
+echo "Creating virtual environment"
+if [ -f $INSTALL_PATH/relecov_platform/virtualenv ]; then
+    echo "virtualenv alredy defined. Skipping."
+else
+    su $user bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
 fi
 
-if [[ $linux_distribution == "CentOS" ]]; then
-    echo "Checking virtual environment"
-    p_exec=$(which python3)
-    p_exec=$(readlink -f $p_exec)
-    p_path=$(dirname $p_exec)
-    if [ -f $p_path/virtualenv ]; then
-        echo "virtualenv alredy defined. Skyping"
-    else
-        echo "Creating virtual environment"
-        $p_path/pip3 install virtualenv
-    fi
-    su $user bash -c "$p_path/virtualenv --python=$p_exec virtualenv"
-fi
-echo ""
 echo "activate the virtualenv"
-
 source virtualenv/bin/activate
 
 # Starting Relecov Platform
 echo "Loading python necessary packages"
-su $user bash -c "python3 -m pip install -r conf/requirements.txt"
+su $user bash -c "$PYTHON_BIN_PATH -m pip install -r conf/requirements.txt"
 echo ""
 echo "Creating relecov_platform project"
 django-admin startproject relecov_platform .
