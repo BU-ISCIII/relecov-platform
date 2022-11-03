@@ -223,12 +223,13 @@ sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
-chown $user:$group -R relecov_platform
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-su $user bash -c "python3 manage.py makemigrations relecov_core django_plotly_dash"
+python3 manage.py makemigrations relecov_core django_plotly_dash
 python3 manage.py migrate
 
+## Adding permissions
+chown $user:$group -R relecov_platform
 #echo "Change owner of files to Apache user"
 #chown -R www-data:www-data /opt/relecov-platform
 
