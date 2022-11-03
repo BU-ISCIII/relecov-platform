@@ -1,7 +1,7 @@
 # from datetime import datetime
 
 # from time import strptime
-
+import pandas as pd
 from dash import dcc, html
 from django_plotly_dash import DjangoDash
 
