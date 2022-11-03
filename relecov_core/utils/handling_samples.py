@@ -309,7 +309,6 @@ def create_date_sample_bar(lab_sample):
         "width": 700,
     }
     bar_graph = histogram_graphic(df, col_names, options)
-    # import pdb; pdb.set_trace()
     return bar_graph
 
 
@@ -526,9 +525,6 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
             else:
                 print("error not defined", field_name, " for sample ", key)
                 row_data.append("")
-                import pdb
-
-                pdb.set_trace()
         join_data.append(row_data)
 
     return join_data
