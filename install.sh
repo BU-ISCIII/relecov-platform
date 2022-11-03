@@ -194,6 +194,8 @@ if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
     else
         echo "virtualenv alredy defined. Skipping."
     fi
+else
+    bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
 fi
 
 echo "activate the virtualenv"
