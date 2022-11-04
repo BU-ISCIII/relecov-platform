@@ -102,10 +102,12 @@ def assign_samples_to_new_user(data):
     return {"ERROR": ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB + " " + data["lab"]}
 
 
-def count_defined_samples():
-    """Count the number of entries that are in Sample,"""
+def count_handled_samples():
+    """Count the number of samples handled in each process"""
     data = {}
-    data["received"] = Sample.objects.all().count()
+    process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
+    for proc in process:
+        data[proc] = DateUpdateState.objects.filter(stateID__state__iexact=proc).count()
     return data
 
 
@@ -307,7 +309,6 @@ def create_date_sample_bar(lab_sample):
         "width": 700,
     }
     bar_graph = histogram_graphic(df, col_names, options)
-    # import pdb; pdb.set_trace()
     return bar_graph
 
 
@@ -315,7 +316,6 @@ def create_percentage_gauge_graphic(values):
     data = {}
     x = values["analized"] / values["received"] * 100
     data["value"] = float("{:.2f}".format(x))
-
     gauge_graph = gauge_graphic(data)
     return gauge_graph
 
@@ -524,12 +524,36 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
             else:
                 print("error not defined", field_name, " for sample ", key)
                 row_data.append("")
-                import pdb
-
-                pdb.set_trace()
         join_data.append(row_data)
 
     return join_data
+
+
+def get_all_recieved_samples_with_dates(accumulated=False):
+    """Gett all samples that are received in the platform. If accumulated is
+    True then functions return the value of the date the sum of the predecesor
+    values. If False just the value received for each date
+    """
+    r_samples = []
+    if not Sample.objects.all().exists():
+        return r_samples
+    dates = (
+        Sample.objects.all()
+        .values_list("sequencing_date")
+        .distinct()
+        .order_by("-sequencing_date")
+    )
+    sum = 0
+    for date in dates:
+        value = Sample.objects.filter(sequencing_date__contains=date[0]).count()
+        s_date = date[0].strftime("%Y %m %d")
+        if accumulated:
+            sum += value
+            r_samples.append({s_date: sum})
+        else:
+            r_samples.append({s_date: value})
+
+    return r_samples
 
 
 def increase_unique_value(old_unique_number):
@@ -593,7 +617,12 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
         else:
             return sample_list
     if sample_state != "":
-        sample_objs = sample_objs.filter(state__pk__exact=sample_state)
+        state_ids = list(
+            DateUpdateState.objects.filter(stateID__pk__exact=sample_state).values_list(
+                "sampleID__pk", flat=True
+            )
+        )
+        sample_objs = sample_objs.filter(pk__in=state_ids)
     if s_date != "":
         sample_objs = sample_objs.filter(created_at__exact=s_date)
     if len(sample_objs) == 1:
