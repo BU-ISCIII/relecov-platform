@@ -20,6 +20,104 @@
                     </div> <!-- end card  -->
                 </div> <!--// end col-sm-9 -->
             </div> <!--// end row -->
+        {% elif manager_intra_data %}
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="history" aria-selected="true">Sample</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="gisaid-tab" data-bs-toggle="tab" data-bs-target="#gisaid" type="button" role="tab" aria-controls="gisaid" aria-selected="false">GISAID Accession</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
+                            <div class="container-md">
+                                <div class="row mt-4">
+                                    {% if manager_intra_data.sample_bar_graph %}
+                                            <div class="col-md-7">
+                                                    {{ manager_intra_data.sample_bar_graph | safe }}
+                                            </div> <!-- end col-md-7 -->
+                                            <div class="col-md-5">
+                                                    {{ manager_intra_data.sample_gauge_graph | safe }}
+                                            </div> <!-- end col-md-5 -->
+
+                                        {% else %}
+                                            <div class="col-md-7">
+                                                <div class="card border-warning mb-3">
+                                                    <div class="card-header text-center text-warning"><h2 style="text-align:center">No samples are upload yet to Relecov Platform</h2> </div>
+                                                </div> <!-- end card  -->
+                                            </div> <!-- end col-md-4 -->
+                                        {% endif %}
+                                    </div> <!-- end row-->
+                                </div> <!-- end continer-->
+                            </div>  <!-- end tab sample history -->
+                            <div class="tab-pane fade" id="gisaid" role="tabpanel" aria-labelledby="grupo-tab">
+                                <div class="container-md">
+                                    <div class="row mt-5">
+                                        <div class="col-md-8">
+                                            <div class="card">
+                                                <div class="card-header"><h2 style="text-align:center">GISAID Accession IDs </h2> </div>
+                                                <div class="card-body">
+                                                    {% if manager_intra_data.gisaid_accession %}
+                                                        <table id="gisaidTable" class="table table-striped table-bordered">
+                                                            <thead>
+                                                                <tr scope="row">
+                                                                    <th>Sample Name ID</th>
+                                                                    <th>GISAID Accession ID</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for sample, acc in manager_intra_data.gisaid_accession %}
+                                                                    <tr>
+                                                                        <td>{{sample}}</td>
+                                                                        <td>{{acc}}</td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+
+                                                        <script type="text/javascript">
+                                                            $(document).ready(function() {
+                                                                $('#gisaidTable').DataTable({
+                                                                    dom: "fltirpB",
+                                                                    responsive: true,
+                                                                    buttons: [
+                                                                        'excel', 'csv'
+                                                                    ]
+                                                                });
+                                                            });
+                                                        </script>
+                                                    {% else %}
+                                                        <div class="col-md-12">
+                                                            <div class="card border-warning mb-3">
+                                                                <div class="card-header text-center text-warning"><h2 style="text-align:center">No samples are uploaded yet to GISAID </h2> </div>
+                                                            </div> <!-- end card  -->
+                                                        </div> <!-- end col-md-10 -->
+                                                    {% endif %}
+                                                </div> <!-- end card body-->
+                                            </div> <!-- end card  -->
+                                        </div> <!-- end col-md-8 -->
+                                        {% if manager_intra_data.gisaid_graph %}
+                                            <div class="col-md-4">
+                                                <div class="card">
+                                                    <div class="card-header"><h4 style="text-align:center">GISAID Upload </h4> </div>
+                                                    <div class="card-body">
+                                                        <h5>Percentage of GISAID upload samples</h5>
+                                                        {{manager_intra_data.gisaid_graph | safe}}
+                                                    </div> <!-- end card body-->
+                                                </div> <!-- end card  -->
+                                            </div> <!-- end col-md-9 -->
+                                        {% endif %}
+                                    </div> <!-- end row-->
+                                </div> <!-- end continer-->
+                            </div>  <!-- end tab gisaid -->
+                        </div>  <!-- end tab contacto -->
+                    </div>  <!-- end myTabContent -->
+                </div> <!-- end card body  -->
+            </div> <!-- end card  -->
+
         {% else %}
             <div class="card">
                 <div class="card-body">

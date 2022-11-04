@@ -8,7 +8,7 @@ from relecov_core.utils.rest_api_handling import (
 
 def get_lab_contact_details(user_obj):
     lab_data = {}
-    lab_name = get_lab_name(user_obj)
+    lab_name = get_lab_name_from_user(user_obj)
     if lab_name != "":
         data = get_laboratory_data(lab_name)
         if "ERROR" in data:
@@ -29,7 +29,7 @@ def get_all_defined_labs():
     return list(sum_data["laboratory"].keys())
 
 
-def get_lab_name(user_obj):
+def get_lab_name_from_user(user_obj):
     """Get the laboratory name for the user"""
     if Profile.objects.filter(user=user_obj).exists():
         profile_obj = Profile.objects.filter(user=user_obj).last()
