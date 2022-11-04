@@ -23,7 +23,7 @@ def get_bio_analysis_stats_from_lab(user_obj):
     sample_objs = Sample.objects.filter(collecting_institution__iexact=lab_name)
     bio_stats["analized"] = DateUpdateState.objects.filter(
         stateID__state__iexact="Bioinfo", sampleID__in=sample_objs
-    ).count()
+    ).values("sampleID").distinct().count()
     bio_stats["received"] = len(sample_objs)
     return bio_stats
 
