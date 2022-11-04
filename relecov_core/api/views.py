@@ -288,25 +288,32 @@ def create_variant_data(request):
 
         for v_data in data["variants"]:
             split_data = split_variant_data(v_data, sample_obj)
+
             if "ERROR" in split_data:
                 error = {"ERROR": split_data}
                 found_error = True
                 break
+
             variant_in_sample_obj = store_variant_in_sample(
                 split_data["variant_in_sample"]
             )
+
             if isinstance(variant_in_sample_obj, dict):
                 error = {"ERROR": variant_in_sample_obj}
                 found_error = True
                 break
+
             v_in_sample_list.append(variant_in_sample_obj)
+
             if not variant_annotation_exists(split_data["variant_ann"]):
                 variant_ann_obj = store_variant_annotation(split_data["variant_ann"])
                 if isinstance(variant_ann_obj, dict):
                     error = {"ERROR": variant_ann_obj}
                     found_error = True
                     break
+
                 v_an_list.append(variant_ann_obj)
+
         if found_error:
             delete_created_variancs(v_in_sample_list, v_an_list)
             return Response(error, status=status.HTTP_400_BAD_REQUEST)

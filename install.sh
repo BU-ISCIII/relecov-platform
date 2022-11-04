@@ -185,7 +185,15 @@ echo "Created folders for logs and documents "
 # install virtual environment
 echo "Creating virtual environment"
 if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
-    echo "virtualenv alredy defined. Skipping."
+    echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
+    read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+        rm -rf $INSTALL_PATH/relecov-platform
+        bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    else
+        echo "virtualenv alredy defined. Skipping."
+    fi
 else
     bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
 fi
@@ -217,12 +225,13 @@ sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
 
-chown $user:$group -R relecov_platform
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-su $user bash -c "python3 manage.py makemigrations relecov_core django_plotly_dash"
+python3 manage.py makemigrations relecov_core django_plotly_dash
 python3 manage.py migrate
 
+## Adding permissions
+chown $user:$group -R relecov_platform
 #echo "Change owner of files to Apache user"
 #chown -R www-data:www-data /opt/relecov-platform
 
