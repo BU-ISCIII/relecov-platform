@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
@@ -13,6 +14,7 @@ from relecov_core.utils.handling_samples import (
     get_lab_last_actions,
     get_sample_display_data,
     get_search_data,
+    get_sample_per_date_per_all_lab,
     get_sample_per_date_per_lab,
     get_sample_objs_per_lab,
     join_sample_and_batch,
@@ -42,6 +44,7 @@ from relecov_core.utils.handling_bioinfo_analysis import (
 from relecov_core.utils.handling_lab import (
     get_all_defined_labs,
     get_lab_contact_details,
+    get_lab_name_from_user,
     update_contact_lab,
 )
 from relecov_core.utils.handling_public_database import (
@@ -295,32 +298,68 @@ def metadata_visualization(request):
 @login_required
 def intranet(request):
     intra_data = {}
-    date_lab_samples = get_sample_per_date_per_lab(request.user)
-    if len(date_lab_samples) > 0:
-        sample_lab_objs = get_sample_objs_per_lab(request.user)
-        analysis_percent = get_bio_analysis_stats_from_lab(request.user)
-        intra_data["sample_bar_graph"] = create_date_sample_bar(date_lab_samples)
-        intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
-            analysis_percent
-        )
-        intra_data["actions"] = get_lab_last_actions(request.user)
-        gisaid_acc = get_public_accession_from_sample_lab(
-            "gisaid_accession_id", sample_lab_objs
-        )
-        if len(gisaid_acc) > 0:
-            intra_data["gisaid_accession"] = gisaid_acc
-        intra_data["gisaid_graph"] = percentage_graphic(
-            len(sample_lab_objs), len(gisaid_acc), ""
-        )
-        ena_acc = get_public_accession_from_sample_lab(
-            "ena_sample_accession", sample_lab_objs
-        )
-        if len(ena_acc) > 0:
-            intra_data["ena_accession"] = ena_acc
-            intra_data["ena_graph"] = percentage_graphic(
-                len(sample_lab_objs), len(ena_acc), ""
+    relecov_group = Group.objects.get(name="RelecovManager")
+    if relecov_group not in request.user.groups.all():
+        lab_name = get_lab_name_from_user(request.user)
+        date_lab_samples = get_sample_per_date_per_lab(lab_name)
+        if len(date_lab_samples) > 0:
+            sample_lab_objs = get_sample_objs_per_lab(lab_name)
+            analysis_percent = get_bio_analysis_stats_from_lab(lab_name)
+            cust_data = {
+                "col_names": ["Sequencing Date", "Number of samples"],
+                "options": {},
+            }
+            cust_data["options"]["title"] = "Samples Received"
+            cust_data["options"]["width"] = 600
+            intra_data["sample_bar_graph"] = create_date_sample_bar(
+                date_lab_samples, cust_data
             )
-    return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
+            intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
+                analysis_percent
+            )
+            intra_data["actions"] = get_lab_last_actions(request.user)
+            gisaid_acc = get_public_accession_from_sample_lab(
+                "gisaid_accession_id", sample_lab_objs
+            )
+            if len(gisaid_acc) > 0:
+                intra_data["gisaid_accession"] = gisaid_acc
+            intra_data["gisaid_graph"] = percentage_graphic(
+                len(sample_lab_objs), len(gisaid_acc), ""
+            )
+            ena_acc = get_public_accession_from_sample_lab(
+                "ena_sample_accession", sample_lab_objs
+            )
+            if len(ena_acc) > 0:
+                intra_data["ena_accession"] = ena_acc
+                intra_data["ena_graph"] = percentage_graphic(
+                    len(sample_lab_objs), len(ena_acc), ""
+                )
+        return render(request, "relecov_core/intranet.html", {"intra_data": intra_data})
+    else:
+        # loged user belongs to Relecov Manager group
+        manager_intra_data = {}
+        all_sample_per_date = get_sample_per_date_per_all_lab()
+        if len(all_sample_per_date) > 0:
+            cust_data = {
+                "col_names": ["Sequencing Date", "Number of samples"],
+                "options": {},
+            }
+            cust_data["options"]["title"] = "Samples Received for all laboratories"
+            cust_data["options"]["width"] = 590
+            manager_intra_data["sample_bar_graph"] = create_date_sample_bar(
+                all_sample_per_date, cust_data
+            )
+            # graph for percentage analysis
+            analysis_percent = get_bio_analysis_stats_from_lab()
+            manager_intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
+                analysis_percent
+            )
+        # import pdb; pdb.set_trace()
+        return render(
+            request,
+            "relecov_core/intranet.html",
+            {"manager_intra_data": manager_intra_data},
+        )
 
 
 def variants(request):

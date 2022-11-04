@@ -37,7 +37,7 @@ from relecov_core.models import (
     TemporalSampleStorage,
 )
 
-from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
+from relecov_core.utils.handling_lab import get_lab_name_from_user, get_all_defined_labs
 
 from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
@@ -168,7 +168,7 @@ def create_form_for_batch(schema_obj, user_obj):
 
     m_batch_form["fields"] = field_data
     m_batch_form["username"] = user_obj.username
-    m_batch_form["lab_name"] = get_lab_name(user_obj)
+    m_batch_form["lab_name"] = get_lab_name_from_user(user_obj)
 
     sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
     for sample_obj in sample_objs:
@@ -288,28 +288,16 @@ def create_metadata_form(schema_obj, user_obj):
     if "ERROR" in m_form["sample"]:
         return m_form["sample"]
     m_form["username"] = user_obj.username
-    m_form["lab_name"] = get_lab_name(user_obj)
+    m_form["lab_name"] = get_lab_name_from_user(user_obj)
     return m_form
 
 
-def create_date_sample_bar(lab_sample):
+def create_date_sample_bar(lab_sample, cust_data):
     """Create bar graph where X-axis are the dates and Y-axis the number of
     samples
     """
-
-    # df = pd.DataFrame(lab_sample, index=[0])
-    col_names = ["Sequencing Date", "Value"]
-    df = pd.DataFrame(lab_sample.items(), columns=col_names)
-
-    options = {
-        "title": "Samples received",
-        "xaxis_title": "Sequencing date",
-        "yaxis_title": "Number of samples",
-        "height": "300",
-        "width": 700,
-    }
-    bar_graph = histogram_graphic(df, col_names, options)
-    return bar_graph
+    df = pd.DataFrame(lab_sample.items(), columns=cust_data["col_names"])
+    return histogram_graphic(df, cust_data["col_names"], cust_data["options"])
 
 
 def create_percentage_gauge_graphic(values):
@@ -322,7 +310,7 @@ def create_percentage_gauge_graphic(values):
 
 def get_lab_last_actions(user_obj):
     actions = {}
-    lab_name = get_lab_name(user_obj)
+    lab_name = get_lab_name_from_user(user_obj)
     last_sample_obj = Sample.objects.filter(
         collecting_institution__iexact=lab_name
     ).last()
@@ -439,12 +427,33 @@ def get_samples_count_per_schema(schema_name):
     return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
 
 
-def get_sample_per_date_per_lab(user_obj):
+def get_sample_per_date_per_all_lab():
+    """Get the historic of submitted sample for all labs. Merging the number
+    of samples if they are in the same date. Function creates a dictionary
+    with dates and number of samples
+    """
+    all_samples_per_date = OrderedDict()
+
+    s_dates = (
+        Sample.objects.all()
+        .values_list("sequencing_date", flat=True)
+        .distinct()
+        .order_by("-sequencing_date")
+    )
+    for s_date in s_dates:
+        date = datetime.strftime(s_date, "%d-%B-%Y")
+        all_samples_per_date[date] = Sample.objects.filter(
+            sequencing_date=s_date
+        ).count()
+    return all_samples_per_date
+
+
+def get_sample_per_date_per_lab(lab_name):
     """Get the historic of submitted sample, creating a dictionary with dates
     and number of samples
     """
     samples_per_date = OrderedDict()
-    lab_name = get_lab_name(user_obj)
+
     s_dates = (
         Sample.objects.filter(collecting_institution__iexact=lab_name)
         .values_list("sequencing_date", flat=True)
@@ -459,8 +468,8 @@ def get_sample_per_date_per_lab(user_obj):
     return samples_per_date
 
 
-def get_sample_objs_per_lab(user_obj):
-    lab_name = get_lab_name(user_obj)
+def get_sample_objs_per_lab(lab_name):
+    """Get all sample instance for the lab who the user is responsible"""
     return Sample.objects.filter(collecting_institution__iexact=lab_name)
 
 
@@ -479,7 +488,7 @@ def get_search_data(user_obj):
         else:
             s_data["labs"] = def_labs
     else:
-        s_data["labs"] = get_lab_name(user_obj)
+        s_data["labs"] = get_lab_name_from_user(user_obj)
 
     return s_data
 

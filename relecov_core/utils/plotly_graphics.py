@@ -11,9 +11,11 @@ from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 
 
-def histogram_graphic(data, col_names, option):
+def histogram_graphic(data, col_names, options):
 
-    graph = px.bar(data, y=col_names[1], x=col_names[0], text_auto=True)
+    graph = px.bar(
+        data, y=col_names[1], x=col_names[0], text_auto=True, width=options["width"]
+    )
     # Customize aspect
     graph.update_traces(
         marker_color="rgb(158,202,225)",
@@ -21,7 +23,13 @@ def histogram_graphic(data, col_names, option):
         marker_line_width=1.5,
         opacity=0.6,
     )
-    graph.update_layout(title=option["title"], xaxis_tickangle=-45)
+    graph.update_layout(
+        title=options["title"],
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis_tickangle=-45,
+        margin=dict(l=20, r=40, t=30, b=20),
+    )
 
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
 
