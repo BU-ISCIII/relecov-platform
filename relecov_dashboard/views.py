@@ -57,26 +57,38 @@ from relecov_dashboard.dashboard_config import (
     ERROR_NO_LINEAGES_ARE_DEFINED_YET,
 )
 
+# New files
+from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
+    display_received_samples_graph,
+)
 
 # dashboard/variants
+
+
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
 
 def lineages_dashboard(request):
+    sample_data = {}
     # samples receive over time map
     create_samples_received_over_time_map()
-    """
+
     # samples receive over time graph
-    df = create_dataframe_from_json()
-    create_samples_over_time_graph(df)
+    # df = create_dataframe_from_json()
+    # create_samples_over_time_graph(df)
+
+    # # collecting now data from database
+    sample_data["received_samples_graph"] = display_received_samples_graph()
     # Pie charts
     data = parse_json_file()
     create_samples_received_over_time_per_ccaa_pieChart(data)
     create_samples_received_over_time_per_laboratory_pieChart(data)
-    """
+
     return render(
-        request, "relecov_dashboard/dashboard_templates/lineagesDashboard.html"
+        request,
+        "relecov_dashboard/dashboard_templates/lineagesDashboard.html",
+        {"sample_data": sample_data},
     )
 
 
@@ -89,6 +101,9 @@ def mutations_in_lineages_dashboard(request):
     # mutations in lineages by lineage
     # def_chrom = get_default_chromosome()
     mdata = get_variant_data_from_lineages()
+    import pdb
+
+    pdb.set_trace()
     if not mdata:
         return render(
             request,
