@@ -17,7 +17,6 @@ from relecov_core.models import (
     LineageInfo,
     MetadataVisualization,
     OrganismAnnotation,
-    # Position,
     Profile,
     PropertyOptions,
     PublicDatabaseFields,
@@ -129,6 +128,7 @@ class PublicDatabaseFieldsAdmin(admin.ModelAdmin):
 
 class PublicDatabaseValuesAdmin(admin.ModelAdmin):
     list_display = ["value", "sampleID", "public_database_fieldID"]
+    search_fields = ["value__icontains", "sampleID__sequencing_sample_id__icontains"]
 
 
 class SampleAdmin(admin.ModelAdmin):
