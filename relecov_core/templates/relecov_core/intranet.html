@@ -44,20 +44,10 @@
 
                                     {% if intra_data.sample_bar_graph %}
                                         <div class="col-md-7">
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <div class="card-title text-center"><h3 style="text-align:center">Samples upload to Relecov Platform</h3> </div>
-                                                    {{ intra_data.sample_bar_graph | safe }}
-                                                </div> <!-- end card-body -->
-                                            </div> <!-- end card  -->
+                                                {{ intra_data.sample_bar_graph | safe }}
                                         </div> <!-- end col-md-7 -->
                                         <div class="col-md-5">
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <div class="card-title text-center"><h2 style="text-align:center">Analysis Status</h2> </div>
-                                                    {{ intra_data.sample_gauge_graph | safe }}
-                                                </div> <!-- end card-body -->
-                                            </div> <!-- end card  -->
+                                                {{ intra_data.sample_gauge_graph | safe }}
                                         </div> <!-- end col-md-5 -->
 
                                     {% else %}
