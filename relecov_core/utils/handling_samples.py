@@ -316,7 +316,6 @@ def create_percentage_gauge_graphic(values):
     data = {}
     x = values["analized"] / values["received"] * 100
     data["value"] = float("{:.2f}".format(x))
-
     gauge_graph = gauge_graphic(data)
     return gauge_graph
 

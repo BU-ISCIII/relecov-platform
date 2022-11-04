@@ -23,7 +23,7 @@ def histogram_graphic(data, col_names, option):
     )
     graph.update_layout(title=option["title"], xaxis_tickangle=-45)
 
-    plot_div = plot(graph, output_type="div")
+    plot_div = plot(graph, output_type="div", config={"displaylogo": False})
 
     return plot_div
 
@@ -39,7 +39,7 @@ def gauge_graphic(data):
             gauge={"axis": {"range": [None, 100]}},
         )
     )
-    plot_div = plot(graph, output_type="div")
+    plot_div = plot(graph, output_type="div", config={"displaylogo": False})
 
     return plot_div
 
