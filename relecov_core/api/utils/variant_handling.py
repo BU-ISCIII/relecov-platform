@@ -105,7 +105,9 @@ def get_required_variant_ann_id(data):
     gene_obj = get_gene_obj_from_gene_name(data["Gene"])
 
     if gene_obj is None:
-        import pdb; pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         return {"ERROR": ERROR_GENE_NOT_DEFINED_IN_DATABASE}
     v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
     effect_obj = create_or_get_effect_obj(data["Effect"])
