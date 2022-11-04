@@ -47,6 +47,7 @@ def gauge_graphic(data):
             gauge={"axis": {"range": [None, 100]}},
         )
     )
+    graph.update_layout(margin=dict(t=20, b=10, l=10, r=10))
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
 
     return plot_div
@@ -108,7 +109,9 @@ def pie_graphic(data, names, title, show_legend=False):
         title_font=dict(size=15, family="Verdana", color="darkgreen"),
         marker=dict(colors=colors, line=dict(color="black", width=1)),
     )
-    fig.update_layout(height=350, width=270, showlegend=show_legend)
+    fig.update_layout(
+        height=350, width=270, showlegend=show_legend, margin=dict(t=0, b=0, l=0, r=0)
+    )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
 

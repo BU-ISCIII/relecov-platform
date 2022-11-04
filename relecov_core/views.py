@@ -297,9 +297,9 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    intra_data = {}
     relecov_group = Group.objects.get(name="RelecovManager")
     if relecov_group not in request.user.groups.all():
+        intra_data = {}
         lab_name = get_lab_name_from_user(request.user)
         date_lab_samples = get_sample_per_date_per_lab(lab_name)
         if len(date_lab_samples) > 0:
@@ -339,6 +339,7 @@ def intranet(request):
         # loged user belongs to Relecov Manager group
         manager_intra_data = {}
         all_sample_per_date = get_sample_per_date_per_all_lab()
+        num_of_samples = count_handled_samples()
         if len(all_sample_per_date) > 0:
             cust_data = {
                 "col_names": ["Sequencing Date", "Number of samples"],
@@ -354,6 +355,15 @@ def intranet(request):
             manager_intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
                 analysis_percent
             )
+            # Collect GISAID information
+            gisaid_acc = get_public_accession_from_sample_lab(
+                "gisaid_accession_id", None
+            )
+            if len(gisaid_acc) > 0:
+                manager_intra_data["gisaid_accession"] = gisaid_acc
+                manager_intra_data["gisaid_graph"] = percentage_graphic(
+                    num_of_samples["Defined"], len(gisaid_acc), ""
+                )
         # import pdb; pdb.set_trace()
         return render(
             request,

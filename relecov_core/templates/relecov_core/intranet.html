@@ -64,13 +64,15 @@
                                                         <table id="gisaidTable" class="table table-striped table-bordered">
                                                             <thead>
                                                                 <tr scope="row">
+                                                                    <th>Laboratory Name</th>
                                                                     <th>Sample Name ID</th>
                                                                     <th>GISAID Accession ID</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {% for sample, acc in manager_intra_data.gisaid_accession %}
+                                                                {% for lab, sample, acc in manager_intra_data.gisaid_accession %}
                                                                     <tr>
+                                                                        <td>{{lab}}</td>
                                                                         <td>{{sample}}</td>
                                                                         <td>{{acc}}</td>
                                                                     </tr>
