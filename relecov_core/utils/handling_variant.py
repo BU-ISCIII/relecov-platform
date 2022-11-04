@@ -1,3 +1,5 @@
+from django.db.models import F
+
 from relecov_core.models import (
     LineageValues,
     VariantAnnotation,
@@ -82,7 +84,7 @@ def get_variant_data_from_sample(sample_id):
                     # HGVS_C	HGVS_P	HGVS_P_1LETTER
                     v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
                 v_ann_data = []
-                # import pdb; pdb.set_trace()
+
                 for idx in range(len(v_ann_data_p[0])):
                     if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
                         v_ann_data.append(v_ann_data_p[0][idx])
@@ -93,14 +95,41 @@ def get_variant_data_from_sample(sample_id):
                 v_ann_data_p = v_ann_data
             else:
                 v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
-            # import pdb; pdb.set_trace()
+
             variant_data.append(v_data + v_in_s_data + v_ann_data_p)
     data["variant_data"] = variant_data
     return data
 
 
-def get_variant_graphic():
-    return needle_plot()
+def get_variant_graphic_from_sample(sample_id):
+    """Collect the variant information to send to create the plotly graphic"""
+
+    v_data = {"x": [], "y": [], "v_id": []}
+    sample_obj = get_sample_obj_from_id(sample_id)
+    if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
+
+        raw_data = VariantInSample.objects.filter(sampleID_id=sample_obj).values(
+            x=F("dp"), y=F("af"), v_id=F("variantID_id__pk")
+        )
+        for r_data in raw_data:
+            for key, value in r_data.items():
+                v_data[key].append(value)
+
+        v_data["mutationGroups"] = list(
+            VariantAnnotation.objects.filter(
+                variantID_id__pk__in=v_data["v_id"]
+            ).values_list("effectID_id__effect", flat=True)
+        )
+        chromosome_obj = (
+            VariantAnnotation.objects.filter(variantID_id__pk=v_data["v_id"][0])
+            .last()
+            .variantID_id.chromosomeID_id
+        )
+        v_data["domains"] = get_domains_and_coordenates(chromosome_obj)
+        # delete no longer needed ids
+        v_data.pop("v_id")
+
+    return needle_plot(v_data)
 
 
 def get_gene_obj_from_gene_name(gene_name):
@@ -117,6 +146,21 @@ def get_gene_list(chromosome_obj):
         for gene_obj in gene_objs:
             gene_list.append(gene_obj.get_gene_name())
     return gene_list
+
+
+def get_domains_and_coordenates(chromosome_obj):
+    """Get the coordenates and the gene names for the given chromosome"""
+    domains = []
+    if Gene.objects.filter(chromosomeID=chromosome_obj).exists():
+        gene_objs = Gene.objects.filter(chromosomeID=chromosome_obj)
+        for gene_obj in gene_objs:
+            domains.append(
+                {
+                    "name": gene_obj.get_gene_name(),
+                    "coord": "-".join(gene_obj.get_gene_positions()),
+                }
+            )
+    return domains
 
 
 """
@@ -242,6 +286,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     list_of_effects = []
 
     domains = get_domains_list(chromosome)
+
     if not LineageValues.objects.filter(
         lineage_fieldID__property_name__iexact="lineage_name"
     ).exists():

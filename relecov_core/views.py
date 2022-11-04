@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from relecov_core.utils.handling_samples import (
     analyze_input_samples,
     assign_samples_to_new_user,
-    count_defined_samples,
+    count_handled_samples,
     check_if_empty_data,
     create_form_for_batch,
     create_metadata_form,
@@ -38,7 +38,6 @@ from relecov_core.utils.schema_handling import (
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analysis_data_from_sample,
     get_bio_analysis_stats_from_lab,
-    get_bioinfo_analized_samples,
 )
 from relecov_core.utils.handling_lab import (
     get_all_defined_labs,
@@ -48,12 +47,11 @@ from relecov_core.utils.handling_lab import (
 from relecov_core.utils.handling_public_database import (
     get_public_accession_from_sample_lab,
     get_public_information_from_sample,
-    get_samples_upload_public_database,
     percentage_graphic,
 )
 from relecov_core.utils.handling_variant import (
     get_variant_data_from_sample,
-    get_variant_graphic,
+    get_variant_graphic_from_sample,
 )
 from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import (
@@ -78,18 +76,9 @@ from relecov_core.core_config import (
 
 
 def index(request):
-    number_of_samples = count_defined_samples()
-    number_of_samples["ena"] = get_samples_upload_public_database(
-        "ena_sample_accession"
-    )
-    number_of_samples["gisaid"] = get_samples_upload_public_database(
-        "gisaid_accession_id"
-    )
-    number_of_samples["processed"] = get_bioinfo_analized_samples("analysis")
+    number_of_samples = count_handled_samples()
     return render(
-        request,
-        "relecov_core/index.html",
-        {"number_of_samples": number_of_samples},
+        request, "relecov_core/index.html", {"number_of_samples": number_of_samples}
     )
 
 
@@ -157,7 +146,7 @@ def sample_display(request, sample_id):
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
     sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     sample_data["variant"] = get_variant_data_from_sample(sample_id)
-    sample_data["graphic"] = get_variant_graphic()
+    sample_data["graphic"] = get_variant_graphic_from_sample(sample_id)
     return render(
         request, "relecov_core/sampleDisplay.html", {"sample_data": sample_data}
     )
