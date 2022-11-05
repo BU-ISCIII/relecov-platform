@@ -28,6 +28,12 @@
                             <button class="nav-link active" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="history" aria-selected="true">Sample</button>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="action-tab" data-bs-toggle="tab" data-bs-target="#actions" type="button" role="tab" aria-controls="actions" aria-selected="false">Actions</button>
+                     </li>
+                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ena-tab" data-bs-toggle="tab" data-bs-target="#ena" type="button" role="tab" aria-controls="ena" aria-selected="false">ENA Accession</button>
+                     </li>
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link" id="gisaid-tab" data-bs-toggle="tab" data-bs-target="#gisaid" type="button" role="tab" aria-controls="gisaid" aria-selected="false">GISAID Accession</button>
                         </li>
                     </ul>
@@ -53,6 +59,115 @@
                                     </div> <!-- end row-->
                                 </div> <!-- end continer-->
                             </div>  <!-- end tab sample history -->
+                            <div class="tab-pane fade" id="actions" role="tabpanel" aria-labelledby="grupo-tab">
+                            <div class="container-md">
+                                <div class="row mt-5">
+                                    <div class="col-md-12">
+                                        <div class="card">
+                                            <div class="card-header"><h2 style="text-align:center">Actions performed for each laboratory</h2> </div>
+                                            <div class="card-body">
+                                                <table id="lab_actions" class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Laboratory name</th>
+                                                            <th>Recorded date</th>
+                                                            <th>Analysis date</th>
+                                                            <th>GISAID upload date</th>
+                                                            <th>ENA Upload date</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for lab, def, anal, gisaid, ena in manager_intra_data.actions %}
+                                                            <tr>
+                                                                <td>{{lab}}</td>
+                                                                <td>{{def}}</td>
+                                                                <td>{{anal}}</td>
+                                                                <td>{{gisaid}}</td>
+                                                                <td>{{ena}}</td>
+                                                            </tr>
+                                                        {% endfor%}
+                                                    </tbody>
+                                                </table>
+                                                <script type="text/javascript">
+                                                    $(document).ready(function() {
+                                                        $('#lab_actions').DataTable({
+                                                            dom: "fltirpB",
+                                                            responsive: true,
+                                                            buttons: [
+                                                                'excel', 'csv'
+                                                            ]
+                                                        });
+                                                    });
+                                                </script>
+
+                                            </div> <!-- end card body-->
+                                        </div> <!-- end card  -->
+                                    </div> <!-- end col-md-12 -->
+                                </div> <!-- end row-->
+                            </div> <!-- end continer-->
+                        </div>  <!-- end tab actions -->
+
+                        <div class="tab-pane fade" id="ena" role="tabpanel" aria-labelledby="grupo-tab">
+                            <div class="container-md">
+                                <div class="row mt-5">
+                                    <div class="col-md-10">
+                                        <div class="card">
+                                            <div class="card-header"><h2 style="text-align:center">ENA Samples accession</h2> </div>
+                                            <div class="card-body">
+                                                {% if intra_data.ena_accession %}
+                                                    <table id="enaTable" class="table table-striped table-bordered">
+                                                        <thead>
+                                                            <tr scope="row">
+                                                                <th>Sample Name ID</th>
+                                                                <th>ENA sample accession </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for sample, acc in intra_data.ena_accession %}
+                                                                <tr>
+                                                                    <td>{{sample}}</td>
+                                                                    <td>{{acc}}</td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+
+                                                    <script type="text/javascript">
+                                                        $(document).ready(function() {
+                                                            $('#enaTable').DataTable({
+                                                                dom: "fltirpB",
+                                                                responsive: true,
+                                                                buttons: [
+                                                                    'excel', 'csv'
+                                                                ]
+                                                            });
+                                                        });
+                                                    </script>
+                                                {% else %}
+                                                    <div class="col-md-12">
+                                                        <div class="card border-warning mb-3">
+                                                            <div class="card-header text-center text-warning"><h2 style="text-align:center">No samples are upload yet to ENA </h2> </div>
+                                                        </div> <!-- end card  -->
+                                                    </div> <!-- end col-md-10 -->
+                                                {% endif %}
+                                            </div> <!-- end card body-->
+                                        </div> <!-- end card  -->
+                                    </div> <!-- end col-md-10 -->
+                                    {% if intra_data.ena_graph %}
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-header"><h4 style="text-align:center">ENA Upload </h4> </div>
+                                                <div class="card-body">
+                                                    <h5>Percentage of ENA upload samples</h5>
+                                                    {{intra_data.ena_graph | safe}}
+                                                </div> <!-- end card body-->
+                                            </div> <!-- end card  -->
+                                        </div> <!-- end col-md-9 -->
+                                    {% endif %}
+                                </div> <!-- end row-->
+                            </div> <!-- end continer-->
+                        </div>  <!-- end tab ena -->
+
                             <div class="tab-pane fade" id="gisaid" role="tabpanel" aria-labelledby="grupo-tab">
                                 <div class="container-md">
                                     <div class="row mt-5">

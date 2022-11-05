@@ -308,19 +308,43 @@ def create_percentage_gauge_graphic(values):
     return gauge_graph
 
 
-def get_lab_last_actions(user_obj):
-    actions = {}
-    lab_name = get_lab_name_from_user(user_obj)
-    last_sample_obj = Sample.objects.filter(
-        collecting_institution__iexact=lab_name
-    ).last()
-    action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
+def get_lab_last_actions(lab_name=None):
+    """Get the last action performed on the samples for a specific lab.
+    If no lab is given it returns the info for all labs
+    """
     action_list = ["Defined", "Analysis", "Gisaid", "Ena"]
-    for action_obj in action_objs:
-        s_state = action_obj.get_state_name()
-        if s_state in action_list:
-            actions[s_state] = action_obj.get_date()
-    return actions
+    if lab_name is None:
+        lab_actions = []
+        labs = Sample.objects.all().values_list("collecting_institution").distinct()
+        for lab in labs:
+            sam_obj = Sample.objects.filter(collecting_institution__exact=lab[0]).last()
+            lab_data = [lab[0]]
+            for action in action_list:
+                if DateUpdateState.objects.filter(
+                    sampleID=sam_obj, stateID__state__exact=action
+                ).exists():
+                    lab_data.append(
+                        DateUpdateState.objects.filter(
+                            sampleID=sam_obj, stateID__state__exact=action
+                        )
+                        .last()
+                        .get_date()
+                    )
+                else:
+                    lab_data.append("")
+            lab_actions.append(lab_data)
+        return lab_actions
+    else:
+        actions = {}
+        last_sample_obj = Sample.objects.filter(
+            collecting_institution__iexact=lab_name
+        ).last()
+        action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
+        for action_obj in action_objs:
+            s_state = action_obj.get_state_name()
+            if s_state in action_list:
+                actions[s_state] = action_obj.get_date()
+        return actions
 
 
 def get_gisaid_info(sample_obj, schema_obj):
