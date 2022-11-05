@@ -317,7 +317,7 @@ def intranet(request):
             intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
                 analysis_percent
             )
-            intra_data["actions"] = get_lab_last_actions(request.user)
+            intra_data["actions"] = get_lab_last_actions(lab_name)
             gisaid_acc = get_public_accession_from_sample_lab(
                 "gisaid_accession_id", sample_lab_objs
             )
@@ -355,6 +355,8 @@ def intranet(request):
             manager_intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
                 analysis_percent
             )
+            # Get the latest action from each lab
+            manager_intra_data["actions"] = get_lab_last_actions()
             # Collect GISAID information
             gisaid_acc = get_public_accession_from_sample_lab(
                 "gisaid_accession_id", None
@@ -363,6 +365,13 @@ def intranet(request):
                 manager_intra_data["gisaid_accession"] = gisaid_acc
                 manager_intra_data["gisaid_graph"] = percentage_graphic(
                     num_of_samples["Defined"], len(gisaid_acc), ""
+                )
+            # Collect Ena information
+            ena_acc = get_public_accession_from_sample_lab("ena_sample_accession", None)
+            if len(ena_acc) > 0:
+                manager_intra_data["ena_accession"] = ena_acc
+                manager_intra_data["ena_graph"] = percentage_graphic(
+                    num_of_samples["Defined"], len(ena_acc), ""
                 )
         # import pdb; pdb.set_trace()
         return render(
