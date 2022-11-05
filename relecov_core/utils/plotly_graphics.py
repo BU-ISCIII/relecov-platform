@@ -47,7 +47,7 @@ def gauge_graphic(data):
             gauge={"axis": {"range": [None, 100]}},
         )
     )
-    graph.update_layout(margin=dict(t=20, b=10, l=10, r=10))
+    graph.update_layout(margin=dict(t=20, b=10, l=20, r=30))
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
 
     return plot_div
