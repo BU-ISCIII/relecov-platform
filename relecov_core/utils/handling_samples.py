@@ -50,6 +50,8 @@ from relecov_core.utils.rest_api_handling import (
 
 from relecov_core.utils.generic_functions import get_configuration_value
 
+from relecov_core.utils.plotly_dash_graphics import dash_bar_lab
+
 
 def analyze_input_samples(request):
     result = {}
@@ -300,6 +302,17 @@ def create_date_sample_bar(lab_sample, cust_data):
     return histogram_graphic(df, cust_data["col_names"], cust_data["options"])
 
 
+def create_dash_bar_for_each_lab():
+    """Function collect the list of lab and the samples per date per each lab
+    and call dash plotly function to display
+    """
+    df_data = pd.DataFrame(get_sample_per_date_per_all_lab(detailed=True))
+    # import pdb; pdb.set_trace()
+    
+    dash_bar_lab(get_all_lab_list(), df_data)
+    return
+
+
 def create_percentage_gauge_graphic(values):
     data = {}
     x = values["analized"] / values["received"] * 100
@@ -382,7 +395,7 @@ def get_public_database_fields(schema_obj, db_type):
 
 
 def get_sample_display_data(sample_id, user):
-    """Check if user is allow to see the data and if true collect all info
+    """Check if user is allowed to see the data and if true collect all info
     from sample to display
     """
     sample_obj = get_sample_obj_from_id(sample_id)
@@ -451,25 +464,38 @@ def get_samples_count_per_schema(schema_name):
     return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
 
 
-def get_sample_per_date_per_all_lab():
+def get_sample_per_date_per_all_lab(detailed=None):
     """Get the historic of submitted sample for all labs. Merging the number
     of samples if they are in the same date. Function creates a dictionary
-    with dates and number of samples
+    with dates and number of samples if detailed is true return a
     """
-    all_samples_per_date = OrderedDict()
+    if detailed is None:
+        all_samples_per_date = OrderedDict()
 
-    s_dates = (
-        Sample.objects.all()
-        .values_list("sequencing_date", flat=True)
-        .distinct()
-        .order_by("-sequencing_date")
-    )
-    for s_date in s_dates:
-        date = datetime.strftime(s_date, "%d-%B-%Y")
-        all_samples_per_date[date] = Sample.objects.filter(
-            sequencing_date=s_date
-        ).count()
-    return all_samples_per_date
+        s_dates = (
+            Sample.objects.all()
+            .values_list("sequencing_date", flat=True)
+            .distinct()
+            .order_by("sequencing_date")
+        )
+        for s_date in s_dates:
+            date = datetime.strftime(s_date, "%d-%B-%Y")
+            all_samples_per_date[date] = Sample.objects.filter(
+                sequencing_date=s_date
+            ).count()
+        return all_samples_per_date
+    else:
+        lab_date_count = []
+        lab_list = get_all_lab_list()
+        for lab in lab_list:
+            date_list = Sample.objects.filter(collecting_institution__iexact=lab).values_list("sequencing_date", flat=True).distinct().order_by("sequencing_date")
+            for date in date_list:
+                lab_data = {}
+                lab_data["lab_name"] = lab
+                lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
+                lab_data["num_samples"] = Sample.objects.filter(collecting_institution__iexact=lab, sequencing_date__exact=date).count()
+                lab_date_count.append(lab_data)
+        return lab_date_count
 
 
 def get_sample_per_date_per_lab(lab_name):
@@ -482,7 +508,7 @@ def get_sample_per_date_per_lab(lab_name):
         Sample.objects.filter(collecting_institution__iexact=lab_name)
         .values_list("sequencing_date", flat=True)
         .distinct()
-        .order_by("-sequencing_date")
+        .order_by("sequencing_date")
     )
     for s_date in s_dates:
         date = datetime.strftime(s_date, "%d-%B-%Y")
@@ -560,6 +586,16 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
         join_data.append(row_data)
 
     return join_data
+
+
+def get_all_lab_list():
+    """Function gets the lab names and return then in an ordered list"""
+    return list(
+        Sample.objects.all()
+        .values_list("collecting_institution", flat=True)
+        .distinct()
+        .order_by("collecting_institution")
+    )
 
 
 def get_all_recieved_samples_with_dates(accumulated=False):

@@ -1,7 +1,7 @@
 {% extends "relecov_core/base.html" %}
 
 {% load static %}
-
+{%load plotly_dash%}
 {% block content %}
 {% include "relecov_core/intranetSidebar.html" %}
 {% include "relecov_core/cdn_table_functionality.html" %}
@@ -48,7 +48,9 @@
                                             <div class="col-md-5">
                                                     {{ manager_intra_data.sample_gauge_graph | safe }}
                                             </div> <!-- end col-md-5 -->
-
+                                            <div class="col-md-7">
+                                                {% plotly_app name="samplePerLabGraphic" ratio=1 %}
+                                        </div> <!-- end col-md-7 -->
                                         {% else %}
                                             <div class="col-md-7">
                                                 <div class="card border-warning mb-3">

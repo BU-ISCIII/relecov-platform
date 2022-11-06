@@ -7,6 +7,7 @@ from relecov_core.utils.handling_samples import (
     assign_samples_to_new_user,
     count_handled_samples,
     check_if_empty_data,
+    create_dash_bar_for_each_lab,
     create_form_for_batch,
     create_metadata_form,
     create_percentage_gauge_graphic,
@@ -149,7 +150,9 @@ def sample_display(request, sample_id):
     sample_data["bioinfo"] = get_bioinfo_analysis_data_from_sample(sample_id)
     sample_data["lineage"] = get_lineage_data_from_sample(sample_id)
     sample_data["variant"] = get_variant_data_from_sample(sample_id)
-    sample_data["graphic"] = get_variant_graphic_from_sample(sample_id)
+    # Display graphic only if variant data are for the sample
+    if "heading" in sample_data["variant"]:
+        sample_data["graphic"] = get_variant_graphic_from_sample(sample_id)
     return render(
         request, "relecov_core/sampleDisplay.html", {"sample_data": sample_data}
     )
@@ -355,6 +358,8 @@ def intranet(request):
             manager_intra_data["sample_gauge_graph"] = create_percentage_gauge_graphic(
                 analysis_percent
             )
+            # dash graph for samples per lab
+            create_dash_bar_for_each_lab()
             # Get the latest action from each lab
             manager_intra_data["actions"] = get_lab_last_actions()
             # Collect GISAID information
