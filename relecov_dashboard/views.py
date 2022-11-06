@@ -152,9 +152,7 @@ def methodology_index(request):
 
 def samples_received_over_time_map(request):
     create_samples_received_over_time_map()
-    return render(
-        request, "relecov_dashboard/samplesReceivedOverTimeMap.html"
-    )
+    return render(request, "relecov_dashboard/samplesReceivedOverTimeMap.html")
 
 
 def samples_received_over_time_graph(request):
