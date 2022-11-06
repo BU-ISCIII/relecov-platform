@@ -69,7 +69,7 @@ def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
 
-def lineages_dashboard(request):
+def received_samples_dashboard(request):
     sample_data = {}
     # samples receive over time map
     create_samples_received_over_time_map()
@@ -87,7 +87,7 @@ def lineages_dashboard(request):
 
     return render(
         request,
-        "relecov_dashboard/dashboard_templates/lineagesDashboard.html",
+        "relecov_dashboard/dashboard_templates/receivedSamplesDashboard.html",
         {"sample_data": sample_data},
     )
 
