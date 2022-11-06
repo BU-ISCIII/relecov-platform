@@ -108,29 +108,9 @@ def create_samples_received_over_time_map():
         className="card",
         children=[
             html.Div(
-                className="card-body bg-dark",
-                children=[
-                    html.H1(
-                        className="card-title",
-                        children="Samples in Spain",
-                    ),
-                    html.Div(
-                        className="card-text",
-                        children="Number of sample received in Spain per CCAA.",
-                    ),
-                ],
+                className="card-body",
             ),
             html.Br(),
-            html.Div(
-                children=[
-                    html.Div(
-                        children=[
-                            dcc.Graph(
-                                className="card", id="geomap-per-lineage", figure=fig
-                            )
-                        ]
-                    )
-                ]
-            ),
+            dcc.Graph(className="card", id="geomap-per-lineage", figure=fig),
         ],
     )

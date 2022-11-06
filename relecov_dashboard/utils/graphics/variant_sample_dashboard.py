@@ -14,10 +14,9 @@ def display_received_samples_graph():
             data["y"].append(value)
     options = {
         "height": 450,
-        "width": 550,
-        "title": "Received samples",
+        "width": 500,
         "lines": "Samples",
         "x_axis": "Dates",
-        "y_axis": "Number of samples"
+        "y_axis": "Number of samples",
     }
     return create_line_plot(data, options)
