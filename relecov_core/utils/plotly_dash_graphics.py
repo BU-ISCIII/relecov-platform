@@ -2,23 +2,20 @@ from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 from dash import dcc, html
 import plotly.express as px
+from dash.exceptions import PreventUpdate
 
 
 # from relecov_core.utils.handling_samples import get_sample_per_date_per_lab
 
 
 def dash_bar_lab(option_list, data):
-    def select_option(option, data):
-        """Return the sub data frame for the selected option"""
-        sub_df = data[data.lab_name == option]
-        # import pdb; pdb.set_trace()
-        return sub_df
 
     option = []
     for opt_list in option_list:
         option.append({"label": opt_list, "value": opt_list})
 
     app = DjangoDash("samplePerLabGraphic")
+    empty_fig = px.bar(x=[0], y=[0], height=300)
 
     app.layout = html.Div(
         [
@@ -37,7 +34,7 @@ def dash_bar_lab(option_list, data):
             ),
             html.Br(),
             html.Div(id="lab_selection"),
-            dcc.Graph(id="bar_graph", figure={}),
+            dcc.Graph(id="bar_graph", figure=empty_fig),
         ]
     )
 
@@ -47,13 +44,15 @@ def dash_bar_lab(option_list, data):
         Input("select_lab_name", "value"),
     )
     def update_graph(select_lab_name):
+        if select_lab_name == 1:
+            raise PreventUpdate
         sub_data = data[data.lab_name == select_lab_name]
         graph = px.bar(
             sub_data,
             x=sub_data["date"],
             y=sub_data["num_samples"],
             text_auto=True,
-            width=500,
+            width=520,
             height=300,
         )
         graph.update_traces(
@@ -63,10 +62,12 @@ def dash_bar_lab(option_list, data):
             opacity=0.6,
         )
         graph.update_layout(
-            title="titulo",
+            title="Register samples",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             xaxis_tickangle=-45,
             margin=dict(l=20, r=40, t=30, b=20),
+            xaxis_title="Sequencing dates",
+            yaxis_title="Number of samples",
         )
         return graph, f"Laboratory selected: {select_lab_name}"
