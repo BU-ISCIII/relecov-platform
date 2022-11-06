@@ -20,7 +20,6 @@ def dash_bar_lab(option_list, data):
         option.append({"label": opt_list, "value": opt_list})
 
     app = DjangoDash("samplePerLabGraphic")
-    import pdb
 
     """
     if len(option) == 1:
@@ -48,13 +47,7 @@ def dash_bar_lab(option_list, data):
     else:
         import pdb; pdb.set_trace()
     """
-    # pdb.set_trace()
-    if not data["lab_name"].is_unique:
-        graph = None
-    # choice = "Centro Militar de Veterinaria de la Defensa"
-    # sub_data = data[data.lab_name == choice]
-    # graph = px.bar(sub_data, x=sub_data["date"], y=sub_data["num_samples"], text_auto=True)
-    # pdb.set_trace()
+
     app.layout = html.Div(
         [
             html.H4("Select the lab"),
@@ -71,25 +64,21 @@ def dash_bar_lab(option_list, data):
                 ]
             ),
             html.Br(),
-            # dcc.Graph(id="bar_graph",figure=graph),
             html.Div(id="my_selection"),
+            dcc.Graph(id="bar_graph", figure={}),
         ]
     )
 
-    @app.callback(Output("my_selection", "children"), Input("select_lab_name", "value"))
+    @app.callback(
+        Output("bar_graph", "figure"),
+        Output("my_selection", "children"),
+        Input("select_lab_name", "value"),
+    )
     def update_graph(select_lab_name):
         if select_lab_name == 1:
             return None
         sub_data = data[data.lab_name == select_lab_name]
-        return f"Laboratory selected: {select_lab_name}"
-        # pdb.set_trace()
-        # if select_lab_name == 1:
-        #    return None
-        sub_data = data[data.lab_name == select_lab_name]
-        # sub_data = select_option(select_lab_name, data)
         graph = px.bar(
             sub_data, x=sub_data["date"], y=sub_data["num_samples"], text_auto=True
         )
-        # return f'Laboratory selected: {sub_data}'
-        #  pdb.set_trace()
-        return graph
+        return graph, f"Laboratory selected: {select_lab_name}"
