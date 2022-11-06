@@ -307,8 +307,6 @@ def create_dash_bar_for_each_lab():
     and call dash plotly function to display
     """
     df_data = pd.DataFrame(get_sample_per_date_per_all_lab(detailed=True))
-    # import pdb; pdb.set_trace()
-    
     dash_bar_lab(get_all_lab_list(), df_data)
     return
 
@@ -488,12 +486,19 @@ def get_sample_per_date_per_all_lab(detailed=None):
         lab_date_count = []
         lab_list = get_all_lab_list()
         for lab in lab_list:
-            date_list = Sample.objects.filter(collecting_institution__iexact=lab).values_list("sequencing_date", flat=True).distinct().order_by("sequencing_date")
+            date_list = (
+                Sample.objects.filter(collecting_institution__iexact=lab)
+                .values_list("sequencing_date", flat=True)
+                .distinct()
+                .order_by("sequencing_date")
+            )
             for date in date_list:
                 lab_data = {}
                 lab_data["lab_name"] = lab
                 lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
-                lab_data["num_samples"] = Sample.objects.filter(collecting_institution__iexact=lab, sequencing_date__exact=date).count()
+                lab_data["num_samples"] = Sample.objects.filter(
+                    collecting_institution__iexact=lab, sequencing_date__exact=date
+                ).count()
                 lab_date_count.append(lab_data)
         return lab_date_count
 

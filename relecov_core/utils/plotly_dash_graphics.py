@@ -47,14 +47,17 @@ def dash_bar_lab(option_list, data):
         Input("select_lab_name", "value"),
     )
     def update_graph(select_lab_name):
-        if select_lab_name == 1:
-            return None
         sub_data = data[data.lab_name == select_lab_name]
         graph = px.bar(
-            sub_data, x=sub_data["date"], y=sub_data["num_samples"], text_auto=True, width=500, height=300
+            sub_data,
+            x=sub_data["date"],
+            y=sub_data["num_samples"],
+            text_auto=True,
+            width=500,
+            height=300,
         )
         graph.update_traces(
-            marker_color="rgb(158,202,225)",
+            marker_color="rgb(0,179,0)",
             marker_line_color="rgb(8,48,107)",
             marker_line_width=1.5,
             opacity=0.6,
