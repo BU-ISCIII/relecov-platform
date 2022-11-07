@@ -22,7 +22,10 @@ def get_schema_version_if_exists(data):
 
 
 def get_analysis_defined(s_obj):
-    return BioInfoAnalysisValue.objects.filter(bioinfo_analysis_fieldID__property_name = "analysis_date", sample = s_obj).values_list("value",flat=True)
+    return BioInfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name="analysis_date", sample=s_obj
+    ).values_list("value", flat=True)
+
 
 def update_change_state_date(sample_id, state_id):
     """Update the DateUpdateState table with the new sample state"""
