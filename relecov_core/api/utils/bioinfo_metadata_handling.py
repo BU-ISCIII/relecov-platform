@@ -31,6 +31,9 @@ def split_bioinfo_data(data, schema_obj):
             pass  # ignoring the values that not belongs to bioinfo
     return split_data
 
+def get_analysis_defined(s_obj):
+    return BioInfoAnalysisValue.objects.filter(bioinfo_analysis_fieldID__property_name = "analysis_date", sample = s_obj).values_list("value",flat=True)
+
 
 def store_bioinfo_data(s_data, schema_obj):
     """Save the new field data in database"""

@@ -46,6 +46,7 @@ from relecov_core.api.utils.variant_handling import (
 from relecov_core.api.utils.common_functions import (
     get_schema_version_if_exists,
     update_change_state_date,
+    get_analysis_defined,
 )
 
 from relecov_core.core_config import (
@@ -248,7 +249,7 @@ def create_bioinfo_metadata(request):
             {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    analysis_defined = BioInfoAnalysisValue.objects.filter(bioinfo_analysis_fieldID__property_name = "analysis_date", sample = sample_obj).values_list("value",flat=True)
+    analysis_defined = get_analysis_defined(sample_obj)
     if data["analysis_date"] in list(analysis_defined):
         return Response(
             {"ERROR": ERROR_ANALYSIS_ALREADY_DEFINED}, status=status.HTTP_400_BAD_REQUEST
@@ -289,7 +290,7 @@ def create_variant_data(request):
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        analysis_defined = BioInfoAnalysisValue.objects.filter(bioinfo_analysis_fieldID__property_name = "analysis_date", sample = sample_obj).values_list("value",flat=True)
+        analysis_defined = get_analysis_defined(sample_obj)
         if data["analysis_date"] in list(analysis_defined):
             return Response(
                 {"ERROR": ERROR_ANALYSIS_ALREADY_DEFINED}, status=status.HTTP_400_BAD_REQUEST
