@@ -927,7 +927,7 @@ class VariantInSample(models.Model):
     )
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
-    alt_dp = models.CharField(max_length=5, null=True, blank=True)
+    alt_dp = models.CharField(max_length=10, null=True, blank=True)
     af = models.CharField(max_length=6, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
