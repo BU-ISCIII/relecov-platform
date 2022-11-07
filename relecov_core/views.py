@@ -401,11 +401,15 @@ def metadata_form(request):
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
             s_saved = save_temp_sample_data(res_analyze["save_samples"], request.user)
-        if "s_incomplete" in res_analyze:
+        if "s_incomplete" in res_analyze or "s_already_record" in res_analyze:
+            if "s_incomplete" not in res_analyze:
+                m_form = None
+            else:
+                m_form = create_metadata_form(schema_obj, request.user)
             return render(
                 request,
                 "relecov_core/metadataForm.html",
-                {"s_incomplete": res_analyze["s_incomplete"], "m_form": m_form},
+                {"sample_issues": res_analyze, "m_form": m_form},
             )
         m_batch_form = create_form_for_batch(schema_obj, request.user)
         return render(
@@ -432,7 +436,7 @@ def metadata_form(request):
     else:
         if pending_samples_in_metadata_form(request.user):
             m_batch_form = create_form_for_batch(schema_obj, request.user)
-
+            import pdb; pdb.set_trace()
             return render(
                 request,
                 "relecov_core/metadataForm.html",

@@ -67,23 +67,28 @@ def analyze_input_samples(request):
     allowed_empty_index = []
     for item in ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM:
         allowed_empty_index.append(heading_in_form.index(item))
+    
     for row in s_json_data:
         row_data = {}
+        incompleted = False
         sample_name = row[idx_sample]
         if sample_name == "":
             continue
         if Sample.objects.filter(sequencing_sample_id__iexact=sample_name).exists():
-            s_already_record.append(row)
+            s_already_record.append(sample_name)
             continue
         for idx in range(len(heading_in_form)):
+           
             if row[idx] == "" and idx not in allowed_empty_index:
                 s_incomplete.append(row)
+                incompleted = True
                 break
             row_data[heading_in_form[idx]] = row[idx]
+        if incompleted:
+            break
         row_data["Originating Laboratory"] = user_lab
         row_data["Submitting Institution"] = submmit_institution
         save_samples.append(row_data)
-
     if len(save_samples) > 0:
         result["save_samples"] = save_samples
     if len(s_incomplete) > 0:
