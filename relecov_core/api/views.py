@@ -179,15 +179,16 @@ def create_sample_data(request):
 
         # Save ENA info if included
         if len(split_data["ena"]) > 0:
-            result = store_pub_databases_data(
-                split_data["ena"], "ena", schema_obj, sample_id
-            )
-            if "ERROR" in result:
-                return Response(result, status=status.HTTP_400_BAD_REQUEST)
             if (
                 split_data["ena"]["ena_sample_accession"] != "Not Provided"
                 and split_data["ena"]["ena_sample_accession"] != ""
             ):
+                result = store_pub_databases_data(
+                    split_data["ena"], "ena", schema_obj, sample_id
+                )
+                if "ERROR" in result:
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                # Save entry in update state table
                 sample_obj.update_state("Ena")
                 state_id = (
                     SampleState.objects.filter(state__exact="Ena").last().get_state_id()
@@ -198,12 +199,13 @@ def create_sample_data(request):
                     date_serilizer.save()
         # Save GISAID info if included
         if len(split_data["gisaid"]) > 0:
-            result = store_pub_databases_data(
-                split_data["gisaid"], "gisaid", schema_obj, sample_id
-            )
-            if "ERROR" in result:
-                return Response(result, status=status.HTTP_400_BAD_REQUEST)
             if "EPI_ISL" in split_data["gisaid"]["gisaid_accession_id"]:
+                result = store_pub_databases_data(
+                    split_data["gisaid"], "gisaid", schema_obj, sample_id
+                )
+                if "ERROR" in result:
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                # Save entry in update state table
                 sample_obj.update_state("Gisaid")
                 state_id = (
                     SampleState.objects.filter(state__exact="Gisaid")

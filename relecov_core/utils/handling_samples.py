@@ -37,7 +37,7 @@ from relecov_core.models import (
     TemporalSampleStorage,
 )
 
-from relecov_core.utils.handling_lab import get_lab_name, get_all_defined_labs
+from relecov_core.utils.handling_lab import get_lab_name_from_user, get_all_defined_labs
 
 from relecov_core.utils.plotly_graphics import histogram_graphic, gauge_graphic
 
@@ -49,6 +49,8 @@ from relecov_core.utils.rest_api_handling import (
 )
 
 from relecov_core.utils.generic_functions import get_configuration_value
+
+from relecov_core.utils.plotly_dash_graphics import dash_bar_lab
 
 
 def analyze_input_samples(request):
@@ -168,7 +170,7 @@ def create_form_for_batch(schema_obj, user_obj):
 
     m_batch_form["fields"] = field_data
     m_batch_form["username"] = user_obj.username
-    m_batch_form["lab_name"] = get_lab_name(user_obj)
+    m_batch_form["lab_name"] = get_lab_name_from_user(user_obj)
 
     sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
     for sample_obj in sample_objs:
@@ -288,28 +290,25 @@ def create_metadata_form(schema_obj, user_obj):
     if "ERROR" in m_form["sample"]:
         return m_form["sample"]
     m_form["username"] = user_obj.username
-    m_form["lab_name"] = get_lab_name(user_obj)
+    m_form["lab_name"] = get_lab_name_from_user(user_obj)
     return m_form
 
 
-def create_date_sample_bar(lab_sample):
+def create_date_sample_bar(lab_sample, cust_data):
     """Create bar graph where X-axis are the dates and Y-axis the number of
     samples
     """
+    df = pd.DataFrame(lab_sample.items(), columns=cust_data["col_names"])
+    return histogram_graphic(df, cust_data["col_names"], cust_data["options"])
 
-    # df = pd.DataFrame(lab_sample, index=[0])
-    col_names = ["Sequencing Date", "Value"]
-    df = pd.DataFrame(lab_sample.items(), columns=col_names)
 
-    options = {
-        "title": "Samples received",
-        "xaxis_title": "Sequencing date",
-        "yaxis_title": "Number of samples",
-        "height": "300",
-        "width": 700,
-    }
-    bar_graph = histogram_graphic(df, col_names, options)
-    return bar_graph
+def create_dash_bar_for_each_lab():
+    """Function collect the list of lab and the samples per date per each lab
+    and call dash plotly function to display
+    """
+    df_data = pd.DataFrame(get_sample_per_date_per_all_lab(detailed=True))
+    dash_bar_lab(get_all_lab_list(), df_data)
+    return
 
 
 def create_percentage_gauge_graphic(values):
@@ -320,19 +319,43 @@ def create_percentage_gauge_graphic(values):
     return gauge_graph
 
 
-def get_lab_last_actions(user_obj):
-    actions = {}
-    lab_name = get_lab_name(user_obj)
-    last_sample_obj = Sample.objects.filter(
-        collecting_institution__iexact=lab_name
-    ).last()
-    action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
+def get_lab_last_actions(lab_name=None):
+    """Get the last action performed on the samples for a specific lab.
+    If no lab is given it returns the info for all labs
+    """
     action_list = ["Defined", "Analysis", "Gisaid", "Ena"]
-    for action_obj in action_objs:
-        s_state = action_obj.get_state_name()
-        if s_state in action_list:
-            actions[s_state] = action_obj.get_date()
-    return actions
+    if lab_name is None:
+        lab_actions = []
+        labs = Sample.objects.all().values_list("collecting_institution").distinct()
+        for lab in labs:
+            sam_obj = Sample.objects.filter(collecting_institution__exact=lab[0]).last()
+            lab_data = [lab[0]]
+            for action in action_list:
+                if DateUpdateState.objects.filter(
+                    sampleID=sam_obj, stateID__state__exact=action
+                ).exists():
+                    lab_data.append(
+                        DateUpdateState.objects.filter(
+                            sampleID=sam_obj, stateID__state__exact=action
+                        )
+                        .last()
+                        .get_date()
+                    )
+                else:
+                    lab_data.append("")
+            lab_actions.append(lab_data)
+        return lab_actions
+    else:
+        actions = {}
+        last_sample_obj = Sample.objects.filter(
+            collecting_institution__iexact=lab_name
+        ).last()
+        action_objs = DateUpdateState.objects.filter(sampleID=last_sample_obj)
+        for action_obj in action_objs:
+            s_state = action_obj.get_state_name()
+            if s_state in action_list:
+                actions[s_state] = action_obj.get_date()
+        return actions
 
 
 def get_gisaid_info(sample_obj, schema_obj):
@@ -370,7 +393,7 @@ def get_public_database_fields(schema_obj, db_type):
 
 
 def get_sample_display_data(sample_id, user):
-    """Check if user is allow to see the data and if true collect all info
+    """Check if user is allowed to see the data and if true collect all info
     from sample to display
     """
     sample_obj = get_sample_obj_from_id(sample_id)
@@ -439,17 +462,58 @@ def get_samples_count_per_schema(schema_name):
     return Sample.objects.filter(schema_obj__schema_name__iexact=schema_name).count()
 
 
-def get_sample_per_date_per_lab(user_obj):
+def get_sample_per_date_per_all_lab(detailed=None):
+    """Get the historic of submitted sample for all labs. Merging the number
+    of samples if they are in the same date. Function creates a dictionary
+    with dates and number of samples if detailed is true return a
+    """
+    if detailed is None:
+        all_samples_per_date = OrderedDict()
+
+        s_dates = (
+            Sample.objects.all()
+            .values_list("sequencing_date", flat=True)
+            .distinct()
+            .order_by("sequencing_date")
+        )
+        for s_date in s_dates:
+            date = datetime.strftime(s_date, "%d-%B-%Y")
+            all_samples_per_date[date] = Sample.objects.filter(
+                sequencing_date=s_date
+            ).count()
+        return all_samples_per_date
+    else:
+        lab_date_count = []
+        lab_list = get_all_lab_list()
+        for lab in lab_list:
+            date_list = (
+                Sample.objects.filter(collecting_institution__iexact=lab)
+                .values_list("sequencing_date", flat=True)
+                .distinct()
+                .order_by("sequencing_date")
+            )
+            for date in date_list:
+                lab_data = {}
+                lab_data["lab_name"] = lab
+                lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
+                lab_data["num_samples"] = Sample.objects.filter(
+                    collecting_institution__iexact=lab, sequencing_date__exact=date
+                ).count()
+                lab_date_count.append(lab_data)
+        return lab_date_count
+
+
+def get_sample_per_date_per_lab(lab_name):
     """Get the historic of submitted sample, creating a dictionary with dates
     and number of samples
     """
     samples_per_date = OrderedDict()
-    lab_name = get_lab_name(user_obj)
+
     s_dates = (
         Sample.objects.filter(collecting_institution__iexact=lab_name)
         .values_list("sequencing_date", flat=True)
         .distinct()
-        .order_by("-sequencing_date")
+        .order_by("sequencing_date")
     )
     for s_date in s_dates:
         date = datetime.strftime(s_date, "%d-%B-%Y")
@@ -459,8 +523,8 @@ def get_sample_per_date_per_lab(user_obj):
     return samples_per_date
 
 
-def get_sample_objs_per_lab(user_obj):
-    lab_name = get_lab_name(user_obj)
+def get_sample_objs_per_lab(lab_name):
+    """Get all sample instance for the lab who the user is responsible"""
     return Sample.objects.filter(collecting_institution__iexact=lab_name)
 
 
@@ -479,7 +543,7 @@ def get_search_data(user_obj):
         else:
             s_data["labs"] = def_labs
     else:
-        s_data["labs"] = get_lab_name(user_obj)
+        s_data["labs"] = get_lab_name_from_user(user_obj)
 
     return s_data
 
@@ -527,6 +591,16 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
         join_data.append(row_data)
 
     return join_data
+
+
+def get_all_lab_list():
+    """Function gets the lab names and return then in an ordered list"""
+    return list(
+        Sample.objects.all()
+        .values_list("collecting_institution", flat=True)
+        .distinct()
+        .order_by("collecting_institution")
+    )
 
 
 def get_all_recieved_samples_with_dates(accumulated=False):
