@@ -1,4 +1,7 @@
-from relecov_dashboard.utils.graphics.plotly_dashboard_graphics import create_line_plot, create_bar_graph
+from relecov_dashboard.utils.graphics.plotly_dashboard_graphics import (
+    create_line_plot,
+    create_bar_graph,
+)
 
 from relecov_core.utils.rest_api_handling import get_summarize_data
 from relecov_core.utils.handling_samples import get_all_recieved_samples_with_dates
