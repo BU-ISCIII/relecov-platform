@@ -174,6 +174,7 @@ ERROR_SAMPLE_NOT_DEFINED = "Sample id is not defined"
 ERROR_SAMPLES_NOT_DEFINED_IN_FORM = (
     "Samples were not defined when loading data for batch "
 )
+ERROR_ANALYSIS_ALREADY_DEFINED = "Analysis is already defined."
 ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB = "There is no sample recorded for laboratory"
 ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED = "So far there are no samples defined"
 ERROR_NOT_SAMPLES_STATE_HAVE_BEEN_DEFINED = "Missing configuration for sample states"
