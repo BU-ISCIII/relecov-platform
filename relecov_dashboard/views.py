@@ -61,6 +61,7 @@ from relecov_dashboard.dashboard_config import (
 from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
     display_received_samples_graph,
     display_received_per_ccaa,
+    display_received_per_lab,
 )
 
 # dashboard/variants
@@ -82,11 +83,11 @@ def received_samples_dashboard(request):
     # # collecting now data from database
     sample_data["received_samples_graph"] = display_received_samples_graph()
     # Pie charts
-    data = parse_json_file()
-    create_samples_received_over_time_per_ccaa_pieChart(data)
+    # data = parse_json_file()
+    # create_samples_received_over_time_per_ccaa_pieChart(data)
     sample_data["samples_per_ccaa"] = display_received_per_ccaa()
-    create_samples_received_over_time_per_laboratory_pieChart(data)
-
+    # create_samples_received_over_time_per_laboratory_pieChart(data)
+    sample_data["samples_per_lab"] = display_received_per_lab()
     return render(
         request,
         "relecov_dashboard/dashboard_templates/receivedSamplesDashboard.html",
