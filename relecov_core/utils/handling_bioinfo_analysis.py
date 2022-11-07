@@ -10,26 +10,35 @@ from relecov_core.utils.handling_samples import (
     get_sample_obj_from_id,
     get_samples_count_per_schema,
 )
-from relecov_core.utils.handling_lab import get_lab_name
+
 from relecov_core.utils.schema_handling import get_schema_obj_from_id
 
 
-def get_bio_analysis_stats_from_lab(user_obj):
+def get_bio_analysis_stats_from_lab(lab_name=None):
     """Get the number of samples that are analized and compare with the number
-    of recieved samples. It checks the updates in
+    of recieved samples. If no lab name is given it matches all labs
     """
     bio_stats = {}
-    lab_name = get_lab_name(user_obj)
-    sample_objs = Sample.objects.filter(collecting_institution__iexact=lab_name)
-    bio_stats["analized"] = (
-        DateUpdateState.objects.filter(
-            stateID__state__iexact="Bioinfo", sampleID__in=sample_objs
+    if lab_name is None:
+        # get stats from all lab
+        bio_stats["analized"] = (
+            DateUpdateState.objects.filter(stateID__state__iexact="Bioinfo")
+            .values("sampleID")
+            .distinct()
+            .count()
         )
-        .values("sampleID")
-        .distinct()
-        .count()
-    )
-    bio_stats["received"] = len(sample_objs)
+        bio_stats["received"] = Sample.objects.all().count()
+    else:
+        sample_objs = Sample.objects.filter(collecting_institution__iexact=lab_name)
+        bio_stats["analized"] = (
+            DateUpdateState.objects.filter(
+                stateID__state__iexact="Bioinfo", sampleID__in=sample_objs
+            )
+            .values("sampleID")
+            .distinct()
+            .count()
+        )
+        bio_stats["received"] = len(sample_objs)
     return bio_stats
 
 

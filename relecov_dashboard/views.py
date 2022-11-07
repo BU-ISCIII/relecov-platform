@@ -60,6 +60,8 @@ from relecov_dashboard.dashboard_config import (
 # New files
 from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
     display_received_samples_graph,
+    display_received_per_ccaa,
+    display_received_per_lab,
 )
 
 # dashboard/variants
@@ -69,7 +71,7 @@ def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
 
-def lineages_dashboard(request):
+def received_samples_dashboard(request):
     sample_data = {}
     # samples receive over time map
     create_samples_received_over_time_map()
@@ -81,13 +83,14 @@ def lineages_dashboard(request):
     # # collecting now data from database
     sample_data["received_samples_graph"] = display_received_samples_graph()
     # Pie charts
-    data = parse_json_file()
-    create_samples_received_over_time_per_ccaa_pieChart(data)
-    create_samples_received_over_time_per_laboratory_pieChart(data)
-
+    # data = parse_json_file()
+    # create_samples_received_over_time_per_ccaa_pieChart(data)
+    sample_data["samples_per_ccaa"] = display_received_per_ccaa()
+    # create_samples_received_over_time_per_laboratory_pieChart(data)
+    sample_data["samples_per_lab"] = display_received_per_lab()
     return render(
         request,
-        "relecov_dashboard/dashboard_templates/lineagesDashboard.html",
+        "relecov_dashboard/dashboard_templates/receivedSamplesDashboard.html",
         {"sample_data": sample_data},
     )
 
@@ -152,9 +155,7 @@ def methodology_index(request):
 
 def samples_received_over_time_map(request):
     create_samples_received_over_time_map()
-    return render(
-        request, "relecov_dashboard/graph_templates/samplesReceivedOverTimeMap.html"
-    )
+    return render(request, "relecov_dashboard/samplesReceivedOverTimeMap.html")
 
 
 def samples_received_over_time_graph(request):

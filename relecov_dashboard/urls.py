@@ -8,9 +8,9 @@ urlpatterns = [
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
     path("variants", views.variants_index, name="variants_index"),
     path(
-        "variants/lineagesDashboard",
-        views.lineages_dashboard,
-        name="lineages_dashboard",
+        "variants/receivedSamplesDashboard",
+        views.received_samples_dashboard,
+        name="received_samples_dashboard",
     ),
     path(
         "variants/mutationsInLineagesDashboard",
