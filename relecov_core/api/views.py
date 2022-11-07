@@ -183,7 +183,10 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
-            if split_data["ena"]["ena_sample_accession"] != "Not Provided":
+            if (
+                split_data["ena"]["ena_sample_accession"] != "Not Provided"
+                and split_data["ena"]["ena_sample_accession"] != ""
+            ):
                 sample_obj.update_state("Ena")
                 state_id = (
                     SampleState.objects.filter(state__exact="Ena").last().get_state_id()
@@ -199,7 +202,7 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
-            if split_data["gisaid"]["gisaid_accession_id"] != "Not Provided":
+            if "EPI_ISL" in split_data["gisaid"]["gisaid_accession_id"]:
                 sample_obj.update_state("Gisaid")
                 state_id = (
                     SampleState.objects.filter(state__exact="Gisaid")
