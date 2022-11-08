@@ -1,9 +1,12 @@
 import json
 import os
+import shutil
 from collections import OrderedDict
 from datetime import datetime
 import pandas as pd
 from django.contrib.auth.models import Group, User
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
 
 # from django.db.models import Max
@@ -686,6 +689,16 @@ def pending_samples_in_metadata_form(user_obj):
     if TemporalSampleStorage.objects.filter(user=user_obj).exists():
         return True
     return False
+
+
+def save_excel_form_in_samba_folder(m_file, user_name):
+    f_name = user_name + "_" + m_file.name
+    f_path = os.path.join(get_configuration_value("SAMBA_FOLDER"), f_name)
+    """Save the metadata lab file in Samba folder"""
+    FileSystemStorage().save(f_name, m_file)
+    # moving file
+    shutil.move(os.path.join(settings.MEDIA_ROOT, f_name), f_path)
+    return
 
 
 def search_samples(sample_name, lab_name, sample_state, s_date, user):
