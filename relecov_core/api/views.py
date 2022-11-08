@@ -293,7 +293,6 @@ def create_variant_data(request):
             return Response(
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
-        import pdb; pdb.set_trace()
         analysis_defined = get_variant_analysis_defined(sample_obj)
         if data["analysis_date"] in list(analysis_defined):
             return Response(
