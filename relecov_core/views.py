@@ -398,7 +398,9 @@ def metadata_form(request):
     if request.method == "POST" and request.POST["action"] == "uploadMetadataFile":
         if "metadataFile" in request.FILES:
 
-            save_excel_form_in_samba_folder(request.FILES["metadataFile"], request.user.username)
+            save_excel_form_in_samba_folder(
+                request.FILES["metadataFile"], request.user.username
+            )
             return render(
                 request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
             )
