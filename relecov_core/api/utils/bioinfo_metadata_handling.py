@@ -5,7 +5,7 @@ from relecov_core.core_config import (
 )
 
 from relecov_core.api.serializers import (
-    CreateBioInfoAnalysisValueSerializer,
+    CreateBioinfoAnalysisValueSerializer,
     CreateLineageValueSerializer,
 )
 
@@ -52,7 +52,7 @@ def store_bioinfo_data(s_data, schema_obj):
             "bioinfo_analysis_fieldID": field_id,
         }
 
-        bio_value_serializer = CreateBioInfoAnalysisValueSerializer(data=data)
+        bio_value_serializer = CreateBioinfoAnalysisValueSerializer(data=data)
         if not bio_value_serializer.is_valid():
             return {"ERROR": str(field + " " + ERROR_UNABLE_TO_STORE_IN_DATABASE)}
         bio_value_obj = bio_value_serializer.save()

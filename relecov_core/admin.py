@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from relecov_core.models import (
-    BioInfoAnalysisValue,
+    BioinfoAnalysisValue,
     BioinfoAnalysisField,
     Classification,
     Chromosome,
@@ -65,7 +65,7 @@ class BioinfoAnalysisFielddAdmin(admin.ModelAdmin):
     search_fields = ("property_name__icontains",)
 
 
-class BioInfoAnalysisValueAdmin(admin.ModelAdmin):
+class BioinfoAnalysisValueAdmin(admin.ModelAdmin):
     list_display = ["value", "bioinfo_analysis_fieldID"]
     search_fields = ("value__icontains",)
 
@@ -219,7 +219,7 @@ admin.site.register(PublicDatabaseFields, PublicDatabaseFieldsAdmin)
 admin.site.register(PublicDatabaseValues, PublicDatabaseValuesAdmin)
 admin.site.register(MetadataVisualization, MetadataVisualizationAdmin)
 admin.site.register(BioinfoAnalysisField, BioinfoAnalysisFielddAdmin)
-admin.site.register(BioInfoAnalysisValue, BioInfoAnalysisValueAdmin)
+admin.site.register(BioinfoAnalysisValue, BioinfoAnalysisValueAdmin)
 admin.site.register(Classification, ClassificationAdmin)
 admin.site.register(TemporalSampleStorage, TemporalSampleStorageAdmin)
 admin.site.register(Error, ErrorAdmin)
