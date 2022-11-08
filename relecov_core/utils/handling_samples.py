@@ -4,7 +4,6 @@ from collections import OrderedDict
 from datetime import datetime
 import pandas as pd
 from django.contrib.auth.models import Group, User
-from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
 
 # from django.db.models import Max
