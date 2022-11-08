@@ -17,12 +17,13 @@ from relecov_core.utils.handling_samples import (
     get_search_data,
     get_sample_per_date_per_all_lab,
     get_sample_per_date_per_lab,
+    get_sample_pre_recorded,
     get_sample_objs_per_lab,
     join_sample_and_batch,
     pending_samples_in_metadata_form,
     save_temp_sample_data,
     search_samples,
-    update_temporary_sample_table,
+    delete_temporary_sample_table,
     write_form_data_to_excel,
 )
 
@@ -412,6 +413,7 @@ def metadata_form(request):
                 {"sample_issues": res_analyze, "m_form": m_form},
             )
         m_batch_form = create_form_for_batch(schema_obj, request.user)
+        sample_saved = get_sample_pre_recorded(request.user)
         return render(
             request,
             "relecov_core/metadataForm.html",
@@ -419,28 +421,29 @@ def metadata_form(request):
         )
     if request.method == "POST" and request.POST["action"] == "defineBatch":
         if not check_if_empty_data(request.POST):
+            sample_saved = get_sample_pre_recorded(request.user)
             m_batch_form = create_form_for_batch(schema_obj, request.user)
             return render(
                 request,
                 "relecov_core/metadataForm.html",
-                {"m_batch_form": m_batch_form},
+                {"m_batch_form": m_batch_form, "sample_saved": sample_saved},
             )
         meta_data = join_sample_and_batch(request.POST, request.user, schema_obj)
         # write date to excel using relecov tools
         write_form_data_to_excel(meta_data, request.user)
-        update_temporary_sample_table(request.user)
+        delete_temporary_sample_table(request.user)
         # Display page to indicate that process is starting
         return render(
             request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
         )
     else:
         if pending_samples_in_metadata_form(request.user):
+            sample_saved = get_sample_pre_recorded(request.user)
             m_batch_form = create_form_for_batch(schema_obj, request.user)
-            import pdb; pdb.set_trace()
             return render(
                 request,
                 "relecov_core/metadataForm.html",
-                {"m_batch_form": m_batch_form},
+                {"m_batch_form": m_batch_form, "sample_saved": sample_saved},
             )
         m_form = create_metadata_form(schema_obj, request.user)
         if "ERROR" in m_form:

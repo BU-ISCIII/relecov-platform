@@ -224,7 +224,8 @@
                                 <p style="text-align:center">Belongs to <strong> {{m_batch_form.lab_name}}</strong></p>
                              </div>
                             <div class="card-body  text-center">
-                                <p>The values defined in this form will be set to the following sample names </p>
+                                <p>The values defined in this form will be set to the following sample names <br>
+                                    {% for sample in sample_saved %}{{sample}}, {% endfor %}</p>
                             </div> <!-- end card body  -->
                         </div> <!-- end card  -->
                     </div> <!--// end col-sm-9 -->
