@@ -22,6 +22,7 @@ from relecov_core.utils.handling_samples import (
     join_sample_and_batch,
     pending_samples_in_metadata_form,
     save_temp_sample_data,
+    save_excel_form_in_samba_folder,
     search_samples,
     delete_temporary_sample_table,
     write_form_data_to_excel,
@@ -394,6 +395,13 @@ def variants(request):
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
+    if request.method == "POST" and request.POST["action"] == "uploadMetadataFile":
+        if "metadataFile" in request.FILES:
+
+            save_excel_form_in_samba_folder(request.FILES["metadataFile"], request.user.username)
+            return render(
+                request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
+            )
     if request.method == "POST" and request.POST["action"] == "defineSamples":
         res_analyze = analyze_input_samples(request)
         # empty form
