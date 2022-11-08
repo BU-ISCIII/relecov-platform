@@ -889,7 +889,7 @@ class Variant(models.Model):
     filterID_id = models.ForeignKey(
         Filter, on_delete=models.CASCADE, null=True, blank=True
     )
-    ref = models.CharField(max_length=60, null=True, blank=True)
+    ref = models.CharField(max_length=100, null=True, blank=True)
     pos = models.CharField(max_length=60, null=True, blank=True)
     alt = models.CharField(max_length=100, null=True, blank=True)
 
@@ -925,6 +925,7 @@ class VariantInSample(models.Model):
     variantID_id = models.ForeignKey(
         Variant, on_delete=models.CASCADE, null=True, blank=True
     )
+    analysis_date = models.CharField(max_length=100, null=True, blank=True)
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
     alt_dp = models.CharField(max_length=10, null=True, blank=True)

@@ -31,6 +31,7 @@ from relecov_core.utils.handling_samples import get_sample_obj_from_sample_name
 from relecov_core.api.utils.bioinfo_metadata_handling import (
     split_bioinfo_data,
     store_bioinfo_data,
+    get_analysis_defined,
 )
 
 from relecov_core.api.utils.public_db_handling import store_pub_databases_data
@@ -41,12 +42,12 @@ from relecov_core.api.utils.variant_handling import (
     store_variant_in_sample,
     delete_created_variancs,
     variant_annotation_exists,
+    get_variant_analysis_defined,
 )
 
 from relecov_core.api.utils.common_functions import (
     get_schema_version_if_exists,
     update_change_state_date,
-    get_analysis_defined,
 )
 
 from relecov_core.core_config import (
@@ -292,8 +293,8 @@ def create_variant_data(request):
             return Response(
                 {"ERROR": ERROR_SAMPLE_NOT_DEFINED}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        analysis_defined = get_analysis_defined(sample_obj)
+        import pdb; pdb.set_trace()
+        analysis_defined = get_variant_analysis_defined(sample_obj)
         if data["analysis_date"] in list(analysis_defined):
             return Response(
                 {"ERROR": ERROR_ANALYSIS_ALREADY_DEFINED},
@@ -310,7 +311,7 @@ def create_variant_data(request):
         v_an_list = []
 
         for v_data in data["variants"]:
-            split_data = split_variant_data(v_data, sample_obj)
+            split_data = split_variant_data(v_data, sample_obj, data["analysis_date"])
 
             if "ERROR" in split_data:
                 error = {"ERROR": split_data}

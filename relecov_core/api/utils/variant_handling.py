@@ -15,6 +15,7 @@ from relecov_core.models import (
     Effect,
     Filter,
     Variant,
+    VariantInSample,
     VariantAnnotation,
 )
 
@@ -99,6 +100,11 @@ def get_variant_id(data):
     return variant_obj.get_variant_id()
 
 
+def get_variant_analysis_defined(s_obj):
+    return VariantInSample.objects.filter(
+        sampleID_id=s_obj
+    ).values_list("analysis_date", flat=True)
+
 def get_required_variant_ann_id(data):
     """Look for the ids that variant annotation needs"""
     v_ann_ids = {}
@@ -115,7 +121,7 @@ def get_required_variant_ann_id(data):
     return v_ann_ids
 
 
-def split_variant_data(data, sample_obj):
+def split_variant_data(data, sample_obj, date):
 
     split_data = {"variant_in_sample": {}, "variant_ann": {}}
     split_data["variant_in_sample"]["sampleID_id"] = sample_obj.get_sample_id()
@@ -123,6 +129,8 @@ def split_variant_data(data, sample_obj):
     if isinstance(variant_id, dict):
         return variant_id
     split_data["variant_in_sample"]["variantID_id"] = variant_id
+    split_data["variant_in_sample"]["analysis_date"] = date
+
     split_data["variant_in_sample"].update(data["VariantInSample"])
 
     v_ann_id = get_required_variant_ann_id(data)
