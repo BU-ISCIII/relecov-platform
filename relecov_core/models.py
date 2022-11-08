@@ -338,7 +338,7 @@ class BioinfoAnalysisField(models.Model):
     objects = BioinfoAnalysisFieldManager()
 
 
-class BioInfoAnalysisValueManager(models.Manager):
+class BioinfoAnalysisValueManager(models.Manager):
     def create_new_value(self, data):
         new_value = self.create(
             value=data["value"],
@@ -348,7 +348,7 @@ class BioInfoAnalysisValueManager(models.Manager):
         return new_value
 
 
-class BioInfoAnalysisValue(models.Model):
+class BioinfoAnalysisValue(models.Model):
     value = models.CharField(max_length=240, null=True, blank=True)
     bioinfo_analysis_fieldID = models.ForeignKey(
         BioinfoAnalysisField, on_delete=models.CASCADE
@@ -356,7 +356,7 @@ class BioInfoAnalysisValue(models.Model):
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
-        db_table = "BioInfoAnalysisValue"
+        db_table = "BioinfoAnalysisValue"
 
     def __str__(self):
         return "%s" % (self.value)
@@ -669,7 +669,7 @@ class Sample(models.Model):
     )
     linage_values = models.ManyToManyField(LineageValues, blank=True)
     linage_info = models.ManyToManyField(LineageInfo, blank=True)
-    bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue, blank=True)
+    bio_analysis_values = models.ManyToManyField(BioinfoAnalysisValue, blank=True)
 
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)

@@ -1,6 +1,6 @@
 from relecov_core.models import (
     BioinfoAnalysisField,
-    BioInfoAnalysisValue,
+    BioinfoAnalysisValue,
     DateUpdateState,
     Sample,
     Schema,
@@ -54,11 +54,11 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
         return None
     a_fields = BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
     for a_field in a_fields:
-        if BioInfoAnalysisValue.objects.filter(
+        if BioinfoAnalysisValue.objects.filter(
             bioinfo_analysis_fieldID=a_field, sample=sample_obj
         ).exists():
             value = (
-                BioInfoAnalysisValue.objects.filter(
+                BioinfoAnalysisValue.objects.filter(
                     bioinfo_analysis_fieldID=a_field, sample=sample_obj
                 )
                 .last()
@@ -97,14 +97,14 @@ def get_bioinfo_analyis_fields_utilization(schema_id=None):
         b_field_objs = BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
         for b_field_obj in b_field_objs:
             f_name = b_field_obj.get_label()
-            if not BioInfoAnalysisValue.objects.filter(
+            if not BioinfoAnalysisValue.objects.filter(
                 bioinfo_analysis_fieldID=b_field_obj
             ).exists():
                 b_data[schema_name][f_name] = "never_used"
                 continue
             # b_data[schema_name][f_name] = [count]
             count_not_empty = (
-                BioInfoAnalysisValue.objects.filter(
+                BioinfoAnalysisValue.objects.filter(
                     bioinfo_analysis_fieldID=b_field_obj
                 )
                 .exclude(value="None")
