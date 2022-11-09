@@ -1031,7 +1031,6 @@ class TemporalSampleStorage(models.Model):
     sample_name = models.CharField(max_length=100, null=True)
     field = models.CharField(max_length=100, null=True)
     value = models.CharField(max_length=100, null=True)
-    sent = models.BooleanField(default=False)
     generated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

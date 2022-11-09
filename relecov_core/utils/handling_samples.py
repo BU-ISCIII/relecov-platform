@@ -1,9 +1,11 @@
 import json
 import os
+import shutil
 from collections import OrderedDict
 from datetime import datetime
 import pandas as pd
 from django.contrib.auth.models import Group, User
+from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from relecov_tools.utils import write_to_excel_file
 
@@ -67,23 +69,28 @@ def analyze_input_samples(request):
     allowed_empty_index = []
     for item in ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM:
         allowed_empty_index.append(heading_in_form.index(item))
+
     for row in s_json_data:
         row_data = {}
+        incompleted = False
         sample_name = row[idx_sample]
         if sample_name == "":
             continue
         if Sample.objects.filter(sequencing_sample_id__iexact=sample_name).exists():
-            s_already_record.append(row)
+            s_already_record.append(sample_name)
             continue
         for idx in range(len(heading_in_form)):
+
             if row[idx] == "" and idx not in allowed_empty_index:
                 s_incomplete.append(row)
+                incompleted = True
                 break
             row_data[heading_in_form[idx]] = row[idx]
+        if incompleted:
+            break
         row_data["Originating Laboratory"] = user_lab
         row_data["Submitting Institution"] = submmit_institution
         save_samples.append(row_data)
-
     if len(save_samples) > 0:
         result["save_samples"] = save_samples
     if len(s_incomplete) > 0:
@@ -171,10 +178,6 @@ def create_form_for_batch(schema_obj, user_obj):
     m_batch_form["fields"] = field_data
     m_batch_form["username"] = user_obj.username
     m_batch_form["lab_name"] = get_lab_name_from_user(user_obj)
-
-    sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
-    for sample_obj in sample_objs:
-        pass
 
     return m_batch_form
 
@@ -317,6 +320,15 @@ def create_percentage_gauge_graphic(values):
     data["value"] = float("{:.2f}".format(x))
     gauge_graph = gauge_graphic(data)
     return gauge_graph
+
+
+def delete_temporary_sample_table(user_obj):
+    """Set for all samples in the temporary table for the user that are sent
+    to folder to start the process for validatation
+    """
+    if TemporalSampleStorage.objects.filter(user=user_obj).exists():
+        TemporalSampleStorage.objects.filter(user=user_obj).delete()
+    return True
 
 
 def get_lab_last_actions(lab_name=None):
@@ -630,6 +642,17 @@ def get_all_recieved_samples_with_dates(accumulated=False):
     return r_samples
 
 
+def get_sample_pre_recorded(user_obj):
+    """Function returns a list of the samples that are pending to add the
+    batch information for those samples
+    """
+    return list(
+        TemporalSampleStorage.objects.filter(
+            user=user_obj, field__exact="Sample ID given for sequencing"
+        ).values_list("value", flat=True)
+    )
+
+
 def increase_unique_value(old_unique_number):
     """The function increases in one number the unique value
     If number reaches the 9999 then the letter is stepped
@@ -666,6 +689,16 @@ def pending_samples_in_metadata_form(user_obj):
     if TemporalSampleStorage.objects.filter(user=user_obj).exists():
         return True
     return False
+
+
+def save_excel_form_in_samba_folder(m_file, user_name):
+    f_name = user_name + "_" + m_file.name
+    f_path = os.path.join(get_configuration_value("SAMBA_FOLDER"), f_name)
+    """Save the metadata lab file in Samba folder"""
+    FileSystemStorage().save(f_name, m_file)
+    # moving file
+    shutil.move(os.path.join(settings.MEDIA_ROOT, f_name), f_path)
+    return
 
 
 def search_samples(sample_name, lab_name, sample_state, s_date, user):
@@ -723,21 +756,10 @@ def save_temp_sample_data(samples, user_obj):
     return
 
 
-def update_temporary_sample_table(user_obj):
-    """Set for all samples in the temporary table for the user that are sent
-    to folder to start the process for validatation
-    """
-    if TemporalSampleStorage.objects.filter(user=user_obj).exists():
-        t_sample_objs = TemporalSampleStorage.objects.filter(user=user_obj)
-        for t_sample_obj in t_sample_objs:
-            t_sample_obj.update_sent_status()
-    return True
-
-
 def write_form_data_to_excel(data, user_obj):
     """Write data to excel using relecov-tools"""
-    folder_tmp = os.path.join(settings.MEDIA_ROOT, "tmp")
-    os.makedirs(folder_tmp, exist_ok=True)
-    f_name = os.path.join(folder_tmp, "Metadata_lab_" + user_obj.username + ".xlsx")
-    write_to_excel_file(data, f_name, "METADATA_LAB", True)
+    samba_folder = get_configuration_value("SAMBA_FOLDER")
+    os.makedirs(samba_folder, exist_ok=True)
+    f_name = os.path.join(samba_folder, "Metadata_lab_" + user_obj.username + ".xlsx")
+    write_to_excel_file(data, f_name, "METADATA_LAB", {})
     return
