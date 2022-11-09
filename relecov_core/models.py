@@ -667,8 +667,8 @@ class Sample(models.Model):
     schema_obj = models.ForeignKey(
         Schema, on_delete=models.CASCADE, null=True, blank=True
     )
-    linage_values = models.ManyToManyField(LineageValues, blank=True)
-    linage_info = models.ManyToManyField(LineageInfo, blank=True)
+    lineage_values = models.ManyToManyField(LineageValues, blank=True)
+    lineage_info = models.ManyToManyField(LineageInfo, blank=True)
     bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue, blank=True)
 
     sample_unique_id = models.CharField(max_length=12)
