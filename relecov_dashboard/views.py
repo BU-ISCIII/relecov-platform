@@ -13,6 +13,7 @@ from relecov_core.core_config import (
     ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED,
 )
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
+    get_variant_data_from_lineages,
     create_needle_plot_graph_mutation_by_lineage,
 )
 
@@ -45,7 +46,6 @@ from relecov_dashboard.utils.methodology_index import index_dash_fields
 
 from relecov_core.utils.handling_variant import (
     create_dataframe,
-    get_variant_data_from_lineages,
 )
 
 from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (

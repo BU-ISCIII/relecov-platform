@@ -240,7 +240,7 @@ def create_effect_list(sample_name, chromosome):
 
                 for variant_annotation_obj in variant_annotation_objs:
                     list_of_effects.append(
-                        variant_annotation_obj.get_variant_in_sample_data()[1]
+                        variant_annotation_obj.get_variant_annot_data()[1]
                     )
                     break
     return list_of_effects
@@ -273,64 +273,4 @@ def create_dataframe(sample_name, organism_code):
     mdata["mutationGroups"] = effects
     mdata["domains"] = domains
     """
-    return mdata
-
-
-# ITER variant mutation
-def get_variant_data_from_lineages(lineage=None, chromosome=None):
-    if chromosome is None:
-        chromosome = get_default_chromosome()
-    mdata = {}
-    list_of_af = []
-    list_of_pos = []
-    list_of_effects = []
-
-    domains = get_domains_list(chromosome)
-
-    if not LineageValues.objects.filter(
-        lineage_fieldID__property_name__iexact="lineage_name"
-    ).exists():
-        return None
-    if lineage is None:
-        lineage = (
-            LineageValues.objects.filter(
-                lineage_fieldID__property_name__iexact="lineage_name"
-            )
-            .first()
-            .value("value")
-        )
-    else:
-        if not LineageValues.objects.filter(
-            lineage_fieldID__property_name__iexact="lineage_name", value__iexact=lineage
-        ).exists():
-            return None
-
-    lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
-    sample_objs = Sample.objects.filter(linage_values=lineage_value_objs)
-
-    """
-    lineage_fields_obj = LineageFields.objects.filter(
-        property_name="lineage_name"
-    ).last()
-    lineage_value_obj = LineageValues.objects.filter(
-        lineage_fieldID=lineage_fields_obj.get_lineage_field_id(), value=lineage
-    ).last()
-    sample_objs = Sample.objects.filter(linage_values=lineage_value_obj)
-    """
-    for sample_obj in sample_objs:
-        af = get_alelle_frequency_per_sample(
-            sample_obj.get_sequencing_sample_id(), chromosome
-        )
-        pos = get_position_per_sample(sample_obj.get_sequencing_sample_id(), chromosome)
-        effects = create_effect_list(sample_obj.get_sequencing_sample_id(), chromosome)
-
-        list_of_af += af
-        list_of_pos += pos
-        list_of_effects += effects
-
-    mdata["x"] = list_of_pos
-    mdata["y"] = list_of_af
-    mdata["mutationGroups"] = list_of_effects
-    mdata["domains"] = domains
-
     return mdata
