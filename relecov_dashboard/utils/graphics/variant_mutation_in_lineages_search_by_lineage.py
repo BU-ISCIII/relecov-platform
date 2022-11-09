@@ -2,7 +2,19 @@ from dash import dcc, html
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 import dash_bio as dashbio
-from relecov_core.utils.handling_variant import get_variant_data_from_lineages
+
+from relecov_core.utils.handling_variant import (
+        get_default_chromosome,
+        get_domains_list,
+        get_alelle_frequency_per_sample,
+        get_position_per_sample,
+        create_effect_list,
+        )
+
+from relecov_core.models import (
+        LineageValues,
+        Sample
+        )
 
 
 # ITER variant mutation
@@ -15,7 +27,6 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     list_of_effects = []
 
     domains = get_domains_list(chromosome)
-
     if not LineageValues.objects.filter(
         lineage_fieldID__property_name__iexact="lineage_name"
     ).exists():
@@ -25,17 +36,12 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
             LineageValues.objects.filter(
                 lineage_fieldID__property_name__iexact="lineage_name"
             )
+            .values_list("value",flat=True)
             .first()
-            .value("value")
         )
-    else:
-        if not LineageValues.objects.filter(
-            lineage_fieldID__property_name__iexact="lineage_name", value__iexact=lineage
-        ).exists():
-            return None
 
     lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
-    sample_objs = Sample.objects.filter(linage_values=lineage_value_objs)
+    sample_objs = Sample.objects.filter(linage_values__in=lineage_value_objs)
 
     """
     lineage_fields_obj = LineageFields.objects.filter(
