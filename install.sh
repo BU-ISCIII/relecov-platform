@@ -132,7 +132,8 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     apt-get update && apt-get upgrade -y
     apt-get install -y \
         apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
-        libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3
+        libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3 \
+        python3-venv
 fi
 
 if [[ $linux_distribution == "CentOS" ]]; then
@@ -189,7 +190,7 @@ if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
     read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
     echo    # (optional) move to a new line
     if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-        rm -rf $INSTALL_PATH/relecov-platform
+        rm -rf $INSTALL_PATH/relecov-platform/virtualenv
         bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
     else
         echo "virtualenv alredy defined. Skipping."
