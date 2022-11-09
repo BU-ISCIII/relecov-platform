@@ -17,12 +17,14 @@ from relecov_core.utils.handling_samples import (
     get_search_data,
     get_sample_per_date_per_all_lab,
     get_sample_per_date_per_lab,
+    get_sample_pre_recorded,
     get_sample_objs_per_lab,
     join_sample_and_batch,
     pending_samples_in_metadata_form,
     save_temp_sample_data,
+    save_excel_form_in_samba_folder,
     search_samples,
-    update_temporary_sample_table,
+    delete_temporary_sample_table,
     write_form_data_to_excel,
 )
 
@@ -393,6 +395,15 @@ def variants(request):
 @login_required()
 def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
+    if request.method == "POST" and request.POST["action"] == "uploadMetadataFile":
+        if "metadataFile" in request.FILES:
+
+            save_excel_form_in_samba_folder(
+                request.FILES["metadataFile"], request.user.username
+            )
+            return render(
+                request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
+            )
     if request.method == "POST" and request.POST["action"] == "defineSamples":
         res_analyze = analyze_input_samples(request)
         # empty form
@@ -401,13 +412,18 @@ def metadata_form(request):
             return render(request, "relecov_core/metadataForm.html", {"m_form": m_form})
         if "save_samples" in res_analyze:
             s_saved = save_temp_sample_data(res_analyze["save_samples"], request.user)
-        if "s_incomplete" in res_analyze:
+        if "s_incomplete" in res_analyze or "s_already_record" in res_analyze:
+            if "s_incomplete" not in res_analyze:
+                m_form = None
+            else:
+                m_form = create_metadata_form(schema_obj, request.user)
             return render(
                 request,
                 "relecov_core/metadataForm.html",
-                {"s_incomplete": res_analyze["s_incomplete"], "m_form": m_form},
+                {"sample_issues": res_analyze, "m_form": m_form},
             )
         m_batch_form = create_form_for_batch(schema_obj, request.user)
+        sample_saved = get_sample_pre_recorded(request.user)
         return render(
             request,
             "relecov_core/metadataForm.html",
@@ -415,28 +431,29 @@ def metadata_form(request):
         )
     if request.method == "POST" and request.POST["action"] == "defineBatch":
         if not check_if_empty_data(request.POST):
+            sample_saved = get_sample_pre_recorded(request.user)
             m_batch_form = create_form_for_batch(schema_obj, request.user)
             return render(
                 request,
                 "relecov_core/metadataForm.html",
-                {"m_batch_form": m_batch_form},
+                {"m_batch_form": m_batch_form, "sample_saved": sample_saved},
             )
         meta_data = join_sample_and_batch(request.POST, request.user, schema_obj)
         # write date to excel using relecov tools
         write_form_data_to_excel(meta_data, request.user)
-        update_temporary_sample_table(request.user)
+        delete_temporary_sample_table(request.user)
         # Display page to indicate that process is starting
         return render(
             request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
         )
     else:
         if pending_samples_in_metadata_form(request.user):
+            sample_saved = get_sample_pre_recorded(request.user)
             m_batch_form = create_form_for_batch(schema_obj, request.user)
-
             return render(
                 request,
                 "relecov_core/metadataForm.html",
-                {"m_batch_form": m_batch_form},
+                {"m_batch_form": m_batch_form, "sample_saved": sample_saved},
             )
         m_form = create_metadata_form(schema_obj, request.user)
         if "ERROR" in m_form:

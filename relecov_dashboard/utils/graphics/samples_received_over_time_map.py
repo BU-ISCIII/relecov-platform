@@ -18,7 +18,7 @@ def create_samples_received_over_time_map():
     raw_data = get_summarize_data("")
 
     with open(geojson_file) as geo_json:
-        counties = json.load(geo_json)
+        counties = json.load(geo_json, encoding="utf-8")
 
     data = {"ccaa_id": [], "ccaa_name": [], "samples": []}
     for region in counties["features"]:
