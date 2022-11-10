@@ -42,7 +42,8 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
 
     lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
     sample_objs = Sample.objects.filter(linage_values__in=lineage_value_objs)
-
+    #variants=VariantInSample.objects.filter(sampleID_id__in=sample_objs, af__gt=0.75).values_list("variantID_id",flat=True).distinct()e
+    # VariantInSample.objects.filter(sampleID_id__in=sample_objs, variantID_id=variants[0]).values_list("sampleID_id").count()
     """
     lineage_fields_obj = LineageFields.objects.filter(
         property_name="lineage_name"
