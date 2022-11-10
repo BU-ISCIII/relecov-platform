@@ -4,7 +4,7 @@ from django.db import models
 class GraphicNameManager(models.Manager):
     def create_new_graphic_name(self, name):
         return self.create(graphic_name=name)
-         
+
 
 class GraphicName(models.Model):
     graphic_name = models.CharField(max_length=80)
@@ -17,7 +17,7 @@ class GraphicName(models.Model):
 
     def get_graphic_name(self):
         return "%s" % (self.get_graphic_name)
-    
+
     objects = GraphicNameManager()
 
 
