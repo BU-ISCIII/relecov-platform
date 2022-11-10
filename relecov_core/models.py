@@ -951,6 +951,9 @@ class VariantInSample(models.Model):
             return None
         return self.variantID_id
 
+    def get_chrom(self):
+        return self.variantID_id.get_chrom()
+
     def get_dp(self):
         return "%s" % (self.dp)
 
