@@ -59,7 +59,6 @@ from relecov_core.utils.handling_variant import (
     get_variant_data_from_sample,
     get_variant_graphic_from_sample,
 )
-from relecov_core.utils.bio_info_json_handling import process_bioinfo_file
 from relecov_core.utils.generic_functions import (
     check_valid_date_format,
     get_defined_users,
@@ -104,40 +103,6 @@ def assign_samples_to_user(request):
         "relecov_core/assignSamplesToUser.html",
         {"lab_data": lab_data},
     )
-
-
-@login_required
-def bio_info_json_handling(request):
-    if request.method == "POST" and request.POST["action"] == "uploadBioInfo":
-        bioinfo_data = process_bioinfo_file(
-            request.FILES["BioInfoFile"],
-            request.user,
-            __package__,
-        )
-        print(bioinfo_data)
-
-        """
-        if "ERROR" in schema_data:
-            return render(
-                request,
-                "relecov_core/bioInfoJSONHandling.html",
-                {"ERROR": schema_data["ERROR"]},
-            )
-
-        return render(
-            request,
-            "relecov_core/bioInfoJSONHandling.html",
-            {"SUCCESS": bioinfo_data["SUCCESS"]},
-        )
-        """
-    # schemas = get_schemas_loaded(__package__)
-    """
-    return render(
-        request, "relecov_core/bioInfoJSONHandling.html", {"schemas": schemas}
-    )
-    """
-    # test flake working fine
-    return render(request, "relecov_core/bioInfoJSONHandling.html", {})
 
 
 @login_required
