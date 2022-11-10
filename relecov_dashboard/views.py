@@ -64,6 +64,10 @@ from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
     display_received_per_lab,
 )
 
+from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time import (
+    create_lineages_variations_graphic,
+)
+
 # dashboard/variants
 
 
@@ -141,6 +145,7 @@ def spike_mutations_3d_dashboard(request):
 
 
 def lineages_voc_dashboard(request):
+    create_lineages_variations_graphic()
 
     return render(
         request, "relecov_dashboard/dashboard_templates/lineagesVocDashboard.html"
