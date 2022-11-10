@@ -52,7 +52,7 @@ class GraphicValueManager(models.Manager):
             graphic=data["graphic_name_obj"],
             value_1=data["value_1"],
             value_2=data["value_2"],
-            value_3=data["value_3"]
+            value_3=data["value_3"],
         )
 
 
