@@ -109,7 +109,7 @@ def get_variant_graphic_from_sample(sample_id):
     if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
 
         raw_data = VariantInSample.objects.filter(sampleID_id=sample_obj).values(
-            x=F("pos"), y=F("af"), v_id=F("variantID_id__pk")
+            x=F("variantID_id__pos"), y=F("af"), v_id=F("variantID_id__pk")
         )
         for r_data in raw_data:
             for key, value in r_data.items():
