@@ -164,7 +164,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
 
 
 if __name__ == "__main__":
-    data = "/home/warlog/biohackathon/relecov-platform/relecov_dashboard/utils/graphics/fisabio_data.csv"
+    data = "/home/bioinfo/Projects/relecov-platform/relecov_dashboard/utils/csv_files/fisabio_data.csv"
     plot = make_lineage_variaton_plot(
         data,
         start_date="2021-01-01",
