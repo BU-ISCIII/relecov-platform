@@ -40,29 +40,32 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
             .first()
         )
 
+    # Grab lineages matching selected lineage
     lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
+    # Query samples matching that lineage
     sample_objs = Sample.objects.filter(linage_values__in=lineage_value_objs)
-    #variants=VariantInSample.objects.filter(sampleID_id__in=sample_objs, af__gt=0.75).values_list("variantID_id",flat=True).distinct()e
-    # VariantInSample.objects.filter(sampleID_id__in=sample_objs, variantID_id=variants[0]).values_list("sampleID_id").count()
-    """
-    lineage_fields_obj = LineageFields.objects.filter(
-        property_name="lineage_name"
-    ).last()
-    lineage_value_obj = LineageValues.objects.filter(
-        lineage_fieldID=lineage_fields_obj.get_lineage_field_id(), value=lineage
-    ).last()
-    sample_objs = Sample.objects.filter(linage_values=lineage_value_obj)
-    """
-    for sample_obj in sample_objs:
-        af = get_alelle_frequency_per_sample(
-            sample_obj.get_sequencing_sample_id(), chromosome
-        )
-        pos = get_position_per_sample(sample_obj.get_sequencing_sample_id(), chromosome)
-        effects = create_effect_list(sample_obj.get_sequencing_sample_id(), chromosome)
+    number_samples_wlineage = Sample.objects.filter(linage_values__in=lineage_value_objs).count()
+    # Query variants with AF>0.75 for samples matching desired lineage
+    variants=VariantInSample.objects.filter(sampleID_id__in=sample_objs, af__gt=0.75).values_list("variantID_id",flat=True).distinct()
 
-        list_of_af += af
+    for variant in variants:
+        number_samples_wmutation = VariantInSample.objects.filter(sampleID_id__in=sample_objs, variantID_id=variant).values_list("sampleID_id").count()
+        mut_freq_population = number_samples_wmutation/number_samples_wlineage
+        pos = variant.get_pos()
+
+        list_of_effects = list(
+            VariantAnnotation.objects.filter(
+                variantID_id__pk__in=variant
+            ).values_list("effectID_id__effect", flat=True)
+        )
+
+
+        list_of_af += mut_freq_population
         list_of_pos += pos
         list_of_effects += effects
+
+    chromosome_obj = Chromosome.objects.last()
+    domains = get_domains_and_coordenates(chromosome_obj)
 
     mdata["x"] = list_of_pos
     mdata["y"] = list_of_af

@@ -126,6 +126,7 @@ def get_variant_graphic_from_sample(sample_id):
             .variantID_id.chromosomeID_id
         )
         v_data["domains"] = get_domains_and_coordenates(chromosome_obj)
+        import pdb; pdb.set_trace()
         # delete no longer needed ids
         v_data.pop("v_id")
 
