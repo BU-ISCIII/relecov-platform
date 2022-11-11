@@ -1,13 +1,11 @@
 from django.db.models import F
 
 from relecov_core.models import (
-    LineageValues,
     VariantAnnotation,
     VariantInSample,
     Chromosome,
     Gene,
     OrganismAnnotation,
-    Sample,
 )
 
 from relecov_core.utils.handling_samples import (

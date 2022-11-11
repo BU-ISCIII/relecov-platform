@@ -6,9 +6,6 @@ import dash_bio as dashbio
 from relecov_core.utils.handling_variant import (
     get_default_chromosome,
     get_domains_list,
-    get_alelle_frequency_per_sample,
-    get_position_per_sample,
-    create_effect_list,
     get_domains_and_coordenates,
 )
 
