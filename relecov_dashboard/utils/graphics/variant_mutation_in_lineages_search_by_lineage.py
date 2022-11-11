@@ -13,7 +13,8 @@ from relecov_core.utils.handling_variant import (
 
 from relecov_core.models import (
         LineageValues,
-        Sample
+        Sample,
+        VariantInSample,
         )
 
 
