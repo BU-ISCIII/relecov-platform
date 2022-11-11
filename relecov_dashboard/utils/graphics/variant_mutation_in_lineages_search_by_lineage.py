@@ -51,7 +51,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     number_samples_wlineage = Sample.objects.filter(
         lineage_values__in=lineage_value_objs
     ).count()
-    # Query variants with AF>0.75 for samples matching desired lineage
+    # Query variants with AF>0.75 for samples matching desired lineage. TODO: get this from threshold af in metadata bioinfo in db.
     variants = (
         VariantInSample.objects.filter(sampleID_id__in=sample_objs, af__gt=0.75)
         .values_list("variantID_id", flat=True)
@@ -73,9 +73,11 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
             variantID_id__pk=variant
         ).values_list("effectID_id__effect", flat=True).last()
 
-        list_of_af.append(mut_freq_population)
-        list_of_pos.append(pos)
-        list_of_effects.append(effects)
+        # Only display mutations with at lease 0.05 freq in population
+        if (mut_freq_population > 0.05):
+            list_of_af.append(mut_freq_population)
+            list_of_pos.append(pos)
+            list_of_effects.append(effects)
 
     chromosome_obj = Chromosome.objects.last()
     domains = get_domains_and_coordenates(chromosome_obj)
