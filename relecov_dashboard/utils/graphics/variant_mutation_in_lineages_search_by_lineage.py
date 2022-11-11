@@ -14,6 +14,7 @@ from relecov_core.utils.handling_variant import (
 from relecov_core.models import (
         LineageValues,
         Sample,
+        Chromosome,
         VariantInSample,
         VariantAnnotation,
         )
@@ -55,16 +56,16 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
         mut_freq_population = number_samples_wmutation/number_samples_wlineage
         pos = VariantInSample.objects.filter(variantID_id=variant)[0].get_pos()
 
-        list_of_effects = list(
+        effects = list(
             VariantAnnotation.objects.filter(
-                variantID_id__pk__in=variant
+                variantID_id__pk=variant
             ).values_list("effectID_id__effect", flat=True)
         )
 
 
-        list_of_af += mut_freq_population
-        list_of_pos += pos
-        list_of_effects += effects
+        list_of_af.append(mut_freq_population)
+        list_of_pos.append(pos)
+        list_of_effects.append(effects)
 
     chromosome_obj = Chromosome.objects.last()
     domains = get_domains_and_coordenates(chromosome_obj)
@@ -73,6 +74,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     mdata["y"] = list_of_af
     mdata["mutationGroups"] = list_of_effects
     mdata["domains"] = domains
+    import pdb; pdb.set_trace()
 
     return mdata
 
