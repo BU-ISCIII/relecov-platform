@@ -1,4 +1,9 @@
-from relecov_core.models import BioinfoAnalysisField, BioinfoAnalysisValue, LineageFields, Sample
+from relecov_core.models import (
+    BioinfoAnalysisField,
+    BioinfoAnalysisValue,
+    LineageFields,
+    Sample,
+)
 
 from relecov_core.core_config import (
     ERROR_UNABLE_TO_STORE_IN_DATABASE,
