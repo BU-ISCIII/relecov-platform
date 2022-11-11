@@ -63,7 +63,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
             VariantInSample.objects.filter(
                 sampleID_id__in=sample_objs, variantID_id=variant
             )
-            .values_list("sampleID_id")
+            .values_list("sampleID_id",flat=True)
             .count()
         )
         mut_freq_population = number_samples_wmutation / number_samples_wlineage
@@ -71,7 +71,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
 
         effects = VariantAnnotation.objects.filter(
             variantID_id__pk=variant
-        ).values_list("effectID_id__effect", flat=True)
+        ).values_list("effectID_id__effect", flat=True).last()
 
         list_of_af.append(mut_freq_population)
         list_of_pos.append(pos)
@@ -84,9 +84,6 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     mdata["y"] = list_of_af
     mdata["mutationGroups"] = list_of_effects
     mdata["domains"] = domains
-    import pdb
-
-    pdb.set_trace()
 
     return mdata
 
