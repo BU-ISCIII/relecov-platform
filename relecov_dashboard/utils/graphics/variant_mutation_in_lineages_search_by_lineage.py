@@ -15,6 +15,7 @@ from relecov_core.models import (
         LineageValues,
         Sample,
         VariantInSample,
+        VariantAnnotation,
         )
 
 
