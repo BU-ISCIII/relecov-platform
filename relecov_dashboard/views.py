@@ -5,6 +5,7 @@ from relecov_core.utils.handling_variant import (
     get_all_chromosome_objs,
     get_gene_list,
     get_sample_in_variant_list,
+    get_default_chromosome,
 )
 
 from relecov_core.core_config import (
@@ -14,6 +15,7 @@ from relecov_core.core_config import (
 )
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     get_variant_data_from_lineages,
+    get_lineages_list,
     create_needle_plot_graph_mutation_by_lineage,
 )
 
@@ -102,8 +104,9 @@ def mutations_in_lineages_dashboard(request):
     create_needle_plot_graph_mutation_by_sample(sample_name=2018185, mdata=mdata)
     """
     # mutations in lineages by lineage
-    # def_chrom = get_default_chromosome()
-    mdata = get_variant_data_from_lineages()
+    def_chrom = get_default_chromosome()
+    lineages_list = get_lineages_list()
+    mdata, lineage = get_variant_data_from_lineages(lineage=None, chromosome=def_chrom)
 
     if not mdata:
         return render(
@@ -111,7 +114,7 @@ def mutations_in_lineages_dashboard(request):
             "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
             {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
-    create_needle_plot_graph_mutation_by_lineage("BA.1.1.7", mdata)
+    create_needle_plot_graph_mutation_by_lineage(lineages_list, lineage, mdata, def_chrom)
     # v_lineage_data = get_variant_all_lineage_data()
     """
     # mutations in lineages heatmap
@@ -219,16 +222,6 @@ def variants_mutations_in_lineages_heatmap(request):
         )
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
-
-
-def mutations_in_lineages_by_lineage(request):
-    # sample_list = [2018185, 210067]
-    mdata = get_variant_data_from_lineages(lineage="B.1.1.7", organism_code="NC_045512")
-    create_needle_plot_graph_mutation_by_lineage("BA.1.1.7", mdata)
-    return render(
-        request, "relecov_dashboard/variantsMutationsInLineagesByLineage.html"
-    )
-
 
 def mutations_in_lineages_by_samples(request):
     mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
