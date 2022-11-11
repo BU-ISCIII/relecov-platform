@@ -9,6 +9,7 @@ from relecov_core.utils.handling_variant import (
         get_alelle_frequency_per_sample,
         get_position_per_sample,
         create_effect_list,
+        get_domains_and_coordenates,
         )
 
 from relecov_core.models import (
