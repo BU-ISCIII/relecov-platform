@@ -44,7 +44,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
     # Query samples matching that lineage
     sample_objs = Sample.objects.filter(lineage_values__in=lineage_value_objs)
-    number_samples_wlineage = Sample.objects.filter(linage_values__in=lineage_value_objs).count()
+    number_samples_wlineage = Sample.objects.filter(lineage_values__in=lineage_value_objs).count()
     # Query variants with AF>0.75 for samples matching desired lineage
     variants=VariantInSample.objects.filter(sampleID_id__in=sample_objs, af__gt=0.75).values_list("variantID_id",flat=True).distinct()
 
