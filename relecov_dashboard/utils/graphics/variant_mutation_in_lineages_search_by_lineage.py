@@ -52,7 +52,7 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     for variant in variants:
         number_samples_wmutation = VariantInSample.objects.filter(sampleID_id__in=sample_objs, variantID_id=variant).values_list("sampleID_id").count()
         mut_freq_population = number_samples_wmutation/number_samples_wlineage
-        pos = variant.get_pos()
+        pos = VariantInSample.objects.filter(variantID_id=variant)[0].get_pos()
 
         list_of_effects = list(
             VariantAnnotation.objects.filter(
