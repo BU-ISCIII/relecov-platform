@@ -63,18 +63,20 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
             VariantInSample.objects.filter(
                 sampleID_id__in=sample_objs, variantID_id=variant
             )
-            .values_list("sampleID_id",flat=True)
+            .values_list("sampleID_id", flat=True)
             .count()
         )
         mut_freq_population = number_samples_wmutation / number_samples_wlineage
         pos = VariantInSample.objects.filter(variantID_id=variant)[0].get_pos()
 
-        effects = VariantAnnotation.objects.filter(
-            variantID_id__pk=variant
-        ).values_list("effectID_id__effect", flat=True).last()
+        effects = (
+            VariantAnnotation.objects.filter(variantID_id__pk=variant)
+            .values_list("effectID_id__effect", flat=True)
+            .last()
+        )
 
         # Only display mutations with at lease 0.05 freq in population
-        if (mut_freq_population > 0.05):
+        if mut_freq_population > 0.05:
             list_of_af.append(mut_freq_population)
             list_of_pos.append(pos)
             list_of_effects.append(effects)
