@@ -18,7 +18,15 @@ from relecov_core.models import (
 )
 
 
-# ITER variant mutation
+def get_lineages_list():
+    """Function gets the lab names and return then in an ordered list"""
+    return list(
+        LineageValues.objects.all()
+        .values_list("value", flat=True)
+        .distinct()
+        .order_by("value")
+    )
+
 def get_variant_data_from_lineages(lineage=None, chromosome=None):
     if chromosome is None:
         chromosome = get_default_chromosome()
@@ -27,7 +35,6 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     list_of_pos = []
     list_of_effects = []
 
-    domains = get_domains_list(chromosome)
     if not LineageValues.objects.filter(
         lineage_fieldID__property_name__iexact="lineage_name"
     ).exists():
@@ -78,18 +85,22 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
             list_of_pos.append(pos)
             list_of_effects.append(effects)
 
-    chromosome_obj = Chromosome.objects.last()
-    domains = get_domains_and_coordenates(chromosome_obj)
+    domains = get_domains_and_coordenates(chromosome)
 
     mdata["x"] = list_of_pos
     mdata["y"] = list_of_af
     mdata["mutationGroups"] = list_of_effects
     mdata["domains"] = domains
 
-    return mdata
+    return mdata, lineage
 
 
-def create_needle_plot_graph_mutation_by_lineage(lineage, mdata):
+def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, chromosome):
+
+    options = []
+    for lin in lineage_list:
+        options.append({"label": lin, "value": lin})
+
     app = DjangoDash("needlePlotMutationByLineage")
 
     app.layout = html.Div(
@@ -117,9 +128,7 @@ def create_needle_plot_graph_mutation_by_lineage(lineage, mdata):
                             "Select a Lineage",
                             dcc.Dropdown(
                                 id="needleplot-select-lineage",
-                                options=[
-                                    {"label": "B.1.1.7", "value": "B.1.1.7"}
-                                ],  # dict_of_samples,
+                                options= options,
                                 clearable=False,
                                 multi=False,
                                 value=lineage,
@@ -156,8 +165,8 @@ def create_needle_plot_graph_mutation_by_lineage(lineage, mdata):
         Input("needleplot-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
-        mdata = get_variant_data_from_lineages("B.1.1.7", "NC_045512")
-        create_needle_plot_graph_mutation_by_lineage(selected_lineage, mdata)
+        mdata, lineage = get_variant_data_from_lineages(selected_lineage, chromosome)
+        create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, chromosome)
         # mutation_data = mdata
         # return mutation_data
 
