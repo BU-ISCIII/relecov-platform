@@ -101,9 +101,10 @@ def get_variant_id(data):
 
 
 def get_variant_analysis_defined(s_obj):
-    return VariantInSample.objects.filter(
-        sampleID_id=s_obj
-    ).values_list("analysis_date", flat=True)
+    return VariantInSample.objects.filter(sampleID_id=s_obj).values_list(
+        "analysis_date", flat=True
+    )
+
 
 def get_required_variant_ann_id(data):
     """Look for the ids that variant annotation needs"""

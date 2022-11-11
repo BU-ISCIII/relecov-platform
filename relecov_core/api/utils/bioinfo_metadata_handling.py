@@ -37,6 +37,7 @@ def get_analysis_defined(s_obj):
         bioinfo_analysis_fieldID__property_name="analysis_date", sample=s_obj
     ).values_list("value", flat=True)
 
+
 def store_bioinfo_data(s_data, schema_obj):
     """Save the new field data in database"""
     # schema_id = schema_obj.get_schema_id()
