@@ -20,5 +20,5 @@ def get_graphic_data(graphic_name):
             )
         )
         return pd.DataFrame(values, columns=fields)
-        
+
     return None

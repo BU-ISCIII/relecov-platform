@@ -97,9 +97,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
 
     # Get values by data and nsamples
     # whoPerMelted = pd.melt(whoPer, id_vars=["Date", "nsamples"]).dropna()
-    import pdb
 
-    pdb.set_trace()
     # Fill NaN with 0 in order to avoid errors
     whoPer = whoPer.fillna(0)
     # We eliminated samples that were included on day 7 or 14, the first 6 or the first 13.
@@ -146,9 +144,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
 
     # Add figure title
     fig.update_layout(
-        title_text="<b>RELECOV Spain - Lineage variation over time </b>("
-        + str(windowSize)
-        + " days)",
+        title_text="<b>Lineage variation over time </b> 14 days",
         barmode="stack",
         hovermode="x unified",
         legend_xanchor="center",  # use center of legend as anchor
