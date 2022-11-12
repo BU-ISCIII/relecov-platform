@@ -149,7 +149,9 @@ def lineages_voc_dashboard(request):
     draw_lineages["lineage_on_time"] = create_lineages_variations_graphic()
     # import pdb; pdb.set_trace()
     return render(
-        request, "relecov_dashboard/variantLineagesVocDashboard.html", {"draw_lineages": draw_lineages}
+        request,
+        "relecov_dashboard/variantLineagesVocDashboard.html",
+        {"draw_lineages": draw_lineages},
     )
 
 
