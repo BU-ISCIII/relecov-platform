@@ -78,8 +78,7 @@ def variants_index(request):
 def received_samples_dashboard(request):
     sample_data = {}
     # samples receive over time map
-    create_samples_received_over_time_map()
-
+    sample_data["map"] = create_samples_received_over_time_map()
     # samples receive over time graph
     # df = create_dataframe_from_json()
     # create_samples_over_time_graph(df)
@@ -94,7 +93,7 @@ def received_samples_dashboard(request):
     sample_data["samples_per_lab"] = display_received_per_lab()
     return render(
         request,
-        "relecov_dashboard/dashboard_templates/receivedSamplesDashboard.html",
+        "relecov_dashboard/variantReceivedSamplesDashboard.html",
         {"sample_data": sample_data},
     )
 
@@ -145,10 +144,12 @@ def spike_mutations_3d_dashboard(request):
 
 
 def lineages_voc_dashboard(request):
-    create_lineages_variations_graphic()
-
+    # Draw lineage based on time
+    draw_lineages = {}
+    draw_lineages["lineage_on_time"] = create_lineages_variations_graphic()
+    # import pdb; pdb.set_trace()
     return render(
-        request, "relecov_dashboard/dashboard_templates/lineagesVocDashboard.html"
+        request, "relecov_dashboard/variantLineagesVocDashboard.html", {"draw_lineages": draw_lineages}
     )
 
 
