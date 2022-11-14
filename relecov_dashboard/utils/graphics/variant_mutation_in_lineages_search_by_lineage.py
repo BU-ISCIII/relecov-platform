@@ -162,13 +162,12 @@ def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, c
 
     @app.callback(
         Output("dashbio-needleplot", "mutationData"),
+        Output("dashbio-needleplot", "lineage"),
         Input("needleplot-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
         mdata, lineage = get_variant_data_from_lineages(selected_lineage, chromosome)
-        create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, chromosome)
-        # mutation_data = mdata
-        # return mutation_data
+        return mdata, lineage
 
     @app.callback(
         Output("dashbio-needleplot", "rangeSlider"),
