@@ -1,4 +1,4 @@
-from relecov_core.models import Schema, BioInfoAnalysisValue
+from relecov_core.models import Schema, BioinfoAnalysisValue
 
 from relecov_core.api.serializers import CreateDateAfterChangeStateSerializer
 
@@ -22,7 +22,7 @@ def get_schema_version_if_exists(data):
 
 
 def get_analysis_defined(s_obj):
-    return BioInfoAnalysisValue.objects.filter(
+    return BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name="analysis_date", sample=s_obj
     ).values_list("value", flat=True)
 

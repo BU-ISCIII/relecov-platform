@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from relecov_core.models import (
-    BioInfoAnalysisValue,
+    BioinfoAnalysisValue,
     DateUpdateState,
     Effect,
     Filter,
@@ -14,9 +14,9 @@ from relecov_core.models import (
 )
 
 
-class CreateBioInfoAnalysisValueSerializer(serializers.ModelSerializer):
+class CreateBioinfoAnalysisValueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BioInfoAnalysisValue
+        model = BioinfoAnalysisValue
         fields = "__all__"
 
 
