@@ -27,6 +27,7 @@ def get_lineages_list():
         .order_by("value")
     )
 
+
 def get_variant_data_from_lineages(lineage=None, chromosome=None):
     if chromosome is None:
         chromosome = get_default_chromosome()
@@ -95,7 +96,9 @@ def get_variant_data_from_lineages(lineage=None, chromosome=None):
     return mdata, lineage
 
 
-def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, chromosome):
+def create_needle_plot_graph_mutation_by_lineage(
+    lineage_list, lineage, mdata, chromosome
+):
 
     options = []
     for lin in lineage_list:
@@ -128,7 +131,7 @@ def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, c
                             "Select a Lineage",
                             dcc.Dropdown(
                                 id="needleplot-select-lineage",
-                                options= options,
+                                options=options,
                                 clearable=False,
                                 multi=False,
                                 value=lineage,
