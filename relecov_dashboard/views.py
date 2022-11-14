@@ -114,7 +114,9 @@ def mutations_in_lineages_dashboard(request):
             "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
             {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
-    create_needle_plot_graph_mutation_by_lineage(lineages_list, lineage, mdata, def_chrom)
+    create_needle_plot_graph_mutation_by_lineage(
+        lineages_list, lineage, mdata, def_chrom
+    )
     # v_lineage_data = get_variant_all_lineage_data()
     """
     # mutations in lineages heatmap
@@ -222,6 +224,7 @@ def variants_mutations_in_lineages_heatmap(request):
         )
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
 
 def mutations_in_lineages_by_samples(request):
     mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
