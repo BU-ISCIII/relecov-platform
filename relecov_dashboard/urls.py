@@ -33,11 +33,6 @@ urlpatterns = [
         name="variants_mutations_in_lineages_needle_plot",
     ),
     path(
-        "variants/mutationsInLineagesByLineage",
-        views.mutations_in_lineages_by_lineage,
-        name="mutations_in_lineages_by_lineage",
-    ),
-    path(
         "variants/mutationsInLineagesHeatmap",
         views.variants_mutations_in_lineages_heatmap,
         name="variants_mutations_in_lineages_heatmap",
