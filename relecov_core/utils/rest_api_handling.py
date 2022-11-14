@@ -9,6 +9,7 @@ from relecov_core.core_config import (
     ISKLIMS_GET_SAMPLE_INFORMATION,
     ISKLIMS_GET_SAMPLE_PROJECT_FIELDS,
     ISKLIMS_GET_SUMMARIZE_DATA,
+    ISKLIMS_FETCH_SAMPLES_ON_CONDITION,
     ISKLIMS_POST_SAMPLE_DATA,
 )
 
@@ -20,6 +21,21 @@ def create_get_api_instance(request_param, data):
     request, param = request_param
     r_api = RestApi(iskylims_server, iskylims_url)
     return r_api.get_request(request, param, data)
+
+
+def fetch_samples_on_condition(request_param, filter_condition=None):
+    """Send request to get the list of samples that for a specific parameter
+    has a condition. If no filter condition is given it returns grouping the
+    samples for each defined value of the parameter
+    """
+    iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
+    iskylims_url = ISKLIMS_REST_API
+    request, param = ISKLIMS_FETCH_SAMPLES_ON_CONDITION
+    r_api = RestApi(iskylims_server, iskylims_url)
+    data = r_api.get_request(request, param, request_param)
+    if "ERROR" in data:
+        return {"ERROR": data}
+    return data
 
 
 def get_laboratory_data(lab_name):

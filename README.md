@@ -14,7 +14,7 @@
 
 ## Installation
 
-## iSkyLIMS docker installation
+## Relecov docker installation
 
 
 ## Install relecov-platform in your server running ubuntu
@@ -25,11 +25,10 @@ Before starting the installation check :
 -   Apache server is running on local server
 
 #### Clone github repository
-```bash
+Open a linux terminal and move to a directory where relecov code will be downloaded
 
-cd /opt
-sudo mkdir relecov_platform
-sudo chown <your_user>:<your_group> relecov_platform
+```bash
+cd <your personal folder>
 git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
 cd relecov_platform
 ```

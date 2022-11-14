@@ -144,9 +144,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
 
     # Add figure title
     fig.update_layout(
-        title_text="<b>RELECOV Spain - Lineage variation over time </b>("
-        + str(windowSize)
-        + " days)",
+        title_text="<b>Lineage variation over time </b> 14 days",
         barmode="stack",
         hovermode="x unified",
         legend_xanchor="center",  # use center of legend as anchor
@@ -164,7 +162,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
 
 
 if __name__ == "__main__":
-    data = "/home/warlog/biohackathon/relecov-platform/relecov_dashboard/utils/graphics/fisabio_data.csv"
+    data = "/home/bioinfo/Projects/relecov-platform/relecov_dashboard/utils/csv_files/fisabio_data.csv"
     plot = make_lineage_variaton_plot(
         data,
         start_date="2021-01-01",
