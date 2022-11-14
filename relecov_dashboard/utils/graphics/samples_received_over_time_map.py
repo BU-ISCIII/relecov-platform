@@ -16,6 +16,8 @@ def create_samples_received_over_time_map():
         settings.BASE_DIR, "relecov_core", "docs", "spain-communities.geojson"
     )
     raw_data = get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
 
     with open(geojson_file, encoding="utf-8") as geo_json:
         counties = json.load(geo_json)

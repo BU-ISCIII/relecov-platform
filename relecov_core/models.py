@@ -427,7 +427,7 @@ class LineageValues(models.Model):
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
-        db_table = "LinageValue"
+        db_table = "LineageValues"
 
     def __str__(self):
         return "%s" % (self.value)
@@ -697,7 +697,7 @@ class Sample(models.Model):
         return "%s" % (self.sequencing_sample_id)
 
     def get_lineage_values(self):
-        return "%s" % (self.linage_values)
+        return "%s" % (self.lineage_values)
 
     def get_sample_id(self):
         return "%s" % (self.pk)

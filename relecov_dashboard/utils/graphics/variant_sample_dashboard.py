@@ -10,6 +10,9 @@ from relecov_core.utils.handling_samples import get_all_recieved_samples_with_da
 def display_received_per_ccaa():
     """Fetch the data from LIMS and show them in a graphic bar"""
     raw_data = get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
     data = {"x": [], "y": []}
     for key, value in raw_data["region"].items():
         data["x"].append(key)
@@ -26,6 +29,9 @@ def display_received_per_ccaa():
 def display_received_per_lab():
     """Fetch the data from LIMS and show them in a graphic bar"""
     raw_data = get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
     data = {"x": [], "y": []}
     for key, value in raw_data["laboratory"].items():
         data["x"].append(key)
