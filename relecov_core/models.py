@@ -338,7 +338,7 @@ class BioinfoAnalysisField(models.Model):
     objects = BioinfoAnalysisFieldManager()
 
 
-class BioInfoAnalysisValueManager(models.Manager):
+class BioinfoAnalysisValueManager(models.Manager):
     def create_new_value(self, data):
         new_value = self.create(
             value=data["value"],
@@ -348,7 +348,7 @@ class BioInfoAnalysisValueManager(models.Manager):
         return new_value
 
 
-class BioInfoAnalysisValue(models.Model):
+class BioinfoAnalysisValue(models.Model):
     value = models.CharField(max_length=240, null=True, blank=True)
     bioinfo_analysis_fieldID = models.ForeignKey(
         BioinfoAnalysisField, on_delete=models.CASCADE
@@ -356,7 +356,7 @@ class BioInfoAnalysisValue(models.Model):
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
-        db_table = "BioInfoAnalysisValue"
+        db_table = "BioinfoAnalysisValue"
 
     def __str__(self):
         return "%s" % (self.value)
@@ -669,7 +669,7 @@ class Sample(models.Model):
     )
     lineage_values = models.ManyToManyField(LineageValues, blank=True)
     lineage_info = models.ManyToManyField(LineageInfo, blank=True)
-    bio_analysis_values = models.ManyToManyField(BioInfoAnalysisValue, blank=True)
+    bio_analysis_values = models.ManyToManyField(BioinfoAnalysisValue, blank=True)
 
     sample_unique_id = models.CharField(max_length=12)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
@@ -889,7 +889,7 @@ class Variant(models.Model):
     filterID_id = models.ForeignKey(
         Filter, on_delete=models.CASCADE, null=True, blank=True
     )
-    ref = models.CharField(max_length=60, null=True, blank=True)
+    ref = models.CharField(max_length=100, null=True, blank=True)
     pos = models.CharField(max_length=60, null=True, blank=True)
     alt = models.CharField(max_length=100, null=True, blank=True)
 
@@ -925,10 +925,11 @@ class VariantInSample(models.Model):
     variantID_id = models.ForeignKey(
         Variant, on_delete=models.CASCADE, null=True, blank=True
     )
+    analysis_date = models.CharField(max_length=100, null=True, blank=True)
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
     alt_dp = models.CharField(max_length=10, null=True, blank=True)
-    af = models.CharField(max_length=6, null=True, blank=True)
+    af = models.FloatField(max_length=6, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=("created at"))
 
     class Meta:
@@ -949,6 +950,12 @@ class VariantInSample(models.Model):
         if self.variantID_id is None:
             return None
         return self.variantID_id
+
+    def get_chrom(self):
+        return self.variantID_id.get_chrom()
+
+    def get_pos(self):
+        return self.variantID_id.get_pos()
 
     def get_dp(self):
         return "%s" % (self.dp)
