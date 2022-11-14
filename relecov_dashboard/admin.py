@@ -13,6 +13,7 @@ class GraphicFieldAdmin(admin.ModelAdmin):
 
 class GraphicValueAdmin(admin.ModelAdmin):
     list_display = ["graphic", "value_1", "value_2", "value_3"]
+    search_fields = ["value_1__icontains"]
 
 
 admin.site.register(GraphicName, GraphicNameAdmin)
