@@ -5,14 +5,12 @@ import dash_bio as dashbio
 
 from relecov_core.utils.handling_variant import (
     get_default_chromosome,
-    get_domains_list,
     get_domains_and_coordenates,
 )
 
 from relecov_core.models import (
     LineageValues,
     Sample,
-    Chromosome,
     VariantInSample,
     VariantAnnotation,
 )
