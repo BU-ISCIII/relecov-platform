@@ -160,8 +160,11 @@ def lineages_voc_dashboard(request):
 
 # dashboard/methodology
 def methodology_index(request):
-    index_dash_fields()
-    return render(request, "relecov_dashboard/methodologyIndex.html")
+    graphics = index_dash_fields()
+    # import pdb; pdb.set_trace()
+    return render(
+        request, "relecov_dashboard/methodologyIndex.html", {"graphics": graphics}
+    )
 
 
 def samples_received_over_time_map(request):
