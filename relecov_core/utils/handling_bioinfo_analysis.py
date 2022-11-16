@@ -109,11 +109,12 @@ def get_bioinfo_analyis_fields_utilization(schema_id=None):
                 BioinfoAnalysisValue.objects.filter(
                     bioinfo_analysis_fieldID=b_field_obj
                 )
-                .exclude(value="None")
+                .exclude(value__in=["None", ""])
                 .count()
             )
             if count_not_empty == 0:
                 b_data[schema_name]["always_none"].append(f_name)
+                continue
             try:
                 b_data[schema_name]["fields"][f_name] = (
                     count_not_empty / num_samples_in_sch
@@ -121,4 +122,5 @@ def get_bioinfo_analyis_fields_utilization(schema_id=None):
             except ZeroDivisionError:
                 b_data[schema_name]["fields"][f_name] = 0
         b_data[schema_name]["num_fields"] = len(b_field_objs)
+
     return b_data
