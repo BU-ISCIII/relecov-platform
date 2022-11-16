@@ -161,7 +161,6 @@ def lineages_voc_dashboard(request):
 # dashboard/methodology
 def methodology_index(request):
     graphics = index_dash_fields()
-    # import pdb; pdb.set_trace()
     return render(
         request, "relecov_dashboard/methodologyIndex.html", {"graphics": graphics}
     )
