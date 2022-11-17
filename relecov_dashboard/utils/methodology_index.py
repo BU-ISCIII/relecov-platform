@@ -68,7 +68,7 @@ def index_dash_fields():
             data=util_data["summary"],
             col_names=["group", "bio_values"],
             legend=["Bio analysis"],
-            options={"title": "Schema Fields Utilization"},
+            options={"title": "Schema Fields Utilization", "height": 300},
         )
     else:
         # ##### Create comparation graphics #######
@@ -77,7 +77,7 @@ def index_dash_fields():
             col_names=["group", "lab_values", "bio_values"],
             legend=["Metada lab", "Bio analysis"],
             yaxis={"title": "Number of fields"},
-            options={"title": "Schema Fields Utilization"},
+            options={"title": "Schema Fields Utilization", "height": 300},
         )
         #  ##### create metada lab analysis  ######
         graph_gauge_percent_values(
