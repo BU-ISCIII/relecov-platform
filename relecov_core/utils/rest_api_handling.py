@@ -9,6 +9,7 @@ from relecov_core.core_config import (
     ISKLIMS_GET_SAMPLE_INFORMATION,
     ISKLIMS_GET_SAMPLE_PROJECT_FIELDS,
     ISKLIMS_GET_SUMMARIZE_DATA,
+    ISKLIMS_GET_STATS_DATA,
     ISKLIMS_FETCH_SAMPLES_ON_CONDITION,
     ISKLIMS_POST_SAMPLE_DATA,
 )
@@ -123,7 +124,19 @@ def get_summarize_data(param_data):
     r_api = RestApi(iskylims_server, iskylims_url)
     data = r_api.get_request(request, param_data)
     if "ERROR" in data:
-        return {"ERROR": data}
+        return data
+    return data["DATA"]
+
+
+def get_stats_data(param_data):
+    """Send API request to iSkyLIMS to get the summarize data options"""
+    iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
+    iskylims_url = ISKLIMS_REST_API
+    request = ISKLIMS_GET_STATS_DATA
+    r_api = RestApi(iskylims_server, iskylims_url)
+    data = r_api.get_request(request, param_data)
+    if "ERROR" in data:
+        return data
     return data["DATA"]
 
 
