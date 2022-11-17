@@ -17,7 +17,7 @@ import dash_html_components as html
 import dash_daq as daq
 
 
-def graph_gauge_percent_values(app_name, value, label):
+def graph_gauge_percent_values(app_name, value, label, size=180):
     """Create Dashboard application for showing a gauge graphic for the not
     empty fields values
     """
@@ -37,15 +37,17 @@ def graph_gauge_percent_values(app_name, value, label):
                 "ranges": {"red": [0, 40], "yellow": [40, 80], "green": [80, 100]},
             },
             id="my-gauge-1",
-            label={"label": label, "style": {"font-size": "1.5rem", "color": "green"}},
+            label={"label": label, "style": {"font-size": "1.40rem", "color": "green"}},
+            labelPosition="bottom",
             value=value,
             max=100,
             min=0,
+            size=size,
         ),
     )
 
 
-def graph_gauge_value(app_name, value, label, color="#33bbff"):
+def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
     """Create Dashboard application for showing a gauge graphic for the never
     used fields
     """
@@ -56,10 +58,12 @@ def graph_gauge_value(app_name, value, label, color="#33bbff"):
             showCurrentValue=True,
             color=color,
             id="n_used_fields",
-            label={"label": label, "style": {"font-size": "1.52rem", "color": "green"}},
+            label={"label": label, "style": {"font-size": "1.40rem", "color": "green"}},
+            labelPosition="bottom",
             value=value,
             max=((value // 10) + 1) * 10,
             min=0,
+            size=size,
         ),
     )
 
@@ -152,22 +156,26 @@ def index_dash_fields():
         app_name="bio_never_used_fields",
         value=bio_data["never_used"],
         label="Never used fields",
+        size=150,
     )
     graph_gauge_value(
         app_name="bio_always_none",
         value=bio_data["always_none"],
         label="Always None fields",
         color="#0066ff",
+        size=150,
     )
     graph_gauge_percent_values(
         app_name="bio_filled_values",
         value=bio_data["f_values"],
         label="Filled values fields %",
+        size=150,
     )
     graph_gauge_percent_values(
         app_name="bio_overall_filled_fields",
         value=bio_data["overall"],
         label="Overall Filled fields %",
+        size=150,
     )
 
     return graphics
