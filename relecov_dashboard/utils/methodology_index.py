@@ -76,6 +76,7 @@ def index_dash_fields():
             data=util_data["summary"],
             col_names=["group", "lab_values", "bio_values"],
             legend=["Metada lab", "Bio analysis"],
+            yaxis={"title": "Number of fields"},
             options={"title": "Schema Fields Utilization"},
         )
         #  ##### create metada lab analysis  ######
