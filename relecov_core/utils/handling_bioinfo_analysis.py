@@ -3,7 +3,6 @@ from relecov_core.models import (
     BioinfoAnalysisValue,
     DateUpdateState,
     Sample,
-    Schema,
 )
 
 from relecov_core.utils.handling_samples import (
@@ -11,7 +10,7 @@ from relecov_core.utils.handling_samples import (
     get_samples_count_per_schema,
 )
 
-from relecov_core.utils.schema_handling import get_schema_obj_from_id
+from relecov_core.utils.schema_handling import get_default_schema
 
 
 def get_bio_analysis_stats_from_lab(lab_name=None):
@@ -70,57 +69,51 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
     return a_data
 
 
-def get_bioinfo_analyis_fields_utilization(schema_id=None):
+def get_bioinfo_analyis_fields_utilization(schema_obj=None):
     """Get the level of utilization for the bioinfo analysis fields.
-    If schema is not given, the function retrun a separate info for all
-    schemas
+    If schema is not given, the function get the latest default schema
     """
     b_data = {}
-    if schema_id is None:
-        if Schema.objects.all().exists():
-            schema_objs = Schema.objects.all()
-        else:
-            return None
-    else:
-        schema_obj = get_schema_obj_from_id(schema_id)
-        if schema_obj is None:
-            return None
-        schema_objs = [schema_obj]
-    for schema_obj in schema_objs:
-        # get field names
-        if not BioinfoAnalysisField.objects.filter(schemaID=schema_obj).exists():
+    if schema_obj is None:
+        schema_obj = get_default_schema()
+
+    # get field names
+    if not BioinfoAnalysisField.objects.filter(schemaID=schema_obj).exists():
+        return b_data
+
+    num_samples_in_sch = get_samples_count_per_schema(schema_obj.get_schema_name())
+    if num_samples_in_sch == 0:
+        return b_data
+    b_data = {
+        "never_used": [],
+        "always_none": [],
+        "fields_norm": {},
+        "fields_value": {},
+    }
+    b_field_objs = BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
+    for b_field_obj in b_field_objs:
+        f_name = b_field_obj.get_label()
+        if not BioinfoAnalysisValue.objects.filter(
+            bioinfo_analysis_fieldID=b_field_obj
+        ).exists():
+            b_data["never_used"].append(f_name)
+            b_data["fields_value"][f_name] = 0
+            continue
+        # b_data[schema_name][f_name] = [count]
+        count_not_empty = (
+            BioinfoAnalysisValue.objects.filter(bioinfo_analysis_fieldID=b_field_obj)
+            .exclude(value__in=["None", ""])
+            .count()
+        )
+        b_data["fields_value"][f_name] = count_not_empty
+        if count_not_empty == 0:
+            b_data["always_none"].append(f_name)
             continue
 
-        schema_name = schema_obj.get_schema_name()
-        num_samples_in_sch = get_samples_count_per_schema(schema_name)
-        if num_samples_in_sch == 0:
-            continue
-        b_data[schema_name] = {"never_used": [], "always_none": [], "fields": {}}
-        b_field_objs = BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
-        for b_field_obj in b_field_objs:
-            f_name = b_field_obj.get_label()
-            if not BioinfoAnalysisValue.objects.filter(
-                bioinfo_analysis_fieldID=b_field_obj
-            ).exists():
-                b_data[schema_name]["never_used"].append(f_name)
-                continue
-            # b_data[schema_name][f_name] = [count]
-            count_not_empty = (
-                BioinfoAnalysisValue.objects.filter(
-                    bioinfo_analysis_fieldID=b_field_obj
-                )
-                .exclude(value__in=["None", ""])
-                .count()
-            )
-            if count_not_empty == 0:
-                b_data[schema_name]["always_none"].append(f_name)
-                continue
-            try:
-                b_data[schema_name]["fields"][f_name] = (
-                    count_not_empty / num_samples_in_sch
-                )
-            except ZeroDivisionError:
-                b_data[schema_name]["fields"][f_name] = 0
-        b_data[schema_name]["num_fields"] = len(b_field_objs)
+        try:
+            b_data["fields_norm"][f_name] = count_not_empty / num_samples_in_sch
+        except ZeroDivisionError:
+            b_data["fields_norm"][f_name] = 0
+    b_data["num_fields"] = len(b_field_objs)
 
     return b_data
