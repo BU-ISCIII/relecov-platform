@@ -44,7 +44,7 @@ def schema_fields_utilization():
 
     # get fields utilization from bioinfo analysis
     bio_fields = get_bioinfo_analyis_fields_utilization(schema_obj)
-
+    f_values = []
     for value in bio_fields["fields_norm"].values():
         f_values.append(value)
     if len(f_values) > 1:
@@ -73,6 +73,7 @@ def index_dash_fields():
             data=util_data["summary"],
             col_names=["group", "bio_values"],
             legend=["Bio analysis"],
+            yaxis={"title": "Number of fields"},
             options={"title": "Schema Fields Utilization", "height": 300},
         )
 
@@ -85,13 +86,7 @@ def index_dash_fields():
             yaxis={"title": "Number of fields"},
             options={"title": "Schema Fields Utilization", "height": 300},
         )
-        graphics["detailed_fields"] = bar_graphic(
-            data=util_data["field_detail_data"],
-            col_names=["field_name", "field_value"],
-            legend=["metadata fields"],
-            yaxis={"title": "Number of samples"},
-            options={"title": "Number of samples for each schema field", "height": 400},
-        )
+
         #  ##### create metada lab analysis  ######
         graph_gauge_percent_values(
             app_name="lims_filled_values",
@@ -105,6 +100,14 @@ def index_dash_fields():
         value=util_data["bio_f_values"],
         label="Bio filled values %",
         size=150,
+    )
+    # ##### create bar graph with all fields and values
+    graphics["detailed_fields"] = bar_graphic(
+        data=util_data["field_detail_data"],
+        col_names=["field_name", "field_value"],
+        legend=["metadata fields"],
+        yaxis={"title": "Number of samples"},
+        options={"title": "Number of samples for each schema field", "height": 400},
     )
     # ###### create table for detailed field information ######
     graphics["table"] = zip(
