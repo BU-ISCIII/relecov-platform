@@ -1,0 +1,23 @@
+{% extends 'relecov_core/base.html' %}
+{% load static %}
+{% block content %}
+
+{% include "relecov_dashboard/methodologySideBar.html"%}
+<section style="margin-top: 4%">
+    <div class="container text-center position-relative" style="width:68%">
+        <br>
+        <div class="card-header"><h2>Host info dashboard</h2>
+            <div class="card-body">
+                <div class="row row-space-2 margin-b-4">
+                    
+                    <p> Gráfico numero de muestras pro rango de edades (host_age)</p>
+                    <br><br><br><br>
+
+                    <p>Gráfico numero de muestras pro rango de edades por sexo (host_gender)</p>
+                </div>  <!-- end row-->
+            </div>  <!-- end card body   -->
+        </div>  <!-- end card  -->
+    </div> <!-- end container-->
+
+</section>
+{% endblock %}
