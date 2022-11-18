@@ -274,4 +274,4 @@ def gauge_test(request):
 
 
 def methodology_fields_utilization(request):
-    return render(request, "relecov_dashboard/methodologytest2.html")
+    return render(request, "relecov_dashboard/methodologyFieldsUtilization.html")
