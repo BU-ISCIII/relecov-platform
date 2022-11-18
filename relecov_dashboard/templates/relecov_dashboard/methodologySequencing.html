@@ -1,0 +1,29 @@
+{% extends 'relecov_core/base.html' %}
+{% load static %}
+{% block content %}
+
+{% include "relecov_dashboard/methodologySideBar.html"%}
+<section style="margin-top: 4%">
+    <div class="container text-center position-relative" style="width:68%">
+        <br>
+        <div class="card-header"><h2>Sequencing dashboard</h2>
+            <div class="card-body">
+                <div class="row row-space-2 margin-b-4">
+                    
+                    <p> Gráfico de barras por sequencing_instrument_platform y sequencing_instrument_model</p>
+                    <br><br>
+                    <p>Gráfico de barras por library_preparation_kit</p>
+                    <br><br>
+                    <p>Boxplot Cts / library_preparation_kit</p>
+                    <br><br>
+                    <p>Gráfico que relacione el ct con el number_of_base_pairs_sequenced</p>
+                    <br><br>
+                    <p>Número de muestras por valores de read_length</p>
+
+                </div>  <!-- end row-->
+            </div>  <!-- end card body   -->
+        </div>  <!-- end card  -->
+    </div> <!-- end container-->
+
+</section>
+{% endblock %}

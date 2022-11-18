@@ -166,6 +166,22 @@ def methodology_index(request):
     )
 
 
+def methodology_host_info(request):
+    return render(request, "relecov_dashboard/methodologyHostInfo.html")
+
+
+def methodology_sample_processing(request):
+    return render(request, "relecov_dashboard/methodologySampleProcessing.html")
+
+
+def methodology_sequencing(request):
+    return render(request, "relecov_dashboard/methodologySequencing.html")
+
+
+def methodology_bioinfo(request):
+    return render(request, "relecov_dashboard/methodologyBioinfo.html")
+
+
 def samples_received_over_time_map(request):
     create_samples_received_over_time_map()
     return render(request, "relecov_dashboard/samplesReceivedOverTimeMap.html")
@@ -271,7 +287,3 @@ def gauge_test(request):
     # query_to_database()
     return render(request, "relecov_dashboard/dashboard_templates/gauge2.html")
     # return render(request, "relecov_dashboard/dashboard_templates/gauge.html")
-
-
-def methodology_fields_utilization(request):
-    return render(request, "relecov_dashboard/methodologyFieldsUtilization.html")
