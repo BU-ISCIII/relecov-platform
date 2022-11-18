@@ -95,7 +95,6 @@ urlpatterns = [
         name="spike_mutations_3D_BN",
     ),
     path("Gauge", views.gauge_test, name="gauge"),
-
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
