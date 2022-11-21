@@ -6,6 +6,28 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
+    # Methodology graphics
+    path("methodology", views.methodology_index, name="methodology_index"),
+    path(
+        "methodology/hostInfo",
+        views.methodology_host_info,
+        name="methodology_host_info",
+    ),
+    path(
+        "methodology/sampleProcessing",
+        views.methodology_sample_processing,
+        name="methodology_sample_processing",
+    ),
+    path(
+        "methodology/sequencing",
+        views.methodology_sequencing,
+        name="methodology_sequencing",
+    ),
+    path(
+        "methodology/bioinfo",
+        views.methodology_bioinfo,
+        name="methodology_bioinfo",
+    ),
     path("variants", views.variants_index, name="variants_index"),
     path(
         "variants/receivedSamplesDashboard",
@@ -73,13 +95,6 @@ urlpatterns = [
         name="spike_mutations_3D_BN",
     ),
     path("Gauge", views.gauge_test, name="gauge"),
-    # Methodology graphics
-    path("methodology", views.methodology_index, name="methodology_index"),
-    path(
-        "methodology/fields_utilization",
-        views.methodology_fields_utilization,
-        name="methodology_fields_utilization",
-    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

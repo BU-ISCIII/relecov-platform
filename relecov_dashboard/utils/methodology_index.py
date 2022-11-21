@@ -1,67 +1,14 @@
-# import pandas as pd
 from statistics import mean
+
 from relecov_core.utils.handling_bioinfo_analysis import (
     get_bioinfo_analyis_fields_utilization,
 )
-
 from relecov_core.utils.schema_handling import (
     get_default_schema,
 )
-
 from relecov_core.utils.rest_api_handling import get_stats_data
-from django_plotly_dash import DjangoDash
-import dash_bootstrap_components as dbc
-
-import dash_html_components as html
-
-import dash_daq as daq
-
-
-def graph_gauge_percent_values(app_name, value, label):
-    """Create Dashboard application for showing a gauge graphic for the not
-    empty fields values
-    """
-    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
-    if value <= 40:
-        text_color = "red"
-    elif value <= 75:
-        text_color = "#e6e600"
-    else:
-        text_color = "green"
-    app.layout = html.Div(
-        daq.Gauge(
-            showCurrentValue=True,
-            color={
-                "default": text_color,
-                "gradient": True,
-                "ranges": {"red": [0, 40], "yellow": [40, 80], "green": [80, 100]},
-            },
-            id="my-gauge-1",
-            label={"label": label, "style": {"font-size": "1.5rem", "color": "green"}},
-            value=value,
-            max=100,
-            min=0,
-        ),
-    )
-
-
-def graph_gauge_value(app_name, value, label, color="#33bbff"):
-    """Create Dashboard application for showing a gauge graphic for the never
-    used fields
-    """
-    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-    app.layout = html.Div(
-        daq.Gauge(
-            showCurrentValue=True,
-            color=color,
-            id="n_used_fields",
-            label={"label": label, "style": {"font-size": "1.52rem", "color": "green"}},
-            value=value,
-            max=((value // 10) + 1) * 10,
-            min=0,
-        ),
-    )
+from relecov_dashboard.utils.plotly_graphics import bar_graphic
+from relecov_dashboard.utils.dash_plotly_no_callback import graph_gauge_percent_values
 
 
 def schema_fields_utilization():
@@ -70,104 +17,101 @@ def schema_fields_utilization():
     if schema_obj is None:
         return
 
+    util_data = {"summary": {}}
+    util_data["summary"]["group"] = ["Empty Fields", "Total Fields"]
+    util_data["field_detail_data"] = {"field_name": [], "field_value": []}
+
     # get stats utilization fields from LIMS
     lims_fields = get_stats_data({"sample_project_name": "Relecov"})
     if "ERROR" in lims_fields:
-        lims_data = lims_fields
+        util_data["ERROR"] = lims_fields["ERROR"]
     else:
-        lims_data = {}
-        lims_data["always_none"] = len(lims_fields["always_none"])
         f_values = []
-        for value in lims_fields["fields"].values():
+        for value in lims_fields["fields_norm"].values():
             f_values.append(value)
         if len(f_values) > 1:
-            lims_data["f_values"] = float("%.1f" % (mean(f_values) * 100))
+            util_data["lims_f_values"] = float("%.1f" % (mean(f_values) * 100))
         else:
-            lims_data["f_values"] = 0
-        lims_data["overall"] = float(
-            "%.1f"
-            % (
-                len(lims_fields["fields"])
-                / (
-                    len(lims_fields["fields"])
-                    + len(lims_fields["always_none"])
-                    + len(lims_fields["never_used"])
-                )
-                * 100
-            )
-        )
+            util_data["lims_f_values"] = 0
+        # Calculate empty fields and total fields
+        empty_fields = len(lims_fields["always_none"]) + len(lims_fields["never_used"])
+        total_fields = len(lims_fields["fields_norm"]) + empty_fields
+        util_data["summary"]["lab_values"] = [empty_fields, total_fields]
+
+        for key, val in lims_fields["fields_value"].items():
+            util_data["field_detail_data"]["field_name"].append(key)
+            util_data["field_detail_data"]["field_value"].append(val)
 
     # get fields utilization from bioinfo analysis
-    util_data = get_bioinfo_analyis_fields_utilization()
+    bio_fields = get_bioinfo_analyis_fields_utilization(schema_obj)
+    f_values = []
+    for value in bio_fields["fields_norm"].values():
+        f_values.append(value)
+    if len(f_values) > 1:
+        util_data["bio_f_values"] = float("%.1f" % (mean(f_values) * 100))
+    else:
+        util_data["bio_f_values"] = 0
+    # Calculate empty fields and total fields for bio analysis fields
+    empty_fields = len(bio_fields["always_none"]) + len(bio_fields["never_used"])
+    total_fields = len(bio_fields["fields_norm"]) + empty_fields
+    util_data["summary"]["bio_values"] = [empty_fields, total_fields]
 
-    bio_data = {}
-    for schema_name in util_data.keys():
-        bio_data["never_used"] = len(util_data[schema_name])
-        bio_data["always_none"] = len(util_data[schema_name]["always_none"])
-        f_values = []
-        for value in util_data[schema_name]["fields"].values():
-            f_values.append(value)
-        if len(f_values) > 1:
-            bio_data["f_values"] = float("%.1f" % (mean(f_values) * 100))
-        else:
-            bio_data["f_values"] = 0
-        bio_data["overall"] = float(
-            "%.1f"
-            % (
-                len(util_data[schema_name]["fields"])
-                / util_data[schema_name]["num_fields"]
-                * 100
-            )
-        )
+    for key, val in bio_fields["fields_value"].items():
+        util_data["field_detail_data"]["field_name"].append(key)
+        util_data["field_detail_data"]["field_value"].append(val)
 
-    return lims_data, bio_data
+    return util_data
 
 
 def index_dash_fields():
     graphics = {}
-    lims_data, bio_data = schema_fields_utilization()
-
-    if "ERROR" in lims_data:
-        graphics["lims_data"] = lims_data
-    else:
-        # ##### Create LIMS graphics #######
-        graph_gauge_value(
-            app_name="lims_always_none_fields",
-            value=lims_data["always_none"],
-            label="Always None fields",
-            color="#0066ff",
+    util_data = schema_fields_utilization()
+    graphics = {}
+    if "ERROR" in util_data:
+        graphics["ERROR"] = util_data["ERROR"]
+        graphics["grouped_fields"] = bar_graphic(
+            data=util_data["summary"],
+            col_names=["group", "bio_values"],
+            legend=["Bio analysis"],
+            yaxis={"title": "Number of fields"},
+            options={"title": "Schema Fields Utilization", "height": 300},
         )
+
+    else:
+        # ##### Create comparation graphics #######
+        graphics["grouped_fields"] = bar_graphic(
+            data=util_data["summary"],
+            col_names=["group", "lab_values", "bio_values"],
+            legend=["Metada lab", "Bio analysis"],
+            yaxis={"title": "Number of fields"},
+            options={"title": "Schema Fields Utilization", "height": 300},
+        )
+
+        #  ##### create metada lab analysis  ######
         graph_gauge_percent_values(
             app_name="lims_filled_values",
-            value=lims_data["f_values"],
-            label="Filled values fields %",
+            value=util_data["lims_f_values"],
+            label="Lab filled values %",
         )
-        graph_gauge_percent_values(
-            app_name="lims_overall_filled_values",
-            value=lims_data["overall"],
-            label="Overall Filled fields %",
-        )
-    #  #### create Bio info analysis  ######
-    graph_gauge_value(
-        app_name="bio_never_used_fields",
-        value=bio_data["never_used"],
-        label="Never used fields",
-    )
-    graph_gauge_value(
-        app_name="bio_always_none",
-        value=bio_data["always_none"],
-        label="Always None fields",
-        color="#0066ff",
-    )
+
+    #  ##### create Bio info analysis  ######
     graph_gauge_percent_values(
         app_name="bio_filled_values",
-        value=bio_data["f_values"],
-        label="Filled values fields %",
+        value=util_data["bio_f_values"],
+        label="Bio filled values %",
+        size=150,
     )
-    graph_gauge_percent_values(
-        app_name="bio_overall_filled_fields",
-        value=bio_data["overall"],
-        label="Overall Filled fields %",
+    # ##### create bar graph with all fields and values
+    graphics["detailed_fields"] = bar_graphic(
+        data=util_data["field_detail_data"],
+        col_names=["field_name", "field_value"],
+        legend=["metadata fields"],
+        yaxis={"title": "Number of samples"},
+        options={"title": "Number of samples for each schema field", "height": 400},
     )
-
+    # ###### create table for detailed field information ######
+    graphics["table"] = zip(
+        util_data["field_detail_data"]["field_name"],
+        util_data["field_detail_data"]["field_value"],
+    )
     return graphics
