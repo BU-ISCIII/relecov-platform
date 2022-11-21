@@ -1,0 +1,29 @@
+{% extends 'relecov_core/base.html' %}
+{% load static %}
+{% block content %}
+
+{% include "relecov_dashboard/methodologySideBar.html"%}
+<section style="margin-top: 4%">
+    <div class="container text-center position-relative" style="width:68%">
+        <br>
+        <div class="card-header"><h2>Sample processing info dashboard</h2>
+            <div class="card-body">
+                <div class="row row-space-2 margin-b-4">
+                    <p></p>
+                    <p>Gráfico de barras por nucleic_acid_extraction_protocol</p>
+                    <br><br>
+                    <p>Boxplot Cts / specimen_source</p>
+                    <br><br>
+                    <p>Boxplot Cts / protocolo de extracción</p>
+                    <br><br>
+                    <p>Gráfico de fechas para ver tiempos, collection date, received date , sequencing date, analysis date</p>
+                    <br><br><br><br>
+
+                </div>  <!-- end row-->
+            </div>  <!-- end card body   -->
+        </div>  <!-- end card  -->
+    </div> <!-- end container-->
+
+</section>
+{% endblock %}
+
