@@ -129,7 +129,7 @@ def get_summarize_data(param_data):
 
 
 def get_stats_data(param_data):
-    """Send API request to iSkyLIMS to get the summarize data options"""
+    """Send API request to iSkyLIMS to get the stats data """
     iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
     iskylims_url = ISKLIMS_REST_API
     request = ISKLIMS_GET_STATS_DATA
