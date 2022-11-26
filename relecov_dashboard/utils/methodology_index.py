@@ -41,6 +41,7 @@ def schema_fields_utilization():
         for key, val in lims_fields["fields_value"].items():
             util_data["field_detail_data"]["field_name"].append(key)
             util_data["field_detail_data"]["field_value"].append(val)
+        util_data["num_lab_fields"] = len(lims_fields["fields_value"])
 
     # get fields utilization from bioinfo analysis
     bio_fields = get_bioinfo_analyis_fields_utilization(schema_obj)
@@ -59,6 +60,7 @@ def schema_fields_utilization():
     for key, val in bio_fields["fields_value"].items():
         util_data["field_detail_data"]["field_name"].append(key)
         util_data["field_detail_data"]["field_value"].append(val)
+    util_data["num_bio_fields"] = len(bio_fields["fields_value"])
 
     return util_data
 
@@ -102,12 +104,18 @@ def index_dash_fields():
         size=150,
     )
     # ##### create bar graph with all fields and values
+    if "num_lab_fields" in util_data:
+        lab_colors = ["#0099ff"] * util_data["num_lab_fields"]
+        bio_colors = ["#1aff8c"] * util_data["num_bio_fields"]
+        colors = lab_colors + bio_colors
+    else:
+        colors = None
     graphics["detailed_fields"] = bar_graphic(
         data=util_data["field_detail_data"],
         col_names=["field_name", "field_value"],
         legend=["metadata fields"],
         yaxis={"title": "Number of samples"},
-        options={"title": "Number of samples for each schema field", "height": 400},
+        options={"title": "Number of samples for each schema field", "height": 400, "colors": colors},
     )
     # ###### create table for detailed field information ######
     graphics["table"] = zip(
