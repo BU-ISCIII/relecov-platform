@@ -1,6 +1,6 @@
 import pandas as pd
 from collections import OrderedDict
-from relecov_dashboard.utils.plotly_graphics import bar_graphic
+from relecov_dashboard.utils.plotly_graphics import bar_graphic, pie_graphic
 from relecov_core.utils.rest_api_handling import get_stats_data
 
 from relecov_dashboard.dashboard_config import HOST_RANGE_AGE_TEXT
@@ -32,27 +32,13 @@ def host_info_graphics():
             {"sample_project_name": "Relecov", "project_field": "host_age"}
         )
         host_age = {}
-        # range_list = HOST_RANGE_AGE_TEXT
-        # ages = list(lims_fields.keys())
-
         for key, val in lims_fields.items():
             try:
                 host_age[int(key)] = val
             except ValueError:
                 continue
         # group data by decimal range
-        """
-        tmp_range = {}
-        invalid_data = 0
-        for key, val in host_age.items():
-            quotient = key // 10
-            if quotient < 0:
-                invalid_data += val
-                continue
-            if quotient not in tmp_range:
-                tmp_range[quotient] = 0
-            tmp_range[quotient] += val
-        """
+
         tmp_range, invalid_data = split_age_in_ranges(lims_fields)
         max_value = max(tmp_range.keys())
         host_age_range = OrderedDict()
@@ -97,12 +83,32 @@ def host_info_graphics():
 
         return host_age_range_per_key_df, invalid_data
 
+    def fetching_data_for_gender():
+        # get stats for host gender from LIMS
+        lims_fields = get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_gender"}
+        )
+        labels = []
+        values = []
+        for key, val in lims_fields.items():
+            labels.append(key)
+            values.append(val)
+        return labels, values
+
     # sort_age = list(ages_int.keys()).sort()
     host_info = {}
-    host_gender_df = fetching_data_for_sex_and_range_data()[0]
-    col_names = list(host_gender_df.columns)
+    # pie graphic for gender
+    gender_label, gender_values = fetching_data_for_gender()
+    host_info["gender_graph"] = pie_graphic(
+        labels=gender_label,
+        values=gender_values,
+        options={"title": "Gender distribution"},
+    )
+    # graphic for gender and age
+    host_gender_age_df = fetching_data_for_sex_and_range_data()[0]
+    col_names = list(host_gender_age_df.columns)
     host_info["gender_age_graph"] = bar_graphic(
-        data=host_gender_df,
+        data=host_gender_age_df,
         col_names=col_names,
         legend=col_names[1:],
         yaxis={"title": "Number of samples"},
