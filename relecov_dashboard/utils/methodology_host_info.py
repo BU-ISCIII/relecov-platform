@@ -2,13 +2,11 @@ import pandas as pd
 from collections import OrderedDict
 from relecov_dashboard.utils.plotly_graphics import bar_graphic
 from relecov_core.utils.rest_api_handling import get_stats_data
-# import pdb
 
 from relecov_dashboard.dashboard_config import HOST_RANGE_AGE_TEXT
 
 
 def host_info_graphics():
-
     def split_age_in_ranges(data):
 
         tmp_range = {}
@@ -108,7 +106,10 @@ def host_info_graphics():
         col_names=col_names,
         legend=col_names[1:],
         yaxis={"title": "Number of samples"},
-        options={"title": "Samples received for host gender and host age", "height": 300},
+        options={
+            "title": "Samples received for host gender and host age",
+            "height": 300,
+        },
     )
     host_age_df, invalid_data = fetching_data_for_range_age()
     host_info["range_age_graph"] = bar_graphic(

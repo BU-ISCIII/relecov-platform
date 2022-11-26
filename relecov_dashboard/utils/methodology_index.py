@@ -115,7 +115,11 @@ def index_dash_fields():
         col_names=["field_name", "field_value"],
         legend=["metadata fields"],
         yaxis={"title": "Number of samples"},
-        options={"title": "Number of samples for each schema field", "height": 400, "colors": colors},
+        options={
+            "title": "Number of samples for each schema field",
+            "height": 400,
+            "colors": colors,
+        },
     )
     # ###### create table for detailed field information ######
     graphics["table"] = zip(
