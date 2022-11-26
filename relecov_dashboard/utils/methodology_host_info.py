@@ -2,13 +2,32 @@ import pandas as pd
 from collections import OrderedDict
 from relecov_dashboard.utils.plotly_graphics import bar_graphic
 from relecov_core.utils.rest_api_handling import get_stats_data
-import pdb
+# import pdb
 
 from relecov_dashboard.dashboard_config import HOST_RANGE_AGE_TEXT
 
 
 def host_info_graphics():
-    def fetching_data_for_host_info_range_age():
+
+    def split_age_in_ranges(data):
+
+        tmp_range = {}
+        invalid_data = 0
+        for key, val in data.items():
+            try:
+                int_key = int(key)
+            except ValueError:
+                continue
+            quotient = int_key // 10
+            if quotient < 0:
+                invalid_data += val
+                continue
+            if quotient not in tmp_range:
+                tmp_range[quotient] = 0
+            tmp_range[quotient] += val
+        return tmp_range, invalid_data
+
+    def fetching_data_for_range_age():
 
         # get stats utilization fields from LIMS
         lims_fields = get_stats_data(
@@ -24,6 +43,7 @@ def host_info_graphics():
             except ValueError:
                 continue
         # group data by decimal range
+        """
         tmp_range = {}
         invalid_data = 0
         for key, val in host_age.items():
@@ -34,11 +54,10 @@ def host_info_graphics():
             if quotient not in tmp_range:
                 tmp_range[quotient] = 0
             tmp_range[quotient] += val
+        """
+        tmp_range, invalid_data = split_age_in_ranges(lims_fields)
         max_value = max(tmp_range.keys())
-        
-        # host_age_range = OrderedDict(sorted(tmp_range.items()))
         host_age_range = OrderedDict()
-
         for idx in range(max_value + 1):
             try:
                 host_age_range[HOST_RANGE_AGE_TEXT[idx]] = tmp_range[idx]
@@ -47,12 +66,51 @@ def host_info_graphics():
         host_age_range_df = pd.DataFrame(
             host_age_range.items(), columns=["range_age", "number"]
         )
-        # host_age_range_df = host_age_range_df.sort_values("range_age")
         return host_age_range_df, invalid_data
+
+    def fetching_data_for_sex_and_range_data():
+        lims_fields = get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_gender,host_age"}
+        )
+        max_value = 0
+        invalid_data = 0
+        tmp_range_per_key = {}
+        host_age_range_per_key_df = pd.DataFrame()
+        for key, values in lims_fields.items():
+            tmp_range_per_key[key], tmp_invalid_data = split_age_in_ranges(values)
+            invalid_data += tmp_invalid_data
+            tmp_max_value = max(tmp_range_per_key[key].keys())
+            if tmp_max_value > max_value:
+                max_value = tmp_max_value
+
+        age_range_list = []
+        for idx in range(max_value + 1):
+            age_range_list.append(HOST_RANGE_AGE_TEXT[idx])
+        host_age_range_per_key_df["range_age"] = age_range_list
+
+        for key in tmp_range_per_key.keys():
+            age_range_list = []
+            for idx in range(max_value + 1):
+                try:
+                    age_range_list.append(tmp_range_per_key[key][idx])
+                except KeyError:
+                    age_range_list.append(0)
+            host_age_range_per_key_df[key] = age_range_list
+
+        return host_age_range_per_key_df, invalid_data
 
     # sort_age = list(ages_int.keys()).sort()
     host_info = {}
-    host_age_df, invalid_data = fetching_data_for_host_info_range_age()
+    host_gender_df = fetching_data_for_sex_and_range_data()[0]
+    col_names = list(host_gender_df.columns)
+    host_info["gender_age_graph"] = bar_graphic(
+        data=host_gender_df,
+        col_names=col_names,
+        legend=col_names[1:],
+        yaxis={"title": "Number of samples"},
+        options={"title": "Samples received for host gender and host age", "height": 300},
+    )
+    host_age_df, invalid_data = fetching_data_for_range_age()
     host_info["range_age_graph"] = bar_graphic(
         data=host_age_df,
         col_names=["range_age", "number"],
