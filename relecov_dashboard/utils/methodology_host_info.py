@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def host_info_graphics():
-    def fetching_data_for_host_info():
+    def fetching_data_for_host_info_age():
 
         # get stats utilization fields from LIMS
         lims_fields = get_stats_data(
@@ -27,7 +27,7 @@ def host_info_graphics():
 
     # sort_age = list(ages_int.keys()).sort()
     host_info = {}
-    host_age_df = fetching_data_for_host_info()
+    host_age_df = fetching_data_for_host_info_age()
     host_info["range_age_graph"] = bar_graphic(
         data=host_age_df,
         col_names=["age", "number"],
