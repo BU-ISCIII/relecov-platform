@@ -30,7 +30,7 @@ def host_info_graphics():
             quotient = key // 10
             if quotient < 0:
                 invalid_data += val
-                continue 
+                continue
             if quotient not in tmp_range:
                 tmp_range[quotient] = 0
             tmp_range[quotient] += val
@@ -43,14 +43,16 @@ def host_info_graphics():
                 host_age_range[HOST_RANGE_AGE_TEXT[idx]] = tmp_range[idx]
             except KeyError:
                 host_age_range[HOST_RANGE_AGE_TEXT[idx]] = 0
-        
-        host_age_range_df = pd.DataFrame(host_age_range.items(), columns=["range_age", "number"])
+
+        host_age_range_df = pd.DataFrame(
+            host_age_range.items(), columns=["range_age", "number"]
+        )
         # host_age_range_df = host_age_range_df.sort_values("range_age")
-        return host_age_range_df , invalid_data
+        return host_age_range_df, invalid_data
 
     # sort_age = list(ages_int.keys()).sort()
     host_info = {}
-    host_age_df , invalid_data = fetching_data_for_host_info_range_age()
+    host_age_df, invalid_data = fetching_data_for_host_info_range_age()
     host_info["range_age_graph"] = bar_graphic(
         data=host_age_df,
         col_names=["range_age", "number"],
