@@ -35,15 +35,15 @@ def host_info_graphics():
                 tmp_range[quotient] = 0
             tmp_range[quotient] += val
         max_value = max(tmp_range.keys())
+        
         # host_age_range = OrderedDict(sorted(tmp_range.items()))
         host_age_range = OrderedDict()
 
-        for idx in range(max_value):
+        for idx in range(max_value + 1):
             try:
                 host_age_range[HOST_RANGE_AGE_TEXT[idx]] = tmp_range[idx]
             except KeyError:
                 host_age_range[HOST_RANGE_AGE_TEXT[idx]] = 0
-
         host_age_range_df = pd.DataFrame(
             host_age_range.items(), columns=["range_age", "number"]
         )
