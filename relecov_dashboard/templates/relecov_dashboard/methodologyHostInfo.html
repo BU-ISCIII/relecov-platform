@@ -11,6 +11,7 @@
                 <div class="row row-space-2 margin-b-4">
                     
                     <p> Gráfico numero de muestras pro rango de edades (host_age)</p>
+                    {{ host_info.gender_age_graph | safe }}
                     <br><br><br><br>
                     {{ host_info.range_age_graph | safe }}
                     <p>Gráfico numero de muestras pro rango de edades por sexo (host_gender)</p>
