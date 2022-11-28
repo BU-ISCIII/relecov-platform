@@ -170,6 +170,10 @@ def methodology_index(request):
 
 def methodology_host_info(request):
     host_info = host_info_graphics()
+    if "ERROR" in host_info:
+        return render(
+            request, "relecov_dashboard/methodologyHostInfo.html", {"ERROR": host_info}
+        )
     return render(
         request, "relecov_dashboard/methodologyHostInfo.html", {"host_info": host_info}
     )

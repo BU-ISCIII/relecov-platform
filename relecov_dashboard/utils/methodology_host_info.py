@@ -88,6 +88,8 @@ def host_info_graphics():
         lims_fields = get_stats_data(
             {"sample_project_name": "Relecov", "project_field": "host_gender"}
         )
+        if "ERROR" in lims_fields:
+            return lims_fields, ""
         labels = []
         values = []
         for key, val in lims_fields.items():
@@ -99,6 +101,8 @@ def host_info_graphics():
     host_info = {}
     # pie graphic for gender
     gender_label, gender_values = fetching_data_for_gender()
+    if "ERROR" in gender_label:
+        return gender_label
     host_info["gender_graph"] = pie_graphic(
         labels=gender_label,
         values=gender_values,

@@ -8,17 +8,31 @@
         <br>
         <div class="card-header"><h2>Host info dashboard</h2>
             <div class="card-body">
-                <div class="row row-space-2 margin-b-4">
-                    <div class="col-sm-8">
-                        {{ host_info.range_age_graph | safe }}
-                    </div> <!--// end col-sm-8 -->
-                    <div class="col-sm-4">
-                        {{ host_info.gender_graph | safe }}
-                    </div> <!--// end col-sm-8 -->
-                </div>  <!-- end row-->
-                <div class="row row-space-2 margin-b-4">
-                    {{ host_info.gender_age_graph | safe }}
-                </div>  <!-- end row-->
+                {% if ERROR %}
+                    <div class="row row-space-2 margin-b-4">
+                        <div class="col-sm-12" >
+                            <div class="card  border-danger mb-3">
+                                <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when connecting to LIMS</h3> </div>
+                                <div class="card-body  text-center">
+                                    <br>
+                                    <p><strong>{{ERROR.ERROR}}</strong></p>
+                                </div> <!-- end card body  -->
+                            </div> <!-- end card  -->
+                        </div> <!--// end col-sm-9 -->
+                    </div> <!--// end row -->
+                {% else %}
+                    <div class="row row-space-2 margin-b-4">
+                        <div class="col-sm-8">
+                            {{ host_info.range_age_graph | safe }}
+                        </div> <!--// end col-sm-8 -->
+                        <div class="col-sm-4">
+                            {{ host_info.gender_graph | safe }}
+                        </div> <!--// end col-sm-8 -->
+                    </div>  <!-- end row-->
+                    <div class="row row-space-2 margin-b-4">
+                        {{ host_info.gender_age_graph | safe }}
+                    </div>  <!-- end row-->
+                {% endif %}
             </div>  <!-- end card body   -->
         </div>  <!-- end card  -->
     </div> <!-- end container-->
