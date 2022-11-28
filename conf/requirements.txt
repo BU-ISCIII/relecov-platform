@@ -20,5 +20,5 @@ Werkzeug==2.0.3
 xlrd==1.2.0
 Markdown==3.3.7
 django-markdownx==3.0.1
-relecov-tools
+relecov-tools==0.0.5
 dash-daq==0.5.0
