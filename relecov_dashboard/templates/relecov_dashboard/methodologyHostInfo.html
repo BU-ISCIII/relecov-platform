@@ -9,11 +9,15 @@
         <div class="card-header"><h2>Host info dashboard</h2>
             <div class="card-body">
                 <div class="row row-space-2 margin-b-4">
-                    
-                    <p> Gráfico numero de muestras pro rango de edades (host_age)</p>
-                    <br><br><br><br>
-
-                    <p>Gráfico numero de muestras pro rango de edades por sexo (host_gender)</p>
+                    <div class="col-sm-8">
+                        {{ host_info.range_age_graph | safe }}
+                    </div> <!--// end col-sm-8 -->
+                    <div class="col-sm-4">
+                        {{ host_info.gender_graph | safe }}
+                    </div> <!--// end col-sm-8 -->
+                </div>  <!-- end row-->
+                <div class="row row-space-2 margin-b-4">
+                    {{ host_info.gender_age_graph | safe }}
                 </div>  <!-- end row-->
             </div>  <!-- end card body   -->
         </div>  <!-- end card  -->
