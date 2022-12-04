@@ -52,6 +52,7 @@ from relecov_dashboard.utils.methodology_sample_processing import (
     sample_processing_graphics,
 )
 
+from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
 from relecov_core.utils.handling_variant import (
     create_dataframe,
 )
@@ -186,6 +187,8 @@ def methodology_host_info(request):
 
 def methodology_sample_processing(request):
     sample_processing = sample_processing_graphics()
+    if "ERROR" in sample_processing:
+        return render(request, "relecov_dashboard/methodologySampleProcessing.html", {"ERROR": sample_processing})
     return render(
         request,
         "relecov_dashboard/methodologySampleProcessing.html",
@@ -194,7 +197,10 @@ def methodology_sample_processing(request):
 
 
 def methodology_sequencing(request):
-    return render(request, "relecov_dashboard/methodologySequencing.html")
+    sequencing = sequencing_graphics()
+    if "ERROR" in sequencing:
+        return render(request, "relecov_dashboard/methodologySequencing.html", {"ERROR": sequencing})
+    return render(request, "relecov_dashboard/methodologySequencing.html", {"sequencing": sequencing})
 
 
 def methodology_bioinfo(request):

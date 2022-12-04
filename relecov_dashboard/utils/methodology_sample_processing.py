@@ -14,7 +14,8 @@ def sample_processing_graphics():
                 "project_field": "nucleic_acid_extraction_protocol",
             }
         )
-
+        if "ERROR" in lims_data:
+            return lims_data
         extraction_protocol_df = pd.DataFrame(
             lims_data.items(), columns=["protocol", "number"]
         )
@@ -22,6 +23,8 @@ def sample_processing_graphics():
 
     sample_processing = {}
     extraction_protocol_df = fetching_data_for_nuleic_protocol()
+    if "ERROR" in extraction_protocol_df:
+        return extraction_protocol_df
     sample_processing["nucleic_protocol"] = bar_graphic(
         data=extraction_protocol_df,
         col_names=["protocol", "number"],
