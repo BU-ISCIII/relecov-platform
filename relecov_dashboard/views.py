@@ -48,7 +48,9 @@ from relecov_dashboard.utils.methodology_index import index_dash_fields
 
 from relecov_dashboard.utils.methodology_host_info import host_info_graphics
 
-from relecov_dashboard.utils.methodology_sample_processing import sample_processing_graphics
+from relecov_dashboard.utils.methodology_sample_processing import (
+    sample_processing_graphics,
+)
 
 from relecov_core.utils.handling_variant import (
     create_dataframe,
@@ -184,7 +186,11 @@ def methodology_host_info(request):
 
 def methodology_sample_processing(request):
     sample_processing = sample_processing_graphics()
-    return render(request, "relecov_dashboard/methodologySampleProcessing.html", {"sample_processing": sample_processing})
+    return render(
+        request,
+        "relecov_dashboard/methodologySampleProcessing.html",
+        {"sample_processing": sample_processing},
+    )
 
 
 def methodology_sequencing(request):
