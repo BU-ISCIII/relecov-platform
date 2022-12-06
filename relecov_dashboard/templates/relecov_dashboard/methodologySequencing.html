@@ -32,6 +32,12 @@
                             {{ sequencing.library_preparation | safe }}
                         </div> <!--// end col-sm-4 -->
                     </div>  <!-- end row-->
+                    <div class="row row-space-2 margin-b-4">
+                        <div class="col-sm-4">
+                            {{ sequencing.read_length | safe }}
+                        </div> <!--// end col-sm-4 -->
+                    </div>  <!-- end row-->
+
                 {% endif %}
                 <div class="row row-space-2 margin-b-4">
                     
@@ -39,9 +45,7 @@
                     <p>Boxplot Cts / library_preparation_kit</p>
                     <br><br>
                     <p>Gráfico que relacione el ct con el number_of_base_pairs_sequenced</p>
-                    <br><br>
-                    <p>Número de muestras por valores de read_length</p>
-
+                   
                 </div>  <!-- end row-->
             </div>  <!-- end card body   -->
         </div>  <!-- end card  -->
