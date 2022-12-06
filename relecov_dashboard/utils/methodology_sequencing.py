@@ -53,4 +53,15 @@ def sequencing_graphics():
         yaxis={"title": "Number of samples"},
         options={"title": "Library preparation", "height": 400},
     )
+    read_length_df = fetching_data_for_sequencing_data(
+        project_field="read_length",
+        columns=["read_length", "number"],
+    )
+    sequencing["read_length"] = bar_graphic(
+        data=read_length_df,
+        col_names=["read_length", "number"],
+        legend=[""],
+        yaxis={"title": "Number of samples"},
+        options={"title": "Read length", "height": 400, "colors": "#1aff8c"},
+    )
     return sequencing
