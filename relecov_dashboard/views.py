@@ -48,6 +48,11 @@ from relecov_dashboard.utils.methodology_index import index_dash_fields
 
 from relecov_dashboard.utils.methodology_host_info import host_info_graphics
 
+from relecov_dashboard.utils.methodology_sample_processing import (
+    sample_processing_graphics,
+)
+
+from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
 from relecov_core.utils.handling_variant import (
     create_dataframe,
 )
@@ -71,6 +76,7 @@ from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
 from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time import (
     create_lineages_variations_graphic,
 )
+
 
 # dashboard/variants
 
@@ -170,17 +176,43 @@ def methodology_index(request):
 
 def methodology_host_info(request):
     host_info = host_info_graphics()
+    if "ERROR" in host_info:
+        return render(
+            request, "relecov_dashboard/methodologyHostInfo.html", {"ERROR": host_info}
+        )
     return render(
         request, "relecov_dashboard/methodologyHostInfo.html", {"host_info": host_info}
     )
 
 
 def methodology_sample_processing(request):
-    return render(request, "relecov_dashboard/methodologySampleProcessing.html")
+    sample_processing = sample_processing_graphics()
+    if "ERROR" in sample_processing:
+        return render(
+            request,
+            "relecov_dashboard/methodologySampleProcessing.html",
+            {"ERROR": sample_processing},
+        )
+    return render(
+        request,
+        "relecov_dashboard/methodologySampleProcessing.html",
+        {"sample_processing": sample_processing},
+    )
 
 
 def methodology_sequencing(request):
-    return render(request, "relecov_dashboard/methodologySequencing.html")
+    sequencing = sequencing_graphics()
+    if "ERROR" in sequencing:
+        return render(
+            request,
+            "relecov_dashboard/methodologySequencing.html",
+            {"ERROR": sequencing},
+        )
+    return render(
+        request,
+        "relecov_dashboard/methodologySequencing.html",
+        {"sequencing": sequencing},
+    )
 
 
 def methodology_bioinfo(request):

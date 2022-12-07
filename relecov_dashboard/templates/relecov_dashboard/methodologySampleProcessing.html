@@ -8,9 +8,28 @@
         <br>
         <div class="card-header"><h2>Sample processing info dashboard</h2>
             <div class="card-body">
+                {% if ERROR %}
+                    <div class="row row-space-2 margin-b-4">
+                        <div class="col-sm-12" >
+                            <div class="card  border-danger mb-3">
+                                <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when connecting to LIMS</h3> </div>
+                                <div class="card-body  text-center">
+                                    <br>
+                                    <p><strong>{{ERROR.ERROR}}</strong></p>
+                                </div> <!-- end card body  -->
+                            </div> <!-- end card  -->
+                        </div> <!--// end col-sm-9 -->
+                    </div> <!--// end row -->
+                {% else %}
+                    <div class="row row-space-2 margin-b-4">
+                        <div class="col-sm-8">
+                            {{ sample_processing.nucleic_protocol | safe }}
+                        </div> <!--// end col-sm-8 -->
+                    </div>  <!-- end row-->
+                
                 <div class="row row-space-2 margin-b-4">
                     <p></p>
-                    <p>Gráfico de barras por nucleic_acid_extraction_protocol</p>
+                    <p></p>
                     <br><br>
                     <p>Boxplot Cts / specimen_source</p>
                     <br><br>
@@ -18,7 +37,7 @@
                     <br><br>
                     <p>Gráfico de fechas para ver tiempos, collection date, received date , sequencing date, analysis date</p>
                     <br><br><br><br>
-
+                {% endif %}
                 </div>  <!-- end row-->
             </div>  <!-- end card body   -->
         </div>  <!-- end card  -->
