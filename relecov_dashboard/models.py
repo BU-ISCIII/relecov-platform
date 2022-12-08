@@ -88,4 +88,7 @@ class GraphicJsonFile(models.Model):
     def __str__(self):
         return "%s" % (self.graphic_name)
 
+    def get_json_data(self):
+        return self.graphic_data
+
     objects = GraphicJsonFileManager()
