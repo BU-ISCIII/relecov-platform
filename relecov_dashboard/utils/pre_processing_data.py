@@ -1,8 +1,16 @@
 from relecov_core.models import Sample, LineageValues
 
-from relecov_dashboard.models import GraphicName, GraphicField, GraphicValue
+from relecov_dashboard.models import (
+    GraphicName,
+    GraphicField,
+    GraphicValue,
+    GraphicJsonFile,
+)
 
-from relecov_core.utils.rest_api_handling import fetch_samples_on_condition
+from relecov_core.utils.rest_api_handling import (
+    fetch_samples_on_condition,
+    get_stats_data,
+)
 
 
 def pre_proc_lineages_variations():
@@ -40,4 +48,22 @@ def pre_proc_lineages_variations():
             ).count()
             value_data["graphic_name_obj"] = graphic_name_obj
             GraphicValue.objects.create_new_graphic_value(value_data)
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_specimen_source_pcr_1():
+    """Collect the cts values when using pcr 1 and per specimen source"""
+    lims_data = get_stats_data(
+        {
+            "sample_project_name": "Relecov",
+            "project_field": "specimen_source,diagnostic_pcr_Ct_value_1",
+        }
+    )
+    if "ERROR" in lims_data:
+        return lims_data
+
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {"graphic_name": "specimen_source_pcr_1", "graphic_data": lims_data}
+    )
+
     return {"SUCCESS": "Success"}

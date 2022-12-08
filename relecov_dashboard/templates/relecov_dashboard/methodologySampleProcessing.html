@@ -28,7 +28,13 @@
                     </div>  <!-- end row-->
                 
                 <div class="row row-space-2 margin-b-4">
-                    <p></p>
+                    <div class="col-sm-8">
+                        {{ sample_processing.cts_specimen | safe }}
+                    </div> <!--// end col-sm-8 -->
+                    <div class="col-sm-4">
+                        <p>texto</p>
+                        {{ sample_processing.cts_specimen2 | safe }}
+                    </div> <!--// end col-sm-8 -->
                     <p></p>
                     <br><br>
                     <p>Boxplot Cts / specimen_source</p>
