@@ -88,6 +88,7 @@ def pre_proc_extraction_protocol_pcr_1():
     return {"SUCCESS": "Success"}
 
 
+# preprocessing data for Sequencing dashboard
 def pre_proc_library_kit_pcr_1():
     """Collect the cts values when using pcr 1 and per library preparation kit"""
     lims_data = get_stats_data(
