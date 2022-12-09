@@ -22,8 +22,11 @@
                     </div> <!--// end row -->
                 {% else %}
                     <div class="row row-space-2 margin-b-4">
-                        <div class="col-sm-8">
+                        <div class="col-sm-5">
                             {{ sample_processing.nucleic_protocol | safe }}
+                        </div> <!--// end col-sm-4 -->
+                        <div class="col-sm-7">
+                            {{ sample_processing.cts_extraction | safe }}
                         </div> <!--// end col-sm-8 -->
                     </div>  <!-- end row-->
                 
