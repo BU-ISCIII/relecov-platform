@@ -1,5 +1,8 @@
 import pandas as pd
-from relecov_dashboard.utils.pre_processing_data import pre_proc_specimen_source_pcr_1
+from relecov_dashboard.utils.pre_processing_data import (
+    pre_proc_specimen_source_pcr_1,
+    pre_proc_extraction_protocol_pcr_1,
+)
 from relecov_core.utils.rest_api_handling import get_stats_data
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
 from relecov_dashboard.utils.plotly_graphics import bar_graphic, box_plot_graphic
@@ -11,13 +14,17 @@ def sample_processing_graphics():
         If there is not data stored for the graphic, it will query to store
         them before calling for the second time
         """
-        json_data = get_graphic_json_data("specimen_source_pcr_1")
+        json_data = get_graphic_json_data(graphic_name)
         if json_data is None:
             # Execute the pre-processed task to get the data
+
             result = pre_proc_specimen_source_pcr_1()
             if "ERROR" in result:
                 return result
-        json_data = get_graphic_json_data("specimen_source_pcr_1")
+            result = pre_proc_extraction_protocol_pcr_1()
+            if "ERROR" in result:
+                return result
+        json_data = get_graphic_json_data(graphic_name)
         # Convert string to float values
         data = []
         for key, values in json_data.items():
@@ -60,7 +67,7 @@ def sample_processing_graphics():
             return pd.DataFrame(lims_data.items(), columns=columns)
 
     sample_processing = {}
-
+    # extraction protocol graphics
     extraction_protocol_df = fetching_data_for_sample_processing(
         project_field="nucleic_acid_extraction_protocol", columns=["protocol", "number"]
     )
@@ -71,8 +78,19 @@ def sample_processing_graphics():
         col_names=["protocol", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Nucleic acid extraction protocol", "height": 400},
+        options={
+            "title": "Nucleic acid extraction protocol",
+            "height": 400,
+            "width": 320,
+        },
     )
+    cts_extraction_data = get_pre_proc_data("extraction_protocol_pcr_1")
+
+    sample_processing["cts_extraction"] = box_plot_graphic(
+        cts_extraction_data,
+        {"title": "Boxplot Cts / Extraction protocol", "height": 400, "width": 420},
+    )
+    # expecimen source graphics
     cts_specimen_data = get_pre_proc_data("specimen_source_pcr_1")
 
     sample_processing["cts_specimen"] = box_plot_graphic(
