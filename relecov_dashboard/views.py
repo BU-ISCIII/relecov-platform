@@ -53,6 +53,9 @@ from relecov_dashboard.utils.methodology_sample_processing import (
 )
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
+
+from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
+
 from relecov_core.utils.handling_variant import (
     create_dataframe,
 )
@@ -216,7 +219,10 @@ def methodology_sequencing(request):
 
 
 def methodology_bioinfo(request):
-    return render(request, "relecov_dashboard/methodologyBioinfo.html")
+    bioinfo = bioinfo_graphics()
+    return render(
+        request, "relecov_dashboard/methodologyBioinfo.html", {"bioinfo": bioinfo}
+    )
 
 
 def samples_received_over_time_map(request):
