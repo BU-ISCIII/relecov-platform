@@ -6,6 +6,11 @@ from relecov_core.utils.handling_variant import (
     get_gene_list,
     get_sample_in_variant_list,
     get_default_chromosome,
+    create_dataframe,
+)
+
+from relecov_core.utils.handling_lineage import (
+    get_lineages_list,
 )
 
 from relecov_core.core_config import (
@@ -15,7 +20,6 @@ from relecov_core.core_config import (
 )
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     get_variant_data_from_lineages,
-    get_lineages_list,
     create_needle_plot_graph_mutation_by_lineage,
 )
 
@@ -53,9 +57,6 @@ from relecov_dashboard.utils.methodology_sample_processing import (
 )
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
-from relecov_core.utils.handling_variant import (
-    create_dataframe,
-)
 
 from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
     create_dataframe_from_json,
