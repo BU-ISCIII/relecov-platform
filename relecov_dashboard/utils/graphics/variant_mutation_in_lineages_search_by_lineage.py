@@ -26,7 +26,6 @@ def get_variant_data_from_lineages(graphic_name=None,lineage=None, chromosome=No
 
     json_data = get_graphic_json_data(graphic_name)
 
-
 #    if not LineageValues.objects.filter(
 #        lineage_fieldID__property_name__iexact="lineage_name"
 #    ).exists():
@@ -119,7 +118,7 @@ def create_needle_plot_graph_mutation_by_lineage(
         Input("needleplot-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
-        mdata, lineage = get_variant_data_from_lineages(graphic_name="variants_per_lineage",lineage=selected_lineage,chromosome=None)
+        mdata, lineage = get_variant_data_from_lineages(graphic_name="variations_per_lineage",lineage=selected_lineage,chromosome=None)
         return mdata, lineage
 
     @app.callback(
