@@ -1,10 +1,22 @@
-from relecov_core.models import Sample, LineageValues
-
 from relecov_dashboard.models import (
     GraphicName,
     GraphicField,
     GraphicValue,
     GraphicJsonFile,
+)
+from relecov_core.utils.handling_variant import (
+    get_domains_and_coordenates,
+)
+
+from relecov_core.utils.handling_lineage import (
+    get_lineages_list,
+)
+
+from relecov_core.models import (
+    LineageValues,
+    Sample,
+    VariantInSample,
+    VariantAnnotation,
 )
 
 from relecov_core.utils.rest_api_handling import (
@@ -48,6 +60,70 @@ def pre_proc_lineages_variations():
             ).count()
             value_data["graphic_name_obj"] = graphic_name_obj
             GraphicValue.objects.create_new_graphic_value(value_data)
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_variations_per_lineage(chromosome=None):
+    """Process variants per lineages"""
+
+    lineage_data = {}
+
+    # Grab lineages matching selected lineage
+    for lineage in get_lineages_list():
+        mutation_data = {}
+        list_of_af = []
+        list_of_pos = []
+        list_of_effects = []
+
+        lineage_value_objs = LineageValues.objects.filter(value__iexact=lineage)
+        # Query samples matching that lineage
+        sample_objs = Sample.objects.filter(lineage_values__in=lineage_value_objs)
+        number_samples_wlineage = Sample.objects.filter(
+            lineage_values__in=lineage_value_objs
+        ).count()
+        # Query variants with AF>0.75 for samples matching desired lineage. TODO: get this from threshold af in metadata bioinfo in db.
+        variants = (
+            VariantInSample.objects.filter(sampleID_id__in=sample_objs, af__gt=0.75)
+            .values_list("variantID_id", flat=True)
+            .distinct()
+        )
+
+        for variant in variants:
+            number_samples_wmutation = (
+                VariantInSample.objects.filter(
+                    sampleID_id__in=sample_objs, variantID_id=variant
+                )
+                .values_list("sampleID_id", flat=True)
+                .count()
+            )
+            mut_freq_population = number_samples_wmutation / number_samples_wlineage
+            pos = VariantInSample.objects.filter(variantID_id=variant)[0].get_pos()
+
+            effects = (
+                VariantAnnotation.objects.filter(variantID_id__pk=variant)
+                .values_list("effectID_id__effect", flat=True)
+                .last()
+            )
+
+            # Only display mutations with at lease 0.05 freq in population
+            if mut_freq_population > 0.05:
+                list_of_af.append(mut_freq_population)
+                list_of_pos.append(pos)
+                list_of_effects.append(effects)
+
+        domains = get_domains_and_coordenates(chromosome)
+
+        mutation_data["x"] = list_of_pos
+        mutation_data["y"] = list_of_af
+        mutation_data["mutationGroups"] = list_of_effects
+        mutation_data["domains"] = domains
+
+        lineage_data[lineage] = mutation_data
+
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {"graphic_name": "variations_per_lineage", "graphic_data": lineage_data}
+    )
+
     return {"SUCCESS": "Success"}
 
 
