@@ -6,6 +6,11 @@ from relecov_core.utils.handling_variant import (
     get_gene_list,
     get_sample_in_variant_list,
     get_default_chromosome,
+    create_dataframe,
+)
+
+from relecov_core.utils.handling_lineage import (
+    get_lineages_list,
 )
 
 from relecov_core.core_config import (
@@ -15,7 +20,6 @@ from relecov_core.core_config import (
 )
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     get_variant_data_from_lineages,
-    get_lineages_list,
     create_needle_plot_graph_mutation_by_lineage,
 )
 
@@ -53,12 +57,6 @@ from relecov_dashboard.utils.methodology_sample_processing import (
 )
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
-
-from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
-
-from relecov_core.utils.handling_variant import (
-    create_dataframe,
-)
 
 from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
     create_dataframe_from_json,
@@ -120,7 +118,9 @@ def mutations_in_lineages_dashboard(request):
     # mutations in lineages by lineage
     def_chrom = get_default_chromosome()
     lineages_list = get_lineages_list()
-    mdata, lineage = get_variant_data_from_lineages(lineage=None, chromosome=def_chrom)
+    mdata, lineage = get_variant_data_from_lineages(
+        graphic_name="variations_per_lineage", lineage=None, chromosome=def_chrom
+    )
 
     if not mdata:
         return render(
@@ -128,9 +128,7 @@ def mutations_in_lineages_dashboard(request):
             "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
             {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
-    create_needle_plot_graph_mutation_by_lineage(
-        lineages_list, lineage, mdata, def_chrom
-    )
+    create_needle_plot_graph_mutation_by_lineage(lineages_list, lineage, mdata)
     # v_lineage_data = get_variant_all_lineage_data()
     """
     # mutations in lineages heatmap
