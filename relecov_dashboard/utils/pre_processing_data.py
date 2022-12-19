@@ -6,7 +6,6 @@ from relecov_dashboard.models import (
 )
 from relecov_core.utils.handling_variant import (
     get_domains_and_coordenates,
-    get_default_chromosome,
 )
 
 from relecov_core.utils.handling_lineage import (
