@@ -5,31 +5,32 @@ import dash_bio as dashbio
 
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
 
+from relecov_dashboard.utils.pre_processing_data import (
+    pre_proc_variations_per_lineage,
+)
+
 from relecov_core.models import (
     LineageValues,
 )
 
 
-def get_variant_data_from_lineages(graphic_name=None,lineage=None):
+def get_variant_data_from_lineages(graphic_name=None,lineage=None, chromosome=None):
 
     json_data = get_graphic_json_data(graphic_name)
 
-    if mdata is None:
+    if json_data is None:
         # Execute the pre-processed task to get the data
-        result = pre_proc_variations_per_lineage()
-        if "ERROR" in result:
-            return result
-        result = pre_proc_extraction_protocol_pcr_1()
+        result = pre_proc_variations_per_lineage(chromosome)
         if "ERROR" in result:
             return result
 
     json_data = get_graphic_json_data(graphic_name)
 
 
-    if not LineageValues.objects.filter(
-        lineage_fieldID__property_name__iexact="lineage_name"
-    ).exists():
-        return None
+#    if not LineageValues.objects.filter(
+#        lineage_fieldID__property_name__iexact="lineage_name"
+#    ).exists():
+#        return None
 
     if lineage is None:
         lineage = (
@@ -118,7 +119,7 @@ def create_needle_plot_graph_mutation_by_lineage(
         Input("needleplot-select-lineage", "value"),
     )
     def update_sample(selected_lineage):
-        mdata, lineage = get_variant_data_from_lineages(selected_lineage)
+        mdata, lineage = get_variant_data_from_lineages(graphic_name="variants_per_lineage",lineage=selected_lineage,chromosome=None)
         return mdata, lineage
 
     @app.callback(

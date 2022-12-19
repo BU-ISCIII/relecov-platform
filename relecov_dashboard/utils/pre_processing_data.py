@@ -120,8 +120,6 @@ def pre_proc_variations_per_lineage(chromosome=None):
 
         lineage_data[lineage] = mutation_data
 
-    import pdb; pdb.set_trace()
-
     GraphicJsonFile.objects.create_new_graphic_json(
         {"graphic_name": "variations_per_lineage", "graphic_data": lineage_data}
     )
