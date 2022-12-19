@@ -63,6 +63,7 @@ def pre_proc_lineages_variations():
             GraphicValue.objects.create_new_graphic_value(value_data)
     return {"SUCCESS": "Success"}
 
+
 def pre_proc_variations_per_lineage(chromosome=None):
     """Process variants per lineages"""
 

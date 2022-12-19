@@ -11,6 +11,7 @@ def get_lineages_list():
         .order_by("value")
     )
 
+
 def get_lineage_data_from_sample(sample_id):
     """Get the bioinfo analysis for the sample"""
     sample_obj = get_sample_obj_from_id(sample_id)

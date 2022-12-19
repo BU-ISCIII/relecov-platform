@@ -118,7 +118,9 @@ def mutations_in_lineages_dashboard(request):
     # mutations in lineages by lineage
     def_chrom = get_default_chromosome()
     lineages_list = get_lineages_list()
-    mdata, lineage = get_variant_data_from_lineages(graphic_name="variations_per_lineage", lineage=None, chromosome=def_chrom)
+    mdata, lineage = get_variant_data_from_lineages(
+        graphic_name="variations_per_lineage", lineage=None, chromosome=def_chrom
+    )
 
     if not mdata:
         return render(
@@ -126,9 +128,7 @@ def mutations_in_lineages_dashboard(request):
             "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
             {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
-    create_needle_plot_graph_mutation_by_lineage(
-        lineages_list, lineage, mdata
-    )
+    create_needle_plot_graph_mutation_by_lineage(lineages_list, lineage, mdata)
     # v_lineage_data = get_variant_all_lineage_data()
     """
     # mutations in lineages heatmap
