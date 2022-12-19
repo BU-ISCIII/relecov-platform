@@ -2,6 +2,16 @@ from relecov_core.utils.handling_samples import get_sample_obj_from_id
 from relecov_core.models import LineageFields, LineageValues
 
 
+def get_lineages_list():
+    """Function gets the lab names and return then in an ordered list"""
+    return list(
+        LineageValues.objects.all()
+        .values_list("value", flat=True)
+        .distinct()
+        .order_by("value")
+    )
+
+
 def get_lineage_data_from_sample(sample_id):
     """Get the bioinfo analysis for the sample"""
     sample_obj = get_sample_obj_from_id(sample_id)
