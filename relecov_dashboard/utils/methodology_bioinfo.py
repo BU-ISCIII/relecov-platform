@@ -5,8 +5,7 @@ from relecov_core.models import BioinfoAnalysisValue
 def bioinfo_graphics():
     def get_depth_coverage():
         pass
-    
-    
+
     def get_percentage_data():
         per_data = []
         graph_list = ["per_Ns", "per_reads_host", "per_reads_virus", "per_unmapped"]
@@ -39,5 +38,5 @@ def bioinfo_graphics():
         percentage_data,
         {"title": "Boxplot Percentage", "height": 400, "width": 420},
     )
-    depth_coverage = get_depth_coverage()
+    # depth_coverage = get_depth_coverage()
     return bioinfo

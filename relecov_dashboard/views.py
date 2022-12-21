@@ -55,6 +55,7 @@ from relecov_dashboard.utils.methodology_host_info import host_info_graphics
 from relecov_dashboard.utils.methodology_sample_processing import (
     sample_processing_graphics,
 )
+from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
 
