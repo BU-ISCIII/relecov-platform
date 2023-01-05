@@ -14,14 +14,18 @@ def sample_processing_graphics():
         If there is not data stored for the graphic, it will query to store
         them before calling for the second time
         """
+        map_graphic = {"extraction_protocol_pcr_1" : "pre_proc_specimen_source_pcr_1", "specimen_source_pcr_1": "pre_proc_specimen_source_pcr_1", "calculation_date": "pre_proc_calculation_date"}
+
         json_data = get_graphic_json_data(graphic_name)
         if json_data is None:
             # Execute the pre-processed task to get the data
-
+            result = eval(map_graphic[graphic_name] + "()")
+            """
             result = pre_proc_specimen_source_pcr_1()
             if "ERROR" in result:
                 return result
             result = pre_proc_extraction_protocol_pcr_1()
+            """
             if "ERROR" in result:
                 return result
         json_data = get_graphic_json_data(graphic_name)
@@ -97,5 +101,6 @@ def sample_processing_graphics():
         cts_specimen_data,
         {"title": "Boxplot Cts / specimen source", "height": 400, "width": 520},
     )
-
+    # calculate the number of days spent in each state before moved on to next step
+    calculation_date = get_pre_proc_data("calculation_date")
     return sample_processing
