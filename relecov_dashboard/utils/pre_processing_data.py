@@ -1,9 +1,4 @@
-from relecov_dashboard.models import (
-    GraphicName,
-    GraphicField,
-    GraphicValue,
-    GraphicJsonFile,
-)
+from relecov_dashboard.models import GraphicJsonFile
 from relecov_core.utils.handling_variant import (
     get_domains_and_coordenates,
 )
@@ -27,22 +22,15 @@ from relecov_core.utils.rest_api_handling import (
 
 def pre_proc_lineages_variations():
     """Collect the lineages information to store them at the pre-processed
-    grpahic tables. Smoothing is performed before saving into database
+    graphicJasonFile. Smoothing is performed before saving into database
     """
-    field_names = {
-        "field_1": "Collection date",
-        "field_2": "Lineage",
-        "field_3": "samples",
-    }
+
     in_date_samples = fetch_samples_on_condition("collectionSampleDate")
     if "ERROR" in in_date_samples:
         return in_date_samples
-    graphic_name_obj = GraphicName.objects.create_new_graphic_name(
-        "lineages_variations"
-    )
-    field_names["graphic_name_obj"] = graphic_name_obj
-    GraphicField.objects.create_new_graphic_field(field_names)
-
+    collect_data = []
+    num_samples_data = []
+    lineage_data = []
     for date, samples in in_date_samples["DATA"].items():
         lineage_in_samples = (
             LineageValues.objects.filter(
@@ -53,13 +41,28 @@ def pre_proc_lineages_variations():
             .distinct()
         )
         for lineage in lineage_in_samples:
-            value_data = {"value_1": date, "value_2": str(lineage)}
-            value_data["value_3"] = Sample.objects.filter(
-                collecting_lab_sample_id__in=samples,
-                lineage_values__value__iexact=lineage,
-            ).count()
-            value_data["graphic_name_obj"] = graphic_name_obj
-            GraphicValue.objects.create_new_graphic_value(value_data)
+
+            # value_data = {"value_1": date, "value_2": str(lineage)}
+            collect_data.append(date)
+            lineage_data.append(lineage)
+            num_samples_data.append(
+                Sample.objects.filter(
+                    collecting_lab_sample_id__in=samples,
+                    lineage_values__value__iexact=lineage,
+                ).count()
+            )
+
+    lineage_var_data = {
+        "Collection date": collect_data,
+        "Lineage": lineage_data,
+        "samples": num_samples_data,
+    }
+    json_data = {
+        "graphic_name": "lineages_variations",
+        "graphic_data": lineage_var_data,
+    }
+    GraphicJsonFile.objects.create_new_graphic_json(json_data)
+
     return {"SUCCESS": "Success"}
 
 
