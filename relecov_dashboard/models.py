@@ -81,6 +81,7 @@ class GraphicJsonFileManager(models.Manager):
 class GraphicJsonFile(models.Model):
     graphic_name = models.CharField(max_length=60)
     graphic_data = models.JSONField()
+    creation_date = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         db_table = "GraphicJsonFile"
