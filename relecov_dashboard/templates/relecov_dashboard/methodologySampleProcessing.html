@@ -30,24 +30,15 @@
                         </div> <!--// end col-sm-8 -->
                     </div>  <!-- end row-->
                 
-                <div class="row row-space-2 margin-b-4">
-                    <div class="col-sm-8">
-                        {{ sample_processing.cts_specimen | safe }}
-                    </div> <!--// end col-sm-8 -->
-                    <div class="col-sm-4">
-                        <p>texto</p>
-                        {{ sample_processing.cts_specimen2 | safe }}
-                    </div> <!--// end col-sm-8 -->
-                    <p></p>
-                    <br><br>
-                    <p>Boxplot Cts / specimen_source</p>
-                    <br><br>
-                    <p>Boxplot Cts / protocolo de extracción</p>
-                    <br><br>
-                    <p>Gráfico de fechas para ver tiempos, collection date, received date , sequencing date, analysis date</p>
-                    <br><br><br><br>
+                    <div class="row row-space-2 margin-b-4">
+                        <div class="col-sm-7">
+                            {{ sample_processing.cts_specimen | safe }}
+                        </div> <!--// end col-sm-8 -->
+                        <div class="col-sm-5">
+                            {{ sample_processing.calculation_date | safe }}
+                        </div> <!--// end col-sm-4 -->
+                    </div> <!--// end row -->
                 {% endif %}
-                </div>  <!-- end row-->
             </div>  <!-- end card body   -->
         </div>  <!-- end card  -->
     </div> <!-- end container-->
