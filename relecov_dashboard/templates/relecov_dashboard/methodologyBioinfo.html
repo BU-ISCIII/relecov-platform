@@ -9,8 +9,14 @@
         <div class="card-header"><h2>Bioinfo dashboard</h2>
             <div class="card-body">
                 <div class="row row-space-2 margin-b-4">
+                    <div class="col-sm-6">
+                        {{ bioinfo.boxplot_comparation | safe }}
+                    </div> <!--// end col-sm-4 -->
+                    <div class="col-sm-6">
+                        {{ bioinfo.deep_coverage | safe }}
+                    </div> <!--// end col-sm-4 -->
+
                     
-                    <p>  Boxplot: per_Ns, per_reads_host, per_reads_virus, per_unmapped (Habrá que normalizar de alguna manera...)</p>
                     <br><br>
                     <p> Gráfico que relacione el depth of coverage value con el number_of_samples_in_run</p>
                     <br><br>
