@@ -1,17 +1,9 @@
-import pandas as pd
+from relecov_dashboard.models import GraphicJsonFile
 
-from relecov_dashboard.models import (
-    GraphicName,
-    GraphicField,
-    GraphicValue,
-    GraphicJsonFile,
-)
-
-
+"""
 def get_graphic_in_data_frame(graphic_name):
-    """Collect the pre-processed data from database and return in panda's
+    Collect the pre-processed data from database and return in panda's
     dataFrame
-    """
     if GraphicName.objects.filter(graphic_name__iexact=graphic_name).exists():
         graphic_name_obj = GraphicName.objects.filter(
             graphic_name__iexact=graphic_name
@@ -27,6 +19,7 @@ def get_graphic_in_data_frame(graphic_name):
         return pd.DataFrame(values, columns=fields)
 
     return None
+"""
 
 
 def get_graphic_json_data(graphic_name):
