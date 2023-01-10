@@ -1,4 +1,5 @@
 from datetime import datetime
+from collections import OrderedDict
 from relecov_dashboard.models import GraphicJsonFile
 from relecov_core.utils.handling_variant import (
     get_domains_and_coordenates,
@@ -35,18 +36,28 @@ def pre_proc_calculation_date():
                 out_data[item[data_1]] = item[data_2]
         return out_data
 
-    def convert_str_to_datetime(data, separator):
+    def convert_str_to_datetime(data, separator, invalid_samples):
         """Convert the string values to datetime object to perform calculation
         dates
         """
+        # start_date is set to discard not valid dates, becuase they were
+        # mistyped by user
+        start_date = datetime.strptime("2019-12-31", "%Y-%m-%d")
         if separator:
             d_format = "%Y" + separator + "%m" + separator + "%d"
         else:
             d_format = "%Y%m%d"
         for sample in data.keys():
+            if sample in invalid_samples:
+                continue
             if data[sample]:
-                data[sample] = datetime.strptime(data[sample], d_format)
-        return data
+                f_date = datetime.strptime(data[sample], d_format)
+                if f_date < start_date:
+                    invalid_samples[sample] = True
+
+                else:
+                    data[sample] = f_date
+        return data, invalid_samples
 
     def calculate_days(sample_list, date_1, date_2):
         """Function gets 2 dictionnary list. For the same sample the substract
@@ -67,13 +78,14 @@ def pre_proc_calculation_date():
         return out_data
 
     # get sequencing date from sample table
+    invalid_samples = {}
     analysis_date = BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="analysis_date",
     ).values("value", "sample__collecting_lab_sample_id")
     analysis_date = convert_data_to_sample_dict(
         analysis_date, "sample__collecting_lab_sample_id", "value"
     )
-    analysis_date = convert_str_to_datetime(analysis_date, None)
+    analysis_date, invalid_samples = convert_str_to_datetime(analysis_date, None, invalid_samples)
 
     seq_date = Sample.objects.all().values(
         "collecting_lab_sample_id", "sequencing_date"
@@ -87,25 +99,29 @@ def pre_proc_calculation_date():
     collection_date = convert_data_to_sample_dict(
         collection_date, "Sample Name", "collectionSampleDate"
     )
-    collection_date = convert_str_to_datetime(collection_date, "-")
+    collection_date, invalid_samples = convert_str_to_datetime(collection_date, "-", invalid_samples)
 
     recorded_date = get_sample_parameter_data("sampleEntryDate")
     recorded_date = convert_data_to_sample_dict(
         recorded_date, "Sample Name", "sampleEntryDate"
     )
-    recorded_date = convert_str_to_datetime(recorded_date, "-")
+    recorded_date , invalid_samples = convert_str_to_datetime(recorded_date, "-", invalid_samples)
 
     # perform calculation dates
-    calculation_dates = {}
-    sample_list = list(seq_date.keys())
+    calculation_dates = OrderedDict()
+    sample_list = []
+    for sam in seq_date.keys():
+        if sam not in invalid_samples:
+            sample_list.append(sam)
+    
     # calculation_dates["samples"] = sample_list
     calculation_dates["coll_rec_date"] = calculate_days(
         sample_list, collection_date, recorded_date
     )
-    calculation_dates["seq_coll_date"] = calculate_days(
+    calculation_dates["rec_seq_date"] = calculate_days(
         sample_list, recorded_date, seq_date
     )
-    calculation_dates["analyis_seq_date"] = calculate_days(
+    calculation_dates["seq_analyis_date"] = calculate_days(
         sample_list, seq_date, analysis_date
     )
     # json_data = json.dumps(calculation_dates)
