@@ -123,10 +123,10 @@ def sequencing_graphics():
         cts_pcr_1["based"],
         cts_pcr_1["cts"],
         {
-            "title": "Number of base",
+            "title": "CTs / Base pairs sequenced",
             "height": 350,
             "width": 300,
-            "x_title": "Number of base pairs",
+            "x_title": "Number of base pairs sequenced",
             "y_title": "PCR CT 1",
         },
     )
