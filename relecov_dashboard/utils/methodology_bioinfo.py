@@ -1,4 +1,5 @@
 from statistics import mean
+from collections import OrderedDict
 from relecov_dashboard.utils.plotly_graphics import box_plot_graphic, line_graphic
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
 from relecov_core.models import BioinfoAnalysisValue
@@ -13,18 +14,23 @@ def bioinfo_graphics():
             if graphic_name == "depth_variant_consensus":
                 result = pre_proc_depth_variants()
             elif graphic_name == "":
-                result = pre_proc_depth_sample_run()
+                pass
+                # result = pre_proc_depth_sample_run()
             else:
                 return {"ERROR": "pre-processing not defined"}
             if "ERROR" in result:
                 return result
             json_data = get_graphic_json_data(graphic_name)
+        tmp_json_float = {}
+        for key, values in json_data.items():
+            tmp_json_float[float(key)] = values
+        json_data_sorted = OrderedDict(sorted(tmp_json_float.items()))
         data = {}
         data = {"depth": [], "variant": []}
-        for key, values in json_data.items():
+        for key, values in json_data_sorted.items():
             data["depth"].append(float(key))
             data["variant"].append(mean(values))
-
+        # import pdb; pdb.set_trace()
         return data
 
     def get_percentage_data():
@@ -67,7 +73,7 @@ def bioinfo_graphics():
         {
             "title": "Depth / variant consensus",
             "height": 350,
-            "width": 300,
+            "width": 420,
             "x_title": "Depth",
             "y_title": "number of variants",
         },
