@@ -30,7 +30,7 @@ def sequencing_graphics():
                 return {"ERROR": "pre-processing not defined"}
             if "ERROR" in result:
                 return result
-        json_data = get_graphic_json_data(graphic_name)
+            json_data = get_graphic_json_data(graphic_name)
         if out_format == "list_of_dict":
             data = []
             for key, values in json_data.items():
