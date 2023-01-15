@@ -3,7 +3,7 @@ from collections import OrderedDict
 from relecov_dashboard.utils.plotly_graphics import box_plot_graphic, line_graphic
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
 from relecov_core.models import BioinfoAnalysisValue
-from relecov_dashboard.utils.pre_processing_data import pre_proc_depth_variants
+from relecov_dashboard.utils.pre_processing_data import pre_proc_depth_variants, pre_proc_depth_sample_run
 
 
 def bioinfo_graphics():
@@ -13,9 +13,8 @@ def bioinfo_graphics():
             # Execute the pre-processed task to get the data
             if graphic_name == "depth_variant_consensus":
                 result = pre_proc_depth_variants()
-            elif graphic_name == "":
-                pass
-                # result = pre_proc_depth_sample_run()
+            elif graphic_name == "depth_samples_in_run":
+                result = pre_proc_depth_sample_run()
             else:
                 return {"ERROR": "pre-processing not defined"}
             if "ERROR" in result:
@@ -78,7 +77,18 @@ def bioinfo_graphics():
             "y_title": "number of variants",
         },
     )
-    #
 
-    # get_pre_proc_data("depth_samples_in_run")
+    depth_sample_run_data = get_pre_proc_data("depth_samples_in_run")
+    bioinfo["depth_sample_run"] = line_graphic(
+        depth_sample_run_data["depth"],
+        depth_sample_run_data["variant"],
+        {
+            "title": "Depth / number of samples in run",
+            "height": 350,
+            "width": 420,
+            "x_title": "Depth",
+            "y_title": "Samples in run",
+        },
+    )
+
     return bioinfo

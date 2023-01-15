@@ -368,7 +368,7 @@ def pre_proc_depth_variants():
         if d_value not in depth_variant:
             depth_variant[d_value] = []
         depth_variant[d_value].append(int(item["value"]))
-    depth_variant_ordered = dict(sorted(depth_variant.items()))
+    # depth_variant_ordered = dict(sorted(depth_variant.items()))
     # depth.append(tmp_depth[item["sample__collecting_lab_sample_id"]])
     # variant.append(int(item["value"]))
     # depth_variant = {"depth": depth, "variant": variant}
@@ -376,7 +376,39 @@ def pre_proc_depth_variants():
     GraphicJsonFile.objects.create_new_graphic_json(
         {
             "graphic_name": "depth_variant_consensus",
-            "graphic_data": depth_variant_ordered,
+            "graphic_data": depth_variant,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_depth_sample_run():
+    depth_sample_list = BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
+    ).values("value", "sample__collecting_lab_sample_id")
+    sample_in_run = get_sample_parameter_data(
+        {"sample_project_name": "relecov", "parameter": "number_of_samples_in_run"}
+    )
+    tmp_depth = {}
+    depth_sample_run = {}
+    for item in depth_sample_list:
+        try:
+            tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
+        except ValueError:
+            # ignore the entry if value cannot converted to float
+            continue
+    for item in sample_in_run:
+        if item["Sample name"] not in tmp_depth:
+            continue
+        d_value = tmp_depth[item["Sample name"]]
+        if d_value not in depth_sample_run:
+            depth_sample_run[d_value] = []
+        depth_sample_run[d_value].append(int(item["number_of_samples_in_run"]))
+
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "depth_samples_in_run",
+            "graphic_data": depth_sample_run,
         }
     )
     return {"SUCCESS": "Success"}
