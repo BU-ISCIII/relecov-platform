@@ -340,3 +340,43 @@ def pre_proc_based_pairs_sequenced():
     )
 
     return {"SUCCESS": "Success"}
+
+
+# data preparation for methodology bioinfo dashboard
+def pre_proc_depth_variants():
+    depth_sample_list = BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
+    ).values("value", "sample__collecting_lab_sample_id")
+    variant_sample_list = BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__exact="number_of_variants_in_consensus"
+    ).values("value", "sample__collecting_lab_sample_id")
+    # depth = []
+    # variant = []
+    tmp_depth = {}
+    depth_variant = {}
+    for item in depth_sample_list:
+        try:
+            tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
+        except ValueError:
+            # ignore the entry if value cannot converted to float
+            continue
+    for item in variant_sample_list:
+        # ignore the samples that do not have depth value
+        if item["sample__collecting_lab_sample_id"] not in tmp_depth:
+            continue
+        d_value = float(tmp_depth[item["sample__collecting_lab_sample_id"]])
+        if d_value not in depth_variant:
+            depth_variant[d_value] = []
+        depth_variant[d_value].append(int(item["value"]))
+    depth_variant_ordered = dict(sorted(depth_variant.items()))
+    # depth.append(tmp_depth[item["sample__collecting_lab_sample_id"]])
+    # variant.append(int(item["value"]))
+    # depth_variant = {"depth": depth, "variant": variant}
+    # import pdb; pdb.set_trace()
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "depth_variant_consensus",
+            "graphic_data": depth_variant_ordered,
+        }
+    )
+    return {"SUCCESS": "Success"}
