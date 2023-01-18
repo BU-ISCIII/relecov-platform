@@ -8,6 +8,7 @@ from relecov_core.core_config import (
     ISKLIMS_GET_SAMPLE_FIELDS,
     ISKLIMS_GET_SAMPLE_INFORMATION,
     ISKLIMS_GET_SAMPLE_PARAMETER_INFORMATION,
+    ISKLIMS_GET_SAMPLE_PROJECT_PARAMETER_INFORMATION,
     ISKLIMS_GET_SAMPLE_PROJECT_FIELDS,
     ISKLIMS_GET_SUMMARIZE_DATA,
     ISKLIMS_GET_STATS_DATA,
@@ -20,7 +21,11 @@ def create_get_api_instance(request_param, data):
     """Crate api request to iSkyLIMS"""
     iskylims_server = get_configuration_value("ISKYLIMS_SERVER")
     iskylims_url = ISKLIMS_REST_API
-    request, param = request_param
+    if isinstance(data, dict):
+        request = request_param[0]
+        param = data
+    else:
+        request, param = request_param
     r_api = RestApi(iskylims_server, iskylims_url)
     return r_api.get_request(request, param, data)
 
@@ -104,7 +109,14 @@ def get_sample_information(sample_name):
 
 
 def get_sample_parameter_data(param_data):
-    data = create_get_api_instance(ISKLIMS_GET_SAMPLE_PARAMETER_INFORMATION, param_data)
+    if isinstance(param_data, dict):
+        data = create_get_api_instance(
+            ISKLIMS_GET_SAMPLE_PROJECT_PARAMETER_INFORMATION, param_data
+        )
+    else:
+        data = create_get_api_instance(
+            ISKLIMS_GET_SAMPLE_PARAMETER_INFORMATION, param_data
+        )
     # data = r_api.get_request(request, sample_name)
     if "ERROR" in data:
         return {"ERROR": data}

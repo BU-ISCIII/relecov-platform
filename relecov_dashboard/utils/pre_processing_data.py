@@ -35,18 +35,28 @@ def pre_proc_calculation_date():
                 out_data[item[data_1]] = item[data_2]
         return out_data
 
-    def convert_str_to_datetime(data, separator):
+    def convert_str_to_datetime(data, separator, invalid_samples):
         """Convert the string values to datetime object to perform calculation
         dates
         """
+        # start_date is set to discard not valid dates, becuase they were
+        # mistyped by user
+        start_date = datetime.strptime("2019-12-31", "%Y-%m-%d")
         if separator:
             d_format = "%Y" + separator + "%m" + separator + "%d"
         else:
             d_format = "%Y%m%d"
         for sample in data.keys():
+            if sample in invalid_samples:
+                continue
             if data[sample]:
-                data[sample] = datetime.strptime(data[sample], d_format)
-        return data
+                f_date = datetime.strptime(data[sample], d_format)
+                if f_date < start_date:
+                    invalid_samples[sample] = True
+
+                else:
+                    data[sample] = f_date
+        return data, invalid_samples
 
     def calculate_days(sample_list, date_1, date_2):
         """Function gets 2 dictionnary list. For the same sample the substract
@@ -67,13 +77,16 @@ def pre_proc_calculation_date():
         return out_data
 
     # get sequencing date from sample table
+    invalid_samples = {}
     analysis_date = BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="analysis_date",
     ).values("value", "sample__collecting_lab_sample_id")
     analysis_date = convert_data_to_sample_dict(
         analysis_date, "sample__collecting_lab_sample_id", "value"
     )
-    analysis_date = convert_str_to_datetime(analysis_date, None)
+    analysis_date, invalid_samples = convert_str_to_datetime(
+        analysis_date, None, invalid_samples
+    )
 
     seq_date = Sample.objects.all().values(
         "collecting_lab_sample_id", "sequencing_date"
@@ -87,25 +100,33 @@ def pre_proc_calculation_date():
     collection_date = convert_data_to_sample_dict(
         collection_date, "Sample Name", "collectionSampleDate"
     )
-    collection_date = convert_str_to_datetime(collection_date, "-")
+    collection_date, invalid_samples = convert_str_to_datetime(
+        collection_date, "-", invalid_samples
+    )
 
     recorded_date = get_sample_parameter_data("sampleEntryDate")
     recorded_date = convert_data_to_sample_dict(
         recorded_date, "Sample Name", "sampleEntryDate"
     )
-    recorded_date = convert_str_to_datetime(recorded_date, "-")
+    recorded_date, invalid_samples = convert_str_to_datetime(
+        recorded_date, "-", invalid_samples
+    )
 
     # perform calculation dates
     calculation_dates = {}
-    sample_list = list(seq_date.keys())
+    sample_list = []
+    for sam in seq_date.keys():
+        if sam not in invalid_samples:
+            sample_list.append(sam)
+
     # calculation_dates["samples"] = sample_list
     calculation_dates["coll_rec_date"] = calculate_days(
         sample_list, collection_date, recorded_date
     )
-    calculation_dates["seq_coll_date"] = calculate_days(
+    calculation_dates["rec_seq_date"] = calculate_days(
         sample_list, recorded_date, seq_date
     )
-    calculation_dates["analyis_seq_date"] = calculate_days(
+    calculation_dates["seq_analyis_date"] = calculate_days(
         sample_list, seq_date, analysis_date
     )
     # json_data = json.dumps(calculation_dates)
@@ -280,4 +301,114 @@ def pre_proc_library_kit_pcr_1():
         {"graphic_name": "library_kit_pcr_1", "graphic_data": lims_data}
     )
 
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_based_pairs_sequenced():
+    based_pairs = {}
+    pcr_ct_1_values = get_sample_parameter_data(
+        {"sample_project_name": "relecov", "parameter": "diagnostic_pcr_Ct_value_1"}
+    )
+    if "ERROR" in pcr_ct_1_values:
+        return pcr_ct_1_values
+    # import pdb; pdb.set_trace()
+    for ct_value in pcr_ct_1_values:
+        sample_name = ct_value["Sample name"]
+        # import pdb; pdb.set_trace()
+        base_value = (
+            BioinfoAnalysisValue.objects.filter(
+                bioinfo_analysis_fieldID__property_name__exact="number_of_base_pairs_sequenced",
+                sample__collecting_lab_sample_id__exact=sample_name,
+            )
+            .last()
+            .get_value()
+        )
+        try:
+            float_base_value = float(ct_value["diagnostic_pcr_Ct_value_1"])
+            base_value_int = int(base_value)
+        except ValueError:
+            continue
+        if base_value_int not in based_pairs:
+            based_pairs[base_value_int] = []
+        based_pairs[base_value_int].append(float_base_value)
+
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "ct_number_of_base_pairs_sequenced",
+            "graphic_data": based_pairs,
+        }
+    )
+
+    return {"SUCCESS": "Success"}
+
+
+# data preparation for methodology bioinfo dashboard
+def pre_proc_depth_variants():
+    depth_sample_list = BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
+    ).values("value", "sample__collecting_lab_sample_id")
+    variant_sample_list = BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__exact="number_of_variants_in_consensus"
+    ).values("value", "sample__collecting_lab_sample_id")
+    # depth = []
+    # variant = []
+    tmp_depth = {}
+    depth_variant = {}
+    for item in depth_sample_list:
+        try:
+            tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
+        except ValueError:
+            # ignore the entry if value cannot converted to float
+            continue
+    for item in variant_sample_list:
+        # ignore the samples that do not have depth value
+        if item["sample__collecting_lab_sample_id"] not in tmp_depth:
+            continue
+        d_value = float(tmp_depth[item["sample__collecting_lab_sample_id"]])
+        if d_value not in depth_variant:
+            depth_variant[d_value] = []
+        depth_variant[d_value].append(int(item["value"]))
+    # depth_variant_ordered = dict(sorted(depth_variant.items()))
+    # depth.append(tmp_depth[item["sample__collecting_lab_sample_id"]])
+    # variant.append(int(item["value"]))
+    # depth_variant = {"depth": depth, "variant": variant}
+    # import pdb; pdb.set_trace()
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "depth_variant_consensus",
+            "graphic_data": depth_variant,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_depth_sample_run():
+    depth_sample_list = BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
+    ).values("value", "sample__collecting_lab_sample_id")
+    sample_in_run = get_sample_parameter_data(
+        {"sample_project_name": "relecov", "parameter": "number_of_samples_in_run"}
+    )
+    tmp_depth = {}
+    depth_sample_run = {}
+    for item in depth_sample_list:
+        try:
+            tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
+        except ValueError:
+            # ignore the entry if value cannot converted to float
+            continue
+    for item in sample_in_run:
+        if item["Sample name"] not in tmp_depth:
+            continue
+        d_value = tmp_depth[item["Sample name"]]
+        if d_value not in depth_sample_run:
+            depth_sample_run[d_value] = []
+        depth_sample_run[d_value].append(int(item["number_of_samples_in_run"]))
+
+    GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "depth_samples_in_run",
+            "graphic_data": depth_sample_run,
+        }
+    )
     return {"SUCCESS": "Success"}
