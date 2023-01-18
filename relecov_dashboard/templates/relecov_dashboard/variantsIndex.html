@@ -4,33 +4,44 @@
 {% block content %}
 <br><br><br><br><br><br>
 <div class="container-fluid" style="text-align: center;">
-  <!--header-->
-  <div class="card bg-light d-inline-flex p-3 " style="width: 100%;">
-    <div class="container-fluid" style="text-align: center;">
-      <p class="fs-1 text-uppercase">Variants Dashboard</p>
+    <h1>Methodology Dashboard</h1>
+    <hr>
+    <br><br>
+    <div class="row">
+        <div class="col-sm-2">
+            {% include "relecov_dashboard/variantsSidebar.html" %}
+        </div>
+        <div class="col-sm-10">
+            <div class="row">
+            <div class="col-sm-5">
+                <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d">
+                    <p class="card-title text-center fs-2">Mutations in Lineages</p>
+                    <a href="/dashboard/variants/mutationsInLineagesDashboard">
+                    <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" class="card-img-top variant_index_img_3d" alt="Mutations in Lineages dashboard" style="width: 70%">
+                    </a>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <!---->
+                <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d">
+                    <p class=" card-title text-center fs-2">Received samples</p>
+                    <a href="/dashboard/variants/receivedSamplesDashboard">
+                    <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" class="card-img-top variant_index_img_3d" alt="Received Samples" style="width: 90%">
+                    </a>
+                </div>
+            </div>
+        </div>
+            <div class="col-sm-6">
+                <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d ">
+                    <p class="card-title text-center fs-2">Lineages VOC</p>
+                    <a href="/dashboard/variants/lineagesVocDashboard">
+                    <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" class="card-img-top variant_index_img_3d" alt="lineages VOC dashboard" style="width: 70%">
+                    </a>
+                </div>
+            </div>
+    <!---->
+        </div>
     </div>
-  </div>
-  <!---->
-  <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
-    <p class="card-title text-center fs-2">Mutations in Lineages</p>
-    <a href="/dashboard/variants/mutationsInLineagesDashboard">
-      <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" class="card-img-top variant_index_img_3d" alt="Mutations in Lineages dashboard" style="width: 70%">
-    </a>
-  </div>
-  <!---->
-  <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d" style="width: 40%">
-    <p class=" card-title text-center fs-2">Received samples</p>
-    <a href="/dashboard/variants/receivedSamplesDashboard">
-      <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" class="card-img-top variant_index_img_3d" alt="Received Samples" style="width: 90%">
-    </a>
-  </div>
-   <div class="card border-light d-inline-flex p-2 m-1 variant_index_box_3d " style="width: 40%">
-    <p class="card-title text-center fs-2">Lineages VOC</p>
-    <a href="/dashboard/variants/lineagesVocDashboard">
-      <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" class="card-img-top variant_index_img_3d" alt="lineages VOC dashboard" style="width: 70%">
-    </a>
-  </div>
-  <!---->
 
 </div>
 <br>
