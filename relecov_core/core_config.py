@@ -117,7 +117,7 @@ ISKLIMS_GET_SAMPLE_PROJECT_PARAMETER_INFORMATION = ["fetchSampleInformation"]
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["sampleProjectFields", "project"]
 ISKLIMS_GET_SUMMARIZE_DATA = "summarizeDataInformation"
 ISKLIMS_GET_STATS_DATA = "statisticsInformation"
-ISKLIMS_FETCH_SAMPLES_ON_CONDITION = ["fetchSamplesOnParameter", "sampleParameter"]
+ISKLIMS_FETCH_SAMPLES_ON_CONDITION = ["fetchSampleInformation", "parameter"]
 ISKLIMS_POST_SAMPLE_DATA = "createSampleData"
 
 # API requested information
