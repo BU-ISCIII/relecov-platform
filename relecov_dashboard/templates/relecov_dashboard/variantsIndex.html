@@ -5,83 +5,73 @@
 <link href="{% static 'relecov_dashboard/dashboard/css/relecov_dashboard.css' %}" rel="stylesheet">
 <link href="{% static 'relecov_dashboard/dashboard/css/all.min.css' %}"  rel="stylesheet">
 
-<style>
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
 
-</style>
+            <!-- Sidebar -->
+            {% include "relecov_dashboard/variant_side_bar.html" %}
+            <!-- End of Sidebar -->
 
-        <section>
-            <div class="container">
-                <!-- Page Wrapper -->
-                <div id="wrapper">
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
 
-                    <!-- Sidebar -->
-                    {% include "relecov_dashboard/variant_side_bar.html" %}
-                    <!-- End of Sidebar -->
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
 
-                    <!-- Content Wrapper -->
-                    <div id="content-wrapper" class="d-flex flex-column">
-
-                        <!-- Main Content -->
-                        <div id="content">
-                            <!-- Begin Page Content -->
-                            <div class="container-fluid">
-
-                                <!-- Page Heading -->
-                                <div class="row"  style="text-align: center">
-                                    <h1>Variant Dashboard</h1>
-                                </div>
-                                <hr>
-                                <!-- Content Row -->
-                                <div class="row" style="text-align: center;">
-                                    <div class="col-sm-6">
-                                        <div class="card shadow h-100 py-2">
-                                            <div class="card-title"><h4>Mutations in Lineages</h4></div>
-                                            <div class="card-body">                       
-                                                <a href="/dashboard/variants/mutationsInLineagesDashboard">
-                                                <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" alt="Mutations in Lineages dashboard" style="width: 80%">
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-6">
-                                        <div class="card shadow h-100 py-2">
-                                            <div class="card-title"><h4>Received samples</h4></div>
-                                            <div class="card-body">
-                                                <a href="/dashboard/variants/receivedSamplesDashboard">
-                                                    <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" alt="Received Samples" style="width: 90%">
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br>
-                                <div class="row" style="text-align: center;">
-                                    <div class="col-sm-6">
-                                        <div class="card shadow h-100 py-2">
-                                            <div class="card-title"><h4>Lineages VOC</h4></div>
-                                            <div class="card-body">
-                                                <a href="/dashboard/variants/lineagesVocDashboard">
-                                                <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" alt="lineages VOC dashboard" style="width: 70%">
-                                                </a>
-                                            </div>
-                                        </div>
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h1>Variant Dashboard</h1>
+                        </div> <!-- end row -->
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center;">
+                            <div class="col-sm-6">
+                                <div class="card shadow h-100 py-2">
+                                    <div class="card-title"><h4>Mutations in Lineages</h4></div>
+                                    <div class="card-body">                       
+                                        <a href="/dashboard/variants/mutationsInLineagesDashboard">
+                                        <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" alt="Mutations in Lineages dashboard" style="width: 80%">
+                                        </a>
                                     </div>
                                 </div>
                             </div>
 
+                            <div class="col-sm-6">
+                                <div class="card shadow h-100 py-2">
+                                    <div class="card-title"><h4>Received samples</h4></div>
+                                    <div class="card-body">
+                                        <a href="/dashboard/variants/receivedSamplesDashboard">
+                                            <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" alt="Received Samples" style="width: 90%">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- end row -->
+                        <br>
+                        <div class="row" style="text-align: center;">
+                            <div class="col-sm-6">
+                                <div class="card shadow h-100 py-2">
+                                    <div class="card-title"><h4>Lineages VOC</h4></div>
+                                    <div class="card-body">
+                                        <a href="/dashboard/variants/lineagesVocDashboard">
+                                        <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" alt="lineages VOC dashboard" style="width: 70%">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div> <!-- end row -->
                         </div>
-                    </div>
+                    </div> <!-- End container -->
 
-                </div>
-                <br><br><br>
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-        </section>
-<!-- Custom scripts for all pages-->
+                </div><!-- End Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+<!-- Custom scripts for side bar menu-->
 <script src="{% static 'relecov_dashboard/dashboard/js/sideBar_dashboard.js' %}"></script>
 
 
