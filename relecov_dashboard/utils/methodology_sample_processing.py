@@ -107,7 +107,7 @@ def sample_processing_graphics():
 
     sample_processing["cts_specimen"] = box_plot_graphic(
         cts_specimen_data,
-        {"title": "Boxplot Cts / specimen source", "height": 400, "width": 670},
+        {"title": "Boxplot Cts / specimen source", "height": 400, "width": 600},
     )
     # calculate the number of days spent in each state before moved on to next step
     calculation_date_data = get_pre_proc_data("calculation_date")
