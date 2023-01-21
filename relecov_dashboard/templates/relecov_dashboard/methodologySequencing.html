@@ -1,52 +1,80 @@
 {% extends 'relecov_core/base.html' %}
+
 {% load static %}
+{%load plotly_dash%}
+
 {% block content %}
+<link href="{% static 'relecov_dashboard/dashboard/css/relecov_dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'relecov_dashboard/dashboard/css/all.min.css' %}"  rel="stylesheet">
 
-{% include "relecov_dashboard/methodologySideBar.html"%}
-<section style="margin-top: 4%">
-    <div class="container text-center position-relative" style="width:68%">
-        <br>
-        <div class="card-header"><h2>Sequencing dashboard</h2>
-            <div class="card-body">
-                {% if ERROR %}
-                    <div class="row row-space-2 margin-b-4">
-                        <div class="col-sm-12" >
-                            <div class="card  border-danger mb-3">
-                                <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when connecting to LIMS</h3> </div>
-                                <div class="card-body  text-center">
-                                    <br>
-                                    <p><strong>{{ERROR.ERROR}}</strong></p>
-                                </div> <!-- end card body  -->
-                            </div> <!-- end card  -->
-                        </div> <!--// end col-sm-9 -->
-                    </div> <!--// end row -->
-                {% else %}
-                    <div class="row row-space-2 margin-b-4">
-                        <div class="col-sm-4">
-                            {{ sequencing.instrument_platform | safe }}
-                        </div> <!--// end col-sm-4 -->
-                        <div class="col-sm-4">
-                            {{ sequencing.instrument_model | safe }}
-                        </div> <!--// end col-sm-4 -->
-                        <div class="col-sm-4">
-                            {{ sequencing.library_preparation | safe }}
-                        </div> <!--// end col-sm-4 -->
-                    </div>  <!-- end row-->
-                    <div class="row row-space-2 margin-b-4">
-                        <div class="col-sm-4">
-                            {{ sequencing.read_length | safe }}
-                        </div> <!--// end col-sm-4 -->
-                        <div class="col-sm-4">
-                            {{ sequencing.cts_library | safe }}
-                        </div> <!--// end col-sm-4 -->
-                        <div class="col-sm-4">
-                            {{ sequencing.number_of_base | safe }}
-                        </div> <!--// end col-sm-4 -->
-                    </div>  <!-- end row-->
-                {% endif %}
-            </div>  <!-- end card body   -->
-        </div>  <!-- end card  -->
-    </div> <!-- end container-->
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
 
+            <!-- Sidebar -->
+            {% include "relecov_dashboard/methodologySideBar.html" %}
+            <!-- End of Sidebar -->
+
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h1>Host Info Dashboard</h1>
+                        </div>
+                        <hr>
+                        <!-- Content Row -->
+                        {% if graphics.ERROR %}
+                        <div class="row" style="text-align: center;">
+                                <div class="col-sm-10" >
+                                    <div class="card  border-danger mb-3">
+                                        <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when connecting to LIMS</h3> </div>
+                                        <div class="card-body  text-center">
+                                            <br>
+                                            <p><strong>{{graphics.ERROR}}</strong></p>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-9 -->
+                            </div> <!--// end row -->
+                        {% else %}
+                            <div class="row" style="text-align: center;">
+                                <div class="col-sm-4">
+                                    {{ sequencing.instrument_platform | safe }}
+                                </div> <!--// end col-sm-4 -->
+                                <div class="col-sm-4">
+                                    {{ sequencing.instrument_model | safe }}
+                                </div> <!--// end col-sm-4 -->
+                                <div class="col-sm-4">
+                                    {{ sequencing.library_preparation | safe }}
+                                </div> <!--// end col-sm-4 -->
+                            </div>  <!-- end row-->
+                            <div class="row" style="text-align: center;">
+                                <div class="col-sm-4">
+                                    {{ sequencing.read_length | safe }}
+                                </div> <!--// end col-sm-4 -->
+                                <div class="col-sm-4">
+                                    {{ sequencing.cts_library | safe }}
+                                </div> <!--// end col-sm-4 -->
+                                <div class="col-sm-4">
+                                    {{ sequencing.number_of_base | safe }}
+                                </div> <!--// end col-sm-4 -->
+                            </div>  <!-- end row-->
+                        {% endif %}
+                    </div> <!-- /.container-fluid -->
+                    <br><br>
+                </div> <!-- End of Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
 </section>
+
+<!-- Custom scripts for side bar menu-->
+<script src="{% static 'relecov_dashboard/dashboard/js/sideBar_dashboard.js' %}"></script>
+
 {% endblock %}
