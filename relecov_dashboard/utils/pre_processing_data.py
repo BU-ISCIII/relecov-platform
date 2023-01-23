@@ -149,7 +149,13 @@ def pre_proc_lineages_variations():
     collect_data = []
     num_samples_data = []
     lineage_data = []
-    for date, samples in in_date_samples["DATA"].items():
+    date_sample = {}
+    for s_data in in_date_samples["DATA"]:
+        if s_data["collectionSampleDate"] not in date_sample:
+            date_sample[s_data["collectionSampleDate"]] = []
+            date_sample[s_data["collectionSampleDate"]].append(s_data["Sample Name"])
+
+    for date, samples in date_sample.items():
         lineage_in_samples = (
             LineageValues.objects.filter(
                 lineage_fieldID__property_name="lineage_name",
