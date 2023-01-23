@@ -75,7 +75,7 @@ from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
     display_received_per_lab,
 )
 
-from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time import (
+from relecov_dashboard.utils.variant_lineages_variation_over_time import (
     create_lineages_variations_graphic,
 )
 
