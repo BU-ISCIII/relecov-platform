@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block content %}
-{% include "relecov_core/intranetSidebar.html" %}
+<link href="{% static 'relecov_core/core/css/side_bar_menu.css' %}" rel="stylesheet">
+<link href="{% static 'relecov_core/core/css/all.min.css' %}"  rel="stylesheet">
 {% include "relecov_core/JExcelFunctionality.html" %}
 
 <style>
@@ -13,278 +14,302 @@
         height: 400px;
     }
 </style>
-<section id="metadataForm" class="d-flex" style="margin-top: 3%">
-    <div class="container d-flex flex-column position-relative" style="width:67%">
-        <div class="container sm-12">
-            {% if ERROR %}
-                <div class="row m-5">
-                    <div class="col-sm-12" >
-                        <div class="card  border-danger mb-3">
-                            <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
-                            <div class="card-body  text-center">
-                                <br>
-                                <p><strong>{{ERROR}}</strong></p>
-                            </div> <!-- end card body  -->
-                        </div> <!-- end card  -->
-                    </div> <!--// end col-sm-9 -->
-                </div> <!--// end row -->
-            <!--if first metadata is correct-->
-            {% elif sample_recorded %}
-                <div class="row m-5">
-                    <div class="col-sm-12" >
-                        <div class="card  mb-3">
-                            <div class="card-header text-center "><h3 style="text-align:center">SUCCESSFUL</h3> </div>
-                            <div class="card-body  text-center">
-                                <br>
-                                <p><strong>SUCCESS</strong></p>
-                            </div> <!-- end card body  -->
-                        </div> <!-- end card  -->
-                    </div> <!--// end col-sm-9 -->
-                </div> <!--// end row -->
-            <!-- sample contains either incompleted or already defined samples-->
-            {% elif sample_issues %}
-                {% if sample_issues.s_already_record %}
-                    <div class="row m-5">
-                        <div class="col-sm-12" >
-                            <div class="card  border-danger mb-3">
-                                <div class="card-header text-center text-danger"><h3 style="text-align:center">Samples already defined</h3> </div>
-                                <div class="card-body  text-center">
-                                <p> The following samples are already loaded : <br>
-                                    {% for sample in sample_issues.s_already_record  %}
-                                        {{sample}}, 
-                                    {% endfor %}
-                                </p>
-                                    <br>
-                                </div> <!-- end card body  -->
-                            </div> <!-- end card  -->
-                        </div> <!--// end col-sm-9 -->
-                    </div> <!--// end row -->
-                {% endif %}
-            {% endif %}
-            {% if m_form %}
-                {% if not sample_issues.s_incomplete %}
-                    <div class="row m-5">
-                        <div class="col-sm-10">
-                            <div class="card  border-default mb-3">
-                                <div class="card-header text-center"><h3 style="text-align:center">You are loging as userid {{m_form.username}}</h3> </div>
-                                <div class="card-body  text-center">
-                                    <p>Your input data will be associated to<strong> {{m_form.lab_name}}</strong></p>
-                                </div> <!-- end card body  -->
-                            </div> <!-- end card  -->
-                        </div> <!--// end col-sm-9 -->
-                    </div> <!--// end row -->
-                {% endif %}
-                {% if m_form.sample %}
-                    {% include "relecov_core/JExcelFunctionality.html" %}
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                           <button class="nav-link active" id="sample-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="samples" aria-selected="true">Record Samples</button>
-                        </li>
-                        {% if  not sample_issues.s_incomplete %}
-                            <li class="nav-item" role="presentation">
-                               <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadFile" type="button" role="tab" aria-controls="uploadFile" aria-selected="false">Upload file</button>
-                            </li>
-                        {% endif %}
-                    </ul>
-                    <div class="tab-content" id="myTabContent">
-                        <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
-                            <div class="container-md">
-                                <div class="row mt-4">
-                                    <div class="col-md-12">
-                                        {% if sample_issues.s_incomplete %}
-                                            <div class="card  border-danger mb-3">
-                                                <div class="card-header text-center text-danger"><h2 style="text-align:center">Incomplete samples</h2> </div>
-                                                <div class="card-body  text-center">
-                                                    <h5>The following samples have missing information</h5>
-                                                    <h5>Please fill all fields and submmit the data</h5>
-                                                </div>     <!-- end card body  -->
-                                            </div> <!-- end card  -->
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+
+            <!-- Sidebar -->
+            {% include "relecov_core/intranetSideBar.html" %}
+            <!-- End of Sidebar -->
+            
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h1>METADATA FORM</h1>
+                        </div>
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center;">
+                            {% if ERROR %}
+                                <div class="row m-5">
+                                    <div class="col-sm-12" >
+                                        <div class="card  border-danger mb-3">
+                                            <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                                            <div class="card-body  text-center">
+                                                <br>
+                                                <p><strong>{{ERROR}}</strong></p>
+                                            </div> <!-- end card body  -->
+                                        </div> <!-- end card  -->
+                                    </div> <!--// end col-sm-9 -->
+                                </div> <!--// end row -->
+                            {% elif manager_intra_data %}
+                                <div class="col-sm-12" >
+                                    <div class="card  mb-3">
+                                        <div class="card-header text-center "><h3 style="text-align:center">SUCCESSFUL</h3> </div>
+                                        <div class="card-body  text-center">
                                             <br>
-                                        {% endif %}
-                                        <div class="card">
-                                            <div class="card-header text-center"><h2 style="text-align:center">Metadata Form</h2> </div>
-                                            <form method="post" enctype="multipart/form-data" name="defineSamples"  id="defineSamples" class="form-horizontal well" style="min-height: 100px;">
-                                                <div class="card-body">
-                                                    {% csrf_token %}
-                                                    <div class="scrolling-wrapper">
-                                                        <input type="hidden" name="action" value="defineSamples">
-                                                        <input type="hidden" name="heading" value="{{m_form.sample.heading}}">
-                                                        <input type="hidden" name="l_iskylims" value="{{m_form.sample.l_iskylims}}">
-                                                        <input type="hidden" name="l_metadata" value="{{m_form.sample.l_metadata}}">
-                                                        <div id="spreadsheet"></div>
-                                                    </div> <!--  end of scrolling  -->
-                                                    <script>
-                                                        {% if sample_issues.s_incomplete %}
-                                                            var data = [{% for values in sample_issues.s_incomplete %}
-                                                                [{% for value in values %}'{{value}}',{% endfor %}],{% endfor %}
-                                                                ];
-                                                        {% else %}
-                                                            var data = [[]];//initialized with 6 empty rows
-                                                        {% endif %}
-                                                        var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
-                                                            data:data,
-                                                            columns: [
-                                                            {% for item, values  in m_form.sample.data.items %}
+                                            <p><strong>SUCCESS</strong></p>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-9 -->
+                            </div> <!--// end row -->
+                        <!-- sample contains either incompleted or already defined samples-->
+                        {% elif sample_issues %}
+                            {% if sample_issues.s_already_record %}
+                                <div class="row m-5">
+                                    <div class="col-sm-12" >
+                                        <div class="card  border-danger mb-3">
+                                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Samples already defined</h3> </div>
+                                            <div class="card-body  text-center">
+                                            <p> The following samples are already loaded : <br>
+                                                {% for sample in sample_issues.s_already_record  %}
+                                                    {{sample}}, 
+                                                {% endfor %}
+                                            </p>
+                                                <br>
+                                            </div> <!-- end card body  -->
+                                        </div> <!-- end card  -->
+                                    </div> <!--// end col-sm-9 -->
+                                </div> <!--// end row -->
+                            {% endif %}
+                        {% endif %}
+                        {% if m_form %}
+                            {% if not sample_issues.s_incomplete %}
+                                <div class="row m-5">
+                                    <div class="col-sm-10">
+                                        <div class="card  border-default mb-3">
+                                            <div class="card-header text-center"><h3 style="text-align:center">You are loging as userid {{m_form.username}}</h3> </div>
+                                            <div class="card-body  text-center">
+                                                <p>Your input data will be associated to<strong> {{m_form.lab_name}}</strong></p>
+                                            </div> <!-- end card body  -->
+                                        </div> <!-- end card  -->
+                                    </div> <!--// end col-sm-9 -->
+                                </div> <!--// end row -->
+                            {% endif %}
+                            {% if m_form.sample %}
+                                {% include "relecov_core/JExcelFunctionality.html" %}
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="sample-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="samples" aria-selected="true">Record Samples</button>
+                                    </li>
+                                    {% if  not sample_issues.s_incomplete %}
+                                        <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadFile" type="button" role="tab" aria-controls="uploadFile" aria-selected="false">Upload file</button>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade show active" id="samples" role="tabpanel" aria-labelledby="info-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-12">
+                                                    {% if sample_issues.s_incomplete %}
+                                                        <div class="card  border-danger mb-3">
+                                                            <div class="card-header text-center text-danger"><h2 style="text-align:center">Incomplete samples</h2> </div>
+                                                            <div class="card-body  text-center">
+                                                                <h5>The following samples have missing information</h5>
+                                                                <h5>Please fill all fields and submmit the data</h5>
+                                                            </div>     <!-- end card body  -->
+                                                        </div> <!-- end card  -->
+                                                        <br>
+                                                    {% endif %}
+                                                    <div class="card">
+                                                        <div class="card-header text-center"><h2 style="text-align:center">Metadata Form</h2> </div>
+                                                        <form method="post" enctype="multipart/form-data" name="defineSamples"  id="defineSamples" class="form-horizontal well" style="min-height: 100px;">
+                                                            <div class="card-body">
+                                                                {% csrf_token %}
+                                                                <div class="scrolling-wrapper">
+                                                                    <input type="hidden" name="action" value="defineSamples">
+                                                                    <input type="hidden" name="heading" value="{{m_form.sample.heading}}">
+                                                                    <input type="hidden" name="l_iskylims" value="{{m_form.sample.l_iskylims}}">
+                                                                    <input type="hidden" name="l_metadata" value="{{m_form.sample.l_metadata}}">
+                                                                    <div id="spreadsheet"></div>
+                                                                </div> <!--  end of scrolling  -->
+                                                                <script>
+                                                                    {% if sample_issues.s_incomplete %}
+                                                                        var data = [{% for values in sample_issues.s_incomplete %}
+                                                                            [{% for value in values %}'{{value}}',{% endfor %}],{% endfor %}
+                                                                            ];
+                                                                    {% else %}
+                                                                        var data = [[]];//initialized with 6 empty rows
+                                                                    {% endif %}
+                                                                    var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
+                                                                        data:data,
+                                                                        columns: [
+                                                                        {% for item, values  in m_form.sample.data.items %}
 
-                                                                {% if values.format == "date" %}
-                                                                    { type: 'calendar', title: "{{item}}", width:180 },
-                                                                {% elif values.options  %}
-                                                                    { type: 'dropdown', title:'{{item}}', width:180 , source: [{% for value in values.options %}"{{value}}",{% endfor %}] },
-                                                                {% else %}
-                                                                    { type: 'text', title:'{{item}}', width:180 },
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                           ],
-                                                           allowInsertColumn:false,
-                                                           allowDeleteColumn:false,
-                                                           allowRenameColumn:false,
-                                                           minDimensions:[{{m_form.samples.heading|length}},10],
-                                                       });
-                                                   </script>
-                                                   <div class="col-md-9">
+                                                                            {% if values.format == "date" %}
+                                                                                { type: 'calendar', title: "{{item}}", width:180 },
+                                                                            {% elif values.options  %}
+                                                                                { type: 'dropdown', title:'{{item}}', width:180 , source: [{% for value in values.options %}"{{value}}",{% endfor %}] },
+                                                                            {% else %}
+                                                                                { type: 'text', title:'{{item}}', width:180 },
+                                                                            {% endif %}
+                                                                        {% endfor %}
+                                                                    ],
+                                                                    allowInsertColumn:false,
+                                                                    allowDeleteColumn:false,
+                                                                    allowRenameColumn:false,
+                                                                    minDimensions:[{{m_form.samples.heading|length}},10],
+                                                                });
+                                                            </script>
+                                                            <div class="col-md-9">
 
-                                                   </div>
-                                                   <div hidden class="spinner-border text-success" role="status" id="spinner">
-                                                       <span class="visually-hidden">Recording...</span>
-                                                   </div>
-                                               </div> <!-- end card body-->
-                                               <div class="card-body">
-                                                    <div class="text-left">
-                                                       <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                                       <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
-                                                   </div>
-                                               </div>     <!-- end card body  -->
-                                           </form>
-                                       </div> <!-- end card  -->
-                                    </div> <!-- end col-md-10 -->
-                                </div> <!-- end row-->
-                            </div> <!-- end continer-->
+                                                            </div>
+                                                            <div hidden class="spinner-border text-success" role="status" id="spinner">
+                                                                <span class="visually-hidden">Recording...</span>
+                                                            </div>
+                                                        </div> <!-- end card body-->
+                                                        <div class="card-body">
+                                                                <div class="text-left">
+                                                                <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                                                <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+                                                            </div>
+                                                        </div>     <!-- end card body  -->
+                                                    </form>
+                                                </div> <!-- end card  -->
+                                                </div> <!-- end col-md-10 -->
+                                            </div> <!-- end row-->
+                                        </div> <!-- end continer-->
 
-                            <script>
-                                $(document).ready(function() {
-                                    $("#defineSamples").submit(function(e){
-                                        // Show spinner
-                                        $("#spinner").prop("hidden", false);
-                                        // added table to form data
-                                        var table_data = table1.getData();
-                                        var data_json = JSON.stringify(table_data);
-                                        $("<input />").attr("type", "hidden")
-                                            .attr("name", "table_data")
-                                            .attr("value", data_json)
-                                            .appendTo("#defineSamples");
-                                        $("#btnSubmit").attr("disabled", true);
-                                        return true;
-                                    });
-                                });
-                            </script>
-                        </div>  <!-- end tab samples -->
-                        <div class="tab-pane fade" id="uploadFile" role="tabpanel" aria-labelledby="grupo-tab">
-                            <div class="container-md">
-                                <div class="row mt-4">
-                                    <div class="col-md-8">
-                                         <div class="card">
-                                             <div class="card-header text-center"><h2 style="text-align:center">Load Metadata Lab excel</h2> </div>
-                                             <form method="post" enctype="multipart/form-data" name="uploadSchema"  id="uploadSchema" class="form-horizontal well" style="min-height: 100px;">
-                                                 <div class="card-body  text-center">
-                                                     {% csrf_token %}
-                                                     <input type="hidden" name="action" value="uploadMetadataFile">
-                                                     <div class="col-md-9">
-                                                         <label for="metadatFile" class="form-label">Select Metadata Lab file</label>
-                                                         <input class="form-control" type="file" required accept=".xlsx" id="metadataFile", name="metadataFile">
-                                                     </div>
-                                                     <br>
+                                        <script>
+                                            $(document).ready(function() {
+                                                $("#defineSamples").submit(function(e){
+                                                    // Show spinner
+                                                    $("#spinner").prop("hidden", false);
+                                                    // added table to form data
+                                                    var table_data = table1.getData();
+                                                    var data_json = JSON.stringify(table_data);
+                                                    $("<input />").attr("type", "hidden")
+                                                        .attr("name", "table_data")
+                                                        .attr("value", data_json)
+                                                        .appendTo("#defineSamples");
+                                                    $("#btnSubmit").attr("disabled", true);
+                                                    return true;
+                                                });
+                                            });
+                                        </script>
+                                    </div>  <!-- end tab samples -->
+                                    <div class="tab-pane fade" id="uploadFile" role="tabpanel" aria-labelledby="grupo-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-8">
+                                                    <div class="card">
+                                                        <div class="card-header text-center"><h2 style="text-align:center">Load Metadata Lab excel</h2> </div>
+                                                        <form method="post" enctype="multipart/form-data" name="uploadSchema"  id="uploadSchema" class="form-horizontal well" style="min-height: 100px;">
+                                                            <div class="card-body  text-center">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="uploadMetadataFile">
+                                                                <div class="col-md-9">
+                                                                    <label for="metadatFile" class="form-label">Select Metadata Lab file</label>
+                                                                    <input class="form-control" type="file" required accept=".xlsx" id="metadataFile", name="metadataFile">
+                                                                </div>
+                                                                <br>
 
-                                                     <div hidden class="spinner-border text-success" role="status" id="spinner">
-                                                         <span class="visually-hidden">Loading...</span>
-                                                     </div>
-                                                 </div> <!-- end card body-->
-                                                 <div class="card-body">
-                                                     <div class="text-left">
-                                                         <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                                         <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+                                                                <div hidden class="spinner-border text-success" role="status" id="spinner">
+                                                                    <span class="visually-hidden">Loading...</span>
+                                                                </div>
+                                                            </div> <!-- end card body-->
+                                                            <div class="card-body">
+                                                                <div class="text-left">
+                                                                    <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                                                    <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
 
-                                                     </div>
-                                                 </div>     <!-- end card body  -->
-                                             </form>
-                                         </div> <!-- end card  -->
-             					  	</div> <!-- end col-md-10 -->
-             					</div> <!-- end row-->
+                                                                </div>
+                                                            </div>     <!-- end card body  -->
+                                                        </form>
+                                                    </div> <!-- end card  -->
+                                                </div> <!-- end col-md-10 -->
+                                            </div> <!-- end row-->
 
-             				</div> <!-- end continer-->
-                        </div>  <!-- end tab u_file -->
-                    </div>  <!-- end myTabContent -->
-                {% endif %}
+                                        </div> <!-- end continer-->
+                                    </div>  <!-- end tab u_file -->
+                                </div>  <!-- end myTabContent -->
+                            {% endif %}
 
-            {% elif m_batch_form %}
-                <div class="row m-5">
-                    <div class="col-sm-10">
-                        <div class="card  border-default mb-3">
-                            <div class="card-header text-center">
-                                <h3 style="text-align:center">You are loging as userid {{m_batch_form.username}}</h3>
-                                <p style="text-align:center">Belongs to <strong> {{m_batch_form.lab_name}}</strong></p>
-                             </div>
-                            <div class="card-body  text-center">
-                                <p>The values defined in this form will be set to the following sample names <br>
-                                    {% for sample in sample_saved %}{{sample}}, {% endfor %}</p>
-                            </div> <!-- end card body  -->
-                        </div> <!-- end card  -->
-                    </div> <!--// end col-sm-9 -->
-                </div> <!--// end row -->
-                <!--// Display Metadata Batch form -->
-                <div class="card">
-                    <div class="card-header"><h2 style="text-align:center">Metadata Batch Form</h2> </div>
-                    <form method="post" enctype="multipart/form-data" name="defineSamples"  id="defineBatch" class="form-horizontal well" style="min-height: 100px;">
-                        <div class="card-body">
-                            {% csrf_token %}
-                            <div class="container">
-                                <input type="hidden" name="action" value="defineBatch">
-                                {% if m_batch_form.fields %}
-                                    {% for key, values in m_batch_form.fields.items %}
-                                        {% if values.options %}
-                                            <div class="row mb-3">
-                                                <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
-                                                    <div class="col-sm-8">
-                                                        <select class= "form-select" name="{{key}}" id="{{key}}">
-                                           				    <option value="">Choose a value</option>
-                                                            {% for value in values.options %}
-                                                                <option value="{{value}}">{{value}}</option>
-                                                            {% endfor %}
-                                                        </select>
-                                                    </div>
-                                            </div>
-                                        {% elif values.format == "Date" %}
-                                            <div class="row mb-3">
-                                                <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
-                                                <div class="col-sm-8">
-                                                <input type="date" class="form-control" id="{{key}}" name="{{key}}">
-                                                </div>
-                                            </div>
-                                        {% else %}
-                                            <div class="row mb-3">
-                                                <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
-                                                <div class="col-sm-8">
-                                                <input type="text" class="form-control" id="{{key}}" name="{{key}}" placeholder="Type the {{key}}">
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                        <br>
-                                    {% endfor %}
-                                {% endif %}
-                            </div> <!--  end of container  -->
-                        </div> <!-- end card body  -->
-                        <br>
-                        <br>
-                        <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                        <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
-                    </form>
-                </div> <!-- end card  -->
+                        {% elif m_batch_form %}
+                            <div class="row m-5">
+                                <div class="col-sm-10">
+                                    <div class="card  border-default mb-3">
+                                        <div class="card-header text-center">
+                                            <h3 style="text-align:center">You are loging as userid {{m_batch_form.username}}</h3>
+                                            <p style="text-align:center">Belongs to <strong> {{m_batch_form.lab_name}}</strong></p>
+                                        </div>
+                                        <div class="card-body  text-center">
+                                            <p>The values defined in this form will be set to the following sample names <br>
+                                                {% for sample in sample_saved %}{{sample}}, {% endfor %}</p>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-9 -->
+                            </div> <!--// end row -->
+                            <!--// Display Metadata Batch form -->
+                            <div class="card">
+                                <div class="card-header"><h2 style="text-align:center">Metadata Batch Form</h2> </div>
+                                <form method="post" enctype="multipart/form-data" name="defineSamples"  id="defineBatch" class="form-horizontal well" style="min-height: 100px;">
+                                    <div class="card-body">
+                                        {% csrf_token %}
+                                        <div class="container">
+                                            <input type="hidden" name="action" value="defineBatch">
+                                            {% if m_batch_form.fields %}
+                                                {% for key, values in m_batch_form.fields.items %}
+                                                    {% if values.options %}
+                                                        <div class="row mb-3">
+                                                            <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
+                                                                <div class="col-sm-8">
+                                                                    <select class= "form-select" name="{{key}}" id="{{key}}">
+                                                                        <option value="">Choose a value</option>
+                                                                        {% for value in values.options %}
+                                                                            <option value="{{value}}">{{value}}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+                                                        </div>
+                                                    {% elif values.format == "Date" %}
+                                                        <div class="row mb-3">
+                                                            <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
+                                                            <div class="col-sm-8">
+                                                            <input type="date" class="form-control" id="{{key}}" name="{{key}}">
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="row mb-3">
+                                                            <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>
+                                                            <div class="col-sm-8">
+                                                            <input type="text" class="form-control" id="{{key}}" name="{{key}}" placeholder="Type the {{key}}">
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                    <br>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div> <!--  end of container  -->
+                                    </div> <!-- end card body  -->
+                                    <br>
+                                    <br>
+                                    <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                    <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+                                </form>
+                            </div> <!-- end card  -->
 
-            {% else %}
-            {% endif %}
-        </div>  <!-- end container -->
-    </div>
+                        {% else %}
+                        {% endif %}
+                    </div>   <!-- end row -->
+                </div> <!-- /.container-fluid -->
+            </div> <!-- End of Main Content -->
+        </div> <!-- End Content wrapper-->
+    </div> <!-- wrapper -->
+</div>  <!-- End container -->
 </section>
 
-<!--endif first metadata form is correct-->
+<!-- Custom scripts for side bar menu-->
+<script src="{% static 'relecov_core/core/js/sideBar_menu.js' %}"></script>
 
 {% endblock %}
