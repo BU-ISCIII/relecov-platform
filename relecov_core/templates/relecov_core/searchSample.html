@@ -3,141 +3,178 @@
 {% load static %}
 
 {% block content %}
-{% include "relecov_core/intranetSidebar.html" %}
-<br><br>
-<section style="margin-top: 4%">
-    <div class="container d-flex flex-column text-center position-relative" style="width:60%">
-        {% if ERROR %}
-            <div class="card d-inline-flex flex-column w-auto p-5 border border-danger" style="width: 18rem;">
-                <div class="card-body">
-                    <h2 class="card-title">Search form is not available</h2>
-                    <p class="card-text">{{ERROR}}</p>
-                </div>
-                <br><br><br>
-            </div>
-        {% elif list_display %}
-            {% include "relecov_core/cdn_table_functionality.html" %}
-            <div class="card d-inline-flex flex-column w-auto p-5 border border-success" style="width: 18rem;">
-                <div class="card-body">
-                <h2 class="card-title">Search sample results</h2>
-                <p class="card-text">The following table shows the matches from your query</p>
-                <div class="row row-space-2 margin-b-4">
-                <div class="col-sm-12" >
-                    <table id="sample_list" class="table table-striped table-bordered">
-                        <thead>
-                            <tr scope="row">
-                                {% for item in list_display.heading %}
-                                    <th>{{item}}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for pk, s_name, state, seq_date, r_date in list_display.s_data %}
-                                <tr>
-                                    <td><a href="sampleDisplay={{pk}}">{{s_name}}</a></td>
-                                    <td>{{state}}</td>
-                                    <td>{{seq_date}}</td>
-                                    <td>{{r_date}}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div> <!--// end col-sm-9 -->
-            </div> <!--// end row -->
-            <script type="text/javascript">
-                $(document).ready(function() {
-                    $('#sample_list').DataTable({
-                        dom:
-                        "<'row'<'col-sm-12 col-md-3' B>>" +
-                        "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                        responsive: true,
-                        buttons: [
-                            'excel', 'csv'
-                        ]
-                    });
-                });
-            </script>
-        {% else %}
-            {% if warning %}
-                <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
-                    <h2 class="card-title">Not matched found</h2>
-                    <div class="card-body">
-                        <p>{{warning}}</p>
-                    </div>
 
-                </div>
-            {% endif %}
-            {% load user_groups %}
-            <div class="card d-inline-flex flex-column w-auto p-5 border border-success">
-                <div class="card-body">
-                    {% if request.user|has_group:"RelecovManager" %}
-                        <h2 class="card-title">Search sample for any Laboratory</h2>
-                    {% else %}
-                        <h2 class="card-title">Search sample for {{search_data.labs}}</h2>
-                    {% endif %}
-                    <br><br>
-                    <form method="post" enctype="multipart/form-data" name="searchSample"  id="searchSample" class="form-horizontal well" style="min-height: 100px;">
-                        <div class="card-body">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="searchSample">
-                            <div class="row mb-3">
-                                <label for="sampleState" class="col-sm-4 col-form-label">Sample State</label>
-                                 <div class="col-sm-7">
-                                    <select name="sampleState" id="sampleState" class="form-select">
-                                    	<option value="">Choose a value</option>
-                                        {% for id, value in search_data.s_state %}
-                                            <option value="{{id}}">{{value}}</option>
-                                        {% endfor %}
-                                    </select>
-                               </div>  <!-- end select input -->
-                            </div>  <!-- end from-group   -->
-                            <div class="row mb-3">
-                                <label for="sampleName" class="col-sm-4 col-form-label">Search by Name</label>
-                                <div class="col-sm-7">
-                                    <input class="form-control" type="text" id="sampleName", name="sampleName"  placeholder="Search by Name">
-                                </div>  <!-- end text input -->
-                            </div>
-                            <div class="row mb-3">
-                                <label class="col-sm-4 control-label" for="sDate" >Sample defined Date</label>
-                                <div class="col-sm-7">
-                                    <input class="form-control" type="date" name="sDate" id="sDate">
-                                </div>
-                               <br>
-                            </div>  <!-- end from-group   -->
-                            <br>
-                            <br>
 
-                            <div class="row mb-3">
-                                {% if request.user|has_group:"RelecovManager" %}
-                                    <label for="lab"  class="col-sm-4 col-form-label">Search from Laboratory name</label>
-                                    <div class="col-sm-7">
-                                        <select class="form-select" aria-label="Select the Laboratory" name="lab">
-                                            <option value="">Choose a Laboratory </option>
-                                            {% for lab in search_data.labs %}
-                                                <<option value={{lab}}>{{lab}}</option>
-                                            {% endfor %}
-                                        </select>
+<link href="{% static 'relecov_core/core/css/side_bar_menu.css' %}" rel="stylesheet">
+<link href="{% static 'relecov_core/core/css/all.min.css' %}"  rel="stylesheet">
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+
+            <!-- Sidebar -->
+            {% include "relecov_core/intranetSideBar.html" %}
+            <!-- End of Sidebar -->
+            
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h1>SEARCH FORM</h1>
+                        </div>
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center;">
+                            {% if ERROR %}
+                                <div class="row m-5">
+                                    <div class="col-sm-10" >
+                                        <div class="card  border-danger mb-3">
+                                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Search form is not available</h3> </div>
+                                            <div class="card-body  text-center">
+                                                <br>
+                                                <p><strong>{{ERROR}}</strong></p>
+                                            </div> <!-- end card body  -->
+                                        </div> <!-- end card  -->
+                                    </div> <!--// end col-sm-9 -->
+                                </div> <!--// end row -->
+
+                            {% elif list_display %}
+                                {% include "relecov_core/cdn_table_functionality.html" %}
+                                <div class="card d-inline-flex flex-column w-auto p-5 border border-success" style="width: 18rem;">
+                                    <div class="card-body">
+                                    <h2 class="card-title">Search sample results</h2>
+                                    <p class="card-text">The following table shows the matches from your query</p>
+                                    <div class="row row-space-2 margin-b-4">
+                                    <div class="col-sm-12" >
+                                        <table id="sample_list" class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr scope="row">
+                                                    {% for item in list_display.heading %}
+                                                        <th>{{item}}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for pk, s_name, state, seq_date, r_date in list_display.s_data %}
+                                                    <tr>
+                                                        <td><a href="sampleDisplay={{pk}}">{{s_name}}</a></td>
+                                                        <td>{{state}}</td>
+                                                        <td>{{seq_date}}</td>
+                                                        <td>{{r_date}}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div> <!--// end col-sm-9 -->
+                                </div> <!--// end row -->
+                                <script type="text/javascript">
+                                    $(document).ready(function() {
+                                        $('#sample_list').DataTable({
+                                            dom:
+                                            "<'row'<'col-sm-12 col-md-3' B>>" +
+                                            "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                                            "<'row'<'col-sm-12'tr>>" +
+                                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                                            responsive: true,
+                                            buttons: [
+                                                'excel', 'csv'
+                                            ]
+                                        });
+                                    });
+                                </script>
+                            {% else %}
+                                {% if warning %}
+                                    <div class="card d-inline-flex flex-column w-auto p-5 border border-warning">
+                                        <h2 class="card-title">Not matched found</h2>
+                                        <div class="card-body">
+                                            <p>{{warning}}</p>
+                                        </div>
+
                                     </div>
-                                {% else %}
-                                    <input type="hidden" name="lab" value="{{search_data.labs}}">
                                 {% endif %}
-                            </div>  <!-- end from-group   -->
-                            <br>
-                            <br>
-                            <div class="card-body">
-                                <div class="text-left">
-                                    <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                    <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
-                                </div>
-                            </div>     <!-- end card body  -->
-                        </div>  <!-- end card body   -->
-                    </form>
+                                {% load user_groups %}
+                                <div class="card d-inline-flex flex-column w-auto p-5 border">
+                                    <div class="card-body">
+                                        {% if request.user|has_group:"RelecovManager" %}
+                                            <h2 class="card-title">Search sample for any Laboratory</h2>
+                                        {% else %}
+                                            <h2 class="card-title">Search sample for {{search_data.labs}}</h2>
+                                        {% endif %}
+                                        <br><br>
+                                        <form method="post" enctype="multipart/form-data" name="searchSample"  id="searchSample" class="form-horizontal well" style="min-height: 100px;">
+                                            <div class="card-body">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="searchSample">
+                                                <div class="row mb-3">
+                                                    <label for="sampleState" class="col-sm-4 col-form-label">Sample State</label>
+                                                    <div class="col-sm-7">
+                                                        <select name="sampleState" id="sampleState" class="form-select">
+                                                            <option value="">Choose a value</option>
+                                                            {% for id, value in search_data.s_state %}
+                                                                <option value="{{id}}">{{value}}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                </div>  <!-- end select input -->
+                                                </div>  <!-- end from-group   -->
+                                                <div class="row mb-3">
+                                                    <label for="sampleName" class="col-sm-4 col-form-label">Search by Name</label>
+                                                    <div class="col-sm-7">
+                                                        <input class="form-control" type="text" id="sampleName", name="sampleName"  placeholder="Search by Name">
+                                                    </div>  <!-- end text input -->
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label class="col-sm-4 control-label" for="sDate" >Sample defined Date</label>
+                                                    <div class="col-sm-7">
+                                                        <input class="form-control" type="date" name="sDate" id="sDate">
+                                                    </div>
+                                                <br>
+                                                </div>  <!-- end from-group   -->
+                                                <br>
+                                                <br>
 
-                </div>
-            </div>
-        {% endif %}
-    </div>
+                                                <div class="row mb-3">
+                                                    {% if request.user|has_group:"RelecovManager" %}
+                                                        <label for="lab"  class="col-sm-4 col-form-label">Search from Laboratory name</label>
+                                                        <div class="col-sm-7">
+                                                            <select class="form-select" aria-label="Select the Laboratory" name="lab">
+                                                                <option value="">Choose a Laboratory </option>
+                                                                {% for lab in search_data.labs %}
+                                                                    <<option value={{lab}}>{{lab}}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    {% else %}
+                                                        <input type="hidden" name="lab" value="{{search_data.labs}}">
+                                                    {% endif %}
+                                                </div>  <!-- end from-group   -->
+                                                <br>
+                                                <br>
+                                                <div class="card-body">
+                                                    <div class="text-left">
+                                                        <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
+                                                        <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+                                                    </div>
+                                                </div>     <!-- end card body  -->
+                                            </div>  <!-- end card body   -->
+                                        </form>
+
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>   <!-- end row -->
+                    </div> <!-- /.container-fluid -->
+                </div> <!-- End of Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
 </section>
+    
+<!-- Custom scripts for side bar menu-->
+<script src="{% static 'relecov_core/core/js/sideBar_menu.js' %}"></script>
 {% endblock %}
