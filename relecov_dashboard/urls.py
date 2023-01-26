@@ -5,7 +5,7 @@ from relecov_dashboard import views
 from django.conf.urls.static import static
 
 urlpatterns = [
-    #path("django_plotly_dash/", include("django_plotly_dash.urls")),
+    path("django_plotly_dash/", include("django_plotly_dash.urls")),
     # Methodology graphics
     path("methodology", views.methodology_index, name="methodology_index"),
     path(
@@ -30,24 +30,24 @@ urlpatterns = [
     ),
     path("variants", views.variants_index, name="variants_index"),
     path(
-        "variants/receivedSamplesDashboard",
-        views.received_samples_dashboard,
-        name="received_samples_dashboard",
+        "variants/receivedSamples",
+        views.received_samples,
+        name="received_samples",
     ),
     path(
-        "variants/mutationsInLineagesDashboard",
-        views.mutations_in_lineages_dashboard,
-        name="mutations_in_lineages_dashboard",
+        "variants/mutationsInLineage",
+        views.mutations_in_lineage,
+        name="mutations_in_lineage",
     ),
     path(
-        "variants/spikeMutations3dDashboard",
-        views.spike_mutations_3d_dashboard,
-        name="spike_mutations_3d_dashboard",
+        "variants/spikeMutations3d",
+        views.spike_mutations_3d,
+        name="spike_mutations_3d",
     ),
     path(
-        "variants/lineagesVocDashboard",
-        views.lineages_voc_dashboard,
-        name="lineages_voc_dashboard",
+        "variants/lineagesVoc",
+        views.lineages_voc,
+        name="lineages_voc",
     ),
 ]
 if settings.DEBUG:

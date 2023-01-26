@@ -87,7 +87,7 @@ def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
 
-def received_samples_dashboard(request):
+def received_samples(request):
     sample_data = {}
     # samples receive over time map
     sample_data["map"] = create_samples_received_over_time_map()
@@ -105,12 +105,12 @@ def received_samples_dashboard(request):
     sample_data["samples_per_lab"] = display_received_per_lab()
     return render(
         request,
-        "relecov_dashboard/variantReceivedSamplesDashboard.html",
+        "relecov_dashboard/variantReceivedSamples.html",
         {"sample_data": sample_data},
     )
 
 
-def mutations_in_lineages_dashboard(request):
+def mutations_in_lineage(request):
     # mutations in lineages by sample
     """
     mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512.2")
@@ -126,91 +126,34 @@ def mutations_in_lineages_dashboard(request):
     if not mdata:
         return render(
             request,
-            "relecov_dashboard/mutationsInLineagesDashboard.html",
+            "relecov_dashboard/variantMutationsInLineage.html",
             {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
     create_needle_plot_graph_mutation_by_lineage(lineages_list, lineage, mdata)
     return render(
         request,
-        "relecov_dashboard/mutationsInLineagesDashboard.html",
+        "relecov_dashboard/variantMutationsInLineage.html",
     )
 
 
-def spike_mutations_3d_dashboard(request):
+def spike_mutations_3d(request):
     create_molecule3D_zoom_specific_residues()
     create_model3D_bn()
     return render(
-        request, "relecov_dashboard/spikeMutations3dDashboard.html"
+        request, "relecov_dashboard/variantSpikeMutations3D.html"
     )
 
 
-def lineages_voc_dashboard(request):
+def lineages_voc(request):
     # Draw lineage based on time
     draw_lineages = {}
     draw_lineages["lineage_on_time"] = create_lineages_variations_graphic()
     # import pdb; pdb.set_trace()
     return render(
         request,
-        "relecov_dashboard/variantLineagesVocDashboard.html",
+        "relecov_dashboard/variantLineageVoc.html",
         {"draw_lineages": draw_lineages},
     )
-
-
-# dashboard/methodology
-def methodology_index(request):
-    graphics = index_dash_fields()
-    return render(
-        request, "relecov_dashboard/methodologyIndex.html", {"graphics": graphics}
-    )
-
-
-def methodology_host_info(request):
-    host_info = host_info_graphics()
-    if "ERROR" in host_info:
-        return render(
-            request, "relecov_dashboard/methodologyHostInfo.html", {"ERROR": host_info}
-        )
-    return render(
-        request, "relecov_dashboard/methodologyHostInfo.html", {"host_info": host_info}
-    )
-
-
-def methodology_sample_processing(request):
-    sample_processing = sample_processing_graphics()
-    if "ERROR" in sample_processing:
-        return render(
-            request,
-            "relecov_dashboard/methodologySampleProcessing.html",
-            {"ERROR": sample_processing},
-        )
-    return render(
-        request,
-        "relecov_dashboard/methodologySampleProcessing.html",
-        {"sample_processing": sample_processing},
-    )
-
-
-def methodology_sequencing(request):
-    sequencing = sequencing_graphics()
-    if "ERROR" in sequencing:
-        return render(
-            request,
-            "relecov_dashboard/methodologySequencing.html",
-            {"ERROR": sequencing},
-        )
-    return render(
-        request,
-        "relecov_dashboard/methodologySequencing.html",
-        {"sequencing": sequencing},
-    )
-
-
-def methodology_bioinfo(request):
-    bioinfo = bioinfo_graphics()
-    return render(
-        request, "relecov_dashboard/methodologyBioinfo.html", {"bioinfo": bioinfo}
-    )
-
 
 def samples_received_over_time_map(request):
     create_samples_received_over_time_map()
@@ -279,3 +222,60 @@ def variants_mutations_in_lineages_heatmap(request):
         )
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
+# dashboard/methodology
+def methodology_index(request):
+    graphics = index_dash_fields()
+    return render(
+        request, "relecov_dashboard/methodologyIndex.html", {"graphics": graphics}
+    )
+
+
+def methodology_host_info(request):
+    host_info = host_info_graphics()
+    if "ERROR" in host_info:
+        return render(
+            request, "relecov_dashboard/methodologyHostInfo.html", {"ERROR": host_info}
+        )
+    return render(
+        request, "relecov_dashboard/methodologyHostInfo.html", {"host_info": host_info}
+    )
+
+
+def methodology_sample_processing(request):
+    sample_processing = sample_processing_graphics()
+    if "ERROR" in sample_processing:
+        return render(
+            request,
+            "relecov_dashboard/methodologySampleProcessing.html",
+            {"ERROR": sample_processing},
+        )
+    return render(
+        request,
+        "relecov_dashboard/methodologySampleProcessing.html",
+        {"sample_processing": sample_processing},
+    )
+
+
+def methodology_sequencing(request):
+    sequencing = sequencing_graphics()
+    if "ERROR" in sequencing:
+        return render(
+            request,
+            "relecov_dashboard/methodologySequencing.html",
+            {"ERROR": sequencing},
+        )
+    return render(
+        request,
+        "relecov_dashboard/methodologySequencing.html",
+        {"sequencing": sequencing},
+    )
+
+
+def methodology_bioinfo(request):
+    bioinfo = bioinfo_graphics()
+    return render(
+        request, "relecov_dashboard/methodologyBioinfo.html", {"bioinfo": bioinfo}
+    )
+
+
