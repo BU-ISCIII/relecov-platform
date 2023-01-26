@@ -4,8 +4,7 @@
 {%load plotly_dash%}
 
 {% block content %}
-<link href="{% static 'relecov_dashboard/dashboard/css/relecov_dashboard.css' %}" rel="stylesheet">
-<link href="{% static 'relecov_dashboard/dashboard/css/all.min.css' %}"  rel="stylesheet">
+{% include "relecov_dashboard/sideMenuFuncionality.html" %}
 
 <section>
     <div class="container">
@@ -61,7 +60,5 @@
         </div> <!-- wrapper -->
     </div>  <!-- End container -->
 </section>
-<!-- Custom scripts for side bar menu-->
-<script src="{% static 'relecov_dashboard/dashboard/js/sideBar_dashboard.js' %}"></script>
 
 {% endblock %}

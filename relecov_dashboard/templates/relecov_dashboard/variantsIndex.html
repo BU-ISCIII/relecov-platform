@@ -2,8 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'relecov_dashboard/dashboard/css/relecov_dashboard.css' %}" rel="stylesheet">
-<link href="{% static 'relecov_dashboard/dashboard/css/all.min.css' %}"  rel="stylesheet">
+{% include "relecov_dashboard/sideMenuFuncionality.html" %}
 
 <section>
     <div class="container">
@@ -32,7 +31,7 @@
                             <div class="col-sm-6">
                                 <div class="card shadow h-100 py-2">
                                     <div class="card-title"><h4>Mutations in Lineages</h4></div>
-                                    <div class="card-body">                       
+                                    <div class="card-body">
                                         <a href="/dashboard/variants/mutationsInLineagesDashboard">
                                         <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" alt="Mutations in Lineages dashboard" style="width: 80%">
                                         </a>
@@ -70,9 +69,4 @@
         </div> <!-- wrapper -->
     </div>  <!-- End container -->
 </section>
-
-<!-- Custom scripts for side bar menu-->
-<script src="{% static 'relecov_dashboard/dashboard/js/sideBar_dashboard.js' %}"></script>
-
-
 {% endblock %}
