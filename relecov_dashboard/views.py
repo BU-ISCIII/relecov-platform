@@ -23,9 +23,6 @@ from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lin
     create_needle_plot_graph_mutation_by_lineage,
 )
 
-from relecov_dashboard.utils.graphics.molecule3D_color_graph import (
-    create_molecule3D_zoom_specific_residues,
-)
 from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_search_by_sample import (
     create_needle_plot_graph_mutation_by_sample,
 )
@@ -59,7 +56,7 @@ from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
 
-from relecov_dashboard.utils.graphics.samples_received_over_time_graph import (
+from relecov_dashboard.utils.graphics.lineages_in_time import (
     create_dataframe_from_json,
     create_samples_over_time_graph,
 )
@@ -75,7 +72,7 @@ from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
     display_received_per_lab,
 )
 
-from relecov_dashboard.utils.variant_lineages_variation_over_time import (
+from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time import (
     create_lineages_variations_graphic,
 )
 
@@ -112,10 +109,6 @@ def received_samples(request):
 
 def mutations_in_lineage(request):
     # mutations in lineages by sample
-    """
-    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512.2")
-    create_needle_plot_graph_mutation_by_sample(sample_name=2018185, mdata=mdata)
-    """
     # mutations in lineages by lineage
     def_chrom = get_default_chromosome()
     lineages_list = get_lineages_list()
@@ -137,7 +130,6 @@ def mutations_in_lineage(request):
 
 
 def spike_mutations_3d(request):
-    create_molecule3D_zoom_specific_residues()
     create_model3D_bn()
     return render(
         request, "relecov_dashboard/variantSpikeMutations3D.html"
