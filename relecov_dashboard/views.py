@@ -126,25 +126,13 @@ def mutations_in_lineages_dashboard(request):
     if not mdata:
         return render(
             request,
-            "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
+            "relecov_dashboard/mutationsInLineagesDashboard.html",
             {"ERROR": ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
     create_needle_plot_graph_mutation_by_lineage(lineages_list, lineage, mdata)
-    # v_lineage_data = get_variant_all_lineage_data()
-    """
-    # mutations in lineages heatmap
-    gene_list = ["orf1ab", "ORF8", "S", "M", "N"]
-    sample_list = [220880, 210067]
-    create_heat_map(sample_list, gene_list)
-
-    # mutations in lineages table format
-    sample_list = [2018185, 210067]
-    effect_list = ["upstream_gene_variant", "synonymous_variant", "missense_variant"]
-    create_mutation_table(sample_list, effect_list=effect_list)
-    """
     return render(
         request,
-        "relecov_dashboard/dashboard_templates/mutationsInLineagesDashboard.html",
+        "relecov_dashboard/mutationsInLineagesDashboard.html",
     )
 
 
@@ -152,7 +140,7 @@ def spike_mutations_3d_dashboard(request):
     create_molecule3D_zoom_specific_residues()
     create_model3D_bn()
     return render(
-        request, "relecov_dashboard/dashboard_templates/spikeMutations3dDashboard.html"
+        request, "relecov_dashboard/spikeMutations3dDashboard.html"
     )
 
 
@@ -253,7 +241,6 @@ def samples_received_over_time_pie_laboratory(request):
         request, "relecov_dashboard/samplesReceivedOverTimePieLaboratory.html"
     )
 
-
 def variants_mutations_in_lineages_heatmap(request):
     chromesome_objs = get_all_chromosome_objs()
     if chromesome_objs is None:
@@ -292,40 +279,3 @@ def variants_mutations_in_lineages_heatmap(request):
         )
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
-
-
-def mutations_in_lineages_by_samples(request):
-    mdata = create_dataframe(sample_name=2018185, organism_code="NC_045512")
-    create_needle_plot_graph_mutation_by_sample(sample_name=2018185, mdata=mdata)
-
-    return render(request, "relecov_dashboard/variantsMutationsInLineagesBySample.html")
-
-
-def variants_mutations_in_lineages_table(request):
-    sample_list = [2018185, 210067]
-    effect_list = ["upstream_gene_variant", "synonymous_variant", "missense_variant"]
-    create_mutation_table(sample_list, effect_list=effect_list)
-    return render(request, "relecov_dashboard/variantsMutationsInLineagesTable.html")
-
-
-def spike_mutations_3D_color(request):
-    create_molecule3D_zoom_specific_residues()
-    return render(
-        request, "relecov_dashboard/dashboard_templates/spike_mutations_3D_Color.html"
-    )
-
-
-def spike_mutations_3D_BN(request):
-    create_model3D_bn()
-    return render(
-        request,
-        "relecov_dashboard/dashboard_templates/spike_mutations_3D_BN.html",
-    )
-
-
-def gauge_test(request):
-    # create_gauge()
-    # create_medium_gauge()
-    # query_to_database()
-    return render(request, "relecov_dashboard/dashboard_templates/gauge2.html")
-    # return render(request, "relecov_dashboard/dashboard_templates/gauge.html")
