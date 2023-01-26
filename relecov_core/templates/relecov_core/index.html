@@ -82,27 +82,7 @@
                 </div>
             </div>
         </section><!-- End Featured Services Section -->
-
-        <script>
-            const counters = document.querySelectorAll('.value');
-            const speed = 500;
-
-            counters.forEach( counter => {
-               const animate = () => {
-                  const value = +counter.getAttribute('akhi');
-                  const data = +counter.innerText;
-
-                  const time = value / speed;
-                 if(data < value) {
-                      counter.innerText = Math.ceil(data + time);
-                      setTimeout(animate, 1);
-                    }else{
-                      counter.innerText = value;
-                    }
-                }
-               animate();
-            });
-        </script>
+        <script src="{% static 'relecov_core/custom/js/index_functions.js' %}"></script>
     </div>
 </section>
 {% endblock %}
