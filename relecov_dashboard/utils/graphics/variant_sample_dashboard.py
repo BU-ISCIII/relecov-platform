@@ -55,7 +55,7 @@ def display_received_samples_graph():
             data["y"].append(value)
     options = {
         "height": 450,
-        "width": 500,
+        "width": 400,
         "lines": "Samples",
         "x_axis": "Dates",
         "y_axis": "Number of samples",

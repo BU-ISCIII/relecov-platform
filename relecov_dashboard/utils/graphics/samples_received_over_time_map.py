@@ -59,11 +59,7 @@ def create_samples_received_over_time_map():
     fig.update_traces(showlegend=False)
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
-        className="card",
         children=[
-            html.Div(
-                className="card-body",
-            ),
             dcc.Graph(className="card", id="geomap-per-lineage", figure=fig),
         ],
     )
