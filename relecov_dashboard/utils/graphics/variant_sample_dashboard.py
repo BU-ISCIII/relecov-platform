@@ -1,6 +1,6 @@
-from relecov_dashboard.utils.graphics.plotly_dashboard_graphics import (
-    create_line_plot,
-    create_bar_graph,
+from relecov_dashboard.utils.graphics.plotly_graphics import (
+    line_graphic,
+    bar_graphic,
 )
 
 from relecov_core.utils.rest_api_handling import get_summarize_data
@@ -23,7 +23,7 @@ def display_received_per_ccaa():
         "x_axis": "Autonomus Community",
         "y_axis": "Number of samples",
     }
-    return create_bar_graph(data, options)
+    return line_graphic(data["x"],data["y"], options)
 
 
 def display_received_per_lab():
@@ -42,7 +42,7 @@ def display_received_per_lab():
         "x_axis": "Laboratory Center",
         "y_axis": "Number of samples",
     }
-    return create_bar_graph(data, options)
+    return bar_graphic(data, options)
 
 
 def display_received_samples_graph():
@@ -55,9 +55,9 @@ def display_received_samples_graph():
             data["y"].append(value)
     options = {
         "height": 450,
-        "width": 500,
+        "width": 400,
         "lines": "Samples",
         "x_axis": "Dates",
         "y_axis": "Number of samples",
     }
-    return create_line_plot(data, options)
+    return line_graphic(data["x"], data["y"], options)

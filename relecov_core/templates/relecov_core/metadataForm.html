@@ -2,8 +2,6 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'relecov_core/core/css/side_bar_menu.css' %}" rel="stylesheet">
-<link href="{% static 'relecov_core/core/css/all.min.css' %}"  rel="stylesheet">
 {% include "relecov_core/JExcelFunctionality.html" %}
 
 <style>
@@ -18,11 +16,6 @@
     <div class="container">
         <!-- Page Wrapper -->
         <div id="wrapper">
-
-            <!-- Sidebar -->
-            {% include "relecov_core/intranetSideBar.html" %}
-            <!-- End of Sidebar -->
-            
             <!-- Content Wrapper -->
             <div id="content-wrapper" class="d-flex flex-column">
 
@@ -71,7 +64,11 @@
                                             <div class="card-body  text-center">
                                             <p> The following samples are already loaded : <br>
                                                 {% for sample in sample_issues.s_already_record  %}
-                                                    {{sample}}, 
+<<<<<<< HEAD
+                                                    {{sample}},
+=======
+                                                    {{sample}},
+>>>>>>> develop
                                                 {% endfor %}
                                             </p>
                                                 <br>
@@ -308,8 +305,4 @@
     </div> <!-- wrapper -->
 </div>  <!-- End container -->
 </section>
-
-<!-- Custom scripts for side bar menu-->
-<script src="{% static 'relecov_core/core/js/sideBar_menu.js' %}"></script>
-
 {% endblock %}

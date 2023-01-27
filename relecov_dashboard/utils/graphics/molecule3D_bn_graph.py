@@ -6,10 +6,6 @@ import pandas as pd
 import dash_bio as dashbio
 from dash import html
 from relecov_platform import settings
-from relecov_dashboard.utils.graphics.graphics_handling import (
-    screen_size,
-    set_screen_size,
-)
 
 # PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
 import parmed as pmd
