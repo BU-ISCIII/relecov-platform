@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="Relecov">
+        <meta content="" name="COVID">
+        <title>Relecov Platform</title>
+        <!-- Favicons -->
+        <link href="{% static 'relecov_core/img/favicon.png' %}" rel="icon">
+
+        <!-- Bootstrap -->
+        <link href="{% static 'relecov_core/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'relecov_core/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+        <link href="{% static 'relecov_core/assets/vendor/aos/aos.css" rel="stylesheet' %}">
+        <link href="{% static 'relecov_core/assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+
+        <!-- Variables CSS Files. Uncomment your preferred color scheme -->
+        <link href="{% static 'relecov_core/assets/css/variables-green2.css' %}" rel="stylesheet">
+
+        <!-- Template Main CSS File -->
+        <link href="{% static 'relecov_core/assets/css/main.css' %}" rel="stylesheet">
+        <!--   Jquery scripts   -->
+        <script src="{% static 'relecov_core/assets/js/jquery-3.6.0.min.js' %}"></script>
+    </head>
+    <!-- <body style="background-color: white!important;"> -->
+    <body>
+        <!-- ======= Header ======= -->
+
+        <header id="header2" class="header fixed-top" data-scrollto-offset="0" >
+
+            <div class="container d-flex align-items-center justify-content-between">
+            <!-- <div class="container-fluid d-flex align-items-center justify-content-between"> -->
+
+                <a href="/" class="d-flex align-items-center scrollto me-auto me-lg-0">
+                    <img src="{% static 'relecov_core/img/relecov_logo.png' %}" width="200" alt="Relecov Logo">
+                </a>
+                <nav id="navbar" class="navbar">
+                    <ul>
+                        {% if user.username == "admin" %}
+                            <li class="dropdown"><a href="#"><span>Configuration</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                            <ul>
+                                <li><a href="/schemaHandling"><span>Schema Handling</span></a>
+                                <li><a href="/metadataVisualization"><span>Metadata Visualization</span></a>
+                                <li><a href="/organismAnnotation"><span>Annotation</span></a>
+                                <li><a href="/assignSamplesToUser"><span>Assign Samples to user's Lab</span></a>
+                            </ul>
+                        {% endif %}
+                        <li><a class="nav-link scrollto" href="http://relecov.isciiides.es/news-reports/">Relecov Project</a></li>
+                        <li class="dropdown"><a href="#"><span>Dashboard</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                            <ul>
+                                <li><a href="/dashboard/variants">Variants Dashboard</a></li>
+                                <li><a href="/dashboard/methodology">Methodology Dashboard</a></li>
+                            </ul>
+                        </li>
+                        <li><a class="nav-link scrollto" href="/documentation">Documentation</a></li>
+                        <li><a class="nav-link scrollto" href="/Contact">Contact</a></li>
+                        <li><a class="btn-getstarted scrollto" href="/intranet">Intranet</a></li>
+
+                    </ul>
+                    <i class="bi bi-list mobile-nav-toggle d-none"></i>
+                </nav><!-- .navbar -->
+                {% if user.is_authenticated %}
+                    {% include "registration/login_inline.html" %}
+                {% endif %}
+            </div>
+
+        </header><!-- End Header -->
+
+                {% block content %}
+
+                {% endblock %}
+
+        {% include "relecov_core/footer.html" %}
+        <!--end Footer-->
+
+        <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+        <!-- Vendor JS Files -->
+        <script src="{% static 'relecov_core/assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'relecov_core/assets/vendor/aos/aos.js' %}"></script>
+        <script src="{% static 'relecov_core/assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
+        <script src="{% static 'relecov_core/assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+        <script src="{% static 'relecov_core/assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
+
+        <!-- Template Main JS File -->
+        <script src="{% static 'relecov_core/assets/js/main.js' %}"></script>
+
+    </body>
+</html>
