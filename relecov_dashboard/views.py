@@ -70,7 +70,6 @@ from relecov_dashboard.dashboard_config import (
 )
 
 
-
 # dashboard/variants
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
