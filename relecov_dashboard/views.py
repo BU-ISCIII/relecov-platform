@@ -127,9 +127,7 @@ def mutations_in_lineage(request):
 
 def spike_mutations_3d(request):
     create_model3D_bn()
-    return render(
-        request, "relecov_dashboard/variantSpikeMutations3D.html"
-    )
+    return render(request, "relecov_dashboard/variantSpikeMutations3D.html")
 
 
 def lineages_voc(request):
@@ -142,6 +140,7 @@ def lineages_voc(request):
         "relecov_dashboard/variantLineageVoc.html",
         {"draw_lineages": draw_lineages},
     )
+
 
 def samples_received_over_time_map(request):
     create_samples_received_over_time_map()
@@ -171,6 +170,7 @@ def samples_received_over_time_pie_laboratory(request):
     return render(
         request, "relecov_dashboard/samplesReceivedOverTimePieLaboratory.html"
     )
+
 
 def variants_mutations_in_lineages_heatmap(request):
     chromesome_objs = get_all_chromosome_objs()
@@ -210,6 +210,7 @@ def variants_mutations_in_lineages_heatmap(request):
         )
     create_heat_map(sample_list, gene_list)
     return render(request, "relecov_dashboard/variantsMutationsInLineagesHeatmap.html")
+
 
 # dashboard/methodology
 def methodology_index(request):

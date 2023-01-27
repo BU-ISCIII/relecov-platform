@@ -23,7 +23,7 @@ def display_received_per_ccaa():
         "x_axis": "Autonomus Community",
         "y_axis": "Number of samples",
     }
-    return line_graphic(data["x"],data["y"], options)
+    return line_graphic(data["x"], data["y"], options)
 
 
 def display_received_per_lab():
