@@ -1,6 +1,9 @@
 from statistics import mean
 from collections import OrderedDict
-from relecov_dashboard.utils.plotly_graphics import box_plot_graphic, line_graphic
+from relecov_dashboard.utils.graphics.plotly_graphics import (
+    box_plot_graphic,
+    line_graphic,
+)
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
 from relecov_core.models import BioinfoAnalysisValue
 from relecov_dashboard.utils.pre_processing_data import (

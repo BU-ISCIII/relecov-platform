@@ -2,8 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'relecov_dashboard/dashboard/css/relecov_dashboard.css' %}" rel="stylesheet">
-<link href="{% static 'relecov_dashboard/dashboard/css/all.min.css' %}"  rel="stylesheet">
+{% include "relecov_dashboard/sideMenuFuncionality.html" %}
 
 <section>
     <div class="container">
@@ -11,7 +10,7 @@
         <div id="wrapper">
 
             <!-- Sidebar -->
-            {% include "relecov_dashboard/variant_side_bar.html" %}
+            {% include "relecov_dashboard/variantSideBar.html" %}
             <!-- End of Sidebar -->
 
             <!-- Content Wrapper -->
@@ -32,9 +31,9 @@
                             <div class="col-sm-6">
                                 <div class="card shadow h-100 py-2">
                                     <div class="card-title"><h4>Mutations in Lineages</h4></div>
-                                    <div class="card-body">                       
-                                        <a href="/dashboard/variants/mutationsInLineagesDashboard">
-                                        <img src="{% static 'relecov_dashboard/img/mutation_heatmap.png' %}" alt="Mutations in Lineages dashboard" style="width: 80%">
+                                    <div class="card-body">
+                                        <a href="/dashboard/variants/mutationsInLineage">
+                                        <img src="{% static 'relecov_dashboard/custom/img/mutation_heatmap.png' %}" alt="Mutations in Lineages dashboard" style="width: 80%">
                                         </a>
                                     </div>
                                 </div>
@@ -44,8 +43,8 @@
                                 <div class="card shadow h-100 py-2">
                                     <div class="card-title"><h4>Received samples</h4></div>
                                     <div class="card-body">
-                                        <a href="/dashboard/variants/receivedSamplesDashboard">
-                                            <img src="{% static 'relecov_dashboard/img/lineages_geomap.png' %}" alt="Received Samples" style="width: 90%">
+                                        <a href="/dashboard/variants/receivedSamples">
+                                            <img src="{% static 'relecov_dashboard/custom/img/lineages_geomap.png' %}" alt="Received Samples" style="width: 90%">
                                         </a>
                                     </div>
                                 </div>
@@ -57,8 +56,8 @@
                                 <div class="card shadow h-100 py-2">
                                     <div class="card-title"><h4>Lineages VOC</h4></div>
                                     <div class="card-body">
-                                        <a href="/dashboard/variants/lineagesVocDashboard">
-                                        <img src="{% static 'relecov_dashboard/img/lineageBarStack.png' %}" alt="lineages VOC dashboard" style="width: 70%">
+                                        <a href="/dashboard/variants/lineagesVoc">
+                                        <img src="{% static 'relecov_dashboard/custom/img/lineageBarStack.png' %}" alt="lineages VOC dashboard" style="width: 70%">
                                         </a>
                                     </div>
                                 </div>
@@ -70,9 +69,4 @@
         </div> <!-- wrapper -->
     </div>  <!-- End container -->
 </section>
-
-<!-- Custom scripts for side bar menu-->
-<script src="{% static 'relecov_dashboard/dashboard/js/sideBar_dashboard.js' %}"></script>
-
-
 {% endblock %}
