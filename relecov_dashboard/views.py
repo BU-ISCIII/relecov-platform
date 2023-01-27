@@ -6,7 +6,6 @@ from relecov_core.utils.handling_variant import (
     get_gene_list,
     get_sample_in_variant_list,
     get_default_chromosome,
-#    create_dataframe,
 )
 
 from relecov_core.utils.handling_lineage import (
@@ -18,21 +17,31 @@ from relecov_core.core_config import (
     ERROR_GENE_NOT_DEFINED_IN_DATABASE,
     ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED,
 )
-from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
-    get_variant_data_from_lineages,
-#    create_needle_plot_graph_mutation_by_lineage,
+
+from relecov_dashboard.utils.graphics.lineages_in_time import (
+    create_dataframe_from_json,
+    create_samples_over_time_graph,
 )
 
-from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_search_by_sample import (
-    create_needle_plot_graph_mutation_by_sample,
+from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
+    display_received_samples_graph,
+    display_received_per_ccaa,
+    display_received_per_lab,
 )
+
+from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
+    get_variant_data_from_lineages,
+    create_needle_plot_graph_mutation_by_lineage,
+)
+
 from relecov_dashboard.utils.graphics.molecule3D_bn_graph import create_model3D_bn
-#from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_mutation_table import (
-#    create_mutation_table,
-#)
 
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_heatmap import (
     create_heat_map,
+)
+
+from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time import (
+    create_lineages_variations_graphic,
 )
 
 from relecov_dashboard.utils.graphics.samples_received_over_time_map import (
@@ -55,25 +64,11 @@ from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
 
-from relecov_dashboard.utils.graphics.lineages_in_time import (
-    create_dataframe_from_json,
-    create_samples_over_time_graph,
-)
 
 from relecov_dashboard.dashboard_config import (
     ERROR_NO_LINEAGES_ARE_DEFINED_YET,
 )
 
-# New files
-from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
-    display_received_samples_graph,
-    display_received_per_ccaa,
-    display_received_per_lab,
-)
-
-from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time import (
-    create_lineages_variations_graphic,
-)
 
 
 # dashboard/variants
