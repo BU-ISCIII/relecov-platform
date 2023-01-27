@@ -6,7 +6,7 @@ from relecov_core.utils.handling_variant import (
     get_gene_list,
     get_sample_in_variant_list,
     get_default_chromosome,
-    create_dataframe,
+#    create_dataframe,
 )
 
 from relecov_core.utils.handling_lineage import (
@@ -20,16 +20,16 @@ from relecov_core.core_config import (
 )
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     get_variant_data_from_lineages,
-    create_needle_plot_graph_mutation_by_lineage,
+#    create_needle_plot_graph_mutation_by_lineage,
 )
 
 from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_search_by_sample import (
     create_needle_plot_graph_mutation_by_sample,
 )
 from relecov_dashboard.utils.graphics.molecule3D_bn_graph import create_model3D_bn
-from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_mutation_table import (
-    create_mutation_table,
-)
+#from relecov_dashboard.utils.graphics.variant_mutations_in_lineages_mutation_table import (
+#    create_mutation_table,
+#)
 
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_heatmap import (
     create_heat_map,
