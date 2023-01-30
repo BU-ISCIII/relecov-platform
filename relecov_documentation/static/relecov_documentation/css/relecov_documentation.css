@@ -1,0 +1,33 @@
+p {
+    line-height: 1.6;
+    color: black;
+    font-size: 1.1rem;
+}
+
+H1 {
+    color:green;
+    font-size: 2.5rem;
+}
+H3 {
+    color:green;
+    font-size: 2rem;
+}
+
+H4 {
+    color:green;
+    font-size: 1.5rem;
+}
+
+code {
+    color: green;
+    margin-left: 1%;
+}
+
+ul {
+    list-style-type: square;
+    margin-left: 1%;
+}
+
+li {
+    font-size: 1.1rem;
+}
