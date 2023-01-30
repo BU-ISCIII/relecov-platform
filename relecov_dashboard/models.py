@@ -46,6 +46,7 @@ class GraphicField(models.Model):
     objects = GraphicFieldManager()
 
 
+# to be deleted
 class GraphicValueManager(models.Manager):
     def create_new_graphic_value(self, data):
         return self.create(
