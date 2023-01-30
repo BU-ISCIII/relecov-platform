@@ -10,7 +10,7 @@
 
         <div class="container">
             <div class="card bg-dark text-white">
-                <img src="{% static 'relecov_core/img/virus_crop.jpg' %}" class="card-img" alt="relecov platform" style="height: 20em;opacity: 0.5;">
+                <img src="{% static 'relecov_core/custom/img/virus_crop.jpg' %}" class="card-img" alt="relecov platform" style="height: 20em;opacity: 0.5;">
                 <div class="card-img-overlay">
                     <p class="card-title text-white"  style="text-align: center;font-size: 5em;">Relecov Platform</p>
                     <p class="card-text text-white" style="text-align: center;font-size: 2em;">Platform for viral sequencing and variants evolution monitoring in the context of the Spanish Network for genomics surveillance of SARS-Cov-2</p>
@@ -82,27 +82,7 @@
                 </div>
             </div>
         </section><!-- End Featured Services Section -->
-
-        <script>
-            const counters = document.querySelectorAll('.value');
-            const speed = 500;
-
-            counters.forEach( counter => {
-               const animate = () => {
-                  const value = +counter.getAttribute('akhi');
-                  const data = +counter.innerText;
-
-                  const time = value / speed;
-                 if(data < value) {
-                      counter.innerText = Math.ceil(data + time);
-                      setTimeout(animate, 1);
-                    }else{
-                      counter.innerText = value;
-                    }
-                }
-               animate();
-            });
-        </script>
+        <script src="{% static 'relecov_core/custom/js/index_functions.js' %}"></script>
     </div>
 </section>
 {% endblock %}
