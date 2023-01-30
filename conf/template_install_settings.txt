@@ -1,0 +1,15 @@
+### Installation path
+INSTALL_PATH='/opt'
+
+### (optional) Python installation path where pip and python executables are located
+PYTHON_BIN_PATH='python3' # example: /opt/python/3.9.6/bin/python3
+
+### Settings required to access database
+
+DB_USER='<user_name>'
+DB_PASS='<your_passwd>'
+DB_SERVER_IP='<IP_db_server>'
+DB_PORT=3306
+
+### Settings required for accessing relecov-platform
+LOCAL_SERVER_IP='<Relecov_IP>'

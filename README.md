@@ -20,7 +20,7 @@
 ## Install relecov-platform in your server running ubuntu
 Before starting the installation check :
 -   You have **sudo privileges** to install the additional software packets that relecov-platform needs.
--   Database (MySQL/MariaDB) is running  
+-   Database (MySQL/MariaDB) is running
 -   Local server configured for sending emails
 -   Apache server is running on local server
 
