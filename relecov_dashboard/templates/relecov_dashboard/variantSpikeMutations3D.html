@@ -1,0 +1,175 @@
+{% extends 'relecov_core/base.html' %}
+{% load static %}
+{% load plotly_dash %}
+
+{% block content %}
+
+{% include "relecov_dashboard/sideMenuFuncionality.html" %}
+
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+            <!-- Sidebar -->
+            {% include "relecov_dashboard/variantSideBar.html" %}
+            <!-- End of Sidebar -->
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h2>Spike mutations dashboard</h2>
+                        </div> <!-- end row -->
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center;">
+                            <div class="card-header" ><h5>Zooming to Specific Residues</h5>
+                                <div class="card-subtitle">We can zoom into specific residues and chains on the molecule by selecting a row from de table.<br>Click on the Tutorial button to know more about each of the parts that are part of this graph</div>
+                                <!-- Example split danger button -->
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info">Tutorial</button>
+                                    <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <div class="dropdown-item">
+                                            <div class="card dropdown-item" style="width: auto;">
+                                                <!--<img src="{% static 'relecov_dashboard/img/variants_dashboard_images/mutations_in_lineages_dashboard_images/variants_in_lineages_by_sample_tutorial.png' %}"class="card-img-left" alt="mutations in lineages by sample"style="width:85%;">-->
+                                                <div class="card-body">
+                                                    <p class="card-text">This functionality consists of two parts:</p>
+                                                    <ol>
+                                                        <li>Table with data extracted from a <a href="https://www.cgl.ucsf.edu/chimera/1.4/docs/UsersGuide/tutorials/pdbintro.html">Protein Data Bank</a> file.</li>
+                                                        <li>Molecule 3D viewer.</li>
+                                                    </ol>
+                                                    <legend class="card-text">Table data:</legend>
+                                                    <p class="card-text"> This table contains the following fields per row:</p>
+                                                    <ul>
+                                                        <li><b>serial</b></li>
+                                                        <li><b>name</b></li>
+                                                        <li><b>elem</b></li>
+                                                        <li><b>positions</b></li>
+                                                        <li><b>mass_magnitude</b></li>
+                                                        <li><b>residue_index</b></li>
+                                                        <li><b>residue_name</b></li>
+                                                        <li><b>chain</b></li>
+                                                    </ul>
+                                                    <p class="card-text"> For more information about these fields, click on this <a href="https://www.cgl.ucsf.edu/chimera/1.4/docs/UsersGuide/tutorials/pdbintro.html">Protein Data Bank</a> link.</p>
+                                                    <legend class="card-text">Molecule 3D viewer:</legend>
+                                                    <p class="card-text">Molecule 3D viewer has two modes of operation.</p>
+                                                    <ol>
+                                                        <li>
+                                                            Automatic
+                                                            <ul>
+                                                                <li>Zoom in on the exact position that we have chosen in the table.</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>
+                                                            Manual
+                                                            <ul>
+                                                                <li>Zoom in and Zoom out</li>
+                                                                <label>position the mouse pointer on the 3d model and we will use mouse's scroll button</label>
+                                                                <ul>
+                                                                    <li>- Zoom out - Scroll button forward</li>
+                                                                    <li>- Zoom in - Scroll button backward</li>
+                                                                </ul>
+                                                                <li>Rotate</li>
+                                                                <label>we keep the mouse pointer pressed on the 3d model and move in the required<br>direction to get the adjustment we want</label>
+                                                            </ul>
+                                                        </li>
+                                                    </ol>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <a href="/dashboard/variants/spikeMutations3DColor" class="btn btn-outline-success" role="button" style="margin-left:10%;">Expand</a>
+
+                            </div>
+                            <div class="card-body border" style="text-align: center;">
+                                {% plotly_app name="model3D_zoom_residues" ratio=1.5 %}
+                            </div>
+                            </div>
+                        </div>
+                        <!--end card 1-->
+
+                        <!--card 2-->
+                        <div class="card d-inline-flex  p-2 m-1" style="width: 44%">
+                            <div class="card-body border" style="text-align: left;">
+                            <div class="card-header" ><h2>Zoom and color the selected residues</h2>
+                                <div class="card-subtitle">Choose a lineage and the needle plot will display the positions in all the samples that contain the selected lineage.<br>Click on the Tutorial button to know more about each of the parts that are part of this graph</div>
+
+                                <!-- Example split danger button -->
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info">Tutorial</button>
+                                    <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <div class="dropdown-item">
+                                            <div class="card dropdown-item" style="width: auto;">
+                                            <!--<img src="{% static 'relecov_dashboard/img/variants_dashboard_images/mutations_in_lineages_dashboard_images/variants_in_lineages_by_sample_tutorial.png' %}"class="card-img-left" alt="mutations in lineages by sample"style="width:85%;">-->
+                                            <div class="card-body">
+                                                <p class="card-text">This functionality consists of two parts:</p>
+                                                <ol>
+                                                    <li>Table with data extracted from a <a href="https://www.cgl.ucsf.edu/chimera/1.4/docs/UsersGuide/tutorials/pdbintro.html">Protein Data Bank</a> file.</li>
+                                                    <li>Molecule 3D viewer.</li>
+                                                </ol>
+                                                <legend class="card-text">Table data:</legend>
+                                                <p class="card-text"> This table contains the following fields per row:</p>
+                                                <ul>
+                                                    <li><b>serial</b></li>
+                                                    <li><b>name</b></li>
+                                                    <li><b>elem</b></li>
+                                                    <li><b>positions</b></li>
+                                                    <li><b>mass_magnitude</b></li>
+                                                    <li><b>residue_index</b></li>
+                                                    <li><b>residue_name</b></li>
+                                                    <li><b>chain</b></li>
+                                                </ul>
+                                                <p class="card-text"> For more information about these fields, click on this <a href="https://www.cgl.ucsf.edu/chimera/1.4/docs/UsersGuide/tutorials/pdbintro.html">Protein Data Bank</a> link.</p>
+                                                <legend class="card-text">Molecule 3D viewer:</legend>
+                                                <p class="card-text">Molecule 3D viewer has two modes of operation.</p>
+                                                <ol>
+                                                    <li>
+                                                        Automatic
+                                                        <ul>
+                                                            <li>Zoom in on the exact position that we have chosen in the table.</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>
+                                                        Manual
+                                                        <ul>
+                                                            <li>Zoom in and Zoom out</li>
+                                                            <label>position the mouse pointer on the 3d model and we will use mouse's scroll button</label>
+                                                            <ul>
+                                                                <li>- Zoom out - Scroll button forward</li>
+                                                                <li>- Zoom in - Scroll button backward</li>
+                                                            </ul>
+                                                            <li>Rotate</li>
+                                                            <label>we keep the mouse pointer pressed on the 3d model and move in the required<br>direction to get the adjustment we want</label>
+                                                        </ul>
+                                                    </li>
+                                                </ol>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="/dashboard/variants/spikeMutations3DBN" class="btn btn-outline-success" role="button" style="margin-left:10%;">Expand</a>
+                            </div>
+                            <div class="card-body border" style="text-align: center;">
+                                {% plotly_app name="model3D_bn" ratio=1.5 %}
+                            </div>
+                            </div>
+                        </div>
+                    </div> <!-- End container -->
+                </div><!-- End Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+{% endblock %}
