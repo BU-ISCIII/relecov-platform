@@ -79,7 +79,7 @@ def get_table_selection(df):
 
 
 def create_model3D_bn():
-    size = set_screen_size(screen_size())
+    size = 400
 
     app = DjangoDash("model3D_bn")
 

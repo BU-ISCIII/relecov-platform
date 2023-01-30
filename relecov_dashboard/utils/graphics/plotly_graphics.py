@@ -58,6 +58,7 @@ def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
         style={"bottom": 0, "pading-bottom": "30%"},
     )
 
+
 def bar_graphic(data, col_names, legend, yaxis, options):
     """Options fields are: title, height"""
     if "colors" in options:

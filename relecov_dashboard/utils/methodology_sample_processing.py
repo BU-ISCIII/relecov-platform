@@ -6,7 +6,10 @@ from relecov_dashboard.utils.pre_processing_data import (
 )
 from relecov_core.utils.rest_api_handling import get_stats_data
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
-from relecov_dashboard.utils.graphics.plotly_graphics import bar_graphic, box_plot_graphic
+from relecov_dashboard.utils.graphics.plotly_graphics import (
+    bar_graphic,
+    box_plot_graphic,
+)
 
 
 def sample_processing_graphics():

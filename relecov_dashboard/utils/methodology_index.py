@@ -7,7 +7,10 @@ from relecov_core.utils.schema_handling import (
     get_default_schema,
 )
 from relecov_core.utils.rest_api_handling import get_stats_data
-from relecov_dashboard.utils.graphics.plotly_graphics import bar_graphic,graph_gauge_percent_values
+from relecov_dashboard.utils.graphics.plotly_graphics import (
+    bar_graphic,
+    graph_gauge_percent_values,
+)
 
 
 def schema_fields_utilization():
