@@ -1,6 +1,6 @@
 import pandas as pd
 from collections import OrderedDict
-from relecov_dashboard.utils.plotly_graphics import bar_graphic, pie_graphic
+from relecov_dashboard.utils.graphics.plotly_graphics import bar_graphic, pie_graphic
 from relecov_core.utils.rest_api_handling import get_stats_data
 
 from relecov_dashboard.dashboard_config import HOST_RANGE_AGE_TEXT
