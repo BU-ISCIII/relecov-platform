@@ -1,6 +1,6 @@
 import pandas as pd
 from statistics import mean
-from relecov_dashboard.utils.plotly_graphics import (
+from relecov_dashboard.utils.graphics.plotly_graphics import (
     bar_graphic,
     box_plot_graphic,
     line_graphic,

@@ -1,0 +1,51 @@
+
+{% extends 'relecov_core/base.html' %}
+{% load static %}
+{% load plotly_dash %}
+
+{% block content %}
+{% include "relecov_dashboard/sideMenuFuncionality.html" %}
+
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+
+            <!-- Sidebar -->
+            {% include "relecov_dashboard/variantSideBar.html" %}
+            <!-- End of Sidebar -->
+
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h2>Variation Lineages over time Dashboard</h2>
+                        </div> <!-- end row -->
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center;">
+                            <div class="col-sm-12">
+                                {% if draw_lineages.lineage_on_time.ERROR %}
+                                    <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                                    <div class="card-body  text-center">
+                                        <h5 "text-center text-danger">Unable to connect to LIMS to fetch data</h5>
+                                    </div> <!-- end card body  -->
+                                {% else %}
+                                    {% plotly_app name="variationLineageOverTime" ratio=1 %}
+                                {% endif %}
+                             </div>
+                        </div>  <!-- end row-->
+                    </div> <!-- End container -->
+                </div><!-- End Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+
+{% endblock %}
