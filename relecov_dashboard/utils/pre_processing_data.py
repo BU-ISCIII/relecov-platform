@@ -153,7 +153,7 @@ def pre_proc_lineages_variations():
     for s_data in in_date_samples["DATA"]:
         if s_data["collectionSampleDate"] not in date_sample:
             date_sample[s_data["collectionSampleDate"]] = []
-            date_sample[s_data["collectionSampleDate"]].append(s_data["Sample Name"])
+        date_sample[s_data["collectionSampleDate"]].append(s_data["Sample Name"])
 
     for date, samples in date_sample.items():
         lineage_in_samples = (
