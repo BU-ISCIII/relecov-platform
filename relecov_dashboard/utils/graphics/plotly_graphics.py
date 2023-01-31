@@ -72,7 +72,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
                 x=data[col_names[0]],
                 y=data[col_names[idx]],
                 name=legend[idx - 1],
-                marker_color=colors if "colors" in options else colors[idx - 1],
+                marker_color=colors if "colors" in options else colors[idx - 1]
             )
         )
 
