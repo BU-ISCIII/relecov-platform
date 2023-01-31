@@ -17,13 +17,14 @@ def display_received_per_ccaa():
     for key, value in raw_data["region"].items():
         data["x"].append(key)
         data["y"].append(value)
-    options = {
-        "height": 450,
-        "width": 500,
-        "x_axis": "Autonomus Community",
-        "y_axis": "Number of samples",
-    }
-    return line_graphic(data["x"], data["y"], options)
+    
+    return bar_graphic(
+        data = data,
+        col_names = ["x",  "y"],
+        legend = [""],
+        yaxis = {"title": "Number of samples"},
+        options={"title": "", "height": 400}         
+    )
 
 
 def display_received_per_lab():
@@ -36,13 +37,14 @@ def display_received_per_lab():
     for key, value in raw_data["laboratory"].items():
         data["x"].append(key)
         data["y"].append(value)
-    options = {
-        "height": 450,
-        "width": 500,
-        "x_axis": "Laboratory Center",
-        "y_axis": "Number of samples",
-    }
-    return bar_graphic(data, options)
+
+    return bar_graphic(
+        data = data,
+        col_names = ["x",  "y"],
+        legend = [""],
+        yaxis = {"title": "Number of samples"},
+        options={"title": "", "height": 400, "colors": "#1aff8c"}         
+    )
 
 
 def display_received_samples_graph():
@@ -59,5 +61,8 @@ def display_received_samples_graph():
         "lines": "Samples",
         "x_axis": "Dates",
         "y_axis": "Number of samples",
+        "x_title": "Date",
+        "y_title": "Number of samples",
+        "title": ""
     }
     return line_graphic(data["x"], data["y"], options)
