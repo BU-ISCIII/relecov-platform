@@ -11,6 +11,9 @@ def fix_img_folder(text):
     new_text = text.replace("img/", "../../static/relecov_documentation/img/")
     return new_text
 
+def remove_md_extension(text):
+    """Remove the .md extension in the link references"""
+    return text.replace(".md","")
 
 def markdown_to_html(m_file):
     m_path = os.path.join(
@@ -20,4 +23,5 @@ def markdown_to_html(m_file):
         return {"ERROR": "FILE NOT FOUND"}
     with open(m_path, "r") as fh:
         text = fh.read()
+        text = remove_md_extension(text)
     return markdown.markdown(text, extensions=["toc", "tables"])

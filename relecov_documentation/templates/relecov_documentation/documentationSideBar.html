@@ -1,9 +1,66 @@
-{% load static %}
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-<!-- Template Sidebars CSS File -->
-<link href="{% static 'intranet/css/style_mod2.css' %}" rel="stylesheet">
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/documentation">
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="bi bi-menu-button-wide"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">Documentation</div>
+    </a>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        Installation
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="installation">
+            <i class="bi bi-display"></i>
+            <span>Relecov application</span></a>
+    </li>
+    <li class="nav-item active">
+        <a class="nav-link" href="/configuration">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>Configuration</span></a>
+    </li>
+    <br>
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        Upload data
+    </div>
+    <li class="nav-item active">
+        <a class="nav-link" href="/uploadMetadata">
+            <i class="bi bi-search"></i>
+            <span>Metadata Form</span></a>
+    </li>
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        Variant Dashboard
+    </div>
+    <li class="nav-item active">
+        <a class="nav-link" href="/searchSample">
+            <i class="bi bi-search"></i>
+            <span>Mutation Dashboard</span></a>
+    </li>
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        Methodology Dashboard
+    </div>
+    <li class="nav-item active">
+        <a class="nav-link" href="/searchSample">
+            <i class="bi bi-search"></i>
+            <span>Host Info</span></a>
+    </li>
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        
+    </div>
+</ul>
 
-{% block content %}
+
+
+{% comment %} 
 <aside id="sidebar" class="sidebar" style="">
     <span class="fs-5 d-none d-sm-inline">Documentation</span>
     <ul class="sidebar-nav" id="sidebar-nav">
@@ -86,3 +143,4 @@
 </aside>
 
 {% endblock %}
+ {% endcomment %}

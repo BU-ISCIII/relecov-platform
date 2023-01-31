@@ -1,0 +1,32 @@
+{% extends "relecov_core/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "relecov_core/sideMenuFuncionality.html" %}
+
+<section>
+    <div class="container">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+
+            <!-- Sidebar -->
+            {% include "relecov_documentation/documentationSideBar.html" %}
+            <!-- End of Sidebar -->
+
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="row" style="text-align: left;">
+                        <div class="card-body">
+                            <p class="card-text">{{ html|safe }}</p>
+                        </div>
+                    </div>   <!-- end row -->
+                </div> <!-- End of Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+{% endblock%}
