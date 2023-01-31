@@ -11,9 +11,11 @@ def fix_img_folder(text):
     new_text = text.replace("img/", "../../static/relecov_documentation/img/")
     return new_text
 
+
 def remove_md_extension(text):
     """Remove the .md extension in the link references"""
-    return text.replace(".md","")
+    return text.replace(".md", "")
+
 
 def remove_md_extension(text):
     """Remove the .md extension in the link references"""
