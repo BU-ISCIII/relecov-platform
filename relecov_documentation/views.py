@@ -45,8 +45,8 @@ def create_user_account(request):
     )
 
 
-def installation(request):
-    converted_to_html = markdown_to_html("installation.md")
+def relecov_application(request):
+    converted_to_html = markdown_to_html("relecovApplication.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)

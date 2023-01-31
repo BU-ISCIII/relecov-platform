@@ -10,9 +10,9 @@ Documentation is structured in 2 main Guides:
 
 
 ## Table of Contents
-- Admin Guide
+- Installation
     - [Overview](structureOverview.md)
-    - [Installation](installation.md)
+    - [Relecov Application](relecovApplication.md)
     - [Initial Configuration](initialConfiguration.md)
     - [User definition](userDefinition)
 
