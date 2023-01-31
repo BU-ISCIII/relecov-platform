@@ -17,13 +17,13 @@ def display_received_per_ccaa():
     for key, value in raw_data["region"].items():
         data["x"].append(key)
         data["y"].append(value)
-    
+
     return bar_graphic(
-        data = data,
-        col_names = ["x",  "y"],
-        legend = [""],
-        yaxis = {"title": "Number of samples"},
-        options={"title": "", "height": 400}         
+        data=data,
+        col_names=["x", "y"],
+        legend=[""],
+        yaxis={"title": "Number of samples"},
+        options={"title": "", "height": 400},
     )
 
 
@@ -39,11 +39,11 @@ def display_received_per_lab():
         data["y"].append(value)
 
     return bar_graphic(
-        data = data,
-        col_names = ["x",  "y"],
-        legend = [""],
-        yaxis = {"title": "Number of samples"},
-        options={"title": "", "height": 400, "colors": "#1aff8c"}         
+        data=data,
+        col_names=["x", "y"],
+        legend=[""],
+        yaxis={"title": "Number of samples"},
+        options={"title": "", "height": 400, "colors": "#1aff8c"},
     )
 
 
@@ -63,6 +63,6 @@ def display_received_samples_graph():
         "y_axis": "Number of samples",
         "x_title": "Date",
         "y_title": "Number of samples",
-        "title": ""
+        "title": "",
     }
     return line_graphic(data["x"], data["y"], options)
