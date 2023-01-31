@@ -6,8 +6,13 @@ Small summary about relecov.
 ## Table of Contents
 - Installation
     - [Overview](structureOverview.md)
+<<<<<<< HEAD
     - [Relecov Installation](relecovInstallation.md)
     - [Configuration](configuration.md)
+=======
+    - [Relecov Application](relecovApplication.md)
+    - [Initial Configuration](initialConfiguration.md)
+>>>>>>> fixing relecov application links
     - [User definition](userDefinition)
 
 - Intranet
