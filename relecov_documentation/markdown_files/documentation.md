@@ -1,28 +1,23 @@
 # Relecov documentation
 
-Below you will find all the necessary information about relecov-platform.
-
-Documentation is structured in 2 main Guides:
-
-- Installation and configuration.
-- User Guide.
-
+Small summary about relecov.
 
 
 ## Table of Contents
 - Installation
     - [Overview](structureOverview.md)
     - [Relecov Application](relecovApplication.md)
-    - [Initial Configuration](initialConfiguration.md)
+    - [Configuration](configuration.md)
     - [User definition](userDefinition)
 
-- User Guide
-    - [Intranet](intranet.md)
+- Intranet
+    - [Upload Data](intranet.md)
     - [Dashboard](dashboard.md)
 
-The Installation, configuration and user definition steps are referred to bioinformatic
-responsible for getting the application up and running, and in charge to provide
-access to new laboratories.
+- Variant Dashboard
 
-Intranet and Dashboard chapters is used for laboratory personal to get access to
- their own data and/or see the graphics available through dashboard
+- Methodology Dashboard
+    - [Host Info](hostInfo.md)
+
+- Nextstrain
+
