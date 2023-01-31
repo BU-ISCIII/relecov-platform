@@ -61,6 +61,7 @@ from relecov_core.utils.handling_variant import (
 )
 from relecov_core.utils.generic_functions import (
     check_valid_date_format,
+    get_configuration_value,
     get_defined_users,
 )
 from relecov_core.utils.handling_annotation import (
@@ -82,8 +83,11 @@ from relecov_core.core_config import (
 
 def index(request):
     number_of_samples = count_handled_samples()
+    nextstrain_url = get_configuration_value("NEXTSTRAIN_URL")
     return render(
-        request, "relecov_core/index.html", {"number_of_samples": number_of_samples}
+        request,
+        "relecov_core/index.html",
+        {"number_of_samples": number_of_samples, "nextstrain_url": nextstrain_url},
     )
 
 
