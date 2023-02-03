@@ -117,12 +117,12 @@ def pie_graphic(data, names, title, show_legend=False):
 
 
 def needle_plot(m_data):
-    """ Create needleplot using dash-bio. 
+    """Create needleplot using dash-bio.
     Facing an issue when displaying name of domains. Names are outside graphic.
-    """    
-   
+    """
+
     app = DjangoDash("sampleVariantGraphic")
-    
+
     app.layout = html.Div(
         [
             "Show or hide range slider",
@@ -146,7 +146,7 @@ def needle_plot(m_data):
                 },
                 rangeSlider=True,
                 xlabel="Sequence of the proteins",
-                ylabel="Number of Mutations", 
+                ylabel="Number of Mutations",
             ),
         ]
     )
