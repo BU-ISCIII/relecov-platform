@@ -7,6 +7,9 @@ Small summary about relecov.
 - Installation
     - [Overview](structureOverview.md)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Documented relecov installation and settings
     - [Relecov Installation](relecovInstallation.md)
     - [Configuration](configuration.md)
 =======
