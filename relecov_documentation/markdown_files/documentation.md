@@ -21,3 +21,5 @@ Small summary about relecov.
 
 - Nextstrain
 
+- FAQs
+    - [Create new users](createNewUsers.md)
