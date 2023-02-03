@@ -15,7 +15,7 @@ urlpatterns = [
         views.initial_configuration,
         name="initial_configuration",
     ),
-    path("relecovApplication/", views.relecov_application, name="relecov_application"),
+    path("relecovInstallation/", views.relecov_installation, name="relecov_installation"),
     path("intranet/", views.intranet, name="intranet"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("metadataLabForm/", views.upload_metadata_lab, name="upload_metadata_lab"),

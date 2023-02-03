@@ -117,7 +117,7 @@ def pie_graphic(data, names, title, show_legend=False):
 
 
 def needle_plot(m_data):
-    """
+    
     import json
     import urllib.request as urlreq
 
@@ -131,14 +131,23 @@ def needle_plot(m_data):
         mutationData=mdata,
         height=450,
     )
-    """
+    
     app = DjangoDash("sampleVariantGraphic")
     # mdata["domains"] = m_data["domains"]
     # m_data["x"] = mdata["x"][48:72]
     # m_data["y"] = mdata["y"][48:72]
     # m_data["mutationGroups"] = mdata["mutationGroups"][48:72]
-    # m_data["domains"] = mdata["domains"]
+    # mdata["domains"] = m_data["domains"]
+    #m_data["x"] = ["800", "18000.0-18005.0", "27000", "800.0-801.0", "900.0-906.0", "500.0-502.0", "10000.0-10001.0", "900.0-903.0", "850.0-870.0", "11000.0-11003.0"]
+    # m_data["x"] = ["800-811", "18000-18029", "27000-27100", "29000-29900","2730","22000","1248","3175","11195","11282","15157","28500"] # Funciona
+    # m_data["x"] = ["2730","22000","1248","3175","11195","11282","15157"]
+    #m_data["y"] = [21,11,16,8,9,4,5]
+    # m_data["y"] = [2,1,8, 7, 2, 5, 8 , 9, 10, 6,3,7]
+    # m_data["x"] = ["1800", "1900", "4000"]
+    # m_data["y"] = [7, 9, 1]
+    # m_data["mutationGroups"] = ["mi", "too", "too"]
     # import pdb; pdb.set_trace()
+    # m_data["domains"] = [{"name": "PI3K_C2", "coord": "350-485"}, {"name": "PI3Ka", "coord": "519-704"}, {"name": "PI3_PI4_kinase", "coord": "2796-31015"}]
     app.layout = html.Div(
         [
             "Show or hide range slider",
@@ -153,13 +162,16 @@ def needle_plot(m_data):
             dashbio.NeedlePlot(
                 id="dashbio-default-needleplot",
                 mutationData=m_data,
-                height=550,
-                width=700,
+                height=950,
+                width=900,
+                margin={"t": 100, "l": 30, "r": 20, "b": 20},
                 domainStyle={
                     "displayMinorDomains": True,
                     # 'domainColor': ['#FFDD00', '#00FFDD', '#0F0F0F', '#D3D3D3']
                 },
-                # domainStyle={"textangle": -45},
+                rangeSlider=True,
+                xlabel="Sequence of the proteins",
+                ylabel="# of Mutations", 
             ),
         ]
     )

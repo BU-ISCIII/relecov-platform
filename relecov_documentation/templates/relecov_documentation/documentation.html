@@ -3,7 +3,13 @@
 
 {% block content %}
 {% include "relecov_core/sideMenuFuncionality.html" %}
+<style>
+    h3, .h3 {
+        font-size: 1.5rem;
+        color: #0d6efd;
 
+      }
+</style>
 <section>
     <div class="container">
         <!-- Page Wrapper -->
@@ -20,8 +26,10 @@
                 <div id="content">
                     <!-- Begin Page Content -->
                     <div class="row" style="text-align: left;">
-                        <div class="card-body">
-                            <p class="card-text">{{ html|safe }}</p>
+                        <div class="col-sm-9 offset-md-1">
+                            <div class="card-body text-secondary" >
+                                {{ html|safe }}
+                            </div>
                         </div>
                     </div>   <!-- end row -->
                 </div> <!-- End of Main Content -->

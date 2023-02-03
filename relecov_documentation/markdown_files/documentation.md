@@ -6,7 +6,7 @@ Small summary about relecov.
 ## Table of Contents
 - Installation
     - [Overview](structureOverview.md)
-    - [Relecov Application](relecovApplication.md)
+    - [Relecov Installation](relecovInstallation.md)
     - [Configuration](configuration.md)
     - [User definition](userDefinition)
 
