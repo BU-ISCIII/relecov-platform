@@ -160,7 +160,7 @@ def get_domains_and_coordenates(chromosome_obj):
 
 
 """
-Functions to get data from database and paint variant mutation in 
+Functions to get data from database and paint variant mutation in
 lineages needle plot graph
 """
 
@@ -229,7 +229,6 @@ def create_effect_list(sample_name, chromosome):
                 sampleID_id=sample_obj
             )
             for variant_in_sample_obj in variant_in_sample_objs:
-
                 variant_obj = variant_in_sample_obj.get_variantID_id()
                 variant_annotation_objs = VariantAnnotation.objects.filter(
                     variantID_id=variant_obj
