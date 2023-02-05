@@ -9,7 +9,6 @@ from dash.exceptions import PreventUpdate
 
 
 def dash_bar_lab(option_list, data):
-
     option = []
     for opt_list in option_list:
         option.append({"label": opt_list, "value": opt_list})

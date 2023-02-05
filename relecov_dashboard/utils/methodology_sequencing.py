@@ -51,7 +51,6 @@ def sequencing_graphics():
         return data
 
     def fetching_data_for_sequencing_data(project_field, columns):
-
         # get stats utilization fields from LIMS
         lims_data = get_stats_data(
             {

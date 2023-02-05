@@ -11,7 +11,6 @@ from relecov_core.utils.rest_api_handling import get_summarize_data
 
 
 def create_samples_received_over_time_map():
-
     geojson_file = os.path.join(
         settings.STATIC_ROOT,
         "relecov_dashboard",

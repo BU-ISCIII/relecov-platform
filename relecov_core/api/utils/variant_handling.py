@@ -123,7 +123,7 @@ def get_required_variant_ann_id(data):
 
 
 def split_variant_data(data, sample_obj, date):
-
+    """Separate the information received into groups """
     split_data = {"variant_in_sample": {}, "variant_ann": {}}
     split_data["variant_in_sample"]["sampleID_id"] = sample_obj.get_sample_id()
     variant_id = get_variant_id(data)

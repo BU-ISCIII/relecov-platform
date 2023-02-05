@@ -366,7 +366,6 @@ def metadata_form(request):
     schema_obj = get_latest_schema("relecov", __package__)
     if request.method == "POST" and request.POST["action"] == "uploadMetadataFile":
         if "metadataFile" in request.FILES:
-
             save_excel_form_in_samba_folder(
                 request.FILES["metadataFile"], request.user.username
             )

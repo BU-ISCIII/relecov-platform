@@ -15,7 +15,6 @@ from relecov_dashboard.utils.pre_processing_data import pre_proc_lineages_variat
 
 def create_lineages_variations_graphic(date_range=None):
     """Collect the pre-processed data from database"""
-
     json_data = get_graphic_json_data("lineages_variations")
     if json_data is None:
         # Execute the pre-processed task to get the data
@@ -78,7 +77,6 @@ def create_lineages_variations_graphic(date_range=None):
         Input("periodTime", "value"),
     )
     def update_graph(periodTime):
-
         if periodTime is None or periodTime == "":
             # Select the samples from year 2021
             sub_data_df = data_df.loc[
@@ -164,5 +162,4 @@ def create_lineages_variations_graphic(date_range=None):
             margin_t=30,
             height=800,
         )
-
         return fig

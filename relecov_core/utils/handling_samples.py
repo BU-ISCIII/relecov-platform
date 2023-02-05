@@ -80,7 +80,6 @@ def analyze_input_samples(request):
             s_already_record.append(sample_name)
             continue
         for idx in range(len(heading_in_form)):
-
             if row[idx] == "" and idx not in allowed_empty_index:
                 s_incomplete.append(row)
                 incompleted = True
@@ -186,7 +185,6 @@ def create_form_for_sample(schema_obj):
     """Collect information from iSkyLIMS and from metadata table to
     create the metadata form for filling sample data
     """
-    # schema_name = schema_obj.get_schema_name()
     m_form = OrderedDict()
     f_data = {}
     l_iskylims = []  # variable name in iSkyLIMS
@@ -196,7 +194,6 @@ def create_form_for_sample(schema_obj):
     m_sam_objs = MetadataVisualization.objects.filter(fill_mode="sample").order_by(
         "order"
     )
-    # schema_obj = m_sam_objs[0].get_schema_obj()
     schema_name = schema_obj.get_schema_name()
     # Get the properties in schema for mapping
     s_prop_objs = SchemaProperties.objects.filter(schemaID=schema_obj)

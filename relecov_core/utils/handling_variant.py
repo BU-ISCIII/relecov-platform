@@ -101,7 +101,6 @@ def get_variant_data_from_sample(sample_id):
 
 def get_variant_graphic_from_sample(sample_id):
     """Collect the variant information to send to create the plotly graphic"""
-
     v_data = {"x": [], "y": [], "v_id": []}
     sample_obj = get_sample_obj_from_id(sample_id)
     if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():

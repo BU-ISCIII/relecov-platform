@@ -12,7 +12,6 @@ from dash.dependencies import Input, Output
 
 
 def histogram_graphic(data, col_names, options):
-
     graph = px.bar(
         data, y=col_names[1], x=col_names[0], text_auto=True, width=options["width"]
     )
@@ -32,7 +31,6 @@ def histogram_graphic(data, col_names, options):
     )
 
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
-
     return plot_div
 
 
@@ -49,7 +47,6 @@ def gauge_graphic(data):
     )
     graph.update_layout(margin=dict(t=20, b=10, l=20, r=30))
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
-
     return plot_div
 
 
@@ -120,7 +117,6 @@ def needle_plot(m_data):
     """Create needleplot using dash-bio.
     Facing an issue when displaying name of domains. Names are outside graphic.
     """
-
     app = DjangoDash("sampleVariantGraphic")
 
     app.layout = html.Div(
