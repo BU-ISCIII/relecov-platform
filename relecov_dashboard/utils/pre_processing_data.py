@@ -165,8 +165,6 @@ def pre_proc_lineages_variations():
             .distinct()
         )
         for lineage in lineage_in_samples:
-
-            # value_data = {"value_1": date, "value_2": str(lineage)}
             collect_data.append(date)
             lineage_data.append(lineage)
             num_samples_data.append(
