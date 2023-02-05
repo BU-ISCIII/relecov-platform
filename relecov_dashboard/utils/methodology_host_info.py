@@ -25,7 +25,6 @@ def host_info_graphics():
         return tmp_range, invalid_data
 
     def fetching_data_for_range_age():
-
         # get stats utilization fields from LIMS
         lims_fields = get_stats_data(
             {"sample_project_name": "Relecov", "project_field": "host_age"}

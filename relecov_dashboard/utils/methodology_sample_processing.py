@@ -18,9 +18,6 @@ def sample_processing_graphics():
         If there is not data stored for the graphic, it will query to store
         them before calling for the second time
         """
-
-        # map_graphic = {"extraction_protocol_pcr_1" : pre_proc_specimen_source_pcr_1(), "specimen_source_pcr_1": pre_proc_extraction_protocol_pcr_1(), "calculation_date": pre_proc_calculation_date()}
-
         json_data = get_graphic_json_data(graphic_name)
         if json_data is None:
             # Execute the pre-processed task to get the data
@@ -52,7 +49,6 @@ def sample_processing_graphics():
         return data
 
     def fetching_data_for_sample_processing(project_field, columns):
-
         # get stats utilization fields from LIMS about nucleic acid extaction
         # protocol
         lims_data = get_stats_data(

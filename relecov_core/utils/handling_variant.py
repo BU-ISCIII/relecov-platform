@@ -104,7 +104,6 @@ def get_variant_graphic_from_sample(sample_id):
     v_data = {"x": [], "y": [], "v_id": []}
     sample_obj = get_sample_obj_from_id(sample_id)
     if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
-
         raw_data = VariantInSample.objects.filter(sampleID_id=sample_obj).values(
             x=F("variantID_id__pos"), y=F("af"), v_id=F("variantID_id__pk")
         )
@@ -161,7 +160,8 @@ def get_domains_and_coordenates(chromosome_obj):
 
 
 """
-Functions to get data from database and paint variant mutation in lineages needle plot graph
+Functions to get data from database and paint variant mutation in 
+lineages needle plot graph
 """
 
 
