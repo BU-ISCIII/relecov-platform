@@ -160,11 +160,7 @@ def get_domains_and_coordenates(chromosome_obj):
 
 
 """
-<<<<<<< HEAD
 Functions to get data from database and paint variant mutation in
-=======
-Functions to get data from database and paint variant mutation in 
->>>>>>> solving litin
 lineages needle plot graph
 """
 
