@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELECOVPLATFORM_VERSION="0.2.0"
+RELECOVPLATFORM_VERSION="1.0.0"
 . ./initial_settings.txt
 
 db_check(){
