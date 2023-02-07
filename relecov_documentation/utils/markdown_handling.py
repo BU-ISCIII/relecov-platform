@@ -17,11 +17,6 @@ def remove_md_extension(text):
     return text.replace(".md", "")
 
 
-def remove_md_extension(text):
-    """Remove the .md extension in the link references"""
-    return text.replace(".md", "")
-
-
 def markdown_to_html(m_file):
     m_path = os.path.join(
         settings.BASE_DIR, "relecov_documentation", "markdown_files", m_file
