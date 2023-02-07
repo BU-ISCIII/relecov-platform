@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
         "configuration_name": "ISKYLIMS_SERVER",
-        "configuration_value": "http://localhost:8001",
+        "configuration_value": "http://iskylims.your-organization.com",
         "generated_at": "2022-05-11T21:06:25.825"
     }
 },
@@ -22,7 +22,7 @@
     "pk": 3,
     "fields": {
         "configuration_name": "ISKYLIMS_USER",
-        "configuration_value": "relecovbot",
+        "configuration_value": "iskylims-user",
         "generated_at": "2022-10-10T15:25:13.456"
     }
 },
@@ -31,7 +31,7 @@
     "pk": 4,
     "fields": {
         "configuration_name": "ISKYLIMS_PASSWORD",
-        "configuration_value": "Apple@123",
+        "configuration_value": "iskylims-passwd",
         "generated_at": "2022-10-10T15:25:35.394"
     }
 },
@@ -40,7 +40,7 @@
     "pk": 5,
     "fields": {
         "configuration_name": "SUBMITTING_INSTITUTION",
-        "configuration_value": "INSTITUTO SALUD CARLOS III",
+        "configuration_value": "YOUR INSTITUTION",
         "generated_at": "2022-10-15T21:30:17.277"
     }
 },
@@ -49,7 +49,7 @@
     "pk": 6,
     "fields": {
         "configuration_name": "SAMBA_FOLDER",
-        "configuration_value": "/home/bioinfo/Downloads",
+        "configuration_value": "mount-point/samba-folder",
         "generated_at": "2022-11-08T11:21:06.945"
     }
 },
@@ -58,7 +58,7 @@
     "pk": 7,
     "fields": {
         "configuration_name": "NEXTSTRAIN_URL",
-        "configuration_value": "http://localhost:8100/ncov/relecov",
+        "configuration_value": "http://your-location/ncov/relecov",
         "generated_at": "2023-01-27T19:09:42.067"
     }
 },
