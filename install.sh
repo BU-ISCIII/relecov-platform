@@ -225,6 +225,7 @@ sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
 sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
+sed -i "s/dns_url/${DNS_URL}/g" relecov_platform/settings.py
 
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
