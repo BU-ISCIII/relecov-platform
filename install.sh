@@ -34,27 +34,13 @@ apache_check(){
                 exit 1
             fi
         fi
-    elif [[ $linux_distribution == "CentOs" ]]; then
+    elif [[ $linux_distribution == "CentOs" || $linux_distribution == "RedHatEnterprise" ]]; then
         if ! pidof httpd > /dev/null ; then
             # web server down, restart the server
             echo "Apache Server is down... Trying to restart Apache"
             systemctl restart httpd
             sleep 10
             if pidof httpd > /dev/null ; then
-                echo "Apache Server is up"
-            else
-                echo -e "${RED}ERROR : Unable to start Apache ${NC}"
-                echo -e "${RED}ERROR : Solve the issue with Apache server and run again the installation script ${NC}"
-                exit 1
-            fi
-        fi
-      elif [[ $linux_distribution == "RedHatEnterprise" ]]; then
-        if ! pidof apache > /dev/null ; then
-            # web server down, restart the server
-            echo "Apache Server is down... Trying to restart Apache"
-            systemctl restart apache
-            sleep 10
-            if pidof apache > /dev/null ; then
                 echo "Apache Server is up"
             else
                 echo -e "${RED}ERROR : Unable to start Apache ${NC}"
