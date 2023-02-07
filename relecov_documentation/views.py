@@ -34,7 +34,6 @@ def relecov_installation(request):
 
 
 def configuration(request):
-    return render(request, "relecov_documentation/error_404.html")
     converted_to_html = markdown_to_html("initialConfiguration.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
