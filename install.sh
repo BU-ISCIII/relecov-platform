@@ -48,6 +48,20 @@ apache_check(){
                 exit 1
             fi
         fi
+      elif [[ $linux_distribution == "RedHatEnterprise" ]]; then
+        if ! pidof apache > /dev/null ; then
+            # web server down, restart the server
+            echo "Apache Server is down... Trying to restart Apache"
+            systemctl restart apache
+            sleep 10
+            if pidof apache > /dev/null ; then
+                echo "Apache Server is up"
+            else
+                echo -e "${RED}ERROR : Unable to start Apache ${NC}"
+                echo -e "${RED}ERROR : Solve the issue with Apache server and run again the installation script ${NC}"
+                exit 1
+            fi
+        fi
     fi
 }
 
@@ -104,7 +118,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 user=$SUDO_USER
-group=groups | cut -d" " -f1
+group=$(groups | cut -d" " -f1)
 
 #Linux distribution
 linux_distribution=$(lsb_release -i | cut -f 2-)
@@ -116,6 +130,11 @@ db_check
 printf "${BLUE}Successful check for database${NC}\n"
 apache_check
 printf "${BLUE}Successful check for apache${NC}\n"
+
+#================================================================
+## move to develop branch if --dev param
+
+##git checkout develop
 
 #================================================================
 
@@ -136,8 +155,8 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
         python3-venv
 fi
 
-if [[ $linux_distribution == "CentOS" ]]; then
-    echo "Software installation for Centos"
+if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+    echo "Software installation for Centos/RedHat"
     yum groupinstall “Development tools”
     yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
     yum install libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
@@ -157,14 +176,12 @@ if [ -d $INSTALL_PATH/relecov-platform ]; then
 fi
 
 ## Clone relecov-platform repository
-cd $INSTALL_PATH
-git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+mkdir $INSTALL_PATH/relecov-platform
+#git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+rsync -rlv README.md LICENSE relecov_core relecov_dashboard django_utils $INSTALL_PATH/relecov-platform 
 
-cd relecov-platform
-## move to develop branch if --dev param
-##git checkout develop
+cd $INSTALL_PATH/relecov-platform
 
-# git checkout main
 ## Create apache group if it does not exist.
 if ! grep -q apache /etc/group
 then
@@ -172,9 +189,15 @@ then
 fi
 
 ## Fix permissions and owners
-mkdir -p /opt/relecov-platform/logs
-chown $user:apache /opt/relecov-platform/logs
-chmod 775 /opt/relecov-platform/logs
+
+if [ $LOG_TYPE == "symbolic_link" ]; then
+    ln -s $LOG_PATH /opt/relecov-platform/logs
+else
+    mkdir -p /opt/relecov-platform/logs
+    chown $user:apache /opt/relecov-platform/logs
+    chmod 775 /opt/relecov-platform/logs
+fi
+
 mkdir -p /opt/relecov-platform/documents
 chown $user:apache /opt/relecov-platform/documents
 chmod 775 /opt/relecov-platform/documents
