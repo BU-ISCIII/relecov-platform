@@ -136,7 +136,7 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Software installation for Ubuntu"
     apt-get update && apt-get upgrade -y
     apt-get install -y \
-        apt-utils libcairo2 libcairo2-dev wget \
+        apt-utils wget \
         libmysqlclient-dev apache2-dev \
         python3-venv
     # libapache2-mod-wsgi-py3
@@ -145,8 +145,7 @@ fi
 if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
     echo "Software installation for Centos/RedHat"
     yum install zlib-devel bzip2-devel openssl-devel \
-                libcairo2 libcairo2-devel wget httpd-devel mysql-libs \
-		python3-venv
+                wget httpd-devel mysql-libs
 fi
 
 echo "Starting relecov-platform installation"
