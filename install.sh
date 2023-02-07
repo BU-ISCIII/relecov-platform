@@ -191,7 +191,12 @@ fi
 ## Fix permissions and owners
 
 if [ $LOG_TYPE == "symbolic_link" ]; then
-    ln -s $LOG_PATH /opt/relecov-platform/logs
+    if [ -d $LOG_PATH ]; then
+    	ln -s $LOG_PATH /opt/relecov-platform/logs
+	chmod 775 $LOG_PATH
+    else
+        echo "Log folder path: $LOG_PATH does not exist. Fix it in the initial_settings.txt and run again."
+	exit 1
 else
     mkdir -p /opt/relecov-platform/logs
     chown $user:apache /opt/relecov-platform/logs
@@ -237,9 +242,9 @@ grep ^SECRET relecov_platform/settings.py > ~/.secret
 # Copying config files and script
 cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
 cp conf/urls.py /opt/relecov-platform/relecov_platform/
-cp conf/asgi.py /opt/relecov-platform/relecov_platform/
-cp conf/routing.py /opt/relecov-platform/relecov_platform/
-cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
+#cp conf/asgi.py /opt/relecov-platform/relecov_platform/
+#cp conf/routing.py /opt/relecov-platform/relecov_platform/
+#cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
 
 sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
 sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
@@ -252,17 +257,14 @@ sed -i "s/dns_url/${DNS_URL}/g" relecov_platform/settings.py
 
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-python3 manage.py makemigrations relecov_core django_plotly_dash
+python3 manage.py makemigrations relecov_core django_plotly_dash relecov_dashboard
 python3 manage.py migrate
 
 ## Adding permissions
 chown $user:$group -R relecov_platform
-#echo "Change owner of files to Apache user"
-#chown -R www-data:www-data /opt/relecov-platform
 
 echo "Loading in database initial data"
 python3 manage.py loaddata conf/upload_tables.json
-
 
 echo "Updating Apache configuration"
 if [[ $linux_distribution == "Ubuntu" ]]; then
@@ -279,6 +281,7 @@ fi
 if [[ $linux_distribution == "CentOS" ]]; then
     cp conf/relecov_platform.conf /etc/httpd/conf.d/relecov_platform.conf
 fi
+
 echo "Creating super user "
 python3 manage.py createsuperuser
 
