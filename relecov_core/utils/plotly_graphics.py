@@ -143,9 +143,6 @@ def needle_plot(m_data):
                 rangeSlider=True,
                 xlabel="Sequence of the proteins",
                 ylabel="Number of Mutations",
-                rangeSlider=True,
-                xlabel="Sequence of the proteins",
-                ylabel="Number of Mutations",
             ),
         ]
     )
