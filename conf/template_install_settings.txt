@@ -12,4 +12,5 @@ DB_SERVER_IP='<IP_db_server>'
 DB_PORT=3306
 
 ### Settings required for accessing relecov-platform
-LOCAL_SERVER_IP='<Relecov_IP>'
+LOCAL_SERVER_IP='<Relecov_IP>' # example: 172.0.0.1
+DNS_URL = '<Relecov_url_address>' # example: relecov.isciii.es
