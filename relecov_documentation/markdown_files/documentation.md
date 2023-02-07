@@ -8,6 +8,7 @@ Small summary about relecov.
     - [Overview](structureOverview.md)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> Documented relecov installation and settings
     - [Relecov Installation](relecovInstallation.md)
@@ -16,6 +17,10 @@ Small summary about relecov.
     - [Relecov Application](relecovApplication.md)
     - [Initial Configuration](initialConfiguration.md)
 >>>>>>> fixing relecov application links
+=======
+    - [Relecov Installation](relecovInstallation.md)
+    - [Configuration](configuration.md)
+>>>>>>> f3de953b258d5c407a42cedbc5ad6e9a7385c9ff
     - [User definition](userDefinition)
 
 - Intranet

@@ -118,6 +118,7 @@ def needle_plot(m_data):
     Facing an issue when displaying name of domains. Names are outside graphic.
     """
     app = DjangoDash("sampleVariantGraphic")
+
     app.layout = html.Div(
         [
             "Show or hide range slider",
@@ -139,6 +140,9 @@ def needle_plot(m_data):
                     "displayMinorDomains": True,
                     # 'domainColor': ['#FFDD00', '#00FFDD', '#0F0F0F', '#D3D3D3']
                 },
+                rangeSlider=True,
+                xlabel="Sequence of the proteins",
+                ylabel="Number of Mutations",
                 rangeSlider=True,
                 xlabel="Sequence of the proteins",
                 ylabel="Number of Mutations",
