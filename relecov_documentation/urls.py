@@ -10,12 +10,10 @@ urlpatterns = [
         views.create_user_account,
         name="create_user_account",
     ),
+    path("configuration", views.configuration, name="configuration"),
     path(
-        "initialConfiguration",
-        views.initial_configuration,
-        name="initial_configuration",
+        "relecovInstallation/", views.relecov_installation, name="relecov_installation"
     ),
-    path("installation.md/", views.installation, name="installation"),
     path("intranet/", views.intranet, name="intranet"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("metadataLabForm/", views.upload_metadata_lab, name="upload_metadata_lab"),

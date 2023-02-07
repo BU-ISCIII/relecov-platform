@@ -56,7 +56,6 @@ def bioinfo_graphics():
                     filter_list = []
                     for value in str_data:
                         try:
-
                             filter_list.append(float(value))
                         except ValueError:
                             continue

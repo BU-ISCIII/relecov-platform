@@ -223,7 +223,6 @@ def store_fields_metadata_visualization(data):
 def store_schema_properties(schema_obj, s_properties, required):
     """Store the properties defined in the schema"""
     for prop_key in s_properties.keys():
-
         data = dict(s_properties[prop_key])
         data["schemaID"] = schema_obj
         data["property"] = prop_key
@@ -267,16 +266,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
             match = re.search(r"^Bioinformatic.*", data["classification"])
             if not match:
                 continue
-            # classification = data["classification"]
-            # match = re.search(r"(\w+) fields", data["classification"])
-            # classification = match.group(1).strip()
-
             # fetch the Classification instance
-            """
-            class_obj = Classification.objects.filter(
-                classification_name__iexact=classification
-            ).last()
-            """
             fields = {}
             # fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
@@ -308,7 +298,6 @@ def store_public_data_fields(schema_obj, s_properties):
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
             # find out the public database type
-
             database_types = PublicDatabaseType.objects.values_list(
                 "public_type_name", flat=True
             ).distinct()

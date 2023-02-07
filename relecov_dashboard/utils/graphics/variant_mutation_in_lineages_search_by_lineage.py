@@ -15,7 +15,6 @@ from relecov_core.models import (
 
 
 def get_variant_data_from_lineages(graphic_name=None, lineage=None, chromosome=None):
-
     json_data = get_graphic_json_data(graphic_name)
 
     if json_data is None:
@@ -46,7 +45,6 @@ def get_variant_data_from_lineages(graphic_name=None, lineage=None, chromosome=N
 
 
 def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata):
-
     options = []
     for lin in lineage_list:
         options.append({"label": lin, "value": lin})

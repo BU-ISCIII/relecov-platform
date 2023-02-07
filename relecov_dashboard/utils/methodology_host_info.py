@@ -8,7 +8,6 @@ from relecov_dashboard.dashboard_config import HOST_RANGE_AGE_TEXT
 
 def host_info_graphics():
     def split_age_in_ranges(data):
-
         tmp_range = {}
         invalid_data = 0
         for key, val in data.items():
@@ -26,7 +25,6 @@ def host_info_graphics():
         return tmp_range, invalid_data
 
     def fetching_data_for_range_age():
-
         # get stats utilization fields from LIMS
         lims_fields = get_stats_data(
             {"sample_project_name": "Relecov", "project_field": "host_age"}
@@ -131,5 +129,4 @@ def host_info_graphics():
     )
     if invalid_data > 0:
         host_info["invalid_data"] = invalid_data
-    # pdb.set_trace()
     return host_info

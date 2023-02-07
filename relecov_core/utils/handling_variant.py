@@ -101,11 +101,9 @@ def get_variant_data_from_sample(sample_id):
 
 def get_variant_graphic_from_sample(sample_id):
     """Collect the variant information to send to create the plotly graphic"""
-
     v_data = {"x": [], "y": [], "v_id": []}
     sample_obj = get_sample_obj_from_id(sample_id)
     if VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
-
         raw_data = VariantInSample.objects.filter(sampleID_id=sample_obj).values(
             x=F("variantID_id__pos"), y=F("af"), v_id=F("variantID_id__pk")
         )
@@ -162,7 +160,8 @@ def get_domains_and_coordenates(chromosome_obj):
 
 
 """
-Functions to get data from database and paint variant mutation in lineages needle plot graph
+Functions to get data from database and paint variant mutation in
+lineages needle plot graph
 """
 
 
@@ -230,7 +229,6 @@ def create_effect_list(sample_name, chromosome):
                 sampleID_id=sample_obj
             )
             for variant_in_sample_obj in variant_in_sample_objs:
-
                 variant_obj = variant_in_sample_obj.get_variantID_id()
                 variant_annotation_objs = VariantAnnotation.objects.filter(
                     variantID_id=variant_obj

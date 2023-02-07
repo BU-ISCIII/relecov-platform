@@ -10,10 +10,6 @@ from relecov_platform import settings
 
 
 def parse_json_file():
-    """
-    This function loads a json file and returns a python dictionary.
-    """
-
     input_file = os.path.join(
         settings.BASE_DIR,
         "relecov_core",
@@ -28,7 +24,6 @@ def parse_json_file():
 
 def create_samples_per_ccaa_dataframe(data):
     list_of_lists = []
-
     region_data = data["region"]
     list_of_ccaa_names = region_data.keys()
     list_of_number_of_samples_per_ccaa = region_data.values()
@@ -39,13 +34,11 @@ def create_samples_per_ccaa_dataframe(data):
     df = pd.DataFrame(list_of_lists).transpose()
     df.columns = ["CCAA_NAME", "NUMBER_OF_SAMPLES"]
     df = df.sort_values(by=["NUMBER_OF_SAMPLES"])
-
     return df
 
 
 def create_samples_per_laboratory_dataframe(data):
     list_of_lists = []
-
     laboratory_data = data["laboratory"]
     list_of_laboratory_names = laboratory_data.keys()
     list_of_number_of_samples_per_laboratory = laboratory_data.values()
@@ -56,13 +49,11 @@ def create_samples_per_laboratory_dataframe(data):
     df = pd.DataFrame(list_of_lists).transpose()
     df.columns = ["LABORATORY_NAME", "NUMBER_OF_SAMPLES"]
     df = df.sort_values(by=["NUMBER_OF_SAMPLES"])
-
     return df
 
 
 def create_samples_received_over_time_per_ccaa_pieChart(data):
     df_per_ccaa = create_samples_per_ccaa_dataframe(data)
-
     fig = px.pie(
         df_per_ccaa,
         values="NUMBER_OF_SAMPLES",

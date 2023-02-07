@@ -1,9 +1,84 @@
-{% load static %}
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-<!-- Template Sidebars CSS File -->
-<link href="{% static 'intranet/css/style_mod2.css' %}" rel="stylesheet">
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/documentation">
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="bi bi-files"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">Documentation</div>
+    </a>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-filetype-py"></i> Installation
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/relecovInstallation">
+            <i class="bi bi-display"></i>
+            <span>Relecov installation</span></a>
+    </li>
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/configuration">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>Configuration</span></a>
+    </li>
+    <br>
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-info-circle"></i> Intranet
+    </div>
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/uploadMetadata">
+            
+            <span>Upload Metadata</span></a>
+    </li>
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        Variant Dashboard
+    </div>
+   
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/variantMutationDashboard">
+            <i class="bi bi-search"></i>
+            <span>Mutation Dashboard</span></a>
+    </li>
+   
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/variantMutationDashboard">
+            <i class="bi bi-search"></i>
+            <span>Mutation Dashboard2</span></a>
+    </li>
 
-{% block content %}
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Methodology Dashboard
+    </div>
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/methodologyHostInfo">
+            <i class="bi bi-search"></i>
+            <span>Host Info</span></a>
+    </li>
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        FAQs
+    </div>
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/createNewUser">
+            <i class="bi bi-person-add"></i>
+            <span>Create New User</span></a>
+    </li>
+    
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        
+    </div>
+</ul>
+
+
+
+{% comment %} 
 <aside id="sidebar" class="sidebar" style="">
     <span class="fs-5 d-none d-sm-inline">Documentation</span>
     <ul class="sidebar-nav" id="sidebar-nav">
@@ -86,3 +161,4 @@
 </aside>
 
 {% endblock %}
+ {% endcomment %}

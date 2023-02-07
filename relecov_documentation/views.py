@@ -16,19 +16,32 @@ def index(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
 
-def initial_configuration(request):
+def relecov_installation(request):
+    converted_to_html = markdown_to_html("relecovInstallation.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/documentation.html",
+        {"html": converted_to_html},
+    )
+
+
+def configuration(request):
+    return render(request, "relecov_documentation/error_404.html")
     converted_to_html = markdown_to_html("initialConfiguration.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -40,19 +53,7 @@ def create_user_account(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
-        {"html": converted_to_html},
-    )
-
-
-def installation(request):
-    converted_to_html = markdown_to_html("installation.md")
-    if isinstance(converted_to_html, dict):
-        return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = fix_img_folder(converted_to_html)
-    return render(
-        request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -65,7 +66,7 @@ def intranet(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -77,7 +78,7 @@ def dashboard(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -89,7 +90,7 @@ def results_download(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -101,7 +102,7 @@ def results_info_processed(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -113,7 +114,7 @@ def results_info_received(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -125,7 +126,7 @@ def upload_metadata_lab(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -137,7 +138,7 @@ def upload_to_ena(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -149,7 +150,7 @@ def upload_to_gisaid(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )
 
@@ -161,6 +162,6 @@ def api_usage(request):
     converted_to_html = fix_img_folder(converted_to_html)
     return render(
         request,
-        "relecov_documentation/documentation2.html",
+        "relecov_documentation/documentation.html",
         {"html": converted_to_html},
     )

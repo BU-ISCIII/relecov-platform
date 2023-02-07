@@ -12,7 +12,6 @@ from dash.dependencies import Input, Output
 
 
 def histogram_graphic(data, col_names, options):
-
     graph = px.bar(
         data, y=col_names[1], x=col_names[0], text_auto=True, width=options["width"]
     )
@@ -32,7 +31,6 @@ def histogram_graphic(data, col_names, options):
     )
 
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
-
     return plot_div
 
 
@@ -49,7 +47,6 @@ def gauge_graphic(data):
     )
     graph.update_layout(margin=dict(t=20, b=10, l=20, r=30))
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
-
     return plot_div
 
 
@@ -117,28 +114,11 @@ def pie_graphic(data, names, title, show_legend=False):
 
 
 def needle_plot(m_data):
-    """
-    import json
-    import urllib.request as urlreq
-
-    data = urlreq.urlopen("https://git.io/needle_PIK3CA.json").read().decode("utf-8")
-
-    mdata = json.loads(data)
-    """
-    """
-    fig = dashbio.NeedlePlot(
-        id='dashbio-default-needleplot',
-        mutationData=mdata,
-        height=450,
-    )
+    """Create needleplot using dash-bio.
+    Facing an issue when displaying name of domains. Names are outside graphic.
     """
     app = DjangoDash("sampleVariantGraphic")
-    # mdata["domains"] = m_data["domains"]
-    # m_data["x"] = mdata["x"][48:72]
-    # m_data["y"] = mdata["y"][48:72]
-    # m_data["mutationGroups"] = mdata["mutationGroups"][48:72]
-    # m_data["domains"] = mdata["domains"]
-    # import pdb; pdb.set_trace()
+
     app.layout = html.Div(
         [
             "Show or hide range slider",
@@ -153,13 +133,16 @@ def needle_plot(m_data):
             dashbio.NeedlePlot(
                 id="dashbio-default-needleplot",
                 mutationData=m_data,
-                height=550,
-                width=700,
+                height=950,
+                width=900,
+                margin={"t": 100, "l": 40, "r": 20, "b": 20},
                 domainStyle={
                     "displayMinorDomains": True,
                     # 'domainColor': ['#FFDD00', '#00FFDD', '#0F0F0F', '#D3D3D3']
                 },
-                # domainStyle={"textangle": -45},
+                rangeSlider=True,
+                xlabel="Sequence of the proteins",
+                ylabel="Number of Mutations",
             ),
         ]
     )
