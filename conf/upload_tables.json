@@ -18,6 +18,51 @@
     }
 },
 {
+    "model": "relecov_core.configsetting",
+    "pk": 3,
+    "fields": {
+        "configuration_name": "ISKYLIMS_USER",
+        "configuration_value": "relecovbot",
+        "generated_at": "2022-10-10T15:25:13.456"
+    }
+},
+{
+    "model": "relecov_core.configsetting",
+    "pk": 4,
+    "fields": {
+        "configuration_name": "ISKYLIMS_PASSWORD",
+        "configuration_value": "Apple@123",
+        "generated_at": "2022-10-10T15:25:35.394"
+    }
+},
+{
+    "model": "relecov_core.configsetting",
+    "pk": 5,
+    "fields": {
+        "configuration_name": "SUBMITTING_INSTITUTION",
+        "configuration_value": "INSTITUTO SALUD CARLOS III",
+        "generated_at": "2022-10-15T21:30:17.277"
+    }
+},
+{
+    "model": "relecov_core.configsetting",
+    "pk": 6,
+    "fields": {
+        "configuration_name": "SAMBA_FOLDER",
+        "configuration_value": "/home/bioinfo/Downloads",
+        "generated_at": "2022-11-08T11:21:06.945"
+    }
+},
+{
+    "model": "relecov_core.configsetting",
+    "pk": 7,
+    "fields": {
+        "configuration_name": "NEXTSTRAIN_URL",
+        "configuration_value": "http://localhost:8100/ncov/relecov",
+        "generated_at": "2023-01-27T19:09:42.067"
+    }
+},
+{
     "model": "relecov_core.samplestate",
     "pk": 1,
     "fields": {
@@ -33,6 +78,33 @@
         "state": "Bioinfo",
         "display_string": "Recorded Bioinfo Metadata",
         "description": "Sample contains the bioinfo metadata"
+    }
+},
+{
+    "model": "relecov_core.samplestate",
+    "pk": 3,
+    "fields": {
+        "state": "Variant",
+        "display_string": "Variant Analysis",
+        "description": "Sample contains the variant analysis"
+    }
+},
+{
+    "model": "relecov_core.samplestate",
+    "pk": 4,
+    "fields": {
+        "state": "Gisaid",
+        "display_string": "GISAID",
+        "description": "Sample has GISAID reference"
+    }
+},
+{
+    "model": "relecov_core.samplestate",
+    "pk": 5,
+    "fields": {
+        "state": "Ena",
+        "display_string": "ENA",
+        "description": "Sample has ENA reference"
     }
 }
 ]
