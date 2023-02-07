@@ -14,7 +14,7 @@ class GraphicJsonFile(models.Model):
     creation_date = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
-        db_table = "GraphicJsonFile"
+        db_table = "graphic_json_file"
 
     def __str__(self):
         return "%s" % (self.graphic_name)
