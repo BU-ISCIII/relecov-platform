@@ -136,16 +136,17 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Software installation for Ubuntu"
     apt-get update && apt-get upgrade -y
     apt-get install -y \
-        apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
-        libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3 \
+        apt-utils libcairo2 libcairo2-dev wget \
+        libmysqlclient-dev apache2-dev \
         python3-venv
+    # libapache2-mod-wsgi-py3
 fi
 
 if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
     echo "Software installation for Centos/RedHat"
-    yum groupinstall “Development tools”
-    yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
-    yum install libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
+    yum install zlib-devel bzip2-devel openssl-devel \
+                libcairo2 libcairo2-devel wget httpd-devel mysql-libs \
+		python3-venv
 fi
 
 echo "Starting relecov-platform installation"
@@ -183,6 +184,7 @@ if [ $LOG_TYPE == "symbolic_link" ]; then
     else
         echo "Log folder path: $LOG_PATH does not exist. Fix it in the initial_settings.txt and run again."
 	exit 1
+    fi
 else
     mkdir -p /opt/relecov-platform/logs
     chown $user:apache /opt/relecov-platform/logs
