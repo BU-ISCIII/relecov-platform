@@ -164,7 +164,7 @@ fi
 ## Clone relecov-platform repository
 mkdir $INSTALL_PATH/relecov-platform
 #git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
-rsync -rlv README.md LICENSE relecov_core relecov_dashboard django_utils $INSTALL_PATH/relecov-platform 
+rsync -rlv README.md LICENSE relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform 
 
 cd $INSTALL_PATH/relecov-platform
 
