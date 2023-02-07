@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELECOVPLATFORM_VERSION="0.2.0"
+RELECOVPLATFORM_VERSION="1.0.0"
 . ./initial_settings.txt
 
 db_check(){
@@ -34,7 +34,7 @@ apache_check(){
                 exit 1
             fi
         fi
-    elif [[ $linux_distribution == "CentOs" ]]; then
+    elif [[ $linux_distribution == "CentOs" || $linux_distribution == "RedHatEnterprise" ]]; then
         if ! pidof httpd > /dev/null ; then
             # web server down, restart the server
             echo "Apache Server is down... Trying to restart Apache"
@@ -104,7 +104,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 user=$SUDO_USER
-group=groups | cut -d" " -f1
+group=$(groups | cut -d" " -f1)
 
 #Linux distribution
 linux_distribution=$(lsb_release -i | cut -f 2-)
@@ -116,6 +116,11 @@ db_check
 printf "${BLUE}Successful check for database${NC}\n"
 apache_check
 printf "${BLUE}Successful check for apache${NC}\n"
+
+#================================================================
+## move to develop branch if --dev param
+
+##git checkout develop
 
 #================================================================
 
@@ -131,16 +136,16 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     echo "Software installation for Ubuntu"
     apt-get update && apt-get upgrade -y
     apt-get install -y \
-        apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
-        libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3 \
+        apt-utils wget \
+        libmysqlclient-dev apache2-dev \
         python3-venv
+    # libapache2-mod-wsgi-py3
 fi
 
-if [[ $linux_distribution == "CentOS" ]]; then
-    echo "Software installation for Centos"
-    yum groupinstall “Development tools”
-    yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
-    yum install libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
+if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+    echo "Software installation for Centos/RedHat"
+    yum install zlib-devel bzip2-devel openssl-devel \
+                wget httpd-devel mysql-libs
 fi
 
 echo "Starting relecov-platform installation"
@@ -157,14 +162,12 @@ if [ -d $INSTALL_PATH/relecov-platform ]; then
 fi
 
 ## Clone relecov-platform repository
-cd $INSTALL_PATH
-git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+mkdir $INSTALL_PATH/relecov-platform
+#git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform 
 
-cd relecov-platform
-## move to develop branch if --dev param
-##git checkout develop
+cd $INSTALL_PATH/relecov-platform
 
-# git checkout main
 ## Create apache group if it does not exist.
 if ! grep -q apache /etc/group
 then
@@ -172,9 +175,21 @@ then
 fi
 
 ## Fix permissions and owners
-mkdir -p /opt/relecov-platform/logs
-chown $user:apache /opt/relecov-platform/logs
-chmod 775 /opt/relecov-platform/logs
+
+if [ $LOG_TYPE == "symbolic_link" ]; then
+    if [ -d $LOG_PATH ]; then
+    	ln -s $LOG_PATH /opt/relecov-platform/logs
+	chmod 775 $LOG_PATH
+    else
+        echo "Log folder path: $LOG_PATH does not exist. Fix it in the initial_settings.txt and run again."
+	exit 1
+    fi
+else
+    mkdir -p /opt/relecov-platform/logs
+    chown $user:apache /opt/relecov-platform/logs
+    chmod 775 /opt/relecov-platform/logs
+fi
+
 mkdir -p /opt/relecov-platform/documents
 chown $user:apache /opt/relecov-platform/documents
 chmod 775 /opt/relecov-platform/documents
@@ -214,9 +229,9 @@ grep ^SECRET relecov_platform/settings.py > ~/.secret
 # Copying config files and script
 cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
 cp conf/urls.py /opt/relecov-platform/relecov_platform/
-cp conf/asgi.py /opt/relecov-platform/relecov_platform/
-cp conf/routing.py /opt/relecov-platform/relecov_platform/
-cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
+#cp conf/asgi.py /opt/relecov-platform/relecov_platform/
+#cp conf/routing.py /opt/relecov-platform/relecov_platform/
+#cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
 
 sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
 sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
@@ -225,20 +240,18 @@ sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
 sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
 
 sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
+sed -i "s/dns_url/${DNS_URL}/g" relecov_platform/settings.py
 
 echo "Creating the database structure for relecov-platform"
 python3 manage.py migrate
-python3 manage.py makemigrations relecov_core django_plotly_dash
+python3 manage.py makemigrations relecov_core django_plotly_dash relecov_dashboard
 python3 manage.py migrate
 
 ## Adding permissions
 chown $user:$group -R relecov_platform
-#echo "Change owner of files to Apache user"
-#chown -R www-data:www-data /opt/relecov-platform
 
 echo "Loading in database initial data"
 python3 manage.py loaddata conf/upload_tables.json
-
 
 echo "Updating Apache configuration"
 if [[ $linux_distribution == "Ubuntu" ]]; then
@@ -252,9 +265,10 @@ if [[ $linux_distribution == "Ubuntu" ]]; then
     ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
 fi
 
-if [[ $linux_distribution == "CentOS" ]]; then
-    cp conf/relecov_platform.conf /etc/httpd/conf.d/relecov_platform.conf
+if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+    cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov_platform.conf
 fi
+
 echo "Creating super user "
 python3 manage.py createsuperuser
 
