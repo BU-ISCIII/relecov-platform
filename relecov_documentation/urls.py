@@ -10,11 +10,7 @@ urlpatterns = [
         views.create_user_account,
         name="create_user_account",
     ),
-    path(
-        "initialConfiguration",
-        views.initial_configuration,
-        name="initial_configuration",
-    ),
+    path("configuration", views.configuration, name="configuration"),
     path(
         "relecovInstallation/", views.relecov_installation, name="relecov_installation"
     ),
