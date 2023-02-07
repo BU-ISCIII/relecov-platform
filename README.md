@@ -17,12 +17,14 @@
 ## Relecov docker installation
 
 
-## Install relecov-platform in your server running ubuntu
+## Install relecov-platform in your server (RedHat / CentOs / Ubuntu)
 Before starting the installation check :
 -   You have **sudo privileges** to install the additional software packets that relecov-platform needs.
 -   Database (MySQL/MariaDB) is running
 -   Local server configured for sending emails
 -   Apache server is running on local server
+-   Dependencies:
+     - lsb_release
 
 #### Clone github repository
 Open a linux terminal and move to a directory where relecov code will be downloaded
@@ -37,7 +39,7 @@ cd relecov_platform
 
 Copy the initial setting template into a file named install_settings.txt
 ```bash
-cp conf/template_initial_settings.txt initial_settings.txt
+cp conf/template_install_settings.txt initial_settings.txt
 ```
 
 Open with your favourite editor the configuration file to set your own values for
