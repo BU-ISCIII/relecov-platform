@@ -387,12 +387,14 @@ def pre_proc_depth_sample_run():
     depth_sample_list = BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
     ).values("value", "sample__collecting_lab_sample_id")
+    if len(depth_sample_list) == 0:
+        return {"ERROR": "No data"}
     sample_in_run = get_sample_parameter_data(
         {"sample_project_name": "relecov", "parameter": "number_of_samples_in_run"}
     )
-    return {"ERROR": "No data"}
-    if len(depth_sample_list) == 0:
-        return {"ERROR": "No data"}
+    # return error, no connection to LIMS
+    if "ERROR" in sample_in_run:
+        return sample_in_run
     tmp_depth = {}
     depth_sample_run = {}
     for item in depth_sample_list:

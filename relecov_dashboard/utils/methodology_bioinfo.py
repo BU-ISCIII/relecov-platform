@@ -36,7 +36,6 @@ def bioinfo_graphics():
         for key, values in json_data_sorted.items():
             data["depth"].append(float(key))
             data["variant"].append(mean(values))
-        # import pdb; pdb.set_trace()
         return data
 
     def get_percentage_data():
@@ -65,8 +64,6 @@ def bioinfo_graphics():
         return per_data
 
     bioinfo = {}
-    bioinfo["ERROR"] = ERROR_NOT_DATA_LOADED_YET
-    return bioinfo
     percentage_data = get_percentage_data()
     if "ERROR" not in percentage_data:
         bioinfo["boxplot_comparation"] = box_plot_graphic(
