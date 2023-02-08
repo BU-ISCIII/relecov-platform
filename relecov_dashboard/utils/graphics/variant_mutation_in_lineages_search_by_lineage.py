@@ -24,7 +24,9 @@ def get_variant_data_from_lineages(graphic_name=None, lineage=None, chromosome=N
             return result
 
     json_data = get_graphic_json_data(graphic_name)
-
+    # Return None to indicate that there is no data stored yet
+    if not json_data:
+        return None, None
     #    if not LineageValues.objects.filter(
     #        lineage_fieldID__property_name__iexact="lineage_name"
     #    ).exists():
