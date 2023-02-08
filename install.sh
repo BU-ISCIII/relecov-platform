@@ -3,6 +3,8 @@
 RELECOVPLATFORM_VERSION="1.0.0"
 . ./initial_settings.txt
 
+## SOME COMMENTS
+
 db_check(){
 	mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >/tmp/null ###user should have mysql permission on remote server.
 
@@ -164,7 +166,7 @@ fi
 ## Clone relecov-platform repository
 mkdir $INSTALL_PATH/relecov-platform
 #git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
-rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform 
+rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform
 
 cd $INSTALL_PATH/relecov-platform
 
