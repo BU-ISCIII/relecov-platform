@@ -13,6 +13,7 @@ from relecov_dashboard.utils.graphics.plotly_graphics import (
 )
 from relecov_dashboard.dashboard_config import ERROR_NO_SCHEMA_DEFINED
 
+
 def schema_fields_utilization():
     """Return ERROR when no connection to iSkyLIMS, NO_SCHEMA when there is
     no schema loaded yet, or the data to display graphic
