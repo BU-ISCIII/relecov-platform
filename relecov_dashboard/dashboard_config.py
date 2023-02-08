@@ -14,3 +14,4 @@ HOST_RANGE_AGE_TEXT = [
     "111 to 120",
     "121 to 130",
 ]
+ERROR_NO_SCHEMA_DEFINED = "Unable to display data because no schema is defined yet"
