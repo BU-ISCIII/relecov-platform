@@ -11,14 +11,15 @@ from relecov_dashboard.utils.graphics.plotly_graphics import (
     bar_graphic,
     graph_gauge_percent_values,
 )
-
+from relecov_dashboard.dashboard_config import ERROR_NO_SCHEMA_DEFINED
 
 def schema_fields_utilization():
-    """ """
+    """Return ERROR when no connection to iSkyLIMS, NO_SCHEMA when there is
+    no schema loaded yet, or the data to display graphic
+    """
     schema_obj = get_default_schema()
     if schema_obj is None:
-        return
-
+        return {"NO_SCHEMA": ERROR_NO_SCHEMA_DEFINED}
     util_data = {"summary": {}}
     util_data["summary"]["group"] = ["Empty Fields", "Total Fields"]
     util_data["field_detail_data"] = {"field_name": [], "field_value": []}
@@ -71,6 +72,9 @@ def index_dash_fields():
     graphics = {}
     util_data = schema_fields_utilization()
     graphics = {}
+    if "NO_SCHEMA" in util_data:
+        graphics["NO_SCHEMA"] = util_data["NO_SCHEMA"]
+        return graphics
     if "ERROR" in util_data:
         graphics["ERROR"] = util_data["ERROR"]
         graphics["grouped_fields"] = bar_graphic(
