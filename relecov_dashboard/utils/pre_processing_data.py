@@ -390,6 +390,9 @@ def pre_proc_depth_sample_run():
     sample_in_run = get_sample_parameter_data(
         {"sample_project_name": "relecov", "parameter": "number_of_samples_in_run"}
     )
+    return {"ERROR": "No data"}
+    if len(depth_sample_list) == 0:
+        return {"ERROR": "No data"}
     tmp_depth = {}
     depth_sample_run = {}
     for item in depth_sample_list:

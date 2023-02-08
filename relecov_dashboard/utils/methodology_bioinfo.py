@@ -10,6 +10,7 @@ from relecov_dashboard.utils.pre_processing_data import (
     pre_proc_depth_variants,
     pre_proc_depth_sample_run,
 )
+from relecov_dashboard.dashboard_config import ERROR_NOT_DATA_LOADED_YET
 
 
 def bioinfo_graphics():
@@ -64,36 +65,40 @@ def bioinfo_graphics():
         return per_data
 
     bioinfo = {}
+    bioinfo["ERROR"] = ERROR_NOT_DATA_LOADED_YET
+    return bioinfo
     percentage_data = get_percentage_data()
-    bioinfo["boxplot_comparation"] = box_plot_graphic(
-        percentage_data,
-        {"title": "Boxplot Percentage", "height": 400, "width": 420},
-    )
+    if "ERROR" not in percentage_data:
+        bioinfo["boxplot_comparation"] = box_plot_graphic(
+            percentage_data,
+            {"title": "Boxplot Percentage", "height": 400, "width": 420},
+        )
     depth_variants_data = get_pre_proc_data("depth_variant_consensus")
-    # import pdb; pdb.set_trace()
-    bioinfo["depth_variants"] = line_graphic(
-        depth_variants_data["depth"],
-        depth_variants_data["variant"],
-        {
-            "title": "Depth / variant consensus",
-            "height": 350,
-            "width": 420,
-            "x_title": "Depth",
-            "y_title": "number of variants",
-        },
-    )
-
+    if "ERROR" not in depth_variants_data:
+        bioinfo["depth_variants"] = line_graphic(
+            depth_variants_data["depth"],
+            depth_variants_data["variant"],
+            {
+                "title": "Depth / variant consensus",
+                "height": 350,
+                "width": 420,
+                "x_title": "Depth",
+                "y_title": "number of variants",
+            },
+        )
     depth_sample_run_data = get_pre_proc_data("depth_samples_in_run")
-    bioinfo["depth_sample_run"] = line_graphic(
-        depth_sample_run_data["depth"],
-        depth_sample_run_data["variant"],
-        {
-            "title": "Depth / number of samples in run",
-            "height": 350,
-            "width": 420,
-            "x_title": "Depth",
-            "y_title": "Samples in run",
-        },
-    )
-
+    if "ERROR" not in depth_sample_run_data:
+        bioinfo["depth_sample_run"] = line_graphic(
+            depth_sample_run_data["depth"],
+            depth_sample_run_data["variant"],
+            {
+                "title": "Depth / number of samples in run",
+                "height": 350,
+                "width": 420,
+                "x_title": "Depth",
+                "y_title": "Samples in run",
+            },
+        )
+    if not bioinfo:
+        bioinfo["ERROR"] = ERROR_NOT_DATA_LOADED_YET
     return bioinfo
