@@ -271,7 +271,7 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    relecov_group = Group.objects.get(name="RelecovManager")
+    relecov_group = Group.objects.filter(name="RelecovManager").last()
     if relecov_group not in request.user.groups.all():
         intra_data = {}
         lab_name = get_lab_name_from_user(request.user)

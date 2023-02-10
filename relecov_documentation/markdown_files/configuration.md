@@ -1,29 +1,37 @@
-# Initial Configuration
+# Configuration
 
-Before start uploading METADATA information to Relecov you must configure some information.
-The following chapters will show you the way that this information must be set in your local copy of relecov.
+After running the installation script and settings, Relecov server is up, so 
+anyone that access the relecov url can see about it. However at this very moment 
+there is nor information neither options to start uploading data.
 
-You must login as "admin" user to see the configuration Menu.
+Admin user must perform more steps to create a the basic environment for users 
+can use the application.
+
+Login as **"admin"** user to see the configuration Menu.
 
 ![configuration_menu](./img/configuration_menu.png)
 
 Note. That this menu is only available when login with user name as admin.
 
+When click on the configuration tab, you can see that serveral options that we 
+are going to describe below.
+
 ## Table of Contents
 
 1. [Schema](#schema)
 2. [Metadata](#metadata)
-3. [Annotation](#Annotation)
+3. [Annotation](#annotation)
+4. [Create New User](#Create_New_User)
 
 
 # Schema
 The first step is to load the relecov schema into database.
 
-For your convenience we have kept a schema for relecov in conf folder. Of course you can upload your own schema, but be aware that it could run into issues, because as we design "relecov platform" to be flexible, we have not tested any single scenario.
+For your convenience we have kept the latest schema for relecov in conf folder. Of course you can upload your own schema, but be aware that it could run into issues, because as we design "relecov platform" to be flexible, we have not tested any single scenario.
 
 ![upload_schema](img/upload_schema.png)
 
-In the form select the **relecov schema file**, write the **version** of the schema and click on the **Default schema** button to define that this schema will be used as default settings.
+In the form select the **relecov schema file** and click on the **Default schema** button to define that this schema will be used as default settings.
 
 Keep in mind that it is allowed to define as many schemas as you wish but only one must be the default one from where information must be filled.
 
@@ -52,7 +60,10 @@ After you have define the schema go to next chapter **Metadata**.
 
 # Metadata
 
-To define the Metadata fields, select from the top menu Configuration --> Metadata Visualization.
+Next steps is to define the Metadata fields, select from the top menu
+
+Configuration --> Metadata Visualization.
+
 You will get a form to define the fields that will show later on when uploading samples metadata.
 
 You can see that there is already fill with information.
@@ -60,12 +71,21 @@ You can see that there is already fill with information.
 ![form_select_metadata_fields](img/form_select_metadata_fields.png)
 
 This settings are collected from 2 different sources:
+
 * relecov schema loaded in the previous chapter. When all fields that has the fill mode property to "sample" are showed.
 * template_for_metadata_form.txt, which is located in conf folder. From this file the "Position in the form" is collected and presented in the table.
 
-In order to reduce the time for typing information that is related to all samples, we have split the fields in 2 tabs.
-* Fields for Sample
-* Fields for batch
+We have created this division, in order to reduce the time when user is typing information to upload Metadata information. Then for those fields that are 
+related to all samples, only once is typing. 
+
+The fields that we have considered that apllies for all samples in Metadata we 
+named them as "batch" and for those that each sample has a different value we have
+named as "sample".
+
+This is the reason that in the Select columns each field can be selected as:
+
+* sample
+* batch
 
 We recommend to keep the settings as they are, but of course you can change the order of visualization, if a field is showed, or it the field apply to all samples or it must be set for each one.
 
@@ -75,7 +95,13 @@ Apply the selected fields by clicking on the submit button. As result you will g
 
 At this point you have defined the fields that are required to upload your sample metadata to the platform.
 
-Only one metadata form allowed to be defined, For that reason the next time that you select in the menu Configuration --> Metadata Visualization, you not longer see the previous form for selecting the fields but a new window where you can see the selected fields.
+**Note that only one metadata form allowed to be defined.**
+
+For that reason the next time that you select in the menu 
+
+Configuration --> Metadata Visualization
+
+You not longer see the previous form for selecting the fields but a new window where you can see the selected fields.
 
 By default the "Fields for sample" tab is open. From here you can see the metadata fields that have to be filled each time for each sample.
 
@@ -93,15 +119,19 @@ For doing it, click on the Delete Fields tab.
 
 ![show_metadata_delete](img/show_metadata_delete.png)
 
-As you see there is a Warning message indicating that this action cannot be reverted. Once it is deleted it cannot be recover. To define new fields, repeat the definition process again.
+As you see there is a Warning message indicating that this action cannot be reverted. Once it is deleted it cannot be recover. 
+
+To define new fields, repeat the definition process again.
 
 # Annotation
 
-Annotation file for virus organism in a **gff** format is required when loading variant long table, later on.
+The last step for configuration is to upload a file which contains the virus 
+annotation. 
 
-You can upload the annotation file, in gff format that you need for you project. For your convenience we have stored on the "conf" folder named "NC_045512.2.gff".
+This file must be in a **gff** format, that you can upload your own or use the 
+virus annotation that is stored in the "conf" folder named "NC_045512.2.gff".
 
-For uploading this file or the one you need select **Virues Annotation** from the Configuation menu.
+For uploading the file, select **Virues Annotation** from the Configuation menu.
 ![show_form_annotations](img/form_annotations.png)
 
 Select the file and submit your request.
