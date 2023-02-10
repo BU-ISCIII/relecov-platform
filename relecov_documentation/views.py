@@ -5,10 +5,7 @@ from relecov_documentation.utils.markdown_handling import (
     fix_img_folder,
 )
 
-# from django.utils.html import format_html
 
-
-# Create your views here.
 def index(request):
     converted_to_html = markdown_to_html("documentation.md")
     if isinstance(converted_to_html, dict):
@@ -34,8 +31,7 @@ def relecov_installation(request):
 
 
 def configuration(request):
-    return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = markdown_to_html("initialConfiguration.md")
+    converted_to_html = markdown_to_html("configuration.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
