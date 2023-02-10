@@ -27,7 +27,10 @@ Before starting the installation check :
 -   Dependencies:
      - lsb_release:
      RedHat/CentOS: ```yum install redhat-lsb-core```
-     Ubuntu: ```xxx```
+
+#### Create database and grant permissions
+
+
 
 #### Clone github repository
 Open a linux terminal and move to a directory where relecov code will be downloaded
