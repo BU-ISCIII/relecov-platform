@@ -5,6 +5,18 @@ RELECOVPLATFORM_VERSION="1.0.0"
 
 ## SOME COMMENTS
 
+usage() {
+	cat << EOF
+This script install and upgrade the relecov platform installation.
+For installing a new instance or relecov platform execute
+    $0 
+
+For upgrade to a new release execute
+    $0 upgrade
+EOF
+}
+
+
 db_check(){
 	mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >/tmp/null ###user should have mysql permission on remote server.
 
@@ -79,8 +91,65 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
+
+
+#=============================================================================
+#                   UPGRADE INSTALLATION 
+# Check if parameter is passing to script to upgrade the installation
+# If "upgrade" parameter is set then the script only execute the upgrade part.
+# If other parameter as upgrade is given return usage message and exit
+#=============================================================================
+
+if [ "$1" ]; then
+    # check if upgrade keyword is given
+    if [ "$1" == "upgrade" ]; then
+        if [ ! -d $INSTALL_PATH/relecov-platform ]; then
+            printf "\n\n%s"
+            printf "${RED}------------------${NC}\n"
+            printf "${RED}Unable to start the upgrade.${NC}\n"
+            printf "${RED}Folder $INSTALL_PATH/relecov-platform does not exist.${NC}\n"
+            printf "${RED}------------------${NC}\n"
+            exit 1
+        fi
+        #================================================================
+        # MAIN_BODY FOR UPGRADE 
+        #================================================================
+        printf "\n\n%s"
+        printf "${YELLOW}------------------${NC}\n"
+        printf "%s"
+        printf "${YELLOW}Starting Relecov Upgrade version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+        printf "%s"
+        printf "${YELLOW}------------------${NC}\n\n"
+
+        # update installation by sinchronize folders
+        echo "Copying files to installation folder"
+        rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform
+        # upgrade database if needed
+        cd $INSTALL_PATH/relecov-platform
+        echo "activate the virtualenv"
+        source virtualenv/bin/activate
+
+        echo "checking for database changes"
+        ./manage.py makemigrations
+        ./manage.py migrate
+        ./manage collectstatics
+        printf "\n\n%s"
+        printf "${BLUE}------------------${NC}\n"
+        printf "%s"
+        printf "${BLUE}Successfuly upgrade of Relecov Platform version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+        printf "%s"
+        printf "${BLUE}------------------${NC}\n\n"
+
+        echo "Upgrade completed"
+        exit 0
+    else
+        usage >&2
+	    exit 1
+    fi
+fi
+
 #================================================================
-# MAIN_BODY
+# MAIN_BODY FOR NEW INSTALLATION 
 #================================================================
 
 printf "\n\n%s"
