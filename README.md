@@ -88,6 +88,7 @@ Set NEXSTRAIN_HOME env variable and run installer
 ```
 export NEXTSTRAIN_HOME=/opt/nextstrain
 bash nexstrain_installer_$(date "+%Y%m%d").sh
+``` 
 
 Set conda as default run-time.This will install the nexstrain conda env with all deps using micromamba.
 ```
@@ -95,7 +96,12 @@ Set conda as default run-time.This will install the nexstrain conda env with all
 ```
 
 Copy service file to `/usr/lib/systemd/system`
-
 ```
 cp ./conf/nextstrain.service /usr/lib/systemd/system
+```
+
+Copy auspice dataset to datasets folder. This contains all the data that should be rendered by nextstrain app. This is created using the [nexstrain_relecov workflow](https://github.com/BU-ISCIII/nexstrain_relecov)
+```
+mkdir -p /opt/nextstrain/dataset/sars-cov-2
+cp -r /path/to/auspice /opt/nextstrain/dataset/sars-cov-2
 ```
