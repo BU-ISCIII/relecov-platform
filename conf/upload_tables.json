@@ -108,6 +108,33 @@
     }
 },
 {
+    "model": "relecov_core.publicdatabasetype",
+    "pk": 4,
+    "fields": {
+        "public_type_name": "author",
+        "public_type_display": "Authors",
+        "created_at": "2022-10-07T08:59:39.699"
+    }
+},
+{
+    "model": "relecov_core.publicdatabasetype",
+    "pk": 5,
+    "fields": {
+        "public_type_name": "ena",
+        "public_type_display": "ENA",
+        "created_at": "2022-10-07T08:59:46.607"
+    }
+},
+{
+    "model": "relecov_core.publicdatabasetype",
+    "pk": 6,
+    "fields": {
+        "public_type_name": "gisaid",
+        "public_type_display": "GISAID",
+        "created_at": "2022-10-07T08:59:55.261"
+    }
+},
+{
     "model": "auth.group",
     "pk": 1,
     "fields": {
