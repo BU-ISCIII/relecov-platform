@@ -11,6 +11,7 @@ manage.py
 initial_settings.txt
 relecov_platform/
 documents/
+initial_settings.txt
 
 # VS code
 .vscode/
