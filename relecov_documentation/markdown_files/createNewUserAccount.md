@@ -1,29 +1,23 @@
 # How to create an user account
 
-### <red>The next steps are only for administrators.</red>
+Only admin user is allow to create a new user account. 
 
-Contact the relecov-platform application administrator to provide you with a username and password.
+If you are regular user, contact with your managers to request an account
 
-#### **First step**
+The following steps can only be executed by admin login user.
 
-First of all we must create a superuser, which will be the administrator (admin).
-We will do this through the terminal using the command:
 
-> `$ python manage.py createsuperuser`
+In your navigator add "/admin" to the main url of your relecov application to access the administration environment.
 
-  We will enter the required information:
-- Username.
-- Email address.
-- Password.
+For example: 
+```
+http://relecov.org/admin
 
-After this step we will have defined the administrator of the relecov-platform application.
+```
 
-#### **Second step**
+Under the "Site administration" area on Users row click on "+ Add" link.
 
-We must navigate to our website, for example http://relecov-platform.isciiides.es
-then We add /admin at the end of the URL, so then We will see the next URL: http://relecov-platform.isciiides.es/admin.
 
-Django will show us the administration panel of the application.
 
 ![admin main page](img/admin_panel_main.png)
 
@@ -36,7 +30,6 @@ In the central part of the screen, a table will be displayed showing us all the 
 at the moment only the administrator, recently created in the previous step.
 To add a new user we will click on the ADD USER button.
 
-![relecov-platform admin add user 2](img/admin_panel_add_user2.png)
 
 Fill username and password fields correctly and click on SAVE button.
 

@@ -42,8 +42,8 @@ def configuration(request):
     )
 
 
-def create_user_account(request):
-    converted_to_html = markdown_to_html("create_user_account.md")
+def create_new_user_account(request):
+    converted_to_html = markdown_to_html("createNewUserAccount.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
@@ -55,7 +55,6 @@ def create_user_account(request):
 
 
 def intranet(request):
-    # html_visualization_from_markdown = generate_html_from_markdown_file("intranet.md")
     converted_to_html = markdown_to_html("intranet.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
