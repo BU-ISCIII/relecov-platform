@@ -1,0 +1,18 @@
+[Unit]
+Description=Nextstrain
+[Service]
+Type=simple
+WorkingDirectory=/opt/nextstrain
+ExecStartPre=/opt/nextstrain/cli-standalone/nextstrain setup --set-default conda
+ExecStart=/opt/nextstrain/cli-standalone/nextstrain view --port 8100 /opt/nextstrain/auspice
+Restart=on-failure
+# Disable timeout logic and wait until process is stopped
+TimeoutStopSec=0
+# SIGTERM signal is used to stop the Java process
+KillSignal=SIGTERM
+# Java process is never killed
+SendSIGKILL=no
+# When a JVM receives a SIGTERM signal it exits with code 143
+SuccessExitStatus=143
+[Install]
+WantedBy=multi-user.target
