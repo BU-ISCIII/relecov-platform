@@ -10,9 +10,10 @@
 ## Table of contents
 
 * [Installation](#installation)
+* [Upgrade new release](#upgrade-to-new-release)
 * [Documentation](#documentation)
 
-## Installation
+# Installation
 
 ## Relecov docker installation
 
@@ -28,11 +29,14 @@ Before starting the installation check :
      - lsb_release:
      RedHat/CentOS: ```yum install redhat-lsb-core```
 
-#### Create database and grant permissions
+### Create relecov database and grant permissions
+
+1. Create a new database named "relecov" (this is mandatory)
+2. Create a new user with permission to read and modify that database.
+3. Write down user, passwd and db server info.
 
 
-
-#### Clone github repository
+### Clone github repository
 Open a linux terminal and move to a directory where relecov code will be downloaded
 
 ```bash
@@ -41,13 +45,7 @@ git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
 cd relecov_platform
 ```
 
-#### Create relecov database and grant permissions
-
-1. Create a new database named "relecov" (this is mandatory)
-2. Create a new user with permission to read and modify that database.
-3. Write down user, passwd and db server info.
-
-#### Configuration settings
+### Configuration settings
 
 Copy the initial setting template into a file named install_settings.txt
 ```bash
@@ -105,3 +103,25 @@ Copy auspice dataset to datasets folder. This contains all the data that should 
 mkdir -p /opt/nextstrain/dataset/sars-cov-2
 cp -r /path/to/auspice /opt/nextstrain/dataset/sars-cov-2
 ```
+
+# Upgrade to new release
+
+### Update github repository
+Open a linux terminal and move to a directory where relecov code was download during installation
+
+```bash
+cd < folder where relecov code was download >
+git pull
+cd relecov_platform
+```
+### Run upgrade script
+
+Execute the following command in a linux terminal.
+
+```bash
+
+sudo bash install.sh upgrade
+```
+
+
+# Documentation
