@@ -6,9 +6,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("", views.index, name="index"),
     path(
-        "createUserAccount/",
-        views.create_user_account,
-        name="create_user_account",
+        "createNewUserAccount/",
+        views.create_new_user_account,
+        name="create_new_user_account",
     ),
     path("configuration", views.configuration, name="configuration"),
     path(

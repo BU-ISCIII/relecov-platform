@@ -21,7 +21,8 @@ are going to describe below.
 1. [Schema](#schema)
 2. [Metadata](#metadata)
 3. [Annotation](#annotation)
-4. [Create New User](#Create_New_User)
+4. [User creation](#user-creation)
+
 
 
 # Schema
@@ -139,4 +140,27 @@ Select the file and submit your request.
 To see the already loaded files click on the Show Annotations tab.
 ![show_form_annotations](img/list_annotations.png)
 
-If you want to known the gene annotation for a specific organism click on the organism name to open a new window which has these information.
+If you want to known the gene annotation for a specific organism click on the 
+organism name to open a new window which has these information.
+
+# User creation
+
+This step does not belong to relecov application configuration but the normal 
+maintenace of user creation to provide them to access the application.
+
+There are 2 types of users:
+
+1. Users that can see information from other laboratory.
+2. Users that only can see and upload metadata information.
+
+For the first ones, they belongs to so colled **RelecovManager** group. They 
+are the users which have more priveleges, from they can see sample information 
+for any laboratory.
+
+Normal users, they belongs to a laboratory, and they has the role to upload 
+metadata information. They can see information about samples, but searching and 
+displaying is limited to the samples that the laboratory that user belongs to.
+
+As the process of user creation is part of the maintenance activity we have 
+create a separate chapter inside FAQ. To check the documentation for user creation 
+click on  a new user now [How to create new user](createNewUserAccount.md)
