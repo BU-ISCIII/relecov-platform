@@ -72,3 +72,30 @@ sudo bash install.sh
 ```
 
 After installation is completed open you navigator typing "localhost" or the "server local IP".
+
+## Install nextstrain
+
+The Nextstrain CLI ties together all necesary pieces to provide a consistent way to run pathogen workflows, access Nextstrain tools like Augur and Auspice across computing environments such as Docker, Conda, and AWS Batch, and publish datasets to nextstrain.org.
+
+# Download installer
+Move to the installation path and download installer
+```
+mkdir -p /opt/nextstrain
+cd /opt/nextstrain
+curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux > nexstrain_installer_$(date "+%Y%m%d").sh
+```
+Set NEXSTRAIN_HOME env variable and run installer
+```
+export NEXTSTRAIN_HOME=/opt/nextstrain
+bash nexstrain_installer_$(date "+%Y%m%d").sh
+
+Set conda as default run-time.This will install the nexstrain conda env with all deps using micromamba.
+```
+/opt/nextstrain/cli-standalone/nextstrain setup --set-default conda
+```
+
+Copy service file to `/usr/lib/systemd/system`
+
+```
+cp ./conf/nextstrain.service /usr/lib/systemd/system
+```
