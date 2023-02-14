@@ -21,10 +21,10 @@ def schema_fields_utilization():
     schema_obj = get_default_schema()
     if schema_obj is None:
         return {"NO_SCHEMA": ERROR_NO_SCHEMA_DEFINED}
+
     util_data = {"summary": {}}
     util_data["summary"]["group"] = ["Empty Fields", "Total Fields"]
     util_data["field_detail_data"] = {"field_name": [], "field_value": []}
-
     # get stats utilization fields from LIMS
     lims_fields = get_stats_data({"sample_project_name": "Relecov"})
     if "ERROR" in lims_fields:
@@ -46,9 +46,13 @@ def schema_fields_utilization():
             util_data["field_detail_data"]["field_name"].append(key)
             util_data["field_detail_data"]["field_value"].append(val)
         util_data["num_lab_fields"] = len(lims_fields["fields_value"])
-
     # get fields utilization from bioinfo analysis
     bio_fields = get_bioinfo_analyis_fields_utilization(schema_obj)
+    # if return an empty value skip looking for data
+    if not bool(bio_fields):
+        util_data["ERROR_ANALYSIS"] = "Not Data to process"
+        return util_data
+
     f_values = []
     for value in bio_fields["fields_norm"].values():
         f_values.append(value)
@@ -78,6 +82,10 @@ def index_dash_fields():
         return graphics
     if "ERROR" in util_data:
         graphics["ERROR"] = util_data["ERROR"]
+        # Check if bioinfo data are present
+        if "ERROR_ANALYSIS" in util_data:
+            graphics["ERROR_ANALYSIS"] = util_data["ERROR_ANALYSIS"]
+            return graphics
         graphics["grouped_fields"] = bar_graphic(
             data=util_data["summary"],
             col_names=["group", "bio_values"],
@@ -87,50 +95,61 @@ def index_dash_fields():
         )
 
     else:
-        # ##### Create comparation graphics #######
-        graphics["grouped_fields"] = bar_graphic(
-            data=util_data["summary"],
-            col_names=["group", "lab_values", "bio_values"],
-            legend=["Metada lab", "Bio analysis"],
-            yaxis={"title": "Number of fields"},
-            options={"title": "Schema Fields Utilization", "height": 300},
-        )
-
         #  ##### create metada lab analysis  ######
         graph_gauge_percent_values(
             app_name="lims_filled_values",
             value=util_data["lims_f_values"],
             label="Lab filled values %",
         )
+        # ##### Create comparation graphics #######
+        if "ERROR_ANALYSIS" in util_data:
+            graphics["grouped_fields"] = bar_graphic(
+                data=util_data["summary"],
+                col_names=["group", "lab_values"],
+                legend=["Metada lab"],
+                yaxis={"title": "Number of fields"},
+                options={"title": "Schema Fields Utilization", "height": 300},
+            )
+        else:
+            graphics["grouped_fields"] = bar_graphic(
+                data=util_data["summary"],
+                col_names=["group", "lab_values", "bio_values"],
+                legend=["Metada lab", "Bio analysis"],
+                yaxis={"title": "Number of fields"},
+                options={"title": "Schema Fields Utilization", "height": 300},
+            )
 
-    #  ##### create Bio info analysis  ######
-    graph_gauge_percent_values(
-        app_name="bio_filled_values",
-        value=util_data["bio_f_values"],
-        label="Bio filled values %",
-        size=150,
-    )
-    # ##### create bar graph with all fields and values
-    if "num_lab_fields" in util_data:
-        lab_colors = ["#0099ff"] * util_data["num_lab_fields"]
-        bio_colors = ["#1aff8c"] * util_data["num_bio_fields"]
-        colors = lab_colors + bio_colors
+    if "ERROR_ANALYSIS" not in util_data:
+        #  ##### create Bio info analysis  ######
+        graph_gauge_percent_values(
+            app_name="bio_filled_values",
+            value=util_data["bio_f_values"],
+            label="Bio filled values %",
+            size=150,
+        )
+        # ##### create bar graph with all fields and values
+        if "num_lab_fields" in util_data:
+            lab_colors = ["#0099ff"] * util_data["num_lab_fields"]
+            bio_colors = ["#1aff8c"] * util_data["num_bio_fields"]
+            colors = lab_colors + bio_colors
+        else:
+            colors = None
+        graphics["detailed_fields"] = bar_graphic(
+            data=util_data["field_detail_data"],
+            col_names=["field_name", "field_value"],
+            legend=["metadata fields"],
+            yaxis={"title": "Number of samples"},
+            options={
+                "title": "Number of samples for each schema field",
+                "height": 400,
+                "colors": colors,
+            },
+        )
+        # ###### create table for detailed field information ######
+        graphics["table"] = zip(
+            util_data["field_detail_data"]["field_name"],
+            util_data["field_detail_data"]["field_value"],
+        )
     else:
-        colors = None
-    graphics["detailed_fields"] = bar_graphic(
-        data=util_data["field_detail_data"],
-        col_names=["field_name", "field_value"],
-        legend=["metadata fields"],
-        yaxis={"title": "Number of samples"},
-        options={
-            "title": "Number of samples for each schema field",
-            "height": 400,
-            "colors": colors,
-        },
-    )
-    # ###### create table for detailed field information ######
-    graphics["table"] = zip(
-        util_data["field_detail_data"]["field_name"],
-        util_data["field_detail_data"]["field_value"],
-    )
+        graphics["ERROR_ANALYSIS"] = util_data["ERROR_ANALYSIS"]
     return graphics
