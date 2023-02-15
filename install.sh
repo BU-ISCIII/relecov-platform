@@ -1,18 +1,26 @@
 #!/bin/bash
 
 RELECOVPLATFORM_VERSION="1.0.0"
-. ./initial_settings.txt
+## . ./initial_settings.txt
 
-## SOME COMMENTS
 
 usage() {
 	cat << EOF
-This script install and upgrade the relecov platform installation.
-For installing a new instance or relecov platform execute
+This script install and upgrade the relecov platform application.
+
+usage : $0 --upgrade --dev --conf 
+	Optional input data:
+    --upgrade | Upgrade the relecov application
+    --dev     | Use the develop version instead of main release
+    --conf    | Select configuration file
+
+
+Examples: 
+    To install relecov application with the main release 
     $0 
 
-For upgrade to a new release execute
-    $0 upgrade
+    To upgrade using develop code
+    $0 --upgrade --dev
 EOF
 }
 
@@ -92,6 +100,95 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 
+# translate long options to short
+reset=true
+for arg in "$@"
+do
+    if [ -n "$reset" ]; then
+      unset reset
+      set --      # this resets the "$@" array so we can rebuild it
+    fi
+    case "$arg" in
+    ##OPTIONAL
+		--upgrade)	set -- "$@"	-u ;;
+        --dev)      set -- "$@" -d ;;
+        --conf)     set -- "$@" -c ;;
+
+    ## ADITIONAL
+        --help)     set -- "$@" -h ;;
+        --version)  set -- "$@" -v ;;
+    ## PASSING VALUE IN PARAMETER
+        *)          set -- "$@" "$arg" ;;
+    esac
+done
+
+#SETTING DEFAULT VALUES
+upgrade=false
+git_branch="master"
+conf_file="./initial_settings.txt"
+
+#PARSE VARIABLE ARGUMENTS WITH getops
+options=":c:duvh"
+while getopts $options opt; do
+	case $opt in
+		u )
+			upgrade=true
+			;;
+		d )
+			git_branch="develop"
+			;;
+        c )
+		  	conf_file=$OPTARG
+		  	;;
+		h )
+		  	usage
+		  	exit 1
+		  	;;
+		v )
+		  	echo $RELECOVPLATFORM_VERSION
+		  	exit 1
+		  	;;
+		\?)
+			echo "Invalid Option: -$OPTARG" 1>&2
+			usage
+			exit 1
+			;;
+		: )
+      		echo "Option -$OPTARG requires an argument." >&2
+      		exit 1
+      		;;
+      	* )
+			echo "Unimplemented option: -$OPTARG" >&2;
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+#=============================================================================
+#                     SETTINGS CHECKINGS
+#=============================================================================
+
+if [ ! -f "$conf_file" ]; then 
+    printf "\n\n%s"
+    printf "${RED}------------------${NC}\n"
+    printf "${RED}Unable to start.${NC}\n"
+    printf "${RED}Configuration File $conf_file does not exist.${NC}\n"
+    printf "${RED}------------------${NC}\n"
+    exit 1
+fi
+
+if [ `git branch --list $git_branch` ]; then
+    echo "checkout $git_branch"
+else
+    printf "\n\n%s"
+    printf "${RED}------------------${NC}\n"
+    printf "${RED}Unable to start.${NC}\n"
+    printf "${RED}Git branch $git_branch is not define in ${PWD}.${NC}\n"
+    printf "${RED}------------------${NC}\n"
+    exit 1
+fi
+
 
 #=============================================================================
 #                   UPGRADE INSTALLATION 
@@ -100,52 +197,49 @@ NC='\033[0m'
 # If other parameter as upgrade is given return usage message and exit
 #=============================================================================
 
-if [ "$1" ]; then
+
+
+if [ $upgrade = true ]; then
     # check if upgrade keyword is given
-    if [ "$1" == "upgrade" ]; then
-        if [ ! -d $INSTALL_PATH/relecov-platform ]; then
-            printf "\n\n%s"
-            printf "${RED}------------------${NC}\n"
-            printf "${RED}Unable to start the upgrade.${NC}\n"
-            printf "${RED}Folder $INSTALL_PATH/relecov-platform does not exist.${NC}\n"
-            printf "${RED}------------------${NC}\n"
-            exit 1
-        fi
-        #================================================================
-        # MAIN_BODY FOR UPGRADE 
-        #================================================================
+    if [ ! -d $INSTALL_PATH/relecov-platform ]; then
         printf "\n\n%s"
-        printf "${YELLOW}------------------${NC}\n"
-        printf "%s"
-        printf "${YELLOW}Starting Relecov Upgrade version: ${RELECOVPLATFORM_VERSION}${NC}\n"
-        printf "%s"
-        printf "${YELLOW}------------------${NC}\n\n"
-
-        # update installation by sinchronize folders
-        echo "Copying files to installation folder"
-        rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform
-        # upgrade database if needed
-        cd $INSTALL_PATH/relecov-platform
-        echo "activate the virtualenv"
-        source virtualenv/bin/activate
-
-        echo "checking for database changes"
-        ./manage.py makemigrations
-        ./manage.py migrate
-        ./manage collectstatics
-        printf "\n\n%s"
-        printf "${BLUE}------------------${NC}\n"
-        printf "%s"
-        printf "${BLUE}Successfuly upgrade of Relecov Platform version: ${RELECOVPLATFORM_VERSION}${NC}\n"
-        printf "%s"
-        printf "${BLUE}------------------${NC}\n\n"
-
-        echo "Upgrade completed"
-        exit 0
-    else
-        usage >&2
-	    exit 1
+        printf "${RED}------------------${NC}\n"
+        printf "${RED}Unable to start the upgrade.${NC}\n"
+        printf "${RED}Folder $INSTALL_PATH/relecov-platform does not exist.${NC}\n"
+        printf "${RED}------------------${NC}\n"
+        exit 1
     fi
+    #================================================================
+    # MAIN_BODY FOR UPGRADE 
+    #================================================================
+    printf "\n\n%s"
+    printf "${YELLOW}------------------${NC}\n"
+    printf "%s"
+    printf "${YELLOW}Starting Relecov Upgrade version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+    printf "%s"
+    printf "${YELLOW}------------------${NC}\n\n"
+
+    # update installation by sinchronize folders
+    echo "Copying files to installation folder"
+    rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform
+    # upgrade database if needed
+    cd $INSTALL_PATH/relecov-platform
+    echo "activate the virtualenv"
+    source virtualenv/bin/activate
+
+    echo "checking for database changes"
+    ./manage.py makemigrations
+    ./manage.py migrate
+    ./manage.py collectstatics
+
+    printf "\n\n%s"
+    printf "${BLUE}------------------${NC}\n"
+    printf "%s"
+    printf "${BLUE}Successfuly upgrade of Relecov Platform version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+    printf "%s"
+    printf "${BLUE}------------------${NC}\n\n"
+
+    exit 0
 fi
 
 #================================================================
@@ -338,7 +432,7 @@ if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterpris
     cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov_platform.conf
 fi
 
-echo "Creating super user "
+echo "Creating admin user"
 python3 manage.py createsuperuser
 
 printf "\n\n%s"
