@@ -178,8 +178,13 @@ if [ ! -f "$conf_file" ]; then
     exit 1
 fi
 
-if [ `git branch --list $git_branch` ]; then
-    echo "checkout $git_branch"
+# Read configuration file
+
+. $conf_file
+
+# check if branch master/develop is defined and checkout
+if [ "`git branch --list $git_branch`" ]; then
+    checkout $git_branch
 else
     printf "\n\n%s"
     printf "${RED}------------------${NC}\n"
@@ -189,7 +194,7 @@ else
     exit 1
 fi
 
-
+exit 0
 #=============================================================================
 #                   UPGRADE INSTALLATION 
 # Check if parameter is passing to script to upgrade the installation
@@ -433,7 +438,7 @@ if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterpris
 fi
 
 echo "Creating admin user"
-python3 manage.py createsuperuser
+python3 manage.py createsuperuser --username admin
 
 printf "\n\n%s"
 printf "${BLUE}------------------${NC}\n"
