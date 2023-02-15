@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from relecov_core.core_config import SCHEMAS_UPLOAD_FOLDER
 
 # Comentarios de modificacion
-### Comentarios de modificacion
+# Comentarios de modificacion
 
 
 class Profile(models.Model):
