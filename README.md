@@ -18,6 +18,7 @@
 ## Relecov docker installation
 
 SOME MODIFICATIONS
+SOME MORE MODIFICATIONS
 
 ## Install relecov-platform in your server (RedHat / CentOs / Ubuntu)
 Before starting the installation check :
@@ -86,7 +87,7 @@ Set NEXSTRAIN_HOME env variable and run installer
 ```
 export NEXTSTRAIN_HOME=/opt/nextstrain
 bash nexstrain_installer_$(date "+%Y%m%d").sh
-``` 
+```
 
 Set conda as default run-time.This will install the nexstrain conda env with all deps using micromamba.
 ```
