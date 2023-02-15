@@ -19,6 +19,7 @@
 
 SOME MODIFICATIONS
 SOME MORE MODIFICATIONS
+MORE MODIFICATIONS
 
 ## Install relecov-platform in your server (RedHat / CentOs / Ubuntu)
 Before starting the installation check :
