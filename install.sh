@@ -194,7 +194,6 @@ else
     exit 1
 fi
 
-exit 0
 #=============================================================================
 #                   UPGRADE INSTALLATION 
 # Check if parameter is passing to script to upgrade the installation
