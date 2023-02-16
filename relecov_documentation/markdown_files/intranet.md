@@ -58,5 +58,5 @@ On the left we will see a side panel with the available utilities
 ## Logout
 Before exiting the application is recommended that you logout your session.
 
-Click on the "Close session" button located at the top rigth side.
+Click on the "Close session" button located at the top right side.
 

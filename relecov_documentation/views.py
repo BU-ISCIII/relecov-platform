@@ -174,8 +174,8 @@ def howto_nextstrain(request):
     )
 
 
-def upload_to_ena(request):
-    converted_to_html = markdown_to_html("upload_to_ena.md")
+def create_new_user_account(request):
+    converted_to_html = markdown_to_html("createNewUserAccount.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
@@ -186,8 +186,8 @@ def upload_to_ena(request):
     )
 
 
-def upload_to_gisaid(request):
-    converted_to_html = markdown_to_html("upload_to_gisaid.md")
+def upload_metadata(request):
+    converted_to_html = markdown_to_html("uploadMetadata.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
