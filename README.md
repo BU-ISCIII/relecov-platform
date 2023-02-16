@@ -1,10 +1,10 @@
 # relecov-platform
 [![python_lint](https://github.com/BU-ISCIII/relecov-tools/actions/workflows/python_lint.yml/badge.svg)](https://github.com/BU-ISCIII/relecov-tools/actions/workflows/python_lint.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Django](https://img.shields.io/static/v1?label=Django&message=3.2.10&color=blue?style=plastic&logo=django)](https://github.com/django/django)
+[![Django](https://img.shields.io/static/v1?label=Django&message=3.2.17&color=blue?style=plastic&logo=django)](https://github.com/django/django)
 [![Python](https://img.shields.io/static/v1?label=Python&message=3.9.10&color=green?style=plastic&logo=Python)](https://www.python.org/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-v5.0-blueviolet?style=plastic&logo=Bootstrap)](https://getbootstrap.com)
-[![version](https://img.shields.io/badge/version-0.0.1-orange?style=plastic&logo=GitHub)](https://github.com/BU-ISCIII/relecov-platform.git)
+[![version](https://img.shields.io/badge/version-1.0.0-orange?style=plastic&logo=GitHub)](https://github.com/BU-ISCIII/relecov-platform.git)
 
 > THIS REPO IS IN ACTIVE DEVELOPMENT.
 ## Table of contents
@@ -119,11 +119,14 @@ cd relecov_platform
 ### Run upgrade script
 
 Execute the following command in a linux terminal.
-
+After the code is updated, the script requests you enter the sudo password
+to restart Apache server to update changes.
 ```bash
 
-sudo bash install.sh upgrade
+bash install.sh --upgrade
 ```
 
-
 # Documentation
+Relecov usage documentation is included in the platform.
+
+In the menu, click on **Documentation**.
