@@ -15,7 +15,7 @@ def index(request):
         request,
         "relecov_documentation/base.html",
         {"html": converted_to_html},
-     )
+    )
 
 
 def description(request):
@@ -27,7 +27,8 @@ def description(request):
         request,
         "relecov_documentation/base.html",
         {"html": converted_to_html},
-     )
+    )
+
 
 def relecov_install(request):
     converted_to_html = markdown_to_html("relecov_install.md")
