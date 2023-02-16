@@ -102,30 +102,6 @@ def intranet(request):
     )
 
 
-def intranet(request):
-    converted_to_html = markdown_to_html("intranet.md")
-    if isinstance(converted_to_html, dict):
-        return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = fix_img_folder(converted_to_html)
-    return render(
-        request,
-        "relecov_documentation/base.html",
-        {"html": converted_to_html},
-    )
-
-
-def upload_metadata_lab(request):
-    converted_to_html = markdown_to_html("upload_metadata_lab.md")
-    if isinstance(converted_to_html, dict):
-        return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = fix_img_folder(converted_to_html)
-    return render(
-        request,
-        "relecov_documentation/base.html",
-        {"html": converted_to_html},
-    )
-
-
 def intranet_dashboard(request):
     converted_to_html = markdown_to_html("intranet_dashboard.md")
     if isinstance(converted_to_html, dict):
