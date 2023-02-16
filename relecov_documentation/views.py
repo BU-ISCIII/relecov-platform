@@ -18,8 +18,8 @@ def index(request):
      )
 
 
-def relecov_installation(request):
-    converted_to_html = markdown_to_html("relecovInstallation.md")
+def relecov_install(request):
+    converted_to_html = markdown_to_html("relecov_install.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
@@ -42,8 +42,32 @@ def configuration(request):
     )
 
 
-def create_new_user_account(request):
-    converted_to_html = markdown_to_html("createNewUserAccount.md")
+def metadata(request):
+    converted_to_html = markdown_to_html("metadata.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def metadata_lab_excel(request):
+    converted_to_html = markdown_to_html("metadata_lab_excel.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def relecov_tools(request):
+    converted_to_html = markdown_to_html("relecov_tools.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
@@ -66,44 +90,8 @@ def intranet(request):
     )
 
 
-def dashboard(request):
-    converted_to_html = markdown_to_html("dashboard.md")
-    if isinstance(converted_to_html, dict):
-        return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = fix_img_folder(converted_to_html)
-    return render(
-        request,
-        "relecov_documentation/base.html",
-        {"html": converted_to_html},
-    )
-
-
-def results_download(request):
-    converted_to_html = markdown_to_html("results_download.md")
-    if isinstance(converted_to_html, dict):
-        return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = fix_img_folder(converted_to_html)
-    return render(
-        request,
-        "relecov_documentation/base.html",
-        {"html": converted_to_html},
-    )
-
-
-def results_info_processed(request):
-    converted_to_html = markdown_to_html("results_info_processed.md")
-    if isinstance(converted_to_html, dict):
-        return render(request, "relecov_documentation/error_404.html")
-    converted_to_html = fix_img_folder(converted_to_html)
-    return render(
-        request,
-        "relecov_documentation/base.html",
-        {"html": converted_to_html},
-    )
-
-
-def results_info_received(request):
-    converted_to_html = markdown_to_html("results_info_received.md")
+def intranet(request):
+    converted_to_html = markdown_to_html("intranet.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
@@ -116,6 +104,78 @@ def results_info_received(request):
 
 def upload_metadata_lab(request):
     converted_to_html = markdown_to_html("upload_metadata_lab.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def intranet_dashboard(request):
+    converted_to_html = markdown_to_html("intranet_dashboard.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def upload_metadata_lab(request):
+    converted_to_html = markdown_to_html("upload_metadata_lab.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def variant_dashboard(request):
+    converted_to_html = markdown_to_html("variant_dashboard.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def methodology_dashboard(request):
+    converted_to_html = markdown_to_html("methodology_dashboard.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def nextstrain_install(request):
+    converted_to_html = markdown_to_html("nextstrain_install.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def howto_nextstrain(request):
+    converted_to_html = markdown_to_html("howto_nextstrain.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
@@ -150,8 +210,32 @@ def upload_to_gisaid(request):
     )
 
 
-def api_usage(request):
-    converted_to_html = markdown_to_html("api_usage.md")
+def api_schema(request):
+    converted_to_html = markdown_to_html("api_schema.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def howto_api(request):
+    converted_to_html = markdown_to_html("howto_api.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+def create_new_user(request):
+    converted_to_html = markdown_to_html("createNewUserAccount.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
