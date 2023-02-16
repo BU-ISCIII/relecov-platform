@@ -1,25 +1,41 @@
-# relecov-platform Intranet
+# Intranet
 
-### How to access to relecov-platform Intranet
+Intranet is an Area where Laboratory can see information about the samples that
+they have preeviously uploaded.
 
-Requirements:
+It is important to mention that Laboratory can only get information from their
+own samples.
 
-- User account provided by the application administrator. For more info, [click here](/documentation/createUserAccount).
+For that reason you must login to access this area.
 
 
-On the home page of the relecov-platform application, we must click on the Intranet link, as shown in the following image:
+### Accessing to Intranet
+To access Intranet click on the "Intranet" button.
 
 ![relecov-platform navbar](img/relecov_platform_navbar.png)
 
-Now we can see a panel to access the intranet.
-We must enter our username and password, and finally click on Submit credentials button.
+---
+
+If you do not have yet the login credential contact with your manager to request
+them for you.
+
+---
+
+For **admin** user follow the instructions provide in [Create new user](/documentation/createNewUSer) to add new user.
+
+
+
+
+Enter your username and password, and click on Submit credentials button.
 
 ![relecov-platform login intranet](img/login_intranet.png)
 
-After entering our credentials correctly, the application will take us back to the home page.
+After login correctly, the available options are showed on the left side.
+
+
 In the upper right corner we will see our username and the logout button
 
-![relecov-platform login intranet](img/login_intranet_ok.png)
+
 
 To access the utilities contained in the intranet, we will click on the Intranet button again.
 
