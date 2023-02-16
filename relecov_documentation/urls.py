@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("description", views.description, name="description"),
     path(
         "relecovInstall/", views.relecov_install, name="relecov_install"
     ),
@@ -22,10 +23,10 @@ urlpatterns = [
     path("methodologyDashboard/", views.methodology_dashboard, name="methodology_dashboard"),
     path("nextstrainInstall/", views.nextstrain_install, name="nextstrain_install"),
     path("howtoNextstrain/", views.howto_nextstrain, name="howto_nextstrain"),
-    path("UploadToEna/", views.upload_to_ena, name="upload_to_ena"),
-    path("UploadToGisaid/", views.upload_to_gisaid, name="upload_to_gisaid"),
-    path("ApiSchema/", views.api_schema, name="api_schema"),
-    path("HowtoApi/", views.howto_api, name="howto_api"),
+    path("uploadToEna/", views.upload_to_ena, name="upload_to_ena"),
+    path("uploadToGisaid/", views.upload_to_gisaid, name="upload_to_gisaid"),
+    path("apiSchema/", views.api_schema, name="api_schema"),
+    path("howtoApi/", views.howto_api, name="howto_api"),
     path(
         "createNewUser/",
         views.create_new_user,
