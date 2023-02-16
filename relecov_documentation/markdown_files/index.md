@@ -1,25 +1,39 @@
-# Relecov documentation
-
-Small summary about relecov.
-
+# Relecov platform documentation
 
 ## Table of Contents
+
+- Overview
+    - [Description](description.md)
+
 - Installation
-    - [Overview](structureOverview.md)
-    - [Relecov Installation](relecovInstallation.md)
+    - [Relecov platform installation](relecov_install.md)
     - [Configuration](configuration.md)
-    - [User definition](userDefinition)
+
+- Metadata
+    - [Overview](metadata.md)
+    - [How to fill metadata lab excel](metadata_lab_excel.md)
+    - [relecov-tools](relecov_tools.md)
 
 - Intranet
-    - [Upload Data](intranet.md)
-    - [Dashboard](dashboard.md)
+    - [Overview](intranet.md)
+    - [Upload Data](upload_metadata_lab.md)
+    - [Dashboard](intranet_dashboard.md)
 
-- Variant Dashboard
-
-- Methodology Dashboard
-    - [Host Info](hostInfo.md)
+- Dashboards
+   - [Variant dashboard](variant_dashboard.md)
+   - [Methodology dashboard](methodology_dashboard.md)
 
 - Nextstrain
+   - [Installation](nextstrain_install.md)
+   - [How to use](howto_nextstrain.md)
+
+- Data sharing
+   - [Upload to ENA](upload_to_ena.md)
+   - [Upload to GISAID](upload_to_gisaid.md)
+
+- API docs
+   - [API schema](api_schema.md)
+   - [How to use](howto_api.md)
 
 - FAQs
-    - [Create new users](createNewUsers.md)
+    - [Create new users](create_new_user.md)
