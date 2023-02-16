@@ -92,8 +92,8 @@ h1, h2, h3, h4, h5, h6 {
 # Sections & Section Header
 --------------------------------------------------------------*/
 section {
-  padding: 60px 0;
-  overflow: hidden;
+  padding: 80px 0;
+  /*overflow: hidden;*/
 }
 
 .section-header {
@@ -253,7 +253,7 @@ section {
 }
 
 /*--------------------------------------------------------------
-# Desktop Navigation 
+# Desktop Navigation
 --------------------------------------------------------------*/
 @media (min-width: 1080px) {
   .navbar {
@@ -2646,7 +2646,7 @@ section {
 }
 .footer .footer-content {
   background: var(--color-secondary);
-  padding: 60px 0 30px 0;
+  padding: 30px 0 30px 0;
 }
 .footer .footer-content .footer-info {
   margin-bottom: 30px;
