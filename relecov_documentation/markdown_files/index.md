@@ -16,8 +16,8 @@
 
 - Intranet
     - [Overview](intranet.md)
-    - [Upload Data](upload_metadata_lab.md)
-    - [Dashboard](intranet_dashboard.md)
+    - [Upload Metadata](upload_metadata_lab.md)
+    - [Intranet dashboard](intranet_dashboard.md)
 
 - Dashboards
    - [Variant dashboard](variant_dashboard.md)
@@ -25,7 +25,7 @@
 
 - Nextstrain
    - [Installation](nextstrain_install.md)
-   - [How to use](howto_nextstrain.md)
+   - [How to use RELECOV Nexstrain](howto_nextstrain.md)
 
 - Data sharing
    - [Upload to ENA](upload_to_ena.md)
@@ -33,7 +33,7 @@
 
 - API docs
    - [API schema](api_schema.md)
-   - [How to use](howto_api.md)
+   - [How to use RELECOV API](howto_api.md)
 
 - FAQs
     - [Create new users](create_new_user.md)
