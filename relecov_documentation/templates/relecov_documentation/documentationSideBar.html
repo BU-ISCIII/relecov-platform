@@ -1,3 +1,4 @@
+{% block content %}
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
@@ -10,13 +11,25 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
     <div class="sidebar-heading">
+        <i class="bi bi-filetype-py"></i> Overview
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/description">
+            <i class="bi bi-display"></i>
+            <span>Description</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
         <i class="bi bi-filetype-py"></i> Installation
     </div>
     <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-        <a class="nav-link" href="/documentation/relecovInstallation">
+        <a class="nav-link" href="/documentation/relecovInstall">
             <i class="bi bi-display"></i>
-            <span>Relecov installation</span></a>
+            <span>Relecov platform installation</span></a>
     </li>
     <li class="nav-item active">
         <a class="nav-link" href="/documentation/configuration">
@@ -24,141 +37,143 @@
             <span>Configuration</span></a>
     </li>
     <br>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-filetype-py"></i> Metadata
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/metadata">
+            <i class="bi bi-display"></i>
+            <span>Overview</span></a>
+    </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/metadataLabExcel">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>How to fill metadata lab excel</span></a>
+    </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/relecovTools">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>relecov-tools</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
     <hr class="sidebar-divider my-0">
     <div class="sidebar-heading">
         <i class="bi bi-info-circle"></i> Intranet
     </div>
+    <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-        <a class="nav-link" href="/documentation/uploadMetadata">
-            
+        <a class="nav-link" href="/documentation/intranet">
+
+            <span>Overview</span></a>
+    </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/uploadMetadataLab">
+
             <span>Upload Metadata</span></a>
     </li>
-    <hr class="sidebar-divider my-0">
-    <div class="sidebar-heading">
-        Variant Dashboard
-    </div>
-   
+    <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-        <a class="nav-link" href="/documentation/variantMutationDashboard">
-            <i class="bi bi-search"></i>
-            <span>Mutation Dashboard</span></a>
-    </li>
-   
-    <li class="nav-item active">
-        <a class="nav-link" href="/documentation/variantMutationDashboard">
-            <i class="bi bi-search"></i>
-            <span>Mutation Dashboard2</span></a>
-    </li>
+        <a class="nav-link" href="/documentation/intranetDashboard">
 
+            <span>Intranet dashboard</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
     <hr class="sidebar-divider my-0">
     <div class="sidebar-heading">
-        <i class="bi bi-file-earmark-spreadsheet"></i> Methodology Dashboard
+        Dashboards
     </div>
+    <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-        <a class="nav-link" href="/documentation/methodologyHostInfo">
+        <a class="nav-link" href="/documentation/variantDashboard">
             <i class="bi bi-search"></i>
-            <span>Host Info</span></a>
+            <span>Variant dashboard</span></a>
     </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/methodologyDashboard">
+            <i class="bi bi-search"></i>
+            <span>Methodology dashboard</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Nextstrain
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/nextstrainInstall">
+            <i class="bi bi-search"></i>
+            <span>Nexstrain installation</span></a>
+    </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/howtoNextstrain">
+            <i class="bi bi-search"></i>
+            <span>How to use RELECOV Nexstrain</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Data sharing
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/uploadToEna">
+            <i class="bi bi-search"></i>
+            <span>Upload to ENA</span></a>
+    </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/uploadToGisaid">
+            <i class="bi bi-search"></i>
+            <span>Upload to GISAID</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+    <div class="sidebar-heading">
+        <i class="bi bi-file-earmark-spreadsheet"></i> API docs
+    </div>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/apiSchema">
+            <i class="bi bi-search"></i>
+            <span>API schema</span></a>
+    </li>
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="/documentation/howtoApi">
+            <i class="bi bi-search"></i>
+            <span>How to use RELECOV platform API</span></a>
+    </li>
+    <br>
+    <!-- Divider -->
     <hr class="sidebar-divider my-0">
     <div class="sidebar-heading">
         FAQs
     </div>
+    <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
         <a class="nav-link" href="/documentation/createNewUser">
             <i class="bi bi-person-add"></i>
             <span>Create New User</span></a>
     </li>
-    
+
     <!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
-        
+
     </div>
 </ul>
 
-
-
-{% comment %} 
-<aside id="sidebar" class="sidebar" style="">
-    <span class="fs-5 d-none d-sm-inline">Documentation</span>
-    <ul class="sidebar-nav" id="sidebar-nav">
-        <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#installation-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
-                <i class="bi bi-boxes"></i><span>Installation</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="installation-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
-                <li>
-                    <a href="/documentation/Installation">
-                        <i class="bi bi-cloud-upload"></i><span>Installation steps</span>
-                    </a>
-                </li>
-            </ul>
-            <a class="nav-link collapsed" data-bs-target="#initial-config-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
-                <i class="bi bi-gear"></i><span>Configuration</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="initial-config-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
-                <li>
-                    <a href="/documentation/initialConfiguration">
-                        <i class="bi bi-cloud-upload"></i><span>Initial Configuration</span>
-                    </a>
-                </li>
-            </ul>
-            <a class="nav-link collapsed" data-bs-target="#metadata-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
-                <i class="bi bi-menu-button-wide"></i><span>Intranet</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="metadata-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
-                <li>
-                    <a href="/documentation/createUserAccount">
-                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-cloud-upload"></i><span>Create user account</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/documentation/Intranet">
-                        <!--<i class="bi bi-circle"></i>--><i class="bi bi-info-circle"></i><span>Access to intranet</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/documentation/UploadMetadataLab">
-                        <i class="bi bi-info-circle"></i><span>Upload Metadata Lab</span>
-                    </a>
-                </li>
-
-            </ul>
-        </li><!--End VOCs/VUIs Nav -->
-
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#dashboard-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
-                <i class="bi bi-cloud-arrow-down"></i><span>Dashboard</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="dashboard-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
-                <li>
-                    <a href="/documentation/ResultsDownload">
-                        <!--<i class="bi bi-circle"></i>--><span>Variant dashboard</span>
-                    </a>
-                    <ul>
-                            <a href="/documentation/ResultsDownload">
-                                <!--<i class="bi bi-circle"></i>--><span>Lineages VOC</span>
-                            </a>
-                    </ul>
-                </li>
-            </ul>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#api-nav" data-bs-toggle="collapse" href="#" aria-expanded="false">
-                <i class="bi bi-cloud-arrow-up"></i><span>Rest API</span><i class="bi bi-chevron-up ms-auto"></i>
-            </a>
-            <ul id="api-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav" style="">
-                <li>
-                    <a href="/documentation/ApiUsage">
-                        <!--<i class="bi bi-circle"></i>--><span>Usage</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
-
-    </ul>
-</aside>
-
 {% endblock %}
- {% endcomment %}
