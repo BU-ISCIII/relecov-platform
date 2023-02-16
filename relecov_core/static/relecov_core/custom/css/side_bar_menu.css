@@ -4,13 +4,13 @@
     position: relative;
     top: 80px;
   }
-  
+
   #wrapper #content-wrapper {
     background-color: #ffffff;
     width: 100%;
     overflow-x: hidden;
   }
-  
+
   #wrapper #content-wrapper #content {
     flex: 1 0 auto;
   }
@@ -31,47 +31,47 @@
     width: 6.5rem;
     min-height: 100vh;
   }
-  
+
   .sidebar .nav-item {
     position: relative;
   }
-  
+
   .sidebar .nav-item:last-child {
     margin-bottom: 1rem;
   }
-  
+
   .sidebar .nav-item .nav-link {
     text-align: center;
-    padding: 0.75rem 1rem;
+    padding: 0rem 0.5rem 0rem 1rem;
     width: 6.5rem;
   }
-  
+
   .sidebar .nav-item .nav-link span {
     font-size: 0.65rem;
     display: block;
   }
-  
+
   .sidebar .nav-item.active .nav-link {
     font-weight: 700;
   }
-  
+
   .sidebar .nav-item .collapse {
     position: absolute;
     left: calc(6.5rem + 1.5rem / 2);
     z-index: 1;
     top: 2px;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner {
     border-radius: 0.35rem;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
   }
-  
+
   .sidebar .nav-item .collapsing {
     display: none;
     transition: none;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner,
   .sidebar .nav-item .collapsing .collapse-inner {
     padding: .5rem 0;
@@ -79,7 +79,7 @@
     font-size: 0.85rem;
     margin: 0 0 1rem 0;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner .collapse-header,
   .sidebar .nav-item .collapsing .collapse-inner .collapse-header {
     margin: 0;
@@ -90,7 +90,7 @@
     font-size: 0.65rem;
     color: #b7b9cc;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner .collapse-item,
   .sidebar .nav-item .collapsing .collapse-inner .collapse-item {
     padding: 0.5rem 1rem;
@@ -101,23 +101,23 @@
     border-radius: 0.35rem;
     white-space: nowrap;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner .collapse-item:hover,
   .sidebar .nav-item .collapsing .collapse-inner .collapse-item:hover {
     background-color: #eaecf4;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner .collapse-item:active,
   .sidebar .nav-item .collapsing .collapse-inner .collapse-item:active {
     background-color: #dddfeb;
   }
-  
+
   .sidebar .nav-item .collapse .collapse-inner .collapse-item.active,
   .sidebar .nav-item .collapsing .collapse-inner .collapse-item.active {
     color: #4e73df;
     font-weight: 700;
   }
-  
+
   .sidebar #sidebarToggle {
     width: 2.5rem;
     height: 2.5rem;
@@ -125,37 +125,37 @@
     margin-bottom: 1rem;
     cursor: pointer;
   }
-  
+
   .sidebar #sidebarToggle::after {
     font-weight: 900;
     content: '\f104';
     font-family: 'Font Awesome 5 Free';
     margin-right: 0.1rem;
   }
-  
+
   .sidebar #sidebarToggle:hover {
     text-decoration: none;
   }
-  
+
   .sidebar #sidebarToggle:focus {
     outline: none;
   }
-  
+
   .sidebar.toggled {
     width: 0 !important;
     overflow: hidden;
   }
-  
+
   .sidebar.toggled #sidebarToggle::after {
     content: '\f105';
     font-family: 'Font Awesome 5 Free';
     margin-left: 0.25rem;
   }
-  
+
   .sidebar.toggled .sidebar-card {
     display: none;
   }
-  
+
   .sidebar .sidebar-brand {
     height: 4.375rem;
     text-decoration: none;
@@ -167,26 +167,26 @@
     letter-spacing: 0.05rem;
     z-index: 1;
   }
-  
+
   .sidebar .sidebar-brand .sidebar-brand-icon i {
     font-size: 2rem;
   }
-  
+
   .sidebar .sidebar-brand .sidebar-brand-text {
     display: none;
   }
-  
+
   .sidebar hr.sidebar-divider {
     margin: 0 1rem 1rem;
   }
-  
+
   .sidebar .sidebar-heading {
     text-align: center;
     padding: 0 1rem;
     font-weight: 800;
     font-size: 0.85rem;
   }
-  
+
   .sidebar .sidebar-card {
     display: flex;
     flex-direction: column;
@@ -200,21 +200,21 @@
     padding: 1rem;
     background-color: rgba(0, 0, 0, 0.1);
   }
-  
+
   .sidebar .sidebar-card .sidebar-card-illustration {
     height: 3rem;
     display: block;
   }
-  
+
   .sidebar .sidebar-card .sidebar-card-title {
     font-weight: bold;
   }
-  
+
   .sidebar .sidebar-card p {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.5);
   }
-  
+
   @media (min-width: 768px) {
     .sidebar {
       width: 14rem !important;
@@ -243,7 +243,7 @@
       display: block;
       width: 100%;
       text-align: left;
-      padding: 1rem;
+      padding: 0rem 0.5rem 0rem 1rem;
       width: 14rem;
     }
     .sidebar .nav-item .nav-link i {
@@ -332,63 +332,63 @@
       text-align: center;
     }
   }
-    
+
   .sidebar-dark .sidebar-brand {
     color: #05C46B;
   }
-  
+
   .sidebar-dark hr.sidebar-divider {
     border-top: 1px solid rgba(255, 255, 255, 0.15);
   }
-  
+
   .sidebar-dark .sidebar-heading {
     color: rgba(5, 196, 107, 0.8);
   }
-  
+
   .sidebar-dark .nav-item .nav-link {
     color: rgba(255, 255, 255, 0.8);
   }
-  
+
   .sidebar-dark .nav-item .nav-link i {
     color: rgba(255, 255, 255, 0.3);
   }
-  
+
   .sidebar-dark .nav-item .nav-link:active, .sidebar-dark .nav-item .nav-link:focus, .sidebar-dark .nav-item .nav-link:hover {
     color: #fff;
   }
-  
+
   .sidebar-dark .nav-item .nav-link:active i, .sidebar-dark .nav-item .nav-link:focus i, .sidebar-dark .nav-item .nav-link:hover i {
     color: #fff;
   }
-  
+
   .sidebar-dark .nav-item .nav-link[data-toggle="collapse"]::after {
     color: rgba(255, 255, 255, 0.5);
   }
-  
+
   .sidebar-dark .nav-item.active .nav-link {
     color: #80AAFF;
   }
-  
+
   .sidebar-dark .nav-item.active .nav-link i {
     color: #80AAFF;
   }
-  
+
   .sidebar-dark #sidebarToggle {
     background-color: rgba(255, 255, 255, 0.2);
   }
-  
+
   .sidebar-dark #sidebarToggle::after {
     color: #80AAFF;
   }
-  
+
   .sidebar-dark #sidebarToggle:hover {
     background-color: rgba(128, 170, 255, 0.25);
   }
-  
+
   .sidebar-dark.toggled #sidebarToggle::after {
     color: rgba(128, 170, 255, 0.5);
   }
-  
+
   .btn-circle {
     border-radius: 100%;
     height: 2.5rem;
@@ -398,35 +398,35 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .btn-circle.btn-sm, .btn-group-sm > .btn-circle.btn {
     height: 1.8rem;
     width: 1.8rem;
     font-size: 0.75rem;
   }
-  
+
   .btn-circle.btn-lg, .btn-group-lg > .btn-circle.btn {
     height: 3.5rem;
     width: 3.5rem;
     font-size: 1.35rem;
   }
 
-  
+
   .accordion > .card {
     overflow: hidden;
   }
-  
+
   .accordion > .card:not(:last-of-type) {
     border-bottom: 0;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
   }
-  
+
   .accordion > .card:not(:first-of-type) {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
   }
-  
+
   .accordion > .card > .card-header {
     border-radius: 0;
     margin-bottom: -1px;
