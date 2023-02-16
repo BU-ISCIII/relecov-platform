@@ -217,7 +217,7 @@
 
   @media (min-width: 768px) {
     .sidebar {
-      width: 14rem !important;
+      width: 17rem !important;
     }
     .sidebar .nav-item .collapse {
       position: relative;
@@ -244,10 +244,10 @@
       width: 100%;
       text-align: left;
       padding: 0rem 0.5rem 0rem 1rem;
-      width: 14rem;
+      width: 17rem;
     }
     .sidebar .nav-item .nav-link i {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       margin-right: 0.25rem;
     }
     .sidebar .nav-item .nav-link span {
