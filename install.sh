@@ -235,7 +235,18 @@ if [ $upgrade = true ]; then
     ./manage.py makemigrations
     ./manage.py migrate
     ./manage.py collectstatics
-
+    
+    #Linux distribution
+    linux_distribution=$(lsb_release -i | cut -f 2-)
+    
+    echo ""
+    echo "Restart apache server to update changes"
+    if [[ $linux_distribution == "Ubuntu" ]]; then
+        apache_user="apache"
+    else
+        apache_user="httpd" 
+    sudo systemctl restart $apache_user
+    
     printf "\n\n%s"
     printf "${BLUE}------------------${NC}\n"
     printf "%s"
