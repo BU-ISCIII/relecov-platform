@@ -20,20 +20,20 @@
     - [Intranet dashboard](intranet_dashboard.md)
 
 - Dashboards
-   - [Variant dashboard](variant_dashboard.md)
-   - [Methodology dashboard](methodology_dashboard.md)
+    - [Variant dashboard](variant_dashboard.md)
+    - [Methodology dashboard](methodology_dashboard.md)
 
 - Nextstrain
-   - [Installation](nextstrain_install.md)
-   - [How to use RELECOV Nexstrain](howto_nextstrain.md)
+    - [Installation](nextstrain_install.md)
+    - [How to use RELECOV Nexstrain](howto_nextstrain.md)
 
 - Data sharing
-   - [Upload to ENA](upload_to_ena.md)
-   - [Upload to GISAID](upload_to_gisaid.md)
+    - [Upload to ENA](upload_to_ena.md)
+    - [Upload to GISAID](upload_to_gisaid.md)
 
 - API docs
-   - [API schema](api_schema.md)
-   - [How to use RELECOV API](howto_api.md)
+    - [API schema](api_schema.md)
+    - [How to use RELECOV API](howto_api.md)
 
 - FAQs
     - [Create new users](create_new_user.md)
