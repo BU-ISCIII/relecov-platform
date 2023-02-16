@@ -1,4 +1,0 @@
-# relecov-platform
-
-### Results Download
-
