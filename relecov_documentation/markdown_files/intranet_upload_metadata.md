@@ -69,6 +69,15 @@ The information stored in the first page of metadata form is associated to the l
 
 ## Upload Metadata excel file
 
+Second option to upload Metadata lab to relecov is using the Metadata Excel file. 
+This required that you previously filled the excel and when completed select the 
+tab **Upload file** in Metadata form.
+
+![form_metadata_upload_file](img/form_metadata_upload_file.png)
+
+Attach the file and **Submit**.
+
+Successful page to confirm that your data are sucessful stored for validation is showed.
 
 
 
