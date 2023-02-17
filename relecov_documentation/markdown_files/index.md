@@ -15,9 +15,9 @@
     - [relecov-tools](relecov_tools.md)
 
 - Intranet
-    - [Overview](intranet.md)
-    - [Upload Metadata](upload_metadata_lab.md)
-    - [Intranet dashboard](intranet_dashboard.md)
+    - [Overview](intranetOverview.md)
+    - [Upload Metadata](intranetUploadMetadata.md)
+    - [Contact data](intranetContactData.md)
 
 - Dashboards
     - [Variant dashboard](variant_dashboard.md)

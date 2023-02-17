@@ -11,9 +11,10 @@ urlpatterns = [
     path("metadata/", views.metadata, name="metadata"),
     path("metadataLabExcel/", views.metadata_lab_excel, name="metadata_lab_excel"),
     path("relecovTools/", views.relecov_tools, name="relecov_tools"),
-    path("intranet/", views.intranet, name="intranet"),
-    path("intranetDashboard/", views.intranet_dashboard, name="intranet_dashboard"),
-    path("uploadMetadataLab/", views.upload_metadata_lab, name="upload_metadata_lab"),
+    path("intranetOverview/", views.intranet_overview, name="intranet_overview"),
+    path("intranetContactData/", views.intranet_contact_data, name="intranet_contact_data"),
+    path("intranetSampleSearch/", views.intranet_sample_search, name="intranet_sample_search"),
+    path("intranetUploadMetadata/", views.intranet_upload_metadata, name="intranet_upload_metadata"),
     path("variantDashboard/", views.variant_dashboard, name="variant_dashboard"),
     path(
         "methodologyDashboard/",
