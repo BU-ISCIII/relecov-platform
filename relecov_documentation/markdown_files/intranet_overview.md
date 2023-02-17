@@ -1,7 +1,7 @@
 # Intranet
 
-Intranet is an Area where Laboratory can see information about the samples that
-they have preeviously uploaded.
+Intranet is an Area where Laboratory staff can see information about the samples
+that they have preeviously uploaded.
 
 It is important to mention that Laboratory can only get information from their
 own samples.

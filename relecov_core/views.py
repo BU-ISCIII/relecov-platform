@@ -370,7 +370,9 @@ def metadata_form(request):
                 request.FILES["metadataFile"], request.user.username
             )
             return render(
-                request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
+                request,
+                "relecov_core/metadataForm.html",
+                {"sample_recorded": {"ok": "OK"}},
             )
     if request.method == "POST" and request.POST["action"] == "defineSamples":
         res_analyze = analyze_input_samples(request)
@@ -412,7 +414,7 @@ def metadata_form(request):
         delete_temporary_sample_table(request.user)
         # Display page to indicate that process is starting
         return render(
-            request, "relecov_core/metadataForm.html", {"sample_recorded": "ok"}
+            request, "relecov_core/metadataForm.html", {"sample_recorded": {"ok": "OK"}}
         )
     else:
         if pending_samples_in_metadata_form(request.user):
