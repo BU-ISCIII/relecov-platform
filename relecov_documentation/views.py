@@ -101,6 +101,7 @@ def intranet_overview(request):
         {"html": converted_to_html},
     )
 
+
 def intranet_contact_data(request):
     converted_to_html = markdown_to_html("intranet_contact_data.md")
     if isinstance(converted_to_html, dict):
@@ -112,6 +113,7 @@ def intranet_contact_data(request):
         {"html": converted_to_html},
     )
 
+
 def intranet_sample_search(request):
     converted_to_html = markdown_to_html("intranet_sample_search.md")
     if isinstance(converted_to_html, dict):
@@ -122,6 +124,7 @@ def intranet_sample_search(request):
         "relecov_documentation/base.html",
         {"html": converted_to_html},
     )
+
 
 def intranet_upload_metadata(request):
     converted_to_html = markdown_to_html("intranet_upload_metadata.md")
