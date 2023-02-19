@@ -17,3 +17,6 @@ right one in the form that is bellow.
 ![form_update_contact_lab](img/form_update_contact_lab_info.png)
 
 Then submit the information and confirmation page is showed.
+
+Note.- The Laboratory contact information is not stored in Relecov but iSkyLIMS.
+
