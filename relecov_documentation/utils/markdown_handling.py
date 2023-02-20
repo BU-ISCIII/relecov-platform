@@ -27,5 +27,5 @@ def markdown_to_html(m_file):
         text = fh.read()
         text = remove_md_extension(text)
     html= markdown.markdown(text, extensions=["toc", "tables"])
-    html = html.replace("table", "table class=\"table table-bordered table-hover\"")
+    html = html.replace("<table>", "<table class=\"table table-bordered table-hover\">")
     return html
