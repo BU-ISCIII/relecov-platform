@@ -24,7 +24,11 @@ def schema_fields_utilization():
 
     util_data = {"summary": {}}
     util_data["summary"]["group"] = ["Empty Fields", "Total Fields"]
-    util_data["field_detail_data"] = {"field_name": [], "field_value": []}
+    util_data["field_detail_data"] = {
+        "field_name": [],
+        "field_value": [],
+        "percent": [],
+    }
     # get stats utilization fields from LIMS
     lims_fields = get_stats_data({"sample_project_name": "Relecov"})
     if "ERROR" in lims_fields:
@@ -42,10 +46,14 @@ def schema_fields_utilization():
         total_fields = len(lims_fields["fields_norm"]) + empty_fields
         util_data["summary"]["lab_values"] = [empty_fields, total_fields]
 
+        # get the maximun to make the percentage of filled
+        max_value = max(set(lims_fields["fields_value"].values()))
         for key, val in lims_fields["fields_value"].items():
             util_data["field_detail_data"]["field_name"].append(key)
             util_data["field_detail_data"]["field_value"].append(val)
+            util_data["field_detail_data"]["percent"].append(max_value)
         util_data["num_lab_fields"] = len(lims_fields["fields_value"])
+
     # get fields utilization from bioinfo analysis
     bio_fields = get_bioinfo_analyis_fields_utilization(schema_obj)
     # if return an empty value skip looking for data
@@ -64,10 +72,12 @@ def schema_fields_utilization():
     empty_fields = len(bio_fields["always_none"]) + len(bio_fields["never_used"])
     total_fields = len(bio_fields["fields_norm"]) + empty_fields
     util_data["summary"]["bio_values"] = [empty_fields, total_fields]
-
+    # get the maximun from bio fields to make the percentage of filled
+    max_value = max(set(bio_fields["fields_value"].values()))
     for key, val in bio_fields["fields_value"].items():
         util_data["field_detail_data"]["field_name"].append(key)
         util_data["field_detail_data"]["field_value"].append(val)
+        util_data["field_detail_data"]["percent"].append(max_value)
     util_data["num_bio_fields"] = len(bio_fields["fields_value"])
 
     return util_data
@@ -149,6 +159,7 @@ def index_dash_fields():
         graphics["table"] = zip(
             util_data["field_detail_data"]["field_name"],
             util_data["field_detail_data"]["field_value"],
+            util_data["field_detail_data"]["percent"],
         )
     else:
         graphics["ERROR_ANALYSIS"] = util_data["ERROR_ANALYSIS"]
