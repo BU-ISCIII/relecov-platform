@@ -1,12 +1,13 @@
-# Excel metadata: to be filled by the microbiology labs
+# Excel metadata: data provided by the microbiology labs
 
 ## Excel description
 We provide an excel that gathers all the fields that need to be provided by the labs in the network. The excel can be downloaded from the platform intranet in the [Upload section](upload_metadata_lab.md).
 
    - First sheet (Overview) shows the description of each field with an example of how it has to be filled, also indicating which fields are mandatory.
-   - Second sheet (METADATA_LAB) needs to be filled, one line per sample.
+   - Second sheet (METADATA_LAB) needs is the sheet you need to modify. First line includes notes for clarification, second line includes an example, third line a description of the field, and forth line is the field name. You must not modify or delete any of this four lines, you only have to start filling the information of the first sample in the fifth line, creating one line for each sample. Fields with limited options have a dropdown list where you can select the appropiate value for your sample. Please use the provided options or ask for adding a new one.
    - Third sheet (DATA VALIDATION) includes the options available for each field. If you need additional options please contact us (bioinfomatica@isciii.es)
 
+Your lab can filled this excel manually, most of the fields belong the same for most of your samples, as most of the fields describes the sequencing protocol. But, if your lab have programming skills and you want this excel to be filled automatically from other sources (other excel files, a database, etc) we provide a python module (*homogeneizer*) enclosed in [relecov-tools package](relecov_tools.md).
 
 **Table 1.**  Overview of fields that must be filled by the microbiology labs.
 
