@@ -21,9 +21,9 @@ def sample_processing_graphics():
         json_data = get_graphic_json_data(graphic_name)
         if json_data is None:
             # Execute the pre-processed task to get the data
-            if graphic_name == "extraction_protocol_pcr_1":
+            if graphic_name == "specimen_source_pcr_1":
                 result = pre_proc_specimen_source_pcr_1()
-            elif graphic_name == "specimen_source_pcr_1":
+            elif graphic_name == "extraction_protocol_pcr_1":
                 result = pre_proc_extraction_protocol_pcr_1()
             elif graphic_name == "calculation_date":
                 result = pre_proc_calculation_date()

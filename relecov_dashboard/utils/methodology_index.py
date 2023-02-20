@@ -37,6 +37,7 @@ def schema_fields_utilization():
         f_values = []
         for value in lims_fields["fields_norm"].values():
             f_values.append(value)
+
         if len(f_values) > 1:
             util_data["lims_f_values"] = float("%.1f" % (mean(f_values) * 100))
         else:
