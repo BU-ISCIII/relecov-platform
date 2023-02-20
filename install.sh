@@ -184,7 +184,7 @@ fi
 
 # check if branch master/develop is defined and checkout
 if [ "`git branch --list $git_branch`" ]; then
-    checkout $git_branch
+    git checkout $git_branch
 else
     printf "\n\n%s"
     printf "${RED}------------------${NC}\n"
@@ -203,7 +203,7 @@ fi
 
 
 
-if [ $upgrade = true ]; then
+if [ $upgrade == true ]; then
     # check if upgrade keyword is given
     if [ ! -d $INSTALL_PATH/relecov-platform ]; then
         printf "\n\n%s"
@@ -245,6 +245,7 @@ if [ $upgrade = true ]; then
         apache_user="apache"
     else
         apache_user="httpd" 
+    fi
     sudo systemctl restart $apache_user
     
     printf "\n\n%s"
