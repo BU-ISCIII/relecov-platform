@@ -69,8 +69,21 @@ The second graphic row split the host age information in gender distribution.
 ## Sample processing
 
 
+![m_dashboard_s_processing_1](img/m_dashboard_s_processing_1.png)
+
+
+
+![m_dashboard_s_processing_2](img/m_dashboard_s_processing_2.png)
+
+
 ## Sequencing
 
+
+![m_dashboard_s_sequencing_1](img/m_dashboard_sequencing_1.png)
+
+
+
+![m_dashboard_s_processing_2](img/m_dashboard_sequencing_2.png)
 
 ## Bioinfo
 
