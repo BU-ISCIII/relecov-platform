@@ -122,14 +122,16 @@
                                                     <thead>
                                                         <tr scope="row">
                                                             <th>Field name</th>
+                                                            <th>Sample number filled </th>
                                                             <th>Number of samples</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {% for field, value in graphics.table %}
+                                                        {% for field, value, max in graphics.table %}
                                                             <tr>
                                                                 <td>{{field}}</td>
                                                                 <td>{{value}}</td>
+                                                                <td>{{max}}</td>
                                                             </tr>
                                                         {% endfor %}
                                                     </tbody>
