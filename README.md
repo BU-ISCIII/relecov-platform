@@ -77,7 +77,7 @@ After installation is completed open you navigator typing "localhost" or the "se
 
 The Nextstrain CLI ties together all necesary pieces to provide a consistent way to run pathogen workflows, access Nextstrain tools like Augur and Auspice across computing environments such as Docker, Conda, and AWS Batch, and publish datasets to nextstrain.org.
 
-# Download installer
+### Download installer
 Move to the installation path and download installer
 ```
 mkdir -p /opt/nextstrain
@@ -108,7 +108,7 @@ cp -r /path/to/auspice /opt/nextstrain/dataset/sars-cov-2
 
 # Upgrade to new release
 
-### Update github repository
+## Update github repository
 Open a linux terminal and move to a directory where relecov code was download during installation
 
 ```bash
@@ -116,7 +116,7 @@ cd < folder where relecov code was download >
 git pull
 cd relecov_platform
 ```
-### Run upgrade script
+## Run upgrade script
 
 Execute the following command in a linux terminal.
 After the code is updated, the script requests you enter the sudo password
