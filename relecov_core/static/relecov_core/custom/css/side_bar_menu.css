@@ -2,7 +2,6 @@
 #wrapper {
     display: flex;
     position: relative;
-    top: 80px;
   }
 
   #wrapper #content-wrapper {

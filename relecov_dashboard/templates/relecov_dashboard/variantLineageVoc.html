@@ -6,36 +6,34 @@
 {% block content %}
 {% include "relecov_dashboard/sideMenuFuncionality.html" %}
 
-<section>
-    <div class="container">
+<section class="hero-animated d-flex">
+    <div class="container position-relative">
         <!-- Page Wrapper -->
         <div id="wrapper">
-
             <!-- Sidebar -->
             {% include "relecov_dashboard/variantSideBar.html" %}
             <!-- End of Sidebar -->
-
             <!-- Content Wrapper -->
             <div id="content-wrapper" class="d-flex flex-column">
-
                 <!-- Main Content -->
                 <div id="content">
                     <!-- Begin Page Content -->
-                    <div class="container-fluid">
-
+                    <div class="container">
                         <!-- Page Heading -->
-                        <div class="row"  style="text-align: center">
-                            <h2>Variation Lineages over time Dashboard</h2>
+                        <div class="row pt-4" style="text-align: center">
+                            <h1>Lineages evolution over time dashboard</h1>
                         </div> <!-- end row -->
                         <hr>
                         <!-- Content Row -->
-                        <div class="row" style="text-align: center;">
+                        <div class="row justify-content-center p-4" style="text-align: center;">
                             <div class="col-sm-12">
                                 {% if draw_lineages.lineage_on_time.ERROR %}
-                                    <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
-                                    <div class="card-body  text-center">
-                                        <h5 "text-center text-danger">Unable to connect to LIMS to fetch data</h5>
-                                    </div> <!-- end card body  -->
+                                    <div class="card text-center border-danger">
+                                        <div class="card-header text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                                        <div class="card-body text-center">
+                                            <h5 "text-center">Unable to connect to LIMS to fetch data</h5>
+                                        </div> <!-- end card body  -->
+                                    </div>
                                 {% else %}
                                     {% plotly_app name="variationLineageOverTime" ratio=1 %}
                                 {% endif %}

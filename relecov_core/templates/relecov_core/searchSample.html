@@ -5,8 +5,8 @@
 {% block content %}
 
 {% include "relecov_core/sideMenuFuncionality.html" %}
-<section>
-    <div class="container">
+<section class="hero-animated d-flex">
+    <div class="container position-relative">
         <!-- Page Wrapper -->
         <div id="wrapper">
 
@@ -28,19 +28,17 @@
                         </div>
                         <hr>
                         <!-- Content Row -->
-                        <div class="row" style="text-align: center;">
+                        <div class="row justify-content-center">
                             {% if ERROR %}
-                                <div class="row m-5">
-                                    <div class="col-sm-10" >
-                                        <div class="card  border-danger mb-3">
-                                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Search form is not available</h3> </div>
-                                            <div class="card-body  text-center">
-                                                <br>
-                                                <p><strong>{{ERROR}}</strong></p>
-                                            </div> <!-- end card body  -->
-                                        </div> <!-- end card  -->
-                                    </div> <!--// end col-sm-9 -->
-                                </div> <!--// end row -->
+                                <div class="col-sm-10" >
+                                    <div class="card  border-danger mb-3">
+                                        <div class="card-header text-center text-danger"><h3 style="text-align:center">Search form is not available</h3> </div>
+                                        <div class="card-body  text-center">
+                                            <br>
+                                            <p><strong>{{ERROR}}</strong></p>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-9 -->
 
                             {% elif list_display %}
                                 {% include "relecov_core/cdnTableFunctionality.html" %}
@@ -155,8 +153,8 @@
                                                 <br>
                                                 <div class="card-body">
                                                     <div class="text-left">
-                                                        <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                                        <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+                                                        <input class="btn  btn-submit" type="reset" value="Reset Fields">
+                                                        <input class="btn float-end btn-submit" type="submit" id="btnSubmit" value="Submit">
                                                     </div>
                                                 </div>     <!-- end card body  -->
                                             </div>  <!-- end card body   -->

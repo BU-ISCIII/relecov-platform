@@ -5,12 +5,11 @@
 {% include "relecov_core/JExcelFunctionality.html" %}
 {% include "relecov_core/cdnTableFunctionality.html" %}
 
-<section id="relecov-platform" class="d-flex align-items-center">
-    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" style="width:60%">
-        <div class="container sm-10">
-			<br><br><br>
+<section id="relecov-platform" class=" hero-animated d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center  position-relative">
+        <div class="container">
             {% if ERROR %}
-                <div class="row row-space-2 m-4">
+                <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card  border-danger mb-3">
                             <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when selecting fields for Metadata</h3> </div>
@@ -23,7 +22,7 @@
                 </div> <!--// end row -->
             {% endif %}
             {% if SUCCESS %}
-                <div class="row row-space-2 m-4">
+                <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card">
                             <div class="card-header text-center"><h3>Sucessful selection for Metadata</h3> </div>
@@ -34,7 +33,6 @@
                         </div> <!-- end card  -->
                     </div> <!--// end col-sm-9 -->
                 </div> <!--// end row -->
-                <br><br><br><br><br>
             {% endif %}
             {% if data_visualization %}
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -169,12 +167,12 @@
                 </div> <!--// end row -->
             {% endif %}
             {% if m_visualization %}
-                <div class="row mt-4">
-                    <div class="col-md-12">
+                <div class="row justify-content-center p-5">
+                    <div class="col-md-10">
                         <div class="card">
-                            <div class="card-header text-center"><h2 style="text-align:center">Select fields to display in Metadata Form</h2> </div>
+                            <div class="card-header text-center"><h2>Select fields to display in Metadata Form</h2> </div>
                             <form method="post" enctype="multipart/form-data" name="selectFields"  id="selectFields" class="form-horizontal well" style="min-height: 100px;">
-                                <div class="card-body  text-center">
+                                <div class="card-body text-center">
                                     {% csrf_token %}
                                     <div class="scrolling-wrapper">
                                         <input type="hidden" name="action" value="selectFields">
@@ -200,14 +198,11 @@
                                            pagination:20,
                                        });
                                    </script>
-                                   <div class="col-md-9">
-
-                                   </div>
                                </div> <!-- end card body-->
                                <div class="card-body">
                                    <div class="text-left">
-                                       <input class="btn  btn-outline-secondary" type="reset" value="Reset Fields">
-                                       <input class="btn float-end btn-outline-primary" type="submit" id="btnSubmit" value="Submit">
+                                       <input class="btn  btn-submit" type="reset" value="Reset Fields">
+                                       <input class="btn float-end btn-submit" type="submit" id="btnSubmit" value="Submit">
 
                                    </div>
                                </div>     <!-- end card body  -->

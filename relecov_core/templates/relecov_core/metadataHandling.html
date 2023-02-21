@@ -6,10 +6,9 @@
 
 <section id="relecov-platform" class="hero-animated d-flex align-items-center">
     <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
-        <div class="container sm-9 offset-2"> 
-			<br><br><br>
+        <div class="container">
             {% if ERROR %}
-                <div class="row row-space-2 margin-b-4">
+                <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card  border-danger mb-3">
                             <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when loading Metadata</h3> </div>
@@ -22,7 +21,7 @@
                 </div> <!--// end row -->
             {% endif %}
             {% if SUCCESS %}
-                <div class="row row-space-2 margin-b-4">
+                <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card">
                             <div class="card-header text-center"><h3 style="text-align:center">Sucessful metadata loaded</h3> </div>
