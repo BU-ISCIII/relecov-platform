@@ -6,32 +6,27 @@
 
 {% include "relecov_core/cdnTableFunctionality.html" %}
 {% include "relecov_core/sideMenuFuncionality.html" %}
-<section>
-    <div class="container">
+<section class="hero-animated d-flex">
+    <div class="container position-relative">
         <!-- Page Wrapper -->
         <div id="wrapper">
-
             <!-- Sidebar -->
             {% include "relecov_core/intranetSideBar.html" %}
             <!-- End of Sidebar -->
-
             <!-- Content Wrapper -->
             <div id="content-wrapper" class="d-flex flex-column">
-
                 <!-- Main Content -->
                 <div id="content">
                     <!-- Begin Page Content -->
                     <div class="container-fluid">
-
                         <!-- Page Heading -->
                         <div class="row"  style="text-align: center">
                             <h1>SAMPLE INFORMATION</h1>
                         </div>
                         <hr>
                         <!-- Content Row -->
-                        <div class="row" style="text-align: center;">
+                        <div class="row justify-content-center">
                             {% if ERROR %}
-                                <div class="row m-5">
                                     <div class="col-sm-10" >
                                         <div class="card  border-danger mb-3">
                                             <div class="card-header text-center text-danger"><h3 style="text-align:center">Unable to display Sample information</h3> </div>
@@ -41,9 +36,7 @@
                                             </div> <!-- end card body  -->
                                         </div> <!-- end card  -->
                                     </div> <!--// end col-sm-9 -->
-                                </div> <!--// end row -->
                             {% else %}
-                                <div class="row m-5">
                                     <ul class="nav nav-tabs" id="myTab" role="tablist">
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Data</button>

@@ -13,17 +13,17 @@
         height: 400px;
     }
 </style>
-<section>
-    <div class="container">
+<section class="hero-animated d-flex">
+    <div class="container position-relative">
         <!-- Page Wrapper -->
         <div id="wrapper">
             <!-- Sidebar -->
             {% include "relecov_core/intranetSideBar.html" %}
             <!-- End of Sidebar -->
-            
+
             <!-- Content Wrapper -->
             <div id="content-wrapper" class="d-flex flex-column">
-                
+
                 <!-- Main Content -->
                 <div id="content">
                     <!-- Begin Page Content -->
@@ -37,12 +37,11 @@
                         <!-- Content Row -->
                         <div class="row" style="text-align: center;">
                             {% if ERROR %}
-                                <div class="row m-5">
+                                <div class="row">
                                     <div class="col-sm-12" >
                                         <div class="card  border-danger mb-3">
                                             <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
                                             <div class="card-body  text-center">
-                                                <br>
                                                 <p><strong>{{ERROR}}</strong></p>
                                             </div> <!-- end card body  -->
                                         </div> <!-- end card  -->
