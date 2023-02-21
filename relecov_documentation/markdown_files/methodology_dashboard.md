@@ -78,13 +78,20 @@ The second graphic row split the host age information in gender distribution.
 
 ## Sequencing
 
+Sequebcing dashboard displays information related to sequencing process.
 
-![m_dashboard_s_sequencing_1](img/m_dashboard_sequencing_1.png)
+In the first graphic there is information about the different sequencer instrument 
+used for sequencing and the types of library preparation used.
 
+![m_dashboard_sequencing_1](img/m_dashboard_sequencing_1.png)
 
+The read length used, the CTs per library preparation kit and the CTs per based pairs.
 
-![m_dashboard_s_processing_2](img/m_dashboard_sequencing_2.png)
+![m_dashboard_processing_2](img/m_dashboard_sequencing_2.png)
 
 ## Bioinfo
 
+![m_dashboard_bioinfo_1](img/m_dashboard_bioinfo_1.png)
 
+
+![m_dashboard_bioinfo_2](img/m_dashboard_bioinfo_2.png)
