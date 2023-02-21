@@ -24,24 +24,24 @@
         <section>
             <div class="container-fluid overflow-hidden pt-4">
                 <div class="row gy-2">
-                    <div class="col-xl-3 col-md-6 d-flex">
+                    <div class="col-xl-3 col-md-6">
                         <div class="p-3 border bg-light"><h4>Received Samples</h4>
-                        <h1><div class="value" akhi="{{ number_of_samples.Defined }}">0</div></h1>
+                        <h2><div class="value" akhi="{{ number_of_samples.Defined }}">0</div></h2>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6 d-flex">
-                        <div class="p-3 border "><h4>Analysis Performed</h4>
-                        <h1><div class="value" akhi="{{ number_of_samples.Bioinfo }}">0</div></h1>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="p-3 border bg-light"><h4>Analysis Performed</h4>
+                        <h2><div class="value" akhi="{{ number_of_samples.Bioinfo }}">0</div></h2>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6 d-flex">
+                    <div class="col-xl-3 col-md-6">
                         <div class="p-3 border bg-light"><h4>Uploads to GISAID</h4>
-                        <h1><div class="value" akhi="{{ number_of_samples.Gisaid }}">0</div></h1>
+                        <h2><div class="value" akhi="{{ number_of_samples.Gisaid }}">0</div></h2>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6 d-flex">
+                    <div class="col-xl-3 col-md-6">
                         <div class="p-3 border bg-light"><h4 style="padding-bottom: 29px;">Uploads to  ENA</h4>
-                        <h1><div class="value" akhi="{{ number_of_samples.Ena }}">0</div></h1>
+                        <h2><div class="value" akhi="{{ number_of_samples.Ena }}">0</div></h2>
                         </div>
                     </div>
                 </div>
@@ -50,44 +50,40 @@
             <div id="featured-services" class="featured-services container-fluid overflow-hidden pt-4">
                 <div class="row gy-2">
                     <div class="col-xl-3 col-md-6" data-aos="zoom-out">
-                        <div class="service-item position-relative">
+                        <div class="service-item border position-relative">
                             <a href="/dashboard/variants" class="">
                                 <div class="icon"><i class="bi bi-activity icon"></i></div>
                                 <h4>Variants</h4>
-                                <p></p>
-                                <a class="btn-getstarted scrollto" href="/dashboard/variants">Go to Variants Dashboard</a>
+                                <p>Go to Variants Dashboard</p>
                             </a>
                         </div>
                     </div><!-- End Service Item -->
 
                     <div class="col-xl-3 col-md-6" data-aos="zoom-out" data-aos-delay="200">
-                        <div class="service-item position-relative">
+                        <div class="service-item border position-relative">
                             <a href="/dashboard/methodology" class="stretched-link">
                                 <div class="icon"><i class="bi bi-bounding-box-circles icon"></i></div>
                                 <h4>Methodology</h4>
-                                <p></p>
-                                <a class="btn-getstarted scrollto" href="/dashboard/methodology">Go to Methodology Dashboard</a>
+                                <p>Go to Methodology Dashboard</p>
                             </a>
                         </div>
                     </div><!-- End Service Item -->
 
                     <div class="col-xl-3 col-md-6" data-aos="zoom-out" data-aos-delay="400">
-                        <div class="service-item position-relative">
+                        <div class="service-item border position-relative">
                             <a href="/documentation" class="stretched-link">
                                 <div class="icon"><i class="bi bi-folder icon"></i></div>
                                 <h4>Documentation</h4>
-                                <p></p>
-                                <a class="btn-getstarted scrollto" href="index.html#about">Go to Documentation</a>
+                                <p>Go to Documentation</p>
                             </a>
                         </div>
                     </div><!-- End Service Item -->
                     <div class="col-xl-3 col-md-6" data-aos="zoom-out" data-aos-delay="600">
-                        <div class="service-item position-relative">
+                        <div class="service-item border position-relative">
                             <a href="{{nextstrain_url}}" target="_blank" class="stretched-link">
                                 <div class="icon"><i class="bi bi-dribbble"></i></div>
                                 <h4>Nextstrain</h4>
-                                <p></p>
-                                <a class="btn-getstarted scrollto" href="{{nextstrain_url}}" target="_blank">Go to Nextstrain</a>
+                                <p>Go to Nextstrain</p>
                             </a>
                         </div>
                     </div><!-- End Service Item -->

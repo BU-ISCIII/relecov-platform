@@ -491,15 +491,29 @@ section {
   position: relative;
   padding: 135px 0 0;
 }
+
+.hero-animated h1 {
+  margin: 0 0 10px 0;
+  font-size: 48px;
+  font-weight: 300;
+  color: var(--color-primary);
+  font-family: var(--font-primary);
+}
+
+.hero-animated h1 span {
+  color: var(--color-primary);
+}
+
 .hero-animated h2 {
   margin: 0 0 10px 0;
   font-size: 48px;
   font-weight: 300;
-  color: var(--color-secondary);
-  font-family: var(--font-secondary);
+  color: var(--color-primary-dark);
+  font-family: var(--font-primary);
 }
+
 .hero-animated h2 span {
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
 }
 .hero-animated p {
   color: rgba(var(--color-secondary-rgb), 0.8);
@@ -968,7 +982,7 @@ section {
   padding: 30px;
   transition: all ease-in-out 0.4s;
   background: var(--color-white);
-  border: 2px solid rgba(var(--color-primary-rgb),0.3);
+  /* border: 2px solid rgba(var(--color-primary-rgb),0.3); */
   height: 100%;
 }
 .featured-services .service-item .icon {
@@ -983,6 +997,7 @@ section {
   font-weight: 600;
   margin-bottom: 15px;
   font-size: 24px;
+  color: var(--color-black)
 }
 .featured-services .service-item h4 a {
   color: var(--color-secondary);

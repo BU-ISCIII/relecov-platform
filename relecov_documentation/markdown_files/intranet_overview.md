@@ -1,4 +1,4 @@
-# Intranet
+# Intranet Overview
 
 Intranet is an Area where Laboratory staff can see information about the samples
 that they have preeviously uploaded.
@@ -29,7 +29,7 @@ Enter username and password, and click on Submit credentials button.
 
 After login correctly, you have access to intranet functionality and the available options are showed on the left side.
 
-You can also check that your are login by checking on the top right side that 
+You can also check that your are login by checking on the top right side that
 shows your user name and a button to close session is visible.
 
 Now that your are logged there are 2 possible:
@@ -38,13 +38,13 @@ Now that your are logged there are 2 possible:
 2. User belongs to a laboratory.
 
 
-The main difference between both of them is that Relecov Manager can search/visualize 
+The main difference between both of them is that Relecov Manager can search/visualize
 samples for any laboratory, and normal user can only search/visualize samples
 that belongs to their laboratory.
 
 
 When moving to different options in the top menu, intranet menu is replace by the
-one that is applicable for the relevant options for this menu. But you can return 
+one that is applicable for the relevant options for this menu. But you can return
 again to Intranet are by clicking at any time the Intranet button.
 
 ## Inside relecov-platform Intranet
