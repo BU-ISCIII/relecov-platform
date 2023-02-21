@@ -1,3 +1,45 @@
+
+.hero-animated .docs img {
+    display: block;
+    margin: 0 auto;
+}
+
+
+.hero-animated .docs p, ol, dl, ul{
+  color: rgba(var(--color-secondary-rgb), 0.8);
+    margin: 10px 0 10px 0;
+    font-size: 14px;
+    text-align: justify;
+}
+
+.hero-animated .docs h1 {
+    margin: 10px 0 10px 0;
+    font-size: 48px;
+    font-weight: 400;
+    text-align: justify;
+}
+
+.hero-animated .docs h2 {
+    margin: 10px 0 10px 0;
+    font-size: 32px;
+    font-weight: 400;
+    text-align: justify;
+}
+
+.hero-animated .docs h3 {
+    margin: 10px 0 10px 0;
+    font-size: 24px;
+    font-weight: 400;
+    text-align: justify;
+}
+
+.hero-animatedi .docs h3 {
+    margin: 10px 0 10px 0;
+    font-size: 12px;
+    font-weight: 400;
+    text-align: justify;
+}
+
 pre { line-height: 125%; }
 
 td.linenos .normal { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
