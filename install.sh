@@ -17,7 +17,7 @@ usage : $0 --upgrade --dev --conf
 
 Examples: 
     To install relecov application with the main release 
-    $0 
+    sudo $0 
 
     To upgrade using develop code
     $0 --upgrade --dev
@@ -124,7 +124,7 @@ done
 
 #SETTING DEFAULT VALUES
 upgrade=false
-git_branch="master"
+git_branch="main"
 conf_file="./initial_settings.txt"
 
 #PARSE VARIABLE ARGUMENTS WITH getops
