@@ -84,6 +84,6 @@ def store_bioinfo_data(s_data, schema_obj):
         if not lineage_value_serializer.is_valid():
             return {"ERROR": str(field + " " + ERROR_UNABLE_TO_STORE_IN_DATABASE)}
         lineage_value_obj = lineage_value_serializer.save()
-        sample_obj.linage_values.add(lineage_value_obj)
+        sample_obj.lineage_values.add(lineage_value_obj)
 
     return {"SUCCESS": "success"}
