@@ -48,14 +48,14 @@
                                     <div class="row justify-content-center p-4">
                                         <div class="col-md-9">
                                             <div class="card ">
-                                                <div class="card-header text-center"><h2 style="text-align:center">load gff anotation file</h2> </div>
-                                                <form method="post" enctype="multipart/form-data" name="uploadannotation"  id="uploadannotation" class="form-horizontal well" style="min-height: 100px;">
+                                                <div class="card-header text-center"><h2 style="text-align:center">Load gff anotation file</h2> </div>
+                                                <form method="post" enctype="multipart/form-data" name="uploadAnnotation"  id="uploadAnnotation" class="form-horizontal well" style="min-height: 100px;">
                                                     <div class="card-body">
                                                         {% csrf_token %}
-                                                        <input type="hidden" name="action" value="uploadannotation">
+                                                        <input type="hidden" name="action" value="uploadAnnotation">
                                                         <div class="col-md-9">
                                                             <label for="schemafile" class="form-label">Select gff file</label>
-                                                            <input class="form-control" type="file" required accept=".gff, .gf3" id="gfffile", name="gfffile">
+                                                            <input class="form-control" type="file" required accept=".gff, .gf3" id="gffFile", name="gffFile">
                                                         </div>
                                                         <div hidden class="spinner-border text-success" role="status" id="spinner">
                                                             <span class="visually-hidden">loading...</span>
@@ -74,40 +74,38 @@
                                 </div> <!-- end continer-->
                             </div>  <!-- end tab info -->
                             <div class="tab-pane fade" id="show" role="tabpanel" aria-labelledby="grupo-tab">
-                                <div class="container-md">
-                                    <div class="row justify-content-center p-4">
-                                        <div class="col-md-10">
-                                            <div class="card">
-                                                <div class="card-header"><h2 style="text-align:center">annotations loaded </h2> </div>
-                                                <div class="card-body">
-                                                    {% if annotations %}
-                                                        <table class="table table-hover">
-                                                            <thead>
+                                <div class="row justify-content-center p-4">
+                                    <div class="col-md-10">
+                                        <div class="card">
+                                            <div class="card-header"><h2 style="text-align:center">Annotations loaded </h2> </div>
+                                            <div class="card-body">
+                                                {% if annotations %}
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">organism name</th>
+                                                                <th scope="col">organism annotation version</th>
+                                                                <th scope="col">spec version</th>
+                                                                <th scope="col">sequence region</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for id, name, version, s_version, seq in annotations %}
                                                                 <tr>
-                                                                    <th scope="col">organism name</th>
-                                                                    <th scope="col">organism annotation version</th>
-                                                                    <th scope="col">spec version</th>
-                                                                    <th scope="col">sequence region</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {% for id, name, version, s_version, seq in annotations %}
-                                                                    <tr>
-                                                                        <td><a href="/annotationdisplay={{id}}">{{name}}</a></td>
-                                                                        <td>{{version}}</td>
-                                                                        <td>{{s_version}}</td>
-                                                                        <td>{{seq}}</td>
-                                                                {% endfor %}
-                                                            </tbody>
-                                                        </table>
-                                                    {% else %}
-                                                        <h4 style="text-align:center"> no annotations files are loaded yet</h4>
-                                                    {% endif %}
-                                                </div> <!-- end card body-->
-                                            </div> <!-- end card  -->
-                                        </div> <!-- end col-md-10 -->
-                                    </div> <!-- end row-->
-                            </div> <!-- end continer-->
+                                                                    <td><a href="/annotationDisplay={{id}}">{{name}}</a></td>
+                                                                    <td>{{version}}</td>
+                                                                    <td>{{s_version}}</td>
+                                                                    <td>{{seq}}</td>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                {% else %}
+                                                    <h4 style="text-align:center"> no annotations files are loaded yet</h4>
+                                                {% endif %}
+                                            </div> <!-- end card body-->
+                                        </div> <!-- end card  -->
+                                    </div> <!-- end col-md-10 -->
+                                </div> <!-- end row-->
                             </div>  <!-- end tab contacto -->
                         </div>  <!-- end mytabcontent -->
                     </div>

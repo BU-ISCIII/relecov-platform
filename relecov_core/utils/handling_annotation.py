@@ -101,13 +101,13 @@ def read_gff_file(a_file):
     return f_data
 
 
-def stored_gff(gff_parsed, user):
+def store_gff(gff_parsed, user):
     """Save in database the gff information"""
     organism = gff_parsed["organism_code"] + "." + gff_parsed["organism_code_version"]
     if not Chromosome.objects.filter(chromosome__iexact=organism).exists():
         chromosome_obj = Chromosome.objects.create_new_chromosome(organism)
     else:
-        chromosome_obj = Chromosome.objects.filter(chromosome__iexact=organism)
+        chromosome_obj = Chromosome.objects.filter(chromosome__iexact=organism).last()
     gff_parsed["user"] = user
     gff_parsed["chromosomeID"] = chromosome_obj
     OrganismAnnotation.objects.create_new_annotation(gff_parsed)
