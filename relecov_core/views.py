@@ -66,7 +66,7 @@ from relecov_core.utils.generic_functions import (
 )
 from relecov_core.utils.handling_annotation import (
     read_gff_file,
-    stored_gff,
+    store_gff,
     get_annotations,
     check_if_annotation_exists,
     get_annotation_data,
@@ -468,7 +468,7 @@ def organism_annotation(request):
                 "relecov_core/organismAnnotation.html",
                 {"ERROR": gff_parsed["ERROR"], "annotations": annotations},
             )
-        stored_gff(gff_parsed, request.user)
+        store_gff(gff_parsed, request.user)
         annotations = get_annotations()
         return render(
             request,
