@@ -144,7 +144,6 @@ from relecov_core.core_config import (
         500: "Internal Server Error",
     },
 )
-    
     responses={
         200: inline_serializer(
            name='samples',
@@ -196,6 +195,7 @@ from relecov_core.core_config import (
     responses={201: OpenApiResponse(description="Successful upload information")},
 )
 """
+
 
 @extend_schema(
     request=inline_serializer(
