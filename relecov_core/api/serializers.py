@@ -1,12 +1,5 @@
 from rest_framework import serializers
 
-from drf_spectacular.utils import (
-    extend_schema_serializer,
-    OpenApiExample,
-    inline_serializer,
-    OpenApiResponse,
-)
-
 from relecov_core.models import (
     BioinfoAnalysisValue,
     DateUpdateState,

@@ -14,12 +14,10 @@ from rest_framework.response import Response
 
 from drf_spectacular.utils import (
     extend_schema,
-    OpenApiParameter,
     OpenApiExample,
     inline_serializer,
     OpenApiResponse,
 )
-from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 from django.http import QueryDict
@@ -167,7 +165,6 @@ from relecov_core.core_config import (
                     value= [{"par2":"res"}])
     ],
 """
-
 """
     parameters=[
         OpenApiParameter(name="analysis_authors", description="Authors of the analysis", required=False, type=str),
@@ -193,14 +190,12 @@ from relecov_core.core_config import (
         OpenApiParameter(name="submitting_lab_sample_id", description="Sample name id given by the submitted lab", required=True, type=str),
     ],
 """
-
 """
 @extend_schema(
     request=CreateSampleSerializer,
     responses={201: OpenApiResponse(description="Successful upload information")},
 )
 """
-
 
 @extend_schema(
     request=inline_serializer(
