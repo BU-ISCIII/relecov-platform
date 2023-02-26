@@ -10,7 +10,7 @@ django_extensions
 django-plotly-dash==2.1.3
 djangorestframework
 django-cleanup==6.0.0
-drf-yasg
+drf-spectacular
 jsonpointer==2.3
 mod_wsgi
 mysqlclient==2.1.0
