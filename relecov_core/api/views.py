@@ -70,14 +70,14 @@ from relecov_core.core_config import (
     request=inline_serializer(
         name="createSample",
         fields={
-            "analysis_authors": serializers.CharField(),
-            "author_submitter": serializers.CharField(),
-            "authors": serializers.CharField(),
-            "experiment_alias": serializers.CharField(),
-            "experiment_title": serializers.CharField(),
+            "analysis_authors": serializers.CharField(required=False),
+            "author_submitter": serializers.CharField(required=False),
+            "authors": serializers.CharField(required=False),
+            "experiment_alias": serializers.CharField(required=False),
+            "experiment_title": serializers.CharField(required=False),
             "fastq_r1_md5": serializers.CharField(),
             "fastq_r2_md5": serializers.CharField(),
-            "gisaid_id": serializers.CharField(),
+            "gisaid_id": serializers.CharField(required=False),
             "microbiology_lab_sample_id": serializers.CharField(),
             "r1_fastq_filepath": serializers.CharField(),
             "r2_fastq_filepath": serializers.CharField(),
@@ -86,10 +86,10 @@ from relecov_core.core_config import (
             "sequence_file_R1_fastq": serializers.CharField(),
             "sequence_file_R2_fastq": serializers.CharField(),
             "sequencing_sample_id": serializers.CharField(),
-            "study_alias": serializers.CharField(),
-            "study_id": serializers.CharField(),
-            "study_title": serializers.CharField(),
-            "study_type": serializers.CharField(),
+            "study_alias": serializers.CharField(required=False),
+            "study_id": serializers.CharField(required=False),
+            "study_title": serializers.CharField(required=False),
+            "study_type": serializers.CharField(required=False),
             "submitting_lab_sample_id": serializers.CharField(),
         },
     ),
@@ -191,80 +191,6 @@ def create_sample_data(request):
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
-""""
-@extend_schema(
-    parameters=[
-        OpenApiParameter(name="", description="The time of a sample analysis process", required=False, type=str),
-        OpenApiParameter(name="assembly", description="Software used for assembly of the pathogen genome.", required=False, type=str),
-        OpenApiParameter(name="assembly_params", description="Params used for genome assembly.", required=False, type=str),
-        OpenApiParameter(name="bioinformatics_protocol_software_name", description="The name  of the bioinformatics protocol used.", required=False, type=str),
-        OpenApiParameter(name="bioinformatics_protocol_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="commercial_open_source_both", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_genome_length", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_params", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_sequence_filename", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_sequence_filepath", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_sequence_md5", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_sequence_name", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_sequence_software_name", description="", required=False, type=str),
-        OpenApiParameter(name="consensus_sequence_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="dehosting_method_software_name", description="", required=False, type=str),
-        OpenApiParameter(name="dehosting_method_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="depth_of_coverage_threshold", description="", required=False, type=str),
-        OpenApiParameter(name="depth_of_coverage_value", description="", required=False, type=str),
-        OpenApiParameter(name="if_assembly_other", description="", required=False, type=str),
-        OpenApiParameter(name="if_bioinformatic_protocol_is_other_specify", description="", required=False, type=str),
-        OpenApiParameter(name="if_consensus_other", description="", required=False, type=str),
-        OpenApiParameter(name="if_lineage_identification_other", description="", required=False, type=str),
-        OpenApiParameter(name="if_mapping_other", description="", required=False, type=str),
-        OpenApiParameter(name="if_preprocessing_other", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_algorithm_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_analysis_constellation_version", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_analysis_date", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_analysis_scorpio_version", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_analysis_software_name", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_analysis_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="lineage_name", description="", required=False, type=str),
-        OpenApiParameter(name="long_table_path", description="", required=False, type=str),
-        OpenApiParameter(name="mapping_params", description="", required=False, type=str),
-        OpenApiParameter(name="mapping_software_name", description="", required=False, type=str),
-        OpenApiParameter(name="mapping_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="ns_per_100_kbp", description="", required=False, type=str),
-        OpenApiParameter(name="number_of_base_pairs_sequenced", description="", required=False, type=str),
-        OpenApiParameter(name="number_of_variants_in_consensus", description="", required=False, type=str),
-        OpenApiParameter(name="number_of_variants_with_effect", description="", required=False, type=str),
-        OpenApiParameter(name="per_Ns", description="", required=False, type=str),
-        OpenApiParameter(name="per_genome_greater_10x", description="", required=False, type=str),
-        OpenApiParameter(name="per_reads_host", description="", required=False, type=str),
-        OpenApiParameter(name="per_reads_virus", description="", required=False, type=str),
-        OpenApiParameter(name="per_unmapped", description="", required=False, type=str),
-        OpenApiParameter(name="preprocessing_params", description="", required=False, type=str),
-        OpenApiParameter(name="preprocessing_software_name", description="", required=False, type=str),
-        OpenApiParameter(name="preprocessing_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="qc_filtered", description="", required=False, type=str),
-        OpenApiParameter(name="reference_genome_accession", description="", required=False, type=str),
-        OpenApiParameter(name="schema_name", description="Name of the Schema. (Relecov)", required=True, type=str),
-        OpenApiParameter(name="schema_version", description="Version of the Schema. ", required=True, type=str),
-        OpenApiParameter(name="sequence_file_R1_fastq", description="", required=False, type=str),
-        OpenApiParameter(name="sequence_file_R1_md5", description="", required=False, type=str),
-        OpenApiParameter(name="sequence_file_R2_fastq", description="", required=False, type=str),
-        OpenApiParameter(name="sequence_file_R2_md5", description="", required=False, type=str),
-        OpenApiParameter(name="sequencing_sample_id", description="", required=True, type=str),
-        OpenApiParameter(name="variant_calling_params", description="", required=False, type=str),
-        OpenApiParameter(name="variant_calling_software_name", description="", required=False, type=str),
-        OpenApiParameter(name="variant_calling_software_version", description="", required=False, type=str),
-        OpenApiParameter(name="variant_name", description="", required=False, type=str),
-    ],
-    description='More descriptive text',
-    responses={
-        201: OpenApiResponse(description="Successful upload information"),
-        400: OpenApiResponse(description="Bad request"),
-        500: OpenApiResponse(description="Internal Server Error"),
-    },
-)
-"""
-
-
 @extend_schema(
     examples=[
         OpenApiExample(
@@ -355,12 +281,14 @@ def create_sample_data(request):
             "dehosting_method_software_version": serializers.CharField(),
             "depth_of_coverage_threshold": serializers.CharField(),
             "depth_of_coverage_value": serializers.CharField(),
-            "if_assembly_other": serializers.CharField(),
-            "if_bioinformatic_protocol_is_other_specify": serializers.CharField(),
-            "if_consensus_other": serializers.CharField(),
-            "if_lineage_identification_other": serializers.CharField(),
-            "if_mapping_other": serializers.CharField(),
-            "if_preprocessing_other": serializers.CharField(),
+            "if_assembly_other": serializers.CharField(required=False),
+            "if_bioinformatic_protocol_is_other_specify": serializers.CharField(
+                required=False
+            ),
+            "if_consensus_other": serializers.CharField(required=False),
+            "if_lineage_identification_other": serializers.CharField(required=False),
+            "if_mapping_other": serializers.CharField(required=False),
+            "if_preprocessing_other": serializers.CharField(required=False),
             "lineage_algorithm_software_version": serializers.CharField(),
             "lineage_analysis_constellation_version": serializers.CharField(),
             "lineage_analysis_date": serializers.CharField(),
@@ -515,18 +443,41 @@ def create_bioinfo_metadata(request):
         name="VariantUpload",
         fields={
             "sample_name": serializers.CharField(),
-            "Variants": serializers.ListField(
-                child=serializers.DictField(
-                    child=serializers.CharField(label="ere"), label="Chromosome"
-                )
+            "Variants": inline_serializer(
+                name="variant",
+                fields={
+                    "Chromosome": serializers.CharField(),
+                    "variant": inline_serializer(
+                        name="variant",
+                        fields={
+                            "pos": serializers.CharField(),
+                            "alt": serializers.CharField(),
+                            "ref": serializers.CharField(),
+                        },
+                    ),
+                    "Filter": serializers.CharField(),
+                    "VariantInSample": inline_serializer(
+                        name="VariantInSample",
+                        fields={
+                            "dp": serializers.CharField(),
+                            "ref_dp": serializers.CharField(),
+                            "alt_dp": serializers.CharField(),
+                            "af": serializers.CharField(),
+                        },
+                    ),
+                    "Gene": serializers.CharField(),
+                    "Effect": serializers.CharField(),
+                    "VariantAnnotation": inline_serializer(
+                        name="VariantAnnotation",
+                        fields={
+                            "hgvs_c": serializers.CharField(),
+                            "hgvs_p": serializers.CharField(),
+                            "hgvs_p_1_letter": serializers.CharField(),
+                        },
+                        allow_null=True,
+                    ),
+                },
             ),
-            "Chromosome": serializers.CharField(),
-            "variant": serializers.DictField(child=serializers.CharField()),
-            "pos": serializers.CharField(),
-            "alt": serializers.CharField(),
-            "ref": serializers.DictField(child=serializers.CharField(), label="po"),
-            "file_field": serializers.FileField(),
-            "pepe": serializers.JSONField(),
         },
     ),
 )
@@ -615,6 +566,7 @@ def create_variant_data(request):
             "sample_name": serializers.CharField(),
             "state": serializers.CharField(),
         },
+        allow_null=True,
     ),
     responses={
         201: OpenApiResponse(description="Successful. sample state updated"),
