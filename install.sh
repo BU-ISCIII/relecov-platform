@@ -434,14 +434,7 @@ python3 manage.py loaddata conf/upload_tables.json
 
 echo "Updating Apache configuration"
 if [[ $linux_distribution == "Ubuntu" ]]; then
-    cp conf/apache2.conf /etc/apache2/sites-available/000-default.conf
-    echo  'LoadModule wsgi_module "/opt/relecov-platform/virtualenv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so"' >/etc/apache2/mods-available/iskylims.load
-    cp conf/relecov_platform.conf /etc/apache2/mods-available/relecov_platform.conf
-
-    # Create needed symbolic links to enable the configurations:
-
-    ln -s /etc/apache2/mods-available/iskylims.load /etc/apache2/mods-enabled/
-    ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
+    cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
 fi
 
 if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
