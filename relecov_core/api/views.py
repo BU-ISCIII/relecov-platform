@@ -67,6 +67,35 @@ from relecov_core.core_config import (
 
 
 @extend_schema(
+    examples=[
+        OpenApiExample(
+            "Example",
+            description="Variant example",
+            value={
+                "analysis_authors": "",
+                "author_submitter": "",
+                "authors": "",
+                "experiment_alias": "",
+                "experiment_title": "",
+                "fastq_r1_md5": "b5242d60471e5a5a97b35531dbbe8c30",
+                "fastq_r2_md5": "57525c5a1ec992098e652aa01b366d69",
+                "gisaid_id": "EPI_ISL_8625444",
+                "microbiology_lab_sample_id": "20183102",
+                "r1_fastq_filepath": "/media/data/relecov/",
+                "r2_fastq_filepath": "/media/data/relecov/",
+                "schema_name": "relecov",
+                "schema_version": "",
+                "sequence_file_R1_fastq": "20183102_R1.fastq.gz",
+                "sequence_file_R2_fastq": "20183102_R2.fastq.gz",
+                "sequencing_sample_id": "20183102",
+                "study_alias": "",
+                "study_id": "",
+                "study_title": "",
+                "study_type": "Whole Genome Sequencing",
+                "submitting_lab_sample_id": "LAB_856232",
+            },
+        )
+    ],
     request=inline_serializer(
         name="createSample",
         fields={
