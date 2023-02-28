@@ -5,10 +5,10 @@
 }
 
 
-.docs p ol dl ul{
+.hero-animated .docs p, .docs ol, .docs dl, .docs  ul{
   color: rgba(var(--color-secondary-rgb), 0.8);
     margin: 10px 0 10px 0;
-    font-size: 14px;
+    font-size: 16px;
     text-align: justify;
 }
 
