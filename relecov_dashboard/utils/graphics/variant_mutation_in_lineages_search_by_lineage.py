@@ -102,7 +102,7 @@ def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata):
                     xlabel="Genome Position",
                     ylabel="Population Allele Frequency ",
                     domainStyle={
-                        "textangle": "45",
+                        #"textangle": "45",
                         "displayMinorDomains": False,
                     },
                 ),
