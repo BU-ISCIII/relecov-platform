@@ -8,16 +8,16 @@ usage() {
 	cat << EOF
 This script install and upgrade the relecov platform application.
 
-usage : $0 --upgrade --dev --conf 
+usage : $0 --upgrade --dev --conf
 	Optional input data:
     --upgrade | Upgrade the relecov application
     --dev     | Use the develop version instead of main release
     --conf    | Select configuration file
 
 
-Examples: 
-    To install relecov application with the main release 
-    sudo $0 
+Examples:
+    To install relecov application with the main release
+    sudo $0
 
     To upgrade using develop code
     $0 --upgrade --dev
@@ -169,7 +169,7 @@ shift $((OPTIND-1))
 #                     SETTINGS CHECKINGS
 #=============================================================================
 
-if [ ! -f "$conf_file" ]; then 
+if [ ! -f "$conf_file" ]; then
     printf "\n\n%s"
     printf "${RED}------------------${NC}\n"
     printf "${RED}Unable to start.${NC}\n"
@@ -195,7 +195,7 @@ else
 fi
 
 #=============================================================================
-#                   UPGRADE INSTALLATION 
+#                   UPGRADE INSTALLATION
 # Check if parameter is passing to script to upgrade the installation
 # If "upgrade" parameter is set then the script only execute the upgrade part.
 # If other parameter as upgrade is given return usage message and exit
@@ -214,7 +214,7 @@ if [ $upgrade == true ]; then
         exit 1
     fi
     #================================================================
-    # MAIN_BODY FOR UPGRADE 
+    # MAIN_BODY FOR UPGRADE
     #================================================================
     printf "\n\n%s"
     printf "${YELLOW}------------------${NC}\n"
@@ -230,24 +230,25 @@ if [ $upgrade == true ]; then
     cd $INSTALL_PATH/relecov-platform
     echo "activate the virtualenv"
     source virtualenv/bin/activate
+    echo "Installing required python packages"
+    python3 -m pip install -r conf/requirements.txt
 
     echo "checking for database changes"
     ./manage.py makemigrations
     ./manage.py migrate
     ./manage.py collectstatic
-    
     #Linux distribution
     linux_distribution=$(lsb_release -i | cut -f 2-)
-    
+
     echo ""
     echo "Restart apache server to update changes"
     if [[ $linux_distribution == "Ubuntu" ]]; then
         apache_user="apache"
     else
-        apache_user="httpd" 
+        apache_user="httpd"
     fi
     sudo systemctl restart $apache_user
-    
+
     printf "\n\n%s"
     printf "${BLUE}------------------${NC}\n"
     printf "%s"
@@ -259,7 +260,7 @@ if [ $upgrade == true ]; then
 fi
 
 #================================================================
-# MAIN_BODY FOR NEW INSTALLATION 
+# MAIN_BODY FOR NEW INSTALLATION
 #================================================================
 
 printf "\n\n%s"
@@ -399,7 +400,7 @@ echo "activate the virtualenv"
 source virtualenv/bin/activate
 
 # Starting Relecov Platform
-echo "Loading python necessary packages"
+echo "Installing required python packages"
 python3 -m pip install -r conf/requirements.txt
 echo ""
 echo "Creating relecov_platform project"
