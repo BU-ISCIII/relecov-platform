@@ -158,7 +158,7 @@ def pre_proc_lineages_variations():
     for date, samples in date_sample.items():
         lineage_in_samples = (
             LineageValues.objects.filter(
-                lineage_fieldID__property_name="lineage_name",
+                lineage_fieldID__property_name="variant_name",
                 sample__collecting_lab_sample_id__in=samples,
             )
             .values_list("value", flat=True)
