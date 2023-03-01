@@ -267,6 +267,7 @@ def methodology_sequencing(request):
         {"sequencing": sequencing},
     )
 
+
 @login_required
 def methodology_bioinfo(request):
     bioinfo = bioinfo_graphics()
