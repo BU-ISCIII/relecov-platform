@@ -1,9 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
+
 # from drf_yasg.views import get_schema_view
 # from drf_yasg import openapi
 # from drf_yasg.generators import OpenAPISchemaGenerator
-from drf_spectacular.views import SpectacularRedocView, SpectacularSwaggerView, SpectacularAPIView
+from drf_spectacular.views import (
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+    SpectacularAPIView,
+)
 
 """
 class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
@@ -31,8 +36,12 @@ urlpatterns = [
     path("documentation/", include("relecov_documentation.urls")),
     # API REST FULL using drf spectacular
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
-    path("swagger/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path(
+        "swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"
+    ),
+    path(
+        "swagger/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"
+    ),
     # REST FRAMEWORK URLS
     path("api/", include("relecov_core.api.urls")),
     # user accounts
