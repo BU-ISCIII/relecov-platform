@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
 # import fucntions from core
 from relecov_core.utils.handling_variant import (
@@ -71,10 +72,12 @@ from relecov_dashboard.dashboard_config import (
 
 
 # dashboard/variants
+@login_required
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
 
 
+@login_required
 def received_samples(request):
     sample_data = {}
     # samples receive over time map
@@ -98,6 +101,7 @@ def received_samples(request):
     )
 
 
+@login_required
 def mutations_in_lineage(request):
     # mutations in lineages by lineage
     def_chrom = get_default_chromosome()
@@ -119,6 +123,7 @@ def mutations_in_lineage(request):
     )
 
 
+@login_required
 def spike_mutations_3d(request):
     create_model3D_bn()
     return render(request, "relecov_dashboard/variantSpikeMutations3D.html")
@@ -135,11 +140,13 @@ def lineages_voc(request):
     )
 
 
+@login_required
 def samples_received_over_time_map(request):
     create_samples_received_over_time_map()
     return render(request, "relecov_dashboard/samplesReceivedOverTimeMap.html")
 
 
+@login_required
 def samples_received_over_time_graph(request):
     df = create_dataframe_from_json()
     create_samples_over_time_graph(df)
@@ -147,6 +154,7 @@ def samples_received_over_time_graph(request):
     return render(request, "relecov_dashboard/samplesReceivedOverTimeGraph.html")
 
 
+@login_required
 def samples_received_over_time_pie(request):
     data = parse_json_file()
     create_samples_received_over_time_per_ccaa_pieChart(data)
@@ -155,6 +163,7 @@ def samples_received_over_time_pie(request):
     return render(request, "relecov_dashboard/samplesReceivedOverTimePie.html")
 
 
+@login_required
 def samples_received_over_time_pie_laboratory(request):
     data = parse_json_file()
     create_samples_received_over_time_per_ccaa_pieChart(data)
@@ -165,6 +174,7 @@ def samples_received_over_time_pie_laboratory(request):
     )
 
 
+@login_required
 def variants_mutations_in_lineages_heatmap(request):
     chromesome_objs = get_all_chromosome_objs()
     if chromesome_objs is None:
@@ -206,6 +216,7 @@ def variants_mutations_in_lineages_heatmap(request):
 
 
 # dashboard/methodology
+@login_required
 def methodology_index(request):
     graphics = index_dash_fields()
     return render(
@@ -213,6 +224,7 @@ def methodology_index(request):
     )
 
 
+@login_required
 def methodology_host_info(request):
     host_info = host_info_graphics()
     if "ERROR" in host_info:
@@ -224,6 +236,7 @@ def methodology_host_info(request):
     )
 
 
+@login_required
 def methodology_sample_processing(request):
     sample_processing = sample_processing_graphics()
     if "ERROR" in sample_processing:
@@ -239,6 +252,7 @@ def methodology_sample_processing(request):
     )
 
 
+@login_required
 def methodology_sequencing(request):
     sequencing = sequencing_graphics()
     if "ERROR" in sequencing:
@@ -253,7 +267,7 @@ def methodology_sequencing(request):
         {"sequencing": sequencing},
     )
 
-
+@login_required
 def methodology_bioinfo(request):
     bioinfo = bioinfo_graphics()
     return render(
