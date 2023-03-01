@@ -234,7 +234,7 @@ if [ $upgrade == true ]; then
     echo "checking for database changes"
     ./manage.py makemigrations
     ./manage.py migrate
-    ./manage.py collectstatics
+    ./manage.py collectstatic
     
     #Linux distribution
     linux_distribution=$(lsb_release -i | cut -f 2-)
