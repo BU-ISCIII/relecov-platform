@@ -25,32 +25,53 @@
     <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative p-5" data-aos="zoom-out">
 
 {% endif %}
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="card-title">LOGIN</h3>
-                            <p class="card-title"> Write your credentials to access to relecov Platform Intranet</p>
-                            <form class="row g-3"  method="post" action="{% url 'login' %}">
-                                {% csrf_token %}
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="floatingInput" name="username" placeholder="userid">
-                                    <label for="floatingInput">Type your userid</label>
-                                </div>
-                                <div class="form-floating">
-                                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
-                                    <label for="floatingPassword">Password</label>
-                                </div>
-                                <div class="col-end">
-                                    <button type="submit" class="btn btn-submit mb-3 float-end">Submit credentials</button>
-                                </div>
-                            </form>
-                        </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="card border-danger">
+                    <h3 class="card-header">Relecov platform server ready for User Testing</h3>
+                    <div class="card-body">
+                        <h4>Relecov Platform server is on the last part of development and ready for Beta testing period.</h4>
+                        <p>Before providing general availability to relecov platform Web server, we have opened it to Laboratories/Hospitals that were involved in Relecov Project,  to get their feedback.</p>
+                        <p>If you are one of the selected, use the username and password that was delivered to you by email.</p>
+                        <p class="text-info">If for any reason you do not get the email, please contact your Relecov Contact Person.
+                            <br> 
+                            As soon as we receive the confirmation request we will proceed for sending you the email with the user credentials to login.
+                        </p>
+                        <p>We are sorry for any inconvenience that this access limitation may cause you.</p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    <br>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">LOGIN</h3>
+                        <p class="card-title"> Write your credentials to access to relecov Platform Intranet</p>
+                        <form class="row g-3"  method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="floatingInput" name="username" placeholder="userid">
+                                <label for="floatingInput">Type your userid</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
+                                <label for="floatingPassword">Password</label>
+                            </div>
+                            <div class="col-end">
+                                <button type="submit" class="btn btn-submit mb-3 float-end">Submit credentials</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
         {% if not form.errors %}
     </div>
 </section>
