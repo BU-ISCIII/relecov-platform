@@ -18,6 +18,7 @@
     - [Overview](intranetOverview.md)
     - [Upload Metadata](intranetUploadMetadata.md)
     - [Contact data](intranetContactData.md)
+    - [Sample Processing](sampleProcessing.md)
 
 - Dashboards
     - [Variant dashboard](variant_dashboard.md)

@@ -14,11 +14,6 @@ urlpatterns = [
         name="methodology_host_info",
     ),
     path(
-        "methodology/sampleProcessing",
-        views.methodology_sample_processing,
-        name="methodology_sample_processing",
-    ),
-    path(
         "methodology/sequencing",
         views.methodology_sequencing,
         name="methodology_sequencing",

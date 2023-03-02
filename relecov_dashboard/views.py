@@ -58,9 +58,6 @@ from relecov_dashboard.utils.methodology_index import index_dash_fields
 
 from relecov_dashboard.utils.methodology_host_info import host_info_graphics
 
-from relecov_dashboard.utils.methodology_sample_processing import (
-    sample_processing_graphics,
-)
 from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
@@ -233,22 +230,6 @@ def methodology_host_info(request):
         )
     return render(
         request, "relecov_dashboard/methodologyHostInfo.html", {"host_info": host_info}
-    )
-
-
-@login_required
-def methodology_sample_processing(request):
-    sample_processing = sample_processing_graphics()
-    if "ERROR" in sample_processing:
-        return render(
-            request,
-            "relecov_dashboard/methodologySampleProcessing.html",
-            {"ERROR": sample_processing},
-        )
-    return render(
-        request,
-        "relecov_dashboard/methodologySampleProcessing.html",
-        {"sample_processing": sample_processing},
     )
 
 

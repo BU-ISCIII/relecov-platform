@@ -80,6 +80,9 @@ from relecov_core.core_config import (
     HEADING_FOR_SAMPLE_LIST,
 )
 
+# moved sample graphic to intranet
+from relecov_core.utils.sample_processing import sample_processing_graphics
+
 
 @login_required
 def index(request):
@@ -501,6 +504,22 @@ def laboratory_contact(request):
         )
     return render(
         request, "relecov_core/laboratoryContact.html", {"lab_data": lab_data}
+    )
+
+
+@login_required
+def sample_processing(request):
+    sample_processing = sample_processing_graphics()
+    if "ERROR" in sample_processing:
+        return render(
+            request,
+            "relecov_core/sampleProcessing.html",
+            {"ERROR": sample_processing},
+        )
+    return render(
+        request,
+        "relecov_core/sampleProcessing.html",
+        {"sample_processing": sample_processing},
     )
 
 

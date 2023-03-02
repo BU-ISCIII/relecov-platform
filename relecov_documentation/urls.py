@@ -23,6 +23,11 @@ urlpatterns = [
         name="intranet_sample_search",
     ),
     path(
+        "intranetSampleProcessing/",
+        views.intranet_sample_processing,
+        name="intranet_sample_processing",
+    ),
+    path(
         "intranetUploadMetadata/",
         views.intranet_upload_metadata,
         name="intranet_upload_metadata",

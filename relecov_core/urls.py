@@ -26,6 +26,7 @@ urlpatterns = [
     ),
     path("organismAnnotation", views.organism_annotation, name="organism_annotation"),
     path("sampleDisplay=<int:sample_id>", views.sample_display, name="sample_display"),
+    path("sampleProcessing", views.sample_processing, name="sample_processing"),
     path("schemaDisplay=<int:schema_id>", views.schema_display, name="schema_display"),
     path("schemaHandling", views.schema_handling, name="schema_handling"),
     path("searchSample", views.search_sample, name="search_sample"),
