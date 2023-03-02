@@ -138,6 +138,19 @@ def intranet_sample_search(request):
 
 
 @login_required
+def intranet_sample_processing(request):
+    converted_to_html = markdown_to_html("intranet_sample_processing.md")
+    if isinstance(converted_to_html, dict):
+        return render(request, "relecov_documentation/error_404.html")
+    converted_to_html = fix_img_folder(converted_to_html)
+    return render(
+        request,
+        "relecov_documentation/base.html",
+        {"html": converted_to_html},
+    )
+
+
+@login_required
 def intranet_upload_metadata(request):
     converted_to_html = markdown_to_html("intranet_upload_metadata.md")
     if isinstance(converted_to_html, dict):
