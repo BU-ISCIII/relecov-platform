@@ -7,6 +7,7 @@ import pandas as pd
 from django.contrib.auth.models import Group, User
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.db.models import Q
 from relecov_tools.utils import write_to_excel_file
 
 # from django.db.models import Max
@@ -704,15 +705,25 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
     if lab_name != "":
         sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
     if sample_name != "":
-        if sample_objs.filter(sequencing_sample_id__iexact=sample_name).exists():
-            sample_objs = sample_objs.filter(sequencing_sample_id__iexact=sample_name)
+        if sample_objs.filter(
+            Q(sequencing_sample_id__iexact=sample_name)
+            | Q(collecting_lab_sample_id__iexact=sample_name)
+        ).exists():
+            sample_objs = sample_objs.filter(
+                Q(sequencing_sample_id__iexact=sample_name)
+                | Q(collecting_lab_sample_id__iexact=sample_name)
+            )
             if len(sample_objs) == 1:
                 sample_list.append(sample_objs[0].get_sample_id())
                 return sample_list
 
-        elif sample_objs.filter(sequencing_sample_id__icontains=sample_name).exists():
+        elif sample_objs.filter(
+            quit(sequencing_sample_id__icontains=sample_name)
+            | Q(collecting_lab_sample_id__icontains=sample_name)
+        ).exists():
             sample_objs = sample_objs.filter(
-                sequencing_sample_id__icontains=sample_name
+                Q(sequencing_sample_id__icontains=sample_name)
+                | Q(collecting_lab_sample_id__icontains=sample_name)
             )
             if len(sample_objs) == 1:
                 sample_list.append(sample_objs[0].get_sample_id())
