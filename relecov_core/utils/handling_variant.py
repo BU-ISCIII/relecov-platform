@@ -91,8 +91,11 @@ def get_variant_data_from_sample(sample_id):
                             str(v_ann_data_p[0][idx] + " - " + v_ann_data_p[1][idx])
                         )
                 v_ann_data_p = v_ann_data
-            else:
+            elif len(v_ann_objs) == 1:
                 v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
+            # Set dummy values if not variant annotation objects exists
+            else:
+                v_ann_data_p = ["-", "-", "-"]
 
             variant_data.append(v_data + v_in_s_data + v_ann_data_p)
     data["variant_data"] = variant_data
@@ -116,11 +119,19 @@ def get_variant_graphic_from_sample(sample_id):
                 variantID_id__pk__in=v_data["v_id"]
             ).values_list("effectID_id__effect", flat=True)
         )
-        chromosome_obj = (
-            VariantAnnotation.objects.filter(variantID_id__pk=v_data["v_id"][0])
-            .last()
-            .variantID_id.chromosomeID_id
-        )
+        try:
+            chromosome_obj = (
+                VariantAnnotation.objects.filter(variantID_id__pk=v_data["v_id"][0])
+                .last()
+                .variantID_id.chromosomeID_id
+            )
+        except AttributeError:
+            # get the chromosome obj from the second variant annotation
+            chromosome_obj = (
+                VariantAnnotation.objects.filter(variantID_id__pk=v_data["v_id"][1])
+                .last()
+                .variantID_id.chromosomeID_id
+            )
         v_data["domains"] = get_domains_and_coordenates(chromosome_obj)
         # delete no longer needed ids
         v_data.pop("v_id")
