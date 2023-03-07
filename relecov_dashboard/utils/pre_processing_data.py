@@ -138,25 +138,24 @@ def pre_proc_calculation_date():
     return {"SUCCESS": "Success"}
 
 
-def pre_proc_lineages_variations():
-    """Collect the lineages information to store them at the pre-processed
+def pre_proc_variant_graphic():
+    """Collect the variant information to store them at the pre-processed
     graphicJasonFile. Smoothing is performed before saving into database
     """
 
     in_date_samples = fetch_samples_on_condition("collectionSampleDate")
     if "ERROR" in in_date_samples:
         return in_date_samples
-    collect_data = []
-    num_samples_data = []
-    lineage_data = []
+    
     date_sample = {}
+    date_variant = {}
     for s_data in in_date_samples["DATA"]:
         if s_data["collectionSampleDate"] not in date_sample:
             date_sample[s_data["collectionSampleDate"]] = []
         date_sample[s_data["collectionSampleDate"]].append(s_data["Sample Name"])
 
     for date, samples in date_sample.items():
-        lineage_in_samples = (
+        variant_samples = (
             LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
                 sample__collecting_lab_sample_id__in=samples,
@@ -164,7 +163,40 @@ def pre_proc_lineages_variations():
             .values_list("value", flat=True)
             .distinct()
         )
-        for lineage in lineage_in_samples:
+        if len(variant_samples) == 0:
+            continue
+        if date not in date_variant:
+            date_variant[date] = {}
+        
+        date_samples = 0
+        for variant_name in variant_samples:
+            if variant_name == "":
+                continue
+            
+            if variant_name not in date_variant[date]:
+                num_samples = Sample.objects.filter(collecting_lab_sample_id__in=samples, lineage_values__value__iexact=variant_name).count()
+                date_variant[date][variant_name] = num_samples
+            
+            date_samples += num_samples
+        # Discard the variants that the number of the samples are lower that 
+        # 5 % for the total number of the samples collected from specific date
+        min_num_samples = date_samples / 20
+        for v_name, number in date_variant[date].items():
+            key_to_delete = []
+            if number < min_num_samples:
+                key_to_delete.append(v_name)
+        # Delete the entry date if no variant name was not identified for this 
+        # date 
+        if len(date_variant[date]) == 0:
+            date_variant.pop(date,None)
+            continue
+        # Delete the variant which the number of samples are bellow the minimum
+        # number of samples.
+        for key in key_to_delete:
+            import pdb; pdb.set_trace()
+            date_variant[date].pop(key, None)
+        
+        """
             collect_data.append(date)
             lineage_data.append(lineage)
             num_samples_data.append(
@@ -173,15 +205,26 @@ def pre_proc_lineages_variations():
                     lineage_values__value__iexact=lineage,
                 ).count()
             )
-
-    lineage_var_data = {
+        """
+    import pdb; pdb.set_trace()
+    # convert dictionary to list date, variant and samples to store in json 
+    # for reading later as table to create the datafreme 
+    collect_data = []
+    num_samples_data = []
+    variant_names = []
+    for date_key, values in date_variant.items():
+        for variant_key, value in values.items():
+            collect_data.append(date_key)
+            variant_names.append(variant_key)
+            num_samples_data.append(value)
+    variant_var_data = {
         "Collection date": collect_data,
-        "Lineage": lineage_data,
+        "Lineage": variant_names,
         "samples": num_samples_data,
     }
     json_data = {
-        "graphic_name": "lineages_variations",
-        "graphic_data": lineage_var_data,
+        "graphic_name": "variant_graphic_data",
+        "graphic_data": variant_var_data,
     }
     GraphicJsonFile.objects.create_new_graphic_json(json_data)
 
