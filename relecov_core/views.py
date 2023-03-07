@@ -80,9 +80,6 @@ from relecov_core.core_config import (
     HEADING_FOR_SAMPLE_LIST,
 )
 
-# moved sample graphic to intranet
-from relecov_core.utils.sample_processing import sample_processing_graphics
-
 
 @login_required
 def index(request):

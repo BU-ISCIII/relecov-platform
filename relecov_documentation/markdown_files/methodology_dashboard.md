@@ -69,7 +69,7 @@ The second graphic row split the host age information in gender distribution.
 
 ## Sequencing
 
-Sequebcing dashboard displays information related to sequencing process.
+Sequencing dashboard displays information related to sequencing process.
 
 In the first graphic there is information about the different sequencer instrument 
 used for sequencing and the types of library preparation used.
@@ -79,6 +79,21 @@ used for sequencing and the types of library preparation used.
 The read length used, the CTs per library preparation kit and the CTs per based pairs.
 
 ![m_dashboard_processing_2](img/m_dashboard_sequencing_2.png)
+
+
+
+# Sample processing
+
+Sample processing dashboard shows the information related to the different extraction 
+protocols used for sample preparation library.
+
+![sample_processing_1](img/sample_processing_1.png)
+
+
+
+![sample_processing_2](img/sample_processing_2.png)
+
+
 
 ## Bioinfo
 
