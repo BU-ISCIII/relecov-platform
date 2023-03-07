@@ -62,6 +62,7 @@ from relecov_dashboard.utils.methodology_bioinfo import bioinfo_graphics
 
 from relecov_dashboard.utils.methodology_sequencing import sequencing_graphics
 
+from relecov_dashboard.utils.sample_processing import sample_processing_graphics
 
 from relecov_dashboard.dashboard_config import (
     ERROR_NO_LINEAGES_ARE_DEFINED_YET,
@@ -246,6 +247,21 @@ def methodology_sequencing(request):
         request,
         "relecov_dashboard/methodologySequencing.html",
         {"sequencing": sequencing},
+    )
+
+@login_required
+def methodology_sample_processing(request):
+    sample_processing = sample_processing_graphics()
+    if "ERROR" in sample_processing:
+        return render(
+            request,
+            "relecov_dashboard/methodologySampleProcessing.html",
+            {"ERROR": sample_processing},
+        )
+    return render(
+        request,
+        "relecov_dashboard/methodologySampleProcessing.html",
+        {"sample_processing": sample_processing},
     )
 
 

@@ -19,6 +19,11 @@ urlpatterns = [
         name="methodology_sequencing",
     ),
     path(
+        "methodology/sampleProcessing",
+        views.methodology_sample_processing,
+        name="methodology_sample_processing",
+    ),
+    path(
         "methodology/bioinfo",
         views.methodology_bioinfo,
         name="methodology_bioinfo",
