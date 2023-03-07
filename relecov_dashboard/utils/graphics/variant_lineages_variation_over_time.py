@@ -41,7 +41,7 @@ def create_lineages_variations_graphic(date_range=None):
                         id="periodTime",
                         options=[
                             {"label": "Select Period", "value": ""},
-                            {"label": "Last year2", "value": "730"},
+                            {"label": "Last 2 years", "value": "730"},
                             {"label": "Last 6 months", "value": "180"},
                             {"label": "Last month", "value": "30"},
                         ],
@@ -101,24 +101,28 @@ def create_lineages_variations_graphic(date_range=None):
         samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
         # samples_df["Collection date"] = samples_df.index
         lineages = sub_data_df["Lineage"].unique().tolist()
-
-        graph_df = sub_data_df.set_index(["Lineage", "Collection date"]).unstack(
+        
+        # group samples per weeks
+        data_week_df = sub_data_df.groupby(["Lineage",pd.Grouper(key="Collection date", freq="W-MON")])["samples"].sum().reset_index().sort_values("Collection date")
+        graph_df = data_week_df.set_index(["Lineage", "Collection date"]).unstack(
             ["Lineage"]
         )
+
+        # remove the sample text from column
         graph_df.columns = ["{}".format(t) for v, t in graph_df.columns]
         graph_df = graph_df.fillna(0)
         # Convert values to integer
         graph_df[lineages] = graph_df[lineages].astype(int)
         # Do the percentage calculation
         value_per_df = graph_df.div(graph_df.sum(axis=1), axis=0) * 100
-
+            
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
 
         fig.add_trace(
             go.Scatter(
                 x=samples_df.index,
-                y=samples_df["samples_moving_mean"],
+                y=samples_df["samples"],
                 mode="lines",
                 line_color="#0066cc",
                 line_width=2,
@@ -128,11 +132,14 @@ def create_lineages_variations_graphic(date_range=None):
         )
         for lineage in lineages:
             fig.add_trace(
-                go.Bar(
+                go.Scatter(
                     x=value_per_df.index,
                     y=value_per_df[lineage],
+                    hoverinfo= "name+y",
+                    mode='lines',
                     name=lineage,
                     opacity=0.7,
+                    stackgroup="variants",
                 ),
                 secondary_y=False,
             )
