@@ -101,9 +101,16 @@ def create_lineages_variations_graphic(date_range=None):
         samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
         # samples_df["Collection date"] = samples_df.index
         lineages = sub_data_df["Lineage"].unique().tolist()
-        
+
         # group samples per weeks
-        data_week_df = sub_data_df.groupby(["Lineage",pd.Grouper(key="Collection date", freq="W-MON")])["samples"].sum().reset_index().sort_values("Collection date")
+        data_week_df = (
+            sub_data_df.groupby(
+                ["Lineage", pd.Grouper(key="Collection date", freq="W-MON")]
+            )["samples"]
+            .sum()
+            .reset_index()
+            .sort_values("Collection date")
+        )
         graph_df = data_week_df.set_index(["Lineage", "Collection date"]).unstack(
             ["Lineage"]
         )
@@ -115,7 +122,7 @@ def create_lineages_variations_graphic(date_range=None):
         graph_df[lineages] = graph_df[lineages].astype(int)
         # Do the percentage calculation
         value_per_df = graph_df.div(graph_df.sum(axis=1), axis=0) * 100
-            
+
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -135,8 +142,8 @@ def create_lineages_variations_graphic(date_range=None):
                 go.Scatter(
                     x=value_per_df.index,
                     y=value_per_df[lineage],
-                    hoverinfo= "name+y",
-                    mode='lines',
+                    hoverinfo="name+y",
+                    mode="lines",
                     name=lineage,
                     opacity=0.7,
                     stackgroup="variants",
