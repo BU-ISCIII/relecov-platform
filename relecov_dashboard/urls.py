@@ -30,11 +30,6 @@ urlpatterns = [
     ),
     path("variants", views.variants_index, name="variants_index"),
     path(
-        "variants/receivedSamples",
-        views.received_samples,
-        name="received_samples",
-    ),
-    path(
         "variants/mutationsInLineage",
         views.mutations_in_lineage,
         name="mutations_in_lineage",
