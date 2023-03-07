@@ -146,7 +146,7 @@ def pre_proc_variant_graphic():
     in_date_samples = fetch_samples_on_condition("collectionSampleDate")
     if "ERROR" in in_date_samples:
         return in_date_samples
-    
+
     date_sample = {}
     date_variant = {}
     for s_data in in_date_samples["DATA"]:
@@ -167,48 +167,42 @@ def pre_proc_variant_graphic():
             continue
         if date not in date_variant:
             date_variant[date] = {}
-        
+
         date_samples = 0
         for variant_name in variant_samples:
             if variant_name == "":
                 continue
-            
+
             if variant_name not in date_variant[date]:
-                num_samples = Sample.objects.filter(collecting_lab_sample_id__in=samples, lineage_values__value__iexact=variant_name).count()
+                num_samples = Sample.objects.filter(
+                    collecting_lab_sample_id__in=samples,
+                    lineage_values__value__iexact=variant_name,
+                ).count()
                 date_variant[date][variant_name] = num_samples
-            
+
             date_samples += num_samples
-        # Discard the variants that the number of the samples are lower that 
+        # Discard the variants that the number of the samples are lower that
         # 5 % for the total number of the samples collected from specific date
         min_num_samples = date_samples / 20
         for v_name, number in date_variant[date].items():
             key_to_delete = []
             if number < min_num_samples:
                 key_to_delete.append(v_name)
-        # Delete the entry date if no variant name was not identified for this 
-        # date 
+        # Delete the entry date if no variant name was not identified for this
+        # date
         if len(date_variant[date]) == 0:
-            date_variant.pop(date,None)
+            date_variant.pop(date, None)
             continue
         # Delete the variant which the number of samples are bellow the minimum
         # number of samples.
         for key in key_to_delete:
-            import pdb; pdb.set_trace()
+            import pdb
+
+            pdb.set_trace()
             date_variant[date].pop(key, None)
-        
-        """
-            collect_data.append(date)
-            lineage_data.append(lineage)
-            num_samples_data.append(
-                Sample.objects.filter(
-                    collecting_lab_sample_id__in=samples,
-                    lineage_values__value__iexact=lineage,
-                ).count()
-            )
-        """
-    import pdb; pdb.set_trace()
-    # convert dictionary to list date, variant and samples to store in json 
-    # for reading later as table to create the datafreme 
+
+    # convert dictionary to list date, variant and samples to store in json
+    # for reading later as table to create the datafreme
     collect_data = []
     num_samples_data = []
     variant_names = []
