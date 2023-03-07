@@ -20,14 +20,14 @@
                     <!-- Begin Page Content -->
                     <div class="container-fluid">
                         <!-- Page Heading -->
-                        <div class="row pt-4"  style="text-align: center">
+                        <div class="row"  style="text-align: center">
                             <h1>Received Sample</h1>
                         </div> <!-- end row -->
                         <hr>
                         <!-- Content Row -->
-                        <div class="row justify-content-center p-4">
-                            <div class="col-md-6 text-center">
-                                <h5>Map of received samples per CCAA</h5>
+                        <div class="row" style="text-align: center">
+                            <div class="col-md-12">
+                                <h5>Map of received samples</h5>
                                 {% if sample_data.map.ERROR %}
                                     <div class="card text-center border-danger">
                                         <div class="card-header text-danger"><h3 style="text-align:center">ERROR</h3> </div>
@@ -36,15 +36,15 @@
                                         </div> <!-- end card body  -->
                                     </div>
                                 {% else %}
-                                    {% plotly_app name="samplesReceivedOverTimeMap" ratio=1 %}
+                                    {% plotly_app name="samplesReceivedOverTimeMap" ratio=0.5 %}
                                 {% endif %}
-                            </div>  <!-- end col-md-7 -->
+                            </div>  <!-- end col-md-12 -->
+                        </div>  <!-- end row-->
+                        <div class="row" style="text-align: center">
                             <div class="col-md-6">
                                 <h5>Received samples per date</h5>
                                 {{ sample_data.received_samples_graph | safe }}
-                            </div>  <!-- end col-md-7 -->
-                        </div>  <!-- end row-->
-                        <div class="row p-4" style="text-align: center;">
+                            </div>  <!-- end col-md-6 -->
                             <div class="col-md-6">
                                 <h5>Received Samples per CCAA</h5>
                                 {% if sample_data.samples_per_lab.ERROR %}
@@ -58,7 +58,9 @@
                                     {{ sample_data.samples_per_ccaa | safe }}
                                 {% endif %}
                             </div>  <!-- end col-md-6 -->
-                            <div class="col-md-6">
+                        </div>  <!-- end row-->
+                        <div class="row justify-content-center p-4">
+                            <div class="col-md-12">
                                 <h5>Received Samples per Laboratory Center</h5>
                                 {% if sample_data.samples_per_lab.ERROR %}
                                     <div class="card text-center border-danger">
@@ -70,7 +72,7 @@
                                 {% else %}
                                     {{ sample_data.samples_per_lab | safe }}
                                 {% endif %}
-                            </div>  <!-- end col-md-6 -->
+                            </div>  <!-- end col-md-12 -->
                         </div>  <!-- end row-->
                     </div> <!-- End container -->
                 </div><!-- End Main Content -->

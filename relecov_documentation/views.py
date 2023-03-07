@@ -138,8 +138,8 @@ def intranet_sample_search(request):
 
 
 @login_required
-def intranet_sample_processing(request):
-    converted_to_html = markdown_to_html("intranet_sample_processing.md")
+def intranet_received_samples(request):
+    converted_to_html = markdown_to_html("intranet_received_samples.md")
     if isinstance(converted_to_html, dict):
         return render(request, "relecov_documentation/error_404.html")
     converted_to_html = fix_img_folder(converted_to_html)
