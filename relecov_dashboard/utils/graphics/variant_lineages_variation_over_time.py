@@ -10,18 +10,18 @@ from dash.dependencies import Input, Output
 
 from relecov_dashboard.utils.generic_functions import get_graphic_json_data
 
-from relecov_dashboard.utils.pre_processing_data import pre_proc_lineages_variations
+from relecov_dashboard.utils.pre_processing_data import pre_proc_variant_graphic
 
 
 def create_lineages_variations_graphic(date_range=None):
     """Collect the pre-processed data from database"""
-    json_data = get_graphic_json_data("lineages_variations")
+    json_data = get_graphic_json_data("variant_graphic_data")
     if json_data is None:
         # Execute the pre-processed task to get the data
-        result = pre_proc_lineages_variations()
+        result = pre_proc_variant_graphic()
         if "ERROR" in result:
             return result
-        json_data = get_graphic_json_data("lineages_variations")
+        json_data = get_graphic_json_data("variant_graphic_data")
 
     data_df = pd.DataFrame(json_data)
 
@@ -41,7 +41,7 @@ def create_lineages_variations_graphic(date_range=None):
                         id="periodTime",
                         options=[
                             {"label": "Select Period", "value": ""},
-                            {"label": "Last year2", "value": "365"},
+                            {"label": "Last year2", "value": "730"},
                             {"label": "Last 6 months", "value": "180"},
                             {"label": "Last month", "value": "30"},
                         ],
@@ -94,7 +94,11 @@ def create_lineages_variations_graphic(date_range=None):
             ]
 
         samples_df = pd.DataFrame()
+        
         samples_df["samples"] = sub_data_df.groupby("Collection date")["samples"].sum()
+        # convert groupby output Series to DataFrame
+        # samples_df = samples_df.reset_index()
+        samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
         # samples_df["Collection date"] = samples_df.index
         lineages = sub_data_df["Lineage"].unique().tolist()
 
@@ -114,7 +118,7 @@ def create_lineages_variations_graphic(date_range=None):
         fig.add_trace(
             go.Scatter(
                 x=samples_df.index,
-                y=samples_df["samples"],
+                y=samples_df["samples_moving_mean"],
                 mode="lines",
                 line_color="#0066cc",
                 line_width=2,
