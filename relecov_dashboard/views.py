@@ -24,12 +24,6 @@ from relecov_dashboard.utils.graphics.lineages_in_time import (
     create_samples_over_time_graph,
 )
 
-from relecov_dashboard.utils.graphics.variant_sample_dashboard import (
-    display_received_samples_graph,
-    display_received_per_ccaa,
-    display_received_per_lab,
-)
-
 from relecov_dashboard.utils.graphics.variant_mutation_in_lineages_search_by_lineage import (
     get_variant_data_from_lineages,
     create_needle_plot_graph_mutation_by_lineage,
@@ -45,9 +39,6 @@ from relecov_dashboard.utils.graphics.variant_lineages_variation_over_time impor
     create_lineages_variations_graphic,
 )
 
-from relecov_dashboard.utils.graphics.samples_received_over_time_map import (
-    create_samples_received_over_time_map,
-)
 from relecov_dashboard.utils.graphics.samples_received_over_time_pie import (
     parse_json_file,
     create_samples_received_over_time_per_ccaa_pieChart,
@@ -73,30 +64,6 @@ from relecov_dashboard.dashboard_config import (
 @login_required
 def variants_index(request):
     return render(request, "relecov_dashboard/variantsIndex.html")
-
-
-@login_required
-def received_samples(request):
-    sample_data = {}
-    # samples receive over time map
-    sample_data["map"] = create_samples_received_over_time_map()
-    # samples receive over time graph
-    # df = create_dataframe_from_json()
-    # create_samples_over_time_graph(df)
-
-    # # collecting now data from database
-    sample_data["received_samples_graph"] = display_received_samples_graph()
-    # Pie charts
-    # data = parse_json_file()
-    # create_samples_received_over_time_per_ccaa_pieChart(data)
-    sample_data["samples_per_ccaa"] = display_received_per_ccaa()
-    # create_samples_received_over_time_per_laboratory_pieChart(data)
-    sample_data["samples_per_lab"] = display_received_per_lab()
-    return render(
-        request,
-        "relecov_dashboard/variantReceivedSamples.html",
-        {"sample_data": sample_data},
-    )
 
 
 @login_required
@@ -248,6 +215,7 @@ def methodology_sequencing(request):
         "relecov_dashboard/methodologySequencing.html",
         {"sequencing": sequencing},
     )
+
 
 @login_required
 def methodology_sample_processing(request):

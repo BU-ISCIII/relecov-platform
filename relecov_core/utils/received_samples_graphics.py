@@ -1,4 +1,4 @@
-from relecov_dashboard.utils.graphics.plotly_graphics import (
+from relecov_core.utils.plotly_graphics import (
     line_graphic,
     bar_graphic,
 )

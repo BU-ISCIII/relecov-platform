@@ -73,6 +73,19 @@ from relecov_core.utils.handling_annotation import (
 )
 from relecov_core.utils.handling_lineage import get_lineage_data_from_sample
 
+# Imports for received samples graphic at intranet
+from relecov_core.utils.received_samples_graphics import (
+    display_received_samples_graph,
+    display_received_per_ccaa,
+    display_received_per_lab,
+)
+
+from relecov_core.utils.received_samples_graphic_map import (
+    create_samples_received_map,
+)
+
+#  End of imports  received samples
+
 from relecov_core.core_config import (
     ERROR_USER_IS_NOT_ASSIGNED_TO_LAB,
     ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
@@ -505,18 +518,26 @@ def laboratory_contact(request):
 
 
 @login_required
-def sample_processing(request):
-    sample_processing = sample_processing_graphics()
-    if "ERROR" in sample_processing:
-        return render(
-            request,
-            "relecov_core/sampleProcessing.html",
-            {"ERROR": sample_processing},
-        )
+def received_samples(request):
+    sample_data = {}
+    # samples receive over time map
+    sample_data["map"] = create_samples_received_map()
+    # samples receive over time graph
+    # df = create_dataframe_from_json()
+    # create_samples_over_time_graph(df)
+
+    # # collecting now data from database
+    sample_data["received_samples_graph"] = display_received_samples_graph()
+    # Pie charts
+    # data = parse_json_file()
+    # create_samples_received_over_time_per_ccaa_pieChart(data)
+    sample_data["samples_per_ccaa"] = display_received_per_ccaa()
+    # create_samples_received_over_time_per_laboratory_pieChart(data)
+    sample_data["samples_per_lab"] = display_received_per_lab()
     return render(
         request,
-        "relecov_core/sampleProcessing.html",
-        {"sample_processing": sample_processing},
+        "relecov_core/receivedSamples.html",
+        {"sample_data": sample_data},
     )
 
 
