@@ -94,7 +94,7 @@ def create_lineages_variations_graphic(date_range=None):
             ]
 
         samples_df = pd.DataFrame()
-        
+
         samples_df["samples"] = sub_data_df.groupby("Collection date")["samples"].sum()
         # convert groupby output Series to DataFrame
         # samples_df = samples_df.reset_index()
