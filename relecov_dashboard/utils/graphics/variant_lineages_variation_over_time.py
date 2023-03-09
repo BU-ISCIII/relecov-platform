@@ -48,15 +48,14 @@ def create_lineages_variations_graphic(date_range=None):
                     ),
                 ],
             ),
-            
         ],
         body=True,
     )
     period_text = dbc.Card(
         [
             html.Div(
-                "When no Selection period is set, the graphic show data form January to December of 2021")
-                
+                "When no Selection period is set, the graphic show data form January to December of 2021"
+            )
         ]
     )
     app.layout = dbc.Container(
@@ -105,7 +104,7 @@ def create_lineages_variations_graphic(date_range=None):
         # reset_index
         samples_df = samples_df.reset_index()
         # samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
-        
+
         # samples_per_week = samples_df.groupby(["samples", pd.Grouper(key="Collection date", freq="W-MON")]).sum().reset_index().sort_values("Collection date")
         # samples_df["Collection date"] = samples_df.index
         lineages = sub_data_df["Lineage"].unique().tolist()
