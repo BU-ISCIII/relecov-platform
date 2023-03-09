@@ -1,6 +1,5 @@
 
 {% extends 'relecov_core/base.html' %}
-{% load static %}
 {% load plotly_dash %}
 
 {% block content %}
@@ -20,12 +19,12 @@
                     <!-- Begin Page Content -->
                     <div class="container">
                         <!-- Page Heading -->
-                        <div class="row pt-4" style="text-align: center">
-                            <h1>Lineages evolution over time dashboard</h1>
+                        <div class="row" style="text-align: center">
+                            <h1>Variants evolution over time dashboard</h1>
                         </div> <!-- end row -->
                         <hr>
                         <!-- Content Row -->
-                        <div class="row justify-content-center p-4" style="text-align: center;">
+                        <div class="row">
                             <div class="col-sm-12">
                                 {% if draw_lineages.lineage_on_time.ERROR %}
                                     <div class="card text-center border-danger">
