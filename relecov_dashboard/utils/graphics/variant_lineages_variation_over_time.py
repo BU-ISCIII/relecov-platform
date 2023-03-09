@@ -46,17 +46,25 @@ def create_lineages_variations_graphic(date_range=None):
                             {"label": "Last month", "value": "30"},
                         ],
                     ),
-                ]
+                ],
             ),
+            
         ],
         body=True,
     )
+    period_text = dbc.Card(
+        [
+            html.Div(
+                "When no Selection period is set, the graphic show data form January to December of 2021")
+                
+        ]
+    )
     app.layout = dbc.Container(
         [
-            html.Hr(),
             dbc.Row(
                 [
                     dbc.Col(controls, md=4),
+                    dbc.Col(period_text, md=6),
                     dbc.Col(
                         dcc.Graph(
                             id="lineageGraph", figure="", config={"displaylogo": False}
@@ -69,8 +77,6 @@ def create_lineages_variations_graphic(date_range=None):
         ],
         fluid=True,
     )
-    # return None
-    # return plot_div
 
     @app.callback(
         Output("lineageGraph", "figure"),
@@ -96,13 +102,15 @@ def create_lineages_variations_graphic(date_range=None):
         samples_df = pd.DataFrame()
 
         samples_df["samples"] = sub_data_df.groupby("Collection date")["samples"].sum()
-        # convert groupby output Series to DataFrame
-        # samples_df = samples_df.reset_index()
-        samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
+        # reset_index
+        samples_df = samples_df.reset_index()
+        # samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
+        
+        # samples_per_week = samples_df.groupby(["samples", pd.Grouper(key="Collection date", freq="W-MON")]).sum().reset_index().sort_values("Collection date")
         # samples_df["Collection date"] = samples_df.index
         lineages = sub_data_df["Lineage"].unique().tolist()
 
-        # group samples per weeks
+        # group samples in variants per weeks
         data_week_df = (
             sub_data_df.groupby(
                 ["Lineage", pd.Grouper(key="Collection date", freq="W-MON")]
@@ -121,14 +129,15 @@ def create_lineages_variations_graphic(date_range=None):
         # Convert values to integer
         graph_df[lineages] = graph_df[lineages].astype(int)
         # Do the percentage calculation
-        value_per_df = graph_df.div(graph_df.sum(axis=1), axis=0) * 100
+        value_per_df = (graph_df.div(graph_df.sum(axis=1), axis=0) * 100).round(2)
+        # value_per_df = value_per_df
 
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
 
         fig.add_trace(
             go.Scatter(
-                x=samples_df.index,
+                x=value_per_df.index,
                 y=samples_df["samples"],
                 mode="lines",
                 line_color="#0066cc",
@@ -166,7 +175,7 @@ def create_lineages_variations_graphic(date_range=None):
 
         # Add figure title
         fig.update_layout(
-            title_text="Lineage variation over time 1 year",
+            title_text="Variants over the selected period",
             barmode="stack",
             hovermode="x unified",
             legend_xanchor="center",  # use center of legend as anchor
@@ -178,6 +187,6 @@ def create_lineages_variations_graphic(date_range=None):
             margin_r=10,
             margin_b=40,
             margin_t=30,
-            height=800,
+            height=600,
         )
         return fig
