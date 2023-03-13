@@ -97,7 +97,7 @@ Set conda as default run-time.This will install the nexstrain conda env with all
 
 Copy service file to `/usr/lib/systemd/system`
 ```
-cp ./conf/nextstrain.service /usr/lib/systemd/system
+cp ./conf/nextstrain.service /etc/systemd/system
 ```
 
 Copy auspice dataset to datasets folder. This contains all the data that should be rendered by nextstrain app. This is created using the [nexstrain_relecov workflow](https://github.com/BU-ISCIII/nexstrain_relecov)
