@@ -10,14 +10,18 @@ This script install and upgrade the relecov platform application.
 
 usage : $0 --upgrade --dev --conf
 	Optional input data:
+    --install | Define the type of installation full/dependencies/application
     --upgrade | Upgrade the relecov application
     --dev     | Use the develop version instead of main release
     --conf    | Select configuration file
 
 
 Examples:
-    To install relecov application with the main release
-    sudo $0
+    To install only software dependencies for relecov application
+    sudo $0 --install dependencies
+
+    To install only Relecov platform application
+    $0 --install application
 
     To upgrade using develop code
     $0 --upgrade --dev
@@ -88,6 +92,20 @@ python_check(){
         exit 1
     fi
 }
+
+root_check(){
+    if [[ $EUID -ne 0 ]]; then
+        printf "\n\n%s"
+        printf "${RED}------------------${NC}\n"
+        printf "%s"
+        printf "${RED}Exiting installation. This script must be run as root ${NC}\n"
+        printf "\n\n%s"
+        printf "${RED}------------------${NC}\n"
+        printf "%s"
+        exit 1
+    fi
+}
+
 #================================================================
 #SET TEMINAL COLORS
 #================================================================
@@ -110,6 +128,7 @@ do
     fi
     case "$arg" in
     ##OPTIONAL
+        --install)  set -- "$@"	-i ;;
 		--upgrade)	set -- "$@"	-u ;;
         --dev)      set -- "$@" -d ;;
         --conf)     set -- "$@" -c ;;
@@ -128,9 +147,11 @@ git_branch="main"
 conf_file="./initial_settings.txt"
 
 #PARSE VARIABLE ARGUMENTS WITH getops
-options=":c:duvh"
+options=":ci:duvh"
 while getopts $options opt; do
 	case $opt in
+        i ) type_installation=$OPTARG
+            ;;
 		u )
 			upgrade=true
 			;;
@@ -271,25 +292,8 @@ printf "%s"
 printf "${YELLOW}------------------${NC}\n\n"
 
 #================================================================
-#CHECK REQUIREMENTS BEFORE STARTING INSTALLATION
+# CHECK REQUIREMENTS BEFORE STARTING INSTALLATION
 #================================================================
-# Check that script is run as root
-if [[ $EUID -ne 0 ]]; then
-    printf "\n\n%s"
-    printf "${RED}------------------${NC}\n"
-    printf "%s"
-    printf "${RED}Exiting installation. This script must be run as root ${NC}\n"
-    printf "\n\n%s"
-    printf "${RED}------------------${NC}\n"
-    printf "%s"
-    exit 1
-fi
-
-user=$SUDO_USER
-group=$(groups | cut -d" " -f1)
-
-#Linux distribution
-linux_distribution=$(lsb_release -i | cut -f 2-)
 
 echo "Checking main requirements"
 python_check
@@ -300,156 +304,217 @@ apache_check
 printf "${BLUE}Successful check for apache${NC}\n"
 
 #================================================================
-## move to develop branch if --dev param
-
-##git checkout develop
-
+# INSTALL REPOSITORY REQUIRED SOFTWARE AND PYTHON VIRTUAL ENVIRONMENT
 #================================================================
 
-read -p "Are you sure you want to install Relecov-platform in this server? (Y/N) " -n 1 -r
-echo    # (optional) move to a new line
-if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-    echo "Exiting without running relecov_platform installation"
-    exit 1
-fi
+if [ "$type_installation" = "full" ] || [ "$type_installation" = "dependencies" ]; then
+    # Check if installation script is run as root
+    root_check
 
-#================================================================
-if [[ $linux_distribution == "Ubuntu" ]]; then
-    echo "Software installation for Ubuntu"
-    apt-get update && apt-get upgrade -y
-    apt-get install -y \
-        apt-utils wget \
-        libmysqlclient-dev apache2-dev \
-        python3-venv
-    # libapache2-mod-wsgi-py3
-fi
+    user=$SUDO_USER
+    group=$(groups | cut -d" " -f1)
 
-if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-    echo "Software installation for Centos/RedHat"
-    yum install zlib-devel bzip2-devel openssl-devel \
-                wget httpd-devel mysql-libs
-fi
+    # Find out server Linux distribution
+    linux_distribution=$(lsb_release -i | cut -f 2-)
 
-echo "Starting relecov-platform installation"
-if [ -d $INSTALL_PATH/relecov-platform ]; then
-    echo "There already is an installation of relecov-platform in $INSTALL_PATH."
-    read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
+    #================================================================
+    ## move to develop branch if --dev param
+
+    ##git checkout develop
+
+    #================================================================
+
+    read -p "Are you sure you want to install repository Software required for Relecov-platform? (Y/N) " -n 1 -r
     echo    # (optional) move to a new line
     if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-        echo "Exiting without running relecov_platform installation"
+        echo "Exiting without installing required software for Relecov-platform installation"
         exit 1
+    fi
+
+    #================================================================
+    if [[ $linux_distribution == "Ubuntu" ]]; then
+        echo "Software installation for Ubuntu"
+        apt-get update && apt-get upgrade -y
+        apt-get install -y \
+            apt-utils wget \
+            libmysqlclient-dev apache2-dev \
+            python3-venv
+        # libapache2-mod-wsgi-py3
+    fi
+
+    if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+        echo "Software installation for Centos/RedHat"
+        yum install zlib-devel bzip2-devel openssl-devel \
+                    wget httpd-devel mysql-libs
+    fi
+
+    # install virtual environment
+    echo "Creating virtual environment"
+    if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
+        echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
+        read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
+        echo    # (optional) move to a new line
+        if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+            rm -rf $INSTALL_PATH/relecov-platform/virtualenv
+            bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+        else
+            echo "virtualenv alredy defined. Skipping."
+        fi
     else
-        rm -rf $INSTALL_PATH/relecov-platform
+        # Create application folder if not exists and create the virtualenv
+        mkdir -p $INSTALL_PATH/relecov-platform
+        cd $INSTALL_PATH/relecov-platform
+        bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    fi
+
+    # Install python packages required for  Relecov Platform
+    echo "Installing required python packages"
+    python3 -m pip install -r conf/requirements.txt
+    echo ""
+
+    ## Create apache group if it does not exist.
+    if ! grep -q apache /etc/group
+    then
+        groupadd apache
+    fi
+    if [ type_installation == "full" || type_installation == "application" ]; then
+        echo "Software dependencies are successfuly installed"
+    else
+        printf "\n\n%s"
+        printf "${BLUE}------------------${NC}\n"
+        printf "%s"
+        printf "${BLUE}Software dependencies are successfuly installed${NC}\n"
+        printf "%s"
+        printf "${BLUE}------------------${NC}\n\n"
+        exit 0
     fi
 fi
 
-## Clone relecov-platform repository
-mkdir $INSTALL_PATH/relecov-platform
-#git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
-rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform
+#================================================================
+# INSTALL RELECOV PLATFORM APPLICATION
+#================================================================
 
-cd $INSTALL_PATH/relecov-platform
+if [ "$type_installation" = "full" ] || [ "$type_installation" = "application" ]; then
 
-## Create apache group if it does not exist.
-if ! grep -q apache /etc/group
-then
-    groupadd apache
-fi
-
-## Fix permissions and owners
-
-if [ $LOG_TYPE == "symbolic_link" ]; then
-    if [ -d $LOG_PATH ]; then
-    	ln -s $LOG_PATH /opt/relecov-platform/logs
-	chmod 775 $LOG_PATH
-    else
-        echo "Log folder path: $LOG_PATH does not exist. Fix it in the initial_settings.txt and run again."
-	exit 1
-    fi
-else
-    mkdir -p /opt/relecov-platform/logs
-    chown $user:apache /opt/relecov-platform/logs
-    chmod 775 /opt/relecov-platform/logs
-fi
-
-mkdir -p /opt/relecov-platform/documents
-chown $user:apache /opt/relecov-platform/documents
-chmod 775 /opt/relecov-platform/documents
-mkdir -p /opt/relecov-platform/documents/schemas
-chown $user:apache /opt/relecov-platform/documents/schemas
-chmod 775 /opt/relecov-platform/documents/schemas
-echo "Created folders for logs and documents "
-
-# install virtual environment
-echo "Creating virtual environment"
-if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
-    echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
-    read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
+    read -p "Are you sure you want to install Relecov-platform application in this server? (Y/N) " -n 1 -r
     echo    # (optional) move to a new line
     if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-        rm -rf $INSTALL_PATH/relecov-platform/virtualenv
-        bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-    else
-        echo "virtualenv alredy defined. Skipping."
+        echo "Exiting without installing required software for Relecov-platform installation"
+        exit 1
     fi
-else
-    bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    echo "Starting relecov-platform installation"
+    if [ -d $INSTALL_PATH/relecov-platform/relecov_core ]; then
+        echo "There already is an installation of relecov-platform in $INSTALL_PATH."
+        read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
+        echo    # (optional) move to a new line
+        if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+            # Delete all folders at relecov-platform but the virtualenv
+            cd $INSTALL_PATH/relecov-platform
+            echo "Deleting previous installation"
+            # rm -rf !($INSTALL_PATH/relecov-platform/virtualenv)
+            # return to installation script directory
+            script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+            cd script_dir
+        else
+            echo "Keeping the previous installation"
+        fi
+    fi
+    # Start relecov-platform installation
+
+    mkdir -p $INSTALL_PATH/relecov-platform
+    rsync -rlv README.md LICENSE conf relecov_core relecov_dashboard relecov_documentation $INSTALL_PATH/relecov-platform
+
+    cd $INSTALL_PATH/relecov-platform
+
+    ## Fix permissions and owners
+
+    if [ $LOG_TYPE == "symbolic_link" ]; then
+        if [ -d $LOG_PATH ]; then
+            ln -s $LOG_PATH /opt/relecov-platform/logs
+        chmod 775 $LOG_PATH
+        else
+            echo "Log folder path: $LOG_PATH does not exist. Fix it in the initial_settings.txt and run again."
+        exit 1
+        fi
+    else
+        mkdir -p /opt/relecov-platform/logs
+        chown $user:apache /opt/relecov-platform/logs
+        chmod 775 /opt/relecov-platform/logs
+    fi
+
+    mkdir -p /opt/relecov-platform/documents
+    chown $user:apache /opt/relecov-platform/documents
+    chmod 775 /opt/relecov-platform/documents
+    mkdir -p /opt/relecov-platform/documents/schemas
+    chown $user:apache /opt/relecov-platform/documents/schemas
+    chmod 775 /opt/relecov-platform/documents/schemas
+    echo "Created folders for logs and documents "
+
+
+    echo "activate the virtualenv"
+    source virtualenv/bin/activate
+
+    # Starting Relecov Platform
+
+    echo "Creating relecov_platform project"
+    django-admin startproject relecov_platform .
+    grep ^SECRET relecov_platform/settings.py > ~/.secret
+
+
+    # Copying config files and script
+    cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
+    cp conf/urls.py /opt/relecov-platform/relecov_platform/
+    cp conf/routing.py /opt/relecov-platform/relecov_platform/
+
+    sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
+    sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
+    sed -i "s/djangopass/${DB_PASS}/g" relecov_platform/settings.py
+    sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
+    sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
+
+    sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
+    sed -i "s/dns_url/${DNS_URL}/g" relecov_platform/settings.py
+
+    echo "Creating the database structure for relecov-platform"
+    python3 manage.py migrate
+    python3 manage.py makemigrations relecov_core django_plotly_dash relecov_dashboard
+    python3 manage.py migrate
+
+    ## Adding permissions
+    chown $user:$group -R relecov_platform
+
+    echo "Loading in database initial data"
+    python3 manage.py loaddata conf/upload_tables.json
+
+    echo "Updating Apache configuration"
+    if [[ $linux_distribution == "Ubuntu" ]]; then
+        cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
+    fi
+
+    if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+        cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov_platform.conf
+    fi
+
+    echo "Creating admin user"
+    python3 manage.py createsuperuser --username admin
+
+    printf "\n\n%s"
+    printf "${BLUE}------------------${NC}\n"
+    printf "%s"
+    printf "${BLUE}Successfuly Relecov Platform Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+    printf "%s"
+    printf "${BLUE}------------------${NC}\n\n"
+
+    echo "Installation completed"
+    exit 0
 fi
-
-echo "activate the virtualenv"
-source virtualenv/bin/activate
-
-# Starting Relecov Platform
-echo "Installing required python packages"
-python3 -m pip install -r conf/requirements.txt
-echo ""
-echo "Creating relecov_platform project"
-django-admin startproject relecov_platform .
-grep ^SECRET relecov_platform/settings.py > ~/.secret
-
-
-# Copying config files and script
-cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
-cp conf/urls.py /opt/relecov-platform/relecov_platform/
-cp conf/routing.py /opt/relecov-platform/relecov_platform/
-
-sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
-sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
-sed -i "s/djangopass/${DB_PASS}/g" relecov_platform/settings.py
-sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
-sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
-
-sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
-sed -i "s/dns_url/${DNS_URL}/g" relecov_platform/settings.py
-
-echo "Creating the database structure for relecov-platform"
-python3 manage.py migrate
-python3 manage.py makemigrations relecov_core django_plotly_dash relecov_dashboard
-python3 manage.py migrate
-
-## Adding permissions
-chown $user:$group -R relecov_platform
-
-echo "Loading in database initial data"
-python3 manage.py loaddata conf/upload_tables.json
-
-echo "Updating Apache configuration"
-if [[ $linux_distribution == "Ubuntu" ]]; then
-    cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
-fi
-
-if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-    cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov_platform.conf
-fi
-
-echo "Creating admin user"
-python3 manage.py createsuperuser --username admin
 
 printf "\n\n%s"
-printf "${BLUE}------------------${NC}\n"
+printf "${RED}------------------${NC}\n"
 printf "%s"
-printf "${BLUE}Successfuly Relecov Platform Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
+printf "${RED}Invalid installation parameters${NC}\n"
 printf "%s"
-printf "${BLUE}------------------${NC}\n\n"
-
-echo "Installation completed"
+printf "${RED}------------------${NC}\n\n"
+echo "See the usage examples"
+usage
+exit 1
