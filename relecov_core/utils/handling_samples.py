@@ -488,7 +488,7 @@ def get_sample_per_date_per_all_lab(detailed=None):
         for s_date in s_dates:
             try:
                 date = datetime.strftime(s_date, "%d-%B-%Y")
-            except ValueError:
+            except TypeError:
                 continue
             all_samples_per_date[date] = Sample.objects.filter(
                 sequencing_date=s_date
@@ -507,7 +507,10 @@ def get_sample_per_date_per_all_lab(detailed=None):
             for date in date_list:
                 lab_data = {}
                 lab_data["lab_name"] = lab
-                lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
+                try:
+                    lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
+                except TypeError:
+                    continue
                 lab_data["num_samples"] = Sample.objects.filter(
                     collecting_institution__iexact=lab, sequencing_date__exact=date
                 ).count()
