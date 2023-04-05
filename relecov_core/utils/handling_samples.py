@@ -486,7 +486,10 @@ def get_sample_per_date_per_all_lab(detailed=None):
             .order_by("sequencing_date")
         )
         for s_date in s_dates:
-            date = datetime.strftime(s_date, "%d-%B-%Y")
+            try:
+                date = datetime.strftime(s_date, "%d-%B-%Y")
+            except ValueError:
+                continue
             all_samples_per_date[date] = Sample.objects.filter(
                 sequencing_date=s_date
             ).count()
