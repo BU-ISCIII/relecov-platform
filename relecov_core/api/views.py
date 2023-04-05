@@ -153,7 +153,7 @@ def create_sample_data(request):
         # get the user to assign the sample based on the collecting_institution
         # value. If lab is not define user field is set t
         split_data = split_sample_data(data)
-        # Add schema id to store in databasee
+        # Add schema id to store in database
         split_data["sample"]["schema_obj"] = schema_id
         sample_serializer = CreateSampleSerializer(data=split_data["sample"])
         if not sample_serializer.is_valid():
