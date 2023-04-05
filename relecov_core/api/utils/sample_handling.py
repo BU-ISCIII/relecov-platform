@@ -39,7 +39,18 @@ def split_sample_data(data):
             split_data["ena"][item] = value
             continue
         if "date" in item:
-            value = datetime.strptime(value, "%Y-%m-%d")
+            try:
+                # Check if value is in date format with - separation
+                value = datetime.strptime(value, "%Y-%m-%d")
+            except ValueError:
+                try:
+                    # Check if no separation is in date format
+                    value = datetime.strptime(value, "%Y%m%d")
+                except ValueError:
+                    # Value is not a date. Not conversion is done and same value
+                    # is stored in database
+                    pass
+                
         split_data["sample"][item] = value
 
     # add user and state to sample data
