@@ -50,7 +50,6 @@ def split_sample_data(data):
                     # Value is not a date. Not conversion is done and same value
                     # is stored in database
                     pass
-                
         split_data["sample"][item] = value
 
     # add user and state to sample data
