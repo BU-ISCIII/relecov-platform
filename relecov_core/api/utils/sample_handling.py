@@ -47,7 +47,7 @@ def split_sample_data(data):
                     # Check if no separation is in date format
                     value = datetime.strptime(value, "%Y%m%d")
                 except ValueError:
-                    # Value is not a date. Set to None to allow that serialzer 
+                    # Value is not a date. Set to None to allow that serialzer
                     # store it in database.
                     value = None
         split_data["sample"][item] = value
