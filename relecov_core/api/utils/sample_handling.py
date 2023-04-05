@@ -47,9 +47,9 @@ def split_sample_data(data):
                     # Check if no separation is in date format
                     value = datetime.strptime(value, "%Y%m%d")
                 except ValueError:
-                    # Value is not a date. Not conversion is done and same value
-                    # is stored in database
-                    pass
+                    # Value is not a date. Set to None to allow that serialzer 
+                    # store it in database.
+                    value = None
         split_data["sample"][item] = value
 
     # add user and state to sample data
