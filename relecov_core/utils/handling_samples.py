@@ -724,7 +724,7 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
                 return sample_list
 
         elif sample_objs.filter(
-            quit(sequencing_sample_id__icontains=sample_name)
+            Q(sequencing_sample_id__icontains=sample_name)
             | Q(collecting_lab_sample_id__icontains=sample_name)
         ).exists():
             sample_objs = sample_objs.filter(
