@@ -739,7 +739,7 @@ class Sample(models.Model):
         recorded_date = self.created_at.strftime("%d-%B-%Y")
         try:
             seq_date = self.sequencing_date.strftime("%d-%B-%Y")
-        except ValueError:
+        except (TypeError, AttributeError):
             seq_date = ""
         data = []
         data.append(self.pk)
