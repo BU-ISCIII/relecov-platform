@@ -196,9 +196,6 @@ def pre_proc_variant_graphic():
         # Delete the variant which the number of samples are bellow the minimum
         # number of samples.
         for key in key_to_delete:
-            import pdb
-
-            pdb.set_trace()
             date_variant[date].pop(key, None)
 
     # convert dictionary to list date, variant and samples to store in json
