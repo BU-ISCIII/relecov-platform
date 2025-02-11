@@ -1,0 +1,61 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg navbar-light custom-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'index' %}">
+            <img src="{% static 'core/custom/img/relecov_logo.png' %}" alt="Relecov Logo" style="height: 100px;">
+        </a>
+        <div style="width: 3px; height: 50px; background-color: #002855; margin: 0 20px; border-radius: 10px;"></div>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <!-- Relecov Project -->
+                <li><a class="nav-link" href="http://relecov.isciiides.es/news-reports/">Relecov Project</a></li>
+
+                <!-- Dashboard -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDashboardDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Dashboard
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDashboardDropdown">
+                        <li><a class="dropdown-item" href="/dashboard/variants">Variants Dashboard</a></li>
+                        <li><a class="dropdown-item" href="/dashboard/methodology">Methodology Dashboard</a></li>
+                    </ul>
+                </li>
+
+                <!-- Documentation -->
+                <li><a class="nav-link" href="/documentation">Documentation</a></li>
+
+                <!-- Contact -->
+                <li><a class="nav-link" href="/Contact">Contact</a></li>
+
+                <!-- Intranet -->
+                <li><a class="btn btn-primary text-white" href="/intranet">Intranet</a></li>
+
+                <!-- Admin Configuration (Visible solo para admin) -->
+                {% if user.username == "admin" %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Configuration
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" href="/schemaHandling">Schema Handling</a></li>
+                        <li><a class="dropdown-item" href="/metadataVisualization">Metadata Visualization</a></li>
+                        <li><a class="dropdown-item" href="/organismAnnotation">Annotation</a></li>
+                        <li><a class="dropdown-item" href="/assignSamplesToUser">Assign Samples to User's Lab</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Autenticación: Si el usuario está autenticado, mostrar opciones adicionales -->
+            {% if user.is_authenticated %}
+                {% include "registration/login_inline.html" %}
+            {% endif %}
+        </div>
+    </div>
+</nav>
