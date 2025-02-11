@@ -5,93 +5,106 @@
 {% block content %}
 
 <!--Banner-->
-<section id="relecov-platform" class="hero-animated d-flex align-items-center">
-    <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
-        <section>
-            <div class="container-fluid position-relative overflow-hidden">
-                <div class="row text-white">
-                    <div class="col-12">
-                        <div class="card-img-overlay">
-                            <img src="{% static 'core/custom/img/virus_crop.jpg' %}" class="card-img" alt="relecov platform" style="z-index:0;">
-                        </div> <!--end card image-->
-                        <p class="position-relative p-2 text-white text-center fs-1">Relecov Platform</p>
-                        <p class="position-relative p-2 text-white text-center fs-3">Platform for viral sequencing and variants evolution monitoring in the context of the Spanish Network for genomics surveillance of SARS-Cov-2</p>
-                    </div><!--end col-->
-                </div> <!--end row-->
-            </div> <!--end container-->
-        </section>
-        <!--end Banner-->
-        <section>
-            <div class="container-fluid overflow-hidden pt-4">
-                <div class="row gy-2">
-                    <div class="col-xl-3 col-md-6">
-                        <div class="p-3 border bg-light"><h4>Received Samples</h4>
-                        <h2><div class="value" akhi="{{ number_of_samples.Defined }}">0</div></h2>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6">
-                        <div class="p-3 border bg-light"><h4>Analysis Performed</h4>
-                        <h2><div class="value" akhi="{{ number_of_samples.Bioinfo }}">0</div></h2>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6">
-                        <div class="p-3 border bg-light"><h4>Uploads to GISAID</h4>
-                        <h2><div class="value" akhi="{{ number_of_samples.Gisaid }}">0</div></h2>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6">
-                        <div class="p-3 border bg-light"><h4 style="padding-bottom: 29px;">Uploads to  ENA</h4>
-                        <h2><div class="value" akhi="{{ number_of_samples.Ena }}">0</div></h2>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section class="pb-5">
-            <div id="featured-services" class="featured-services container-fluid overflow-hidden pt-4">
-                <div class="row gy-2">
-                    <div class="col-xl-3 col-md-6" data-aos="zoom-out">
-                        <div class="service-item border position-relative">
-                            <a href="/dashboard/variants" class="">
-                                <div class="icon"><i class="bi bi-activity icon"></i></div>
-                                <h4>Variants</h4>
-                                <p>Go to Variants Dashboard</p>
-                            </a>
-                        </div>
-                    </div><!-- End Service Item -->
-
-                    <div class="col-xl-3 col-md-6" data-aos="zoom-out" data-aos-delay="200">
-                        <div class="service-item border position-relative">
-                            <a href="/dashboard/methodology" class="stretched-link">
-                                <div class="icon"><i class="bi bi-bounding-box-circles icon"></i></div>
-                                <h4>Methodology</h4>
-                                <p>Go to Methodology Dashboard</p>
-                            </a>
-                        </div>
-                    </div><!-- End Service Item -->
-
-                    <div class="col-xl-3 col-md-6" data-aos="zoom-out" data-aos-delay="400">
-                        <div class="service-item border position-relative">
-                            <a href="/documentation" class="stretched-link">
-                                <div class="icon"><i class="bi bi-folder icon"></i></div>
-                                <h4>Documentation</h4>
-                                <p>Go to Documentation</p>
-                            </a>
-                        </div>
-                    </div><!-- End Service Item -->
-                    <div class="col-xl-3 col-md-6" data-aos="zoom-out" data-aos-delay="600">
-                        <div class="service-item border position-relative">
-                            <a href="{{nextstrain_url}}" target="_blank" class="stretched-link">
-                                <div class="icon"><i class="bi bi-dribbble"></i></div>
-                                <h4>Nextstrain</h4>
-                                <p>Go to Nextstrain</p>
-                            </a>
-                        </div>
-                    </div><!-- End Service Item -->
-                </div>
-            </div>
-        </section>
+<section class="banner">
+    <video class="banner-video" autoplay muted loop>
+        <source src="{% static 'core/custom/video/banner.mp4' %}" type="video/mp4">
+        Tu navegador no soporta videos HTML5.
+    </video>
+    <div class="banner-content">
+        <h1 class="banner-title">La medicina de precisión contra la resistencia a antimicrobianos</h1>
     </div>
-    <!-- ======= Services Section ======= -->
-        <script src="{% static 'core/custom/js/index_functions.js' %}"></script>
 </section>
+
+<!-- Proyect description -->
+<div id="description" class="container description-banner" data-aos="fade-up" data-aos-delay="200">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="logo mb-3">
+                <img src="{% static 'core/custom/img/logo.png' %}" alt="Logo Relecov" style="height: 150px;">
+            </div>
+            <p>The project, “Consolidation of WGS and RT-PCR activities for SARS-CoV-2 in Spain towards sustainable use
+                and integration of enhanced infrastructure and processes in the RELECOV network, RELECOV 2.0”, will take
+                place from July 2023, to June 2025. It aims to conduct genomic surveillance of SARS-CoV-2, expanding to
+                other respiratory viral infections, to create synergies that contribute to a rapid public health
+                response to future health threats.
+            </p>
+            <p>
+                In RELECOV 2.0, the focus will be the identification of circulating Variants of Concern (VOC), lineages,
+                and sub-lineages of SARS-CoV-2, as well as the identification of new emerging lineages and sub-lineages.
+                As the project's primary objective, it aims to apply Whole Genome Sequencing (WGS) tools to genomic
+                surveillance of SARS-CoV-2 and extend genomic surveillance to other respiratory viral infections, such
+                as seasonal influenza or Respiratory Syncytial Virus (RSV), through the establishment of a national
+                structure that enhances the expertise of RELECOV Network members. A second objective of the project
+                would be the consolidation of the RELECOV-Platform, through appropriate protocols for managing genomic
+                data, defining joint sequencing and analysis methodologies, including quality controls, and developing
+                computational tools for the automation of analysis, visualization, and sharing of genomic data with
+                international databases.
+            </p>
+        </div>
+        <div class="col-lg-4 text-center">
+            <img src="{% static 'core/custom/img/Description.jpg' %}" alt="Relecov Imagen"
+                style="width: 100%; border-radius: 10px;">
+        </div>
+    </div>
+</div>
+
+<!-- Cards section -->
+<div class="info" data-aos="fade-up" data-aos-delay="150">
+    <div class="info-title">
+        <h2>Relecov 2.0</h2>
+    </div>
+    <div class="info-section">
+        <div class="info-item">
+            <div class="info-content">
+                <i class="fa-solid fa-earth-europe"></i>
+                <h2><div class="value" akhi="{{ number_of_samples.Defined }}">0</div></h2>
+                <p>Received Samples</p>
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-content">
+                <i class="fa-solid fa-diagram-project"></i>
+                <h2><div class="value" akhi="{{ number_of_samples.Bioinfo }}">0</div></h2>
+                <p>Analysis Performed</p>
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-content">
+                <i class="fa-regular fa-hospital"></i>
+                <h2><div class="value" akhi="{{ number_of_samples.Gisaid }}">0</div></h2>
+                <p>Uploads to GISAID</p>
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-content">
+                <i class="fa-solid fa-flask"></i>
+                <h2><div class="value" akhi="{{ number_of_samples.Ena }}">0</div></h2>
+                <p>Uploads to ENA</p>
+            </div>
+        </div>
+        <div class="blob"></div>
+    </div>
+</div>
+
+<!-- Tools -->
+<div class="container" data-aos="fade-up" data-aos-delay="150">
+    <div class="text-content">
+      <h1>Data Browser</h1>
+      <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim ipsam animi nemo, architecto maiores neque debitis repellendus sit similique? Delectus nobis cupiditate magnam repellat voluptatum corporis culpa ullam asperiores placeat?</p>
+      <div>
+        <button href="" id="predict-button" class="predict-more">
+          <span class="circle">
+            <span class="icon arrow"></span>
+          </span>
+          <span class="button-text">Learn more</span>
+        </button>
+      </div>
+    </div>
+    <div class="image-content">
+      <img src="www/PC_DataBrowser.png" alt="Example Image">
+    </div>
+  </div>
+  <hr class="hline">
+
+
 {% endblock %}
