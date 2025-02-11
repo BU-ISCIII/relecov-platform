@@ -27,48 +27,8 @@
     </head>
     <!-- <body style="background-color: white!important;"> -->
     <body>
-        <!-- ======= Header ======= -->
-
-        <header id="header2" class="header fixed-top" data-scrollto-offset="0" >
-
-            <div class="container d-flex align-items-center justify-content-between">
-            <!-- <div class="container-fluid d-flex align-items-center justify-content-between"> -->
-
-                <a href="/" class="d-flex align-items-center scrollto me-auto me-lg-0">
-                    <img src="{% static 'core/custom/img/relecov_logo.png' %}" width="100" alt="Relecov Logo">
-                </a>
-                <nav id="navbar" class="navbar">
-                    <ul>
-                        <!-- # FIXME any superuser should be able to access -->
-                        {% if user.username == "admin" %}
-                            <li class="dropdown"><a href="#"><span>Configuration</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
-                            <ul>
-                                <li><a href="/schemaHandling"><span>Schema Handling</span></a>
-                                <li><a href="/metadataVisualization"><span>Metadata Visualization</span></a>
-                                <li><a href="/organismAnnotation"><span>Annotation</span></a>
-                                <li><a href="/assignSamplesToUser"><span>Assign Samples to user's Lab</span></a>
-                            </ul>
-                        {% endif %}
-                        <li><a class="nav-link scrollto" href="http://relecov.isciiides.es/news-reports/">Relecov Project</a></li>
-                        <li class="dropdown"><a href="#"><span>Dashboard</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
-                            <ul>
-                                <li><a href="/dashboard/variants">Variants Dashboard</a></li>
-                                <li><a href="/dashboard/methodology">Methodology Dashboard</a></li>
-                            </ul>
-                        </li>
-                        <li><a class="nav-link scrollto" href="/documentation">Documentation</a></li>
-                        <li><a class="nav-link scrollto" href="/Contact">Contact</a></li>
-                        <li><a class="btn-getstarted scrollto" href="/intranet">Intranet</a></li>
-
-                    </ul>
-                    <i class="bi bi-list mobile-nav-toggle d-none"></i>
-                </nav><!-- .navbar -->
-                {% if user.is_authenticated %}
-                    {% include "registration/login_inline.html" %}
-                {% endif %}
-            </div>
-
-        </header><!-- End Header -->
+        <!-- ======= Navbar ======= -->
+         {% include "core/navbar.html" %}
 
                 {% block content %}
 
