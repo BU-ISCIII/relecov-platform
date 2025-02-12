@@ -7,11 +7,11 @@
 <!--Banner-->
 <section class="banner">
     <video class="banner-video" autoplay muted loop>
-        <source src="{% static 'core/custom/video/banner.mp4' %}" type="video/mp4">
+        <source src="{% static 'core/custom/video/banner_v3.mp4' %}" type="video/mp4">
         Tu navegador no soporta videos HTML5.
     </video>
     <div class="banner-content">
-        <h1 class="banner-title">La medicina de precisión contra la resistencia a antimicrobianos</h1>
+        <h1 class="banner-title">Viral sequencing platform and monitoring of variant evolution</h1>
     </div>
 </section>
 
@@ -20,7 +20,7 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="logo mb-3">
-                <img src="{% static 'core/custom/img/logo.png' %}" alt="Logo Relecov" style="height: 150px;">
+                <img src="{% static 'core/custom/img/relecov_logo_old.png' %}" alt="Logo Relecov" style="height: 200px;">
             </div>
             <p>The project, “Consolidation of WGS and RT-PCR activities for SARS-CoV-2 in Spain towards sustainable use
                 and integration of enhanced infrastructure and processes in the RELECOV network, RELECOV 2.0”, will take
@@ -56,28 +56,28 @@
     <div class="info-section">
         <div class="info-item">
             <div class="info-content">
-                <i class="fa-solid fa-earth-europe"></i>
+                <i class="bi bi-file-earmark-text-fill"></i>
                 <h2><div class="value" akhi="{{ number_of_samples.Defined }}">0</div></h2>
                 <p>Received Samples</p>
             </div>
         </div>
         <div class="info-item">
             <div class="info-content">
-                <i class="fa-solid fa-diagram-project"></i>
+                <i class="bi bi-clipboard-data-fill"></i>
                 <h2><div class="value" akhi="{{ number_of_samples.Bioinfo }}">0</div></h2>
                 <p>Analysis Performed</p>
             </div>
         </div>
         <div class="info-item">
             <div class="info-content">
-                <i class="fa-regular fa-hospital"></i>
+                <i class="bi bi-cloud-upload-fill"></i>
                 <h2><div class="value" akhi="{{ number_of_samples.Gisaid }}">0</div></h2>
                 <p>Uploads to GISAID</p>
             </div>
         </div>
         <div class="info-item">
             <div class="info-content">
-                <i class="fa-solid fa-flask"></i>
+                <i class="bi bi-file-earmark-arrow-up-fill"></i>
                 <h2><div class="value" akhi="{{ number_of_samples.Ena }}">0</div></h2>
                 <p>Uploads to ENA</p>
             </div>
@@ -87,24 +87,113 @@
 </div>
 
 <!-- Tools -->
-<div class="container" data-aos="fade-up" data-aos-delay="150">
-    <div class="text-content">
-      <h1>Data Browser</h1>
-      <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim ipsam animi nemo, architecto maiores neque debitis repellendus sit similique? Delectus nobis cupiditate magnam repellat voluptatum corporis culpa ullam asperiores placeat?</p>
-      <div>
-        <button href="" id="predict-button" class="predict-more">
-          <span class="circle">
-            <span class="icon arrow"></span>
-          </span>
-          <span class="button-text">Learn more</span>
-        </button>
-      </div>
+<div id="customCarousel" class="carousel slide" data-bs-ride="false" data-bs-interval="false">
+    <!-- Indicadores -->
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#customCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#customCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#customCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        <button type="button" data-bs-target="#customCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
     </div>
-    <div class="image-content">
-      <img src="www/PC_DataBrowser.png" alt="Example Image">
+
+    <!-- Contenido del Slider -->
+    <div class="carousel-inner">
+        <!-- Slide 1 -->
+        <div class="carousel-item active">
+            <div class="container" data-aos="fade-up" data-aos-delay="150">
+                <div class="text-content">
+                    <h1>Data Browser</h1>
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim ipsam animi nemo, architecto maiores neque debitis repellendus sit similique?</p>
+                    <div>
+                        <button href="" id="predict-button" class="predict-more">
+                            <span class="circle">
+                                <span class="icon arrow"></span>
+                            </span>
+                            <span class="button-text">Learn more</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="image-content">
+                    <img src="{% static 'core/custom/img/data_browser.png' %}" alt="Data Browser">
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="carousel-item">
+            <div class="container" data-aos="fade-up" data-aos-delay="150">
+                <div class="text-content">
+                    <h1>Data Browser</h1>
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim ipsam animi nemo, architecto maiores neque debitis repellendus sit similique?</p>
+                    <div>
+                        <button href="" id="predict-button" class="predict-more">
+                            <span class="circle">
+                                <span class="icon arrow"></span>
+                            </span>
+                            <span class="button-text">Learn more</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="image-content">
+                    <img src="{% static 'core/custom/img/data_browser.png' %}" alt="Data Browser">
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="carousel-item">
+            <div class="container" data-aos="fade-up" data-aos-delay="150">
+                <div class="text-content">
+                    <h1>Data Browser</h1>
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim ipsam animi nemo, architecto maiores neque debitis repellendus sit similique?</p>
+                    <div>
+                        <button href="" id="predict-button" class="predict-more">
+                            <span class="circle">
+                                <span class="icon arrow"></span>
+                            </span>
+                            <span class="button-text">Learn more</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="image-content">
+                    <img src="{% static 'core/custom/img/data_browser.png' %}" alt="Data Browser">
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="carousel-item">
+            <div class="container" data-aos="fade-up" data-aos-delay="150">
+                <div class="text-content">
+                    <h1>Data Browser</h1>
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim ipsam animi nemo, architecto maiores neque debitis repellendus sit similique?</p>
+                    <div>
+                        <button href="" id="predict-button" class="predict-more">
+                            <span class="circle">
+                                <span class="icon arrow"></span>
+                            </span>
+                            <span class="button-text">Learn more</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="image-content">
+                    <img src="{% static 'core/custom/img/data_browser.png' %}" alt="Data Browser">
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <hr class="hline">
+
+    <!-- Controles de navegación -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#customCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#customCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
 
 
 {% endblock %}
