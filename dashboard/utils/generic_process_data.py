@@ -3,6 +3,7 @@ import os
 import json
 from datetime import datetime
 from collections import OrderedDict
+from django.db.models import Count, Case, When, Value, DateField
 
 # Local imports
 import core.models
@@ -610,63 +611,53 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
     )
     if "ERROR" in in_date_samples:
         return in_date_samples
-    import pdb; pdb.set_trace()
-    date_sample = {}
-    date_variant = {}
-    for s_data in in_date_samples["DATA"]:
-        if s_data["collection_sample_date"] not in date_sample:
-            date_sample[s_data["collection_sample_date"]] = []
-        date_sample[s_data["collection_sample_date"]].append(s_data["Sample Name"])
-
-    #if detailed is None:
-    all_samples_per_date =  OrderedDict()
-    s_dates = (
-        core.models.Sample.objects
-        .values_list("collecting_date", flat=True)
-        .distinct()
-        .order_by("collecting_date")
-    )
-    for s_date in s_dates:
-        try:
-            date = datetime.strftime(s_date, "%d-%B-%Y")
-        except TypeError:
-            continue
-        all_samples_per_date[date] = core.models.Sample.objects.filter(
-            collecting_date=s_date
-        ).count()
-    """dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
-        {
-            "graphic_name": "samples_per_date_all_lab",
-            "graphic_data": all_samples_per_date,
-        }
-    )"""
-    #return {"SUCCESS": "Success"}
-    if 1 == 1:
-        lab_date_count = []
-        lab_list = get_all_lab_list()
-        for lab in lab_list:
-            date_list = (
-                core.models.Sample.objects.filter(collecting_institution__iexact=lab)
-                .values_list("collecting_date", flat=True)
-                .distinct()
-                .order_by("collecting_date")
+    if detailed is None:
+        counted_dates = Counter(
+            (
+                datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
+                    "%d-%B-%Y"
+                )
+                if isinstance(x["collection_sample_date"], str)
+                else x["collection_sample_date"].strftime("%d-%B-%Y")
             )
-            for date in date_list:
-                lab_data = {}
-                lab_data["lab_name"] = lab
-                try:
-                    lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
-                except TypeError:
-                    continue
-                lab_data["num_samples"] = core.models.Sample.objects.filter(
-                    collecting_institution__iexact=lab, collecting_date__exact=date
-                ).count()
-                lab_date_count.append(lab_data)
-        """dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+            for x in in_date_samples["DATA"]
+            if isinstance(x["collection_sample_date"], (datetime, str))
+        )
+        all_samples_per_date = sorted(dict(counted_dates).items())
+        dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
             {
-                "graphic_name": "samples_per_date_all_lab_detailed",
-                "graphic_data": lab_date_count,
+                "graphic_name": "samples_per_date_all_lab",
+                "graphic_data": all_samples_per_date,
             }
-        )"""
-        import pdb; pdb.set_trace()
+        )
+    else:
+        lab_date_count = []
+        lab_list = list(
+            core.models.Sample.objects.values_list("collecting_institution", flat=True)
+            .distinct()
+            .order_by("collecting_institution")
+        )
+        samples_dates_dict = {
+            x["Sample Name"]: x["collection_sample_date"]
+            for x in in_date_samples["DATA"]
+        }
+        join_conditions = [
+            When(sequencing_sample_id=sample_id, then=Value(collect_date))
+            for sample_id, collect_date in samples_dates_dict.items()
+        ]
+        joined_samp_tab = core.models.Sample.objects.filter(
+            sequencing_sample_id__in=samples_dates_dict.keys()
+        ).annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
+        all_sample_counts_by_lab = (
+            core.models.Sample.objects.filter(collecting_institution__in=lab_list)
+            .annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
+            .values("collecting_institution", "collecting_date")
+            .order_by("collecting_institution", "collecting_date")
+        )
+        lab_date_count = list(
+            all_sample_counts_by_lab.values(
+                "collecting_institution", "collecting_date"
+            ).annotate(num_samples=Count("id"))
+        )
+
         return {"SUCCESS": "Success"}
