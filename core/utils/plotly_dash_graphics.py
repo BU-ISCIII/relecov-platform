@@ -16,7 +16,7 @@ def dash_bar_lab(option_list, data):
 
     app.layout = html.Div(
         [
-            html.H4("Select the lab"),
+            html.H4("Select the collecting institution"),
             html.Div(
                 [
                     dcc.Dropdown(
@@ -38,13 +38,12 @@ def dash_bar_lab(option_list, data):
     @app.callback(
         Output("bar_graph", "figure"),
         Output("lab_selection", "children"),
-        Input("select_lab_name", "value"),
+        Input("select_collecting_inst", "value"),
     )
     def update_graph(select_collecting_inst):
         if select_collecting_inst is None or select_collecting_inst == 1:
             raise PreventUpdate
         sub_data = data[data.collecting_institution == select_collecting_inst]
-        import pdb; pdb.set_trace()
         if sub_data.empty:
             # Return an empty figure if no data is available
             return (
