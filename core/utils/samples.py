@@ -492,44 +492,30 @@ def get_sample_per_date_per_all_lab(detailed=None):
     with dates and number of samples if detailed is true return a
     """
     if detailed is None:
-        all_samples_per_date = OrderedDict()
-
-        s_dates = (
-            core.models.Sample.objects.all()
-            .values_list("sequencing_date", flat=True)
-            .distinct()
-            .order_by("sequencing_date")
+        all_samples_per_date = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+        "samples_per_date_all_lab"
         )
-        for s_date in s_dates:
-            try:
-                date = datetime.strftime(s_date, "%d-%B-%Y")
-            except TypeError:
-                continue
-            all_samples_per_date[date] = core.models.Sample.objects.filter(
-                sequencing_date=s_date
-            ).count()
+        if all_samples_per_date is None:
+            # Execute the pre-processed task to get the data
+            result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
+            if "ERROR" in result:
+                return result
+            all_samples_per_date = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                "samples_per_date_all_lab"
+            )
         return all_samples_per_date
     else:
-        lab_date_count = []
-        lab_list = get_all_lab_list()
-        for lab in lab_list:
-            date_list = (
-                core.models.Sample.objects.filter(collecting_institution__iexact=lab)
-                .values_list("sequencing_date", flat=True)
-                .distinct()
-                .order_by("sequencing_date")
+        lab_date_count = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+        "samples_per_date_all_lab_detailed"
+        )
+        if lab_date_count is None:
+            # Execute the pre-processed task to get the data
+            result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(detailed)
+            if "ERROR" in result:
+                return result
+            lab_date_count = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                "samples_per_date_all_lab_detailed"
             )
-            for date in date_list:
-                lab_data = {}
-                lab_data["lab_name"] = lab
-                try:
-                    lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
-                except TypeError:
-                    continue
-                lab_data["num_samples"] = core.models.Sample.objects.filter(
-                    collecting_institution__iexact=lab, sequencing_date__exact=date
-                ).count()
-                lab_date_count.append(lab_data)
         return lab_date_count
 
 

@@ -602,3 +602,71 @@ def pre_proc_host_info():
         }
     )
     return {"SUCCESS": "Success"}
+
+
+def pre_proc_samples_per_date_all_lab(detailed=None):
+    in_date_samples = core.utils.rest_api.fetch_samples_on_condition(
+        "collection_sample_date"
+    )
+    if "ERROR" in in_date_samples:
+        return in_date_samples
+    import pdb; pdb.set_trace(s)
+    date_sample = {}
+    date_variant = {}
+    for s_data in in_date_samples["DATA"]:
+        if s_data["collection_sample_date"] not in date_sample:
+            date_sample[s_data["collection_sample_date"]] = []
+        date_sample[s_data["collection_sample_date"]].append(s_data["Sample Name"])
+
+    #if detailed is None:
+    all_samples_per_date =  OrderedDict()
+    s_dates = (
+        core.models.Sample.objects
+        .values_list("collecting_date", flat=True)
+        .distinct()
+        .order_by("collecting_date")
+    )
+    for s_date in s_dates:
+        try:
+            date = datetime.strftime(s_date, "%d-%B-%Y")
+        except TypeError:
+            continue
+        all_samples_per_date[date] = core.models.Sample.objects.filter(
+            collecting_date=s_date
+        ).count()
+    """dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_per_date_all_lab",
+            "graphic_data": all_samples_per_date,
+        }
+    )"""
+    #return {"SUCCESS": "Success"}
+    if 1 == 1:
+        lab_date_count = []
+        lab_list = get_all_lab_list()
+        for lab in lab_list:
+            date_list = (
+                core.models.Sample.objects.filter(collecting_institution__iexact=lab)
+                .values_list("collecting_date", flat=True)
+                .distinct()
+                .order_by("collecting_date")
+            )
+            for date in date_list:
+                lab_data = {}
+                lab_data["lab_name"] = lab
+                try:
+                    lab_data["date"] = datetime.strftime(date, "%d-%B-%Y")
+                except TypeError:
+                    continue
+                lab_data["num_samples"] = core.models.Sample.objects.filter(
+                    collecting_institution__iexact=lab, collecting_date__exact=date
+                ).count()
+                lab_date_count.append(lab_data)
+        """dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+            {
+                "graphic_name": "samples_per_date_all_lab_detailed",
+                "graphic_data": lab_date_count,
+            }
+        )"""
+        import pdb; pdb.set_trace()
+        return {"SUCCESS": "Success"}
