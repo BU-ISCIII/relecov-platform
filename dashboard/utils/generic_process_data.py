@@ -605,59 +605,62 @@ def pre_proc_host_info():
     return {"SUCCESS": "Success"}
 
 
-def pre_proc_samples_per_date_all_lab(detailed=None):
+def pre_proc_samples_per_date_all_lab():
     in_date_samples = core.utils.rest_api.fetch_samples_on_condition(
         "collection_sample_date"
     )
     if "ERROR" in in_date_samples:
         return in_date_samples
-    if detailed is None:
-        counted_dates = Counter(
-            (
-                datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
-                    "%d-%B-%Y"
-                )
-                if isinstance(x["collection_sample_date"], str)
-                else x["collection_sample_date"].strftime("%d-%B-%Y")
+    counted_dates = Counter(
+        (
+            datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
+                "%d-%B-%Y"
             )
-            for x in in_date_samples["DATA"]
-            if isinstance(x["collection_sample_date"], (datetime, str))
+            if isinstance(x["collection_sample_date"], str)
+            else x["collection_sample_date"].strftime("%d-%B-%Y")
         )
-        all_samples_per_date = sorted(dict(counted_dates).items())
-        dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
-            {
-                "graphic_name": "samples_per_date_all_lab",
-                "graphic_data": all_samples_per_date,
-            }
-        )
-    else:
-        lab_date_count = []
-        lab_list = list(
-            core.models.Sample.objects.values_list("collecting_institution", flat=True)
-            .distinct()
-            .order_by("collecting_institution")
-        )
-        samples_dates_dict = {
-            x["Sample Name"]: x["collection_sample_date"]
-            for x in in_date_samples["DATA"]
+        for x in in_date_samples["DATA"]
+        if isinstance(x["collection_sample_date"], (datetime, str))
+    )
+    all_samples_per_date = sorted(dict(counted_dates).items())
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_per_date_all_lab",
+            "graphic_data": all_samples_per_date,
         }
-        join_conditions = [
-            When(sequencing_sample_id=sample_id, then=Value(collect_date))
-            for sample_id, collect_date in samples_dates_dict.items()
-        ]
-        joined_samp_tab = core.models.Sample.objects.filter(
-            sequencing_sample_id__in=samples_dates_dict.keys()
-        ).annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
-        all_sample_counts_by_lab = (
-            core.models.Sample.objects.filter(collecting_institution__in=lab_list)
-            .annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
-            .values("collecting_institution", "collecting_date")
-            .order_by("collecting_institution", "collecting_date")
-        )
-        lab_date_count = list(
-            all_sample_counts_by_lab.values(
-                "collecting_institution", "collecting_date"
-            ).annotate(num_samples=Count("id"))
-        )
-
-        return {"SUCCESS": "Success"}
+    )
+    # Start processing samples per date and for each lab
+    lab_date_count = []
+    lab_list = list(
+        core.models.Sample.objects.values_list("collecting_institution", flat=True)
+        .distinct()
+        .order_by("collecting_institution")
+    )
+    samples_dates_dict = {
+        x["Sample Name"]: x["collection_sample_date"] for x in in_date_samples["DATA"]
+    }
+    join_conditions = [
+        When(sequencing_sample_id=sample_id, then=Value(collect_date))
+        for sample_id, collect_date in samples_dates_dict.items()
+    ]
+    joined_samp_tab = core.models.Sample.objects.filter(
+        sequencing_sample_id__in=samples_dates_dict.keys()
+    ).annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
+    all_sample_counts_by_lab = (
+        core.models.Sample.objects.filter(collecting_institution__in=lab_list)
+        .annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
+        .values("collecting_institution", "collecting_date")
+        .order_by("collecting_institution", "collecting_date")
+    )
+    lab_date_count = list(
+        all_sample_counts_by_lab.values(
+            "collecting_institution", "collecting_date"
+        ).annotate(num_samples=Count("id"))
+    )
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_per_date_all_lab_detailed",
+            "graphic_data": lab_date_count,
+        }
+    )
+    return {"SUCCESS": "Success"}
