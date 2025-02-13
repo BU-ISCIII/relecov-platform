@@ -52,7 +52,7 @@ def dash_bar_lab(option_list, data):
             )
         graph = px.bar(
             sub_data,
-            x=sub_data["date"],
+            x=sub_data["collecting_date"],
             y=sub_data["num_samples"],
             text_auto=True,
             width=520,
