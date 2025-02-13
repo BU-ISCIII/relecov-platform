@@ -44,6 +44,7 @@ def dash_bar_lab(option_list, data):
         if select_collecting_inst is None or select_collecting_inst == 1:
             raise PreventUpdate
         sub_data = data[data.collecting_institution == select_collecting_inst]
+        import pdb; pdb.set_trace()
         if sub_data.empty:
             # Return an empty figure if no data is available
             return (
