@@ -20,7 +20,7 @@ def dash_bar_lab(option_list, data):
             html.Div(
                 [
                     dcc.Dropdown(
-                        id="select_lab_name",
+                        id="select_collecting_inst",
                         options=option,
                         clearable=False,
                         multi=False,
@@ -40,16 +40,15 @@ def dash_bar_lab(option_list, data):
         Output("lab_selection", "children"),
         Input("select_lab_name", "value"),
     )
-    # FIXME: This is never used?
-    def update_graph(select_lab_name):
-        if select_lab_name is None or select_lab_name == 1:
+    def update_graph(select_collecting_inst):
+        if select_collecting_inst is None or select_collecting_inst == 1:
             raise PreventUpdate
-        sub_data = data[data.lab_name == select_lab_name]
+        sub_data = data[data.collecting_institution == select_collecting_inst]
         if sub_data.empty:
             # Return an empty figure if no data is available
             return (
                 empty_fig,
-                f"Laboratory selected: {select_lab_name} (No data available)",
+                f"Laboratory selected: {select_collecting_inst} (No data available)",
             )
         graph = px.bar(
             sub_data,
@@ -71,7 +70,7 @@ def dash_bar_lab(option_list, data):
             plot_bgcolor="rgba(0,0,0,0)",
             xaxis_tickangle=-45,
             margin=dict(l=20, r=40, t=30, b=20),
-            xaxis_title="Sequencing dates",
+            xaxis_title="Collecting date",
             yaxis_title="Number of samples",
         )
-        return graph, f"Laboratory selected: {select_lab_name}"
+        return graph, f"Laboratory selected: {select_collecting_inst}"
