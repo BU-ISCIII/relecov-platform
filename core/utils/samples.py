@@ -90,12 +90,20 @@ def assign_samples_to_new_user(data):
 
 def count_handled_samples():
     """Count the number of samples handled in each process"""
-    data = {}
     process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
+    old_data = {}
     for proc in process:
-        data[proc] = core.models.DateUpdateState.objects.filter(
-            stateID__state__iexact=proc
-        ).count()
+-        old_data[proc] = core.models.DateUpdateState.objects.filter(
+-            stateID__state__iexact=proc
+-        ).count()
+    counted_data = (
+        core.models.DateUpdateState.objects
+        .filter(stateID__state__in=process)
+        .values("stateID__state")
+        .annotate(count=Count("id"))
+    )
+    data = {entry["stateID__state"]: entry["count"] for entry in counted_data}
+    import pdb; pdb.set_trace()
     return data
 
 
@@ -269,7 +277,7 @@ def create_metadata_form(schema_obj, user_obj):
     create the user metadata form
     """
     # Check if Fields for metadata Form are defiened
-    if not core.models.MetadataVisualization.objects.all().exists():
+    if not core.models.MetadataVisualization.objects.exists():
         return {"ERROR": core.config.ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED}
     m_form = {}
     m_form["sample"] = create_form_for_sample(schema_obj)
@@ -325,7 +333,7 @@ def get_lab_last_actions(lab_name=None):
     if lab_name is None:
         lab_actions = []
         labs = (
-            core.models.core.models.Sample.objects.all()
+            core.models.core.models.Sample.objects
             .values_list("collecting_institution")
             .distinct()
         )
@@ -557,7 +565,7 @@ def get_search_data(user_obj):
     s_data = {}
     if core.models.Sample.objects.count() == 0:
         return {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
-    s_data["s_state"] = core.models.SampleState.objects.all().values_list(
+    s_data["s_state"] = core.models.SampleState.objects.values_list(
         "pk", "display_string"
     )
     # Allow to search information from any laboratoryr
@@ -622,7 +630,7 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
 def get_all_lab_list():
     """Function gets the lab names and return then in an ordered list"""
     return list(
-        core.models.Sample.objects.all()
+        core.models.Sample.objects
         .values_list("collecting_institution", flat=True)
         .distinct()
         .order_by("collecting_institution")
@@ -630,12 +638,12 @@ def get_all_lab_list():
 
 
 def get_all_recieved_samples_with_dates(accumulated=False):
-    """Gett all samples that are received in the platform. If accumulated is
+    """Get all samples that are received in the platform. If accumulated is
     True then functions return the value of the date the sum of the predecesor
     values. If False just the value received for each date
     """
     r_samples = []
-    if not core.models.Sample.objects.all().exists():
+    if not core.models.Sample.objects.exists():
         return r_samples
     date_counts = (
         core.models.Sample.objects.annotate(date_only=TruncDate("created_at"))
