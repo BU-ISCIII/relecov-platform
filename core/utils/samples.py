@@ -93,9 +93,9 @@ def count_handled_samples():
     process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
     old_data = {}
     for proc in process:
--        old_data[proc] = core.models.DateUpdateState.objects.filter(
--            stateID__state__iexact=proc
--        ).count()
+        old_data[proc] = core.models.DateUpdateState.objects.filter(
+            stateID__state__iexact=proc
+        ).count()
     counted_data = (
         core.models.DateUpdateState.objects
         .filter(stateID__state__in=process)
