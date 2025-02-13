@@ -622,7 +622,7 @@ def pre_proc_samples_per_date_all_lab():
         for x in in_date_samples["DATA"]
         if isinstance(x["collection_sample_date"], (datetime, str))
     )
-    all_samples_per_date = sorted(dict(counted_dates).items())
+    all_samples_per_date = dict(counted_dates)
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
         {
             "graphic_name": "samples_per_date_all_lab",
