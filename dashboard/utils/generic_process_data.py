@@ -610,7 +610,7 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
     )
     if "ERROR" in in_date_samples:
         return in_date_samples
-    import pdb; pdb.set_trace(s)
+    import pdb; pdb.set_trace()
     date_sample = {}
     date_variant = {}
     for s_data in in_date_samples["DATA"]:
