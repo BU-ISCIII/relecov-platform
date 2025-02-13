@@ -21,6 +21,7 @@ import core.utils.plotly_graphics
 import core.utils.rest_api
 import core.utils.generic_functions
 import core.models
+import dashboard.utils.generic_graphic_data
 
 
 def analyze_input_samples(request):
@@ -91,11 +92,6 @@ def assign_samples_to_new_user(data):
 def count_handled_samples():
     """Count the number of samples handled in each process"""
     process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
-    old_data = {}
-    for proc in process:
-        old_data[proc] = core.models.DateUpdateState.objects.filter(
-            stateID__state__iexact=proc
-        ).count()
     counted_data = (
         core.models.DateUpdateState.objects
         .filter(stateID__state__in=process)
@@ -103,7 +99,6 @@ def count_handled_samples():
         .annotate(count=Count("id"))
     )
     data = {entry["stateID__state"]: entry["count"] for entry in counted_data}
-    import pdb; pdb.set_trace()
     return data
 
 
