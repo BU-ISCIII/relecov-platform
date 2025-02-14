@@ -1,6 +1,6 @@
 ### Installation path
-INSTALL_PATH='/opt/relecov-platform'
-PROJECT_NAME='relecov_platform'
+INSTALL_PATH='/opt/pathoweb-platform'
+PROJECT_NAME='pathoweb_platform'
 REQUIRED_MODULES='core dashboard docs'
 MIGRATION_MODULES='core dashboard'
 
@@ -15,9 +15,9 @@ DB_NAME='<your_dbname>'
 DB_SERVER_IP='<IP_db_server>'
 DB_PORT=3306
 
-### Settings required for accessing relecov-platform
-LOCAL_SERVER_IP='<Relecov_IP>' # example: 172.0.0.1
-DNS_URL='<Relecov_url_address>' # example: relecov.isciii.es
+### Settings required for accessing pathoweb-platform
+LOCAL_SERVER_IP='<pathoweb_IP>' # example: 172.0.0.1
+DNS_URL='<pathoweb_url_address>' # example: pathoweb.isciii.es
 
 ### Logs settings
 LOG_TYPE="symbolic_link" # can be symbolic link, or regular_folder

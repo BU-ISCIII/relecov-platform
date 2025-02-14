@@ -7,13 +7,13 @@ from dash import dcc, html
 from django_plotly_dash import DjangoDash
 
 # Local imports
-from relecov_platform import settings as relecov_platform_settings
+from pathoweb_platform import settings as pathoweb_platform_settings
 import core.utils.rest_api
 
 
 def create_samples_received_map():
     geojson_file = os.path.join(
-        relecov_platform_settings.STATIC_ROOT,
+        pathoweb_platform_settings.STATIC_ROOT,
         "dashboard",
         "custom",
         "map",
