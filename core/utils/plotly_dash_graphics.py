@@ -10,7 +10,7 @@ def dash_bar_lab(option_list, data):
     option = []
     for opt_list in option_list:
         option.append({"label": opt_list, "value": opt_list})
-
+    import pdb; pdb.set_trace()
     app = DjangoDash("samplePerLabGraphic")
     empty_fig = px.bar(x=[0], y=[0], height=300)
 
