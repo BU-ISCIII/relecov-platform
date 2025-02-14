@@ -7,6 +7,7 @@ import core.utils.lineage
 import core.utils.variants
 import core.utils.rest_api
 import dashboard.models
+from pathoweb_platform import settings as pathoweb_platform_settings
 
 
 def pre_proc_calculation_date():
@@ -452,6 +453,149 @@ def pre_proc_depth_sample_run():
         {
             "graphic_name": "depth_samples_in_run",
             "graphic_data": depth_sample_run,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_samples_received_map():
+    geojson_file = os.path.join(
+        pathoweb_platform_settings.STATIC_ROOT,
+        "dashboard",
+        "custom",
+        "map",
+        "spain-communities.geojson",
+    )
+    raw_data = core.utils.rest_api.get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
+    with open(geojson_file, encoding="utf-8") as geo_json:
+        counties = json.load(geo_json)
+
+    data = {"ccaa_id": [], "ccaa_name": [], "samples": []}
+    for region in counties["features"]:
+        ccaa_name = region["properties"]["name"]
+        data["ccaa_id"].append(region["properties"]["cartodb_id"])
+        data["ccaa_name"].append(ccaa_name)
+        if ccaa_name in raw_data["region"]:
+            data["samples"].append(raw_data["region"][ccaa_name])
+        else:
+            data["samples"].append("0")
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {"graphic_name": "received_samples_map", "graphic_data": data}
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_host_info():
+    def split_age_in_ranges(data):
+        tmp_range = {}
+        invalid_data = 0
+        for key, val in data.items():
+            try:
+                int_key = int(key)
+            except ValueError:
+                continue
+            quotient = int_key // 10
+            if quotient < 0:
+                invalid_data += val
+                continue
+            if quotient not in tmp_range:
+                tmp_range[quotient] = 0
+            tmp_range[quotient] += val
+        return tmp_range, invalid_data
+
+    def fetching_data_for_range_age():
+        # get stats utilization fields from LIMS
+        lims_fields = core.utils.rest_api.get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_age"}
+        )
+        host_age = {}
+        for key, val in lims_fields.items():
+            try:
+                host_age[int(key)] = val
+            except ValueError:
+                continue
+        # group data by decimal range
+        tmp_range, invalid_data = split_age_in_ranges(lims_fields)
+        max_value = max(tmp_range.keys())
+        host_age_range = OrderedDict()
+        for idx in range(max_value + 1):
+            try:
+                host_age_range[dashboard.dashboard_config.HOST_RANGE_AGE_TEXT[idx]] = (
+                    tmp_range[idx]
+                )
+            except KeyError:
+                host_age_range[dashboard.dashboard_config.HOST_RANGE_AGE_TEXT[idx]] = 0
+        return host_age_range, invalid_data
+
+    def fetching_data_for_sex_and_range_data():
+        lims_fields = core.utils.rest_api.get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_gender,host_age"}
+        )
+        max_value = 0
+        invalid_data = 0
+        tmp_range_per_key = {}
+        host_age_range_per_key_dict = {}
+        for key, values in lims_fields.items():
+            tmp_range_per_key[key], tmp_invalid_data = split_age_in_ranges(values)
+            invalid_data += tmp_invalid_data
+            tmp_max_value = max(tmp_range_per_key[key].keys())
+            if tmp_max_value > max_value:
+                max_value = tmp_max_value
+
+        age_range_list = []
+        for idx in range(max_value + 1):
+            age_range_list.append(dashboard.dashboard_config.HOST_RANGE_AGE_TEXT[idx])
+        host_age_range_per_key_dict["range_age"] = age_range_list
+
+        for key in tmp_range_per_key.keys():
+            age_range_list = []
+            for idx in range(max_value + 1):
+                try:
+                    age_range_list.append(tmp_range_per_key[key][idx])
+                except KeyError:
+                    age_range_list.append(0)
+            host_age_range_per_key_dict[key] = age_range_list
+        return host_age_range_per_key_dict, invalid_data
+
+    def fetching_data_for_gender():
+        # get stats for host gender from LIMS
+        lims_fields = core.utils.rest_api.get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_gender"}
+        )
+        if "ERROR" in lims_fields:
+            return lims_fields, ""
+        labels = []
+        values = []
+        for key, val in lims_fields.items():
+            labels.append(key)
+            values.append(val)
+        return labels, values
+
+    total_invalid_data = {}
+    host_info_json = {}
+    # pie graphic for gender
+    gender_label, gender_values = fetching_data_for_gender()
+    if "ERROR" in gender_label:
+        host_info_json["gender_label"] = {"ERROR": gender_label}
+        host_info_json["gender_values"] = {"ERROR": gender_values}
+    else:
+        host_info_json["gender_label"] = gender_label
+        host_info_json["gender_values"] = gender_values
+    # graphic for gender and age
+    host_gender_data, invalid_gender_data = fetching_data_for_sex_and_range_data()
+    total_invalid_data["invalid_gender_data"] = invalid_gender_data
+    host_info_json["gender_data"] = host_gender_data
+    host_age_data, invalid_age_data = fetching_data_for_range_age()
+    total_invalid_data["invalid_age_data"] = invalid_age_data
+    host_info_json["host_age_data"] = host_age_data
+    host_info_json["invalid_data"] = total_invalid_data
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "host_info",
+            "graphic_data": host_info_json,
         }
     )
     return {"SUCCESS": "Success"}
