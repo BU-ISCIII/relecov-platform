@@ -215,4 +215,4 @@ def methodology_bioinfo(request):
 
 
 def browse_data(request):
-    return render(request, 'dashboard/browse_data.html')
+    return render(request, "dashboard/browse_data.html")
