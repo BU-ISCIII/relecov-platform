@@ -6,12 +6,12 @@ PLATFORM_VERSION="1.0.0"
 # FIXME: Rename project name with something more generic. "pathoweb-"${project_name}""
 usage() {
 	cat << EOF
-This script install and upgrade the pathoweb platform application.
+This script install and upgrade the relecov platform application.
 
 usage : $0 --upgrade --git_revision dev --conf
 	Optional input data:
     --install       | Define the type of installation full/dep/app
-    --upgrade       | Upgrade the pathoweb application full/dep/app
+    --upgrade       | Upgrade the relecov application full/dep/app
     --git_revision  | Git revision name to run (it can be git branch, git version tag or commit SHA)
     --conf          | Select custom configuration file. Default: ./install_settings.txt
     --tables        | Load the first inital tables for upgrades in conf folder
@@ -20,10 +20,10 @@ usage : $0 --upgrade --git_revision dev --conf
 
 
 Examples:
-    To install only software dependencies for pathoweb application
+    To install only software dependencies for relecov application
     sudo $0 --install dep
 
-    To install only pathoweb platform application
+    To install only Relecov platform application
     $0 --install app
 
     Upgrade using develop code
@@ -385,7 +385,7 @@ if [ $upgrade == true ]; then
     printf "\n\n%s"
     printf "${YELLOW}------------------${NC}\n"
     printf "%s"
-    printf "${YELLOW}Starting Pathoweb Upgrade version: ${PLATFORM_VERSION}${NC}\n"
+    printf "${YELLOW}Starting Relecov Upgrade version: ${PLATFORM_VERSION}${NC}\n"
     printf "%s"
     printf "${YELLOW}------------------${NC}\n\n"
     
@@ -536,7 +536,7 @@ if [ $install == true ]; then
         printf "\n\n%s"
         printf "${YELLOW}------------------${NC}\n"
         printf "%s"
-        printf "${YELLOW}Starting Pathoweb Installation version: ${PLATFORM_VERSION}${NC}\n"
+        printf "${YELLOW}Starting Relecov Installation version: ${PLATFORM_VERSION}${NC}\n"
         printf "%s"
         printf "${YELLOW}------------------${NC}\n\n"
 
@@ -609,7 +609,7 @@ if [ $install == true ]; then
         echo "activate the virtualenv"
         source virtualenv/bin/activate
 
-        # Install python packages required for pathoweb-platform
+        # Install python packages required for relecov-platform
         echo "Installing required python packages"
         python -m pip install wheel
         python -m pip install -r conf/requirements.txt
@@ -641,7 +641,7 @@ if [ $install == true ]; then
     fi
 
     #================================================================
-    # INSTALL PATHOWEB PLATFORM APPLICATION
+    # INSTALL RELECOV PLATFORM APPLICATION
     #================================================================
 
     if [ "$install_type" == "full" ] || [ "$install_type" == "app" ]; then
@@ -678,7 +678,7 @@ if [ $install == true ]; then
         echo "activate the virtualenv"
         source virtualenv/bin/activate
 
-        # Starting Pathoweb Platform
+        # Starting Relecov Platform
         echo "Creating $PROJECT_NAME project"
         django-admin startproject $PROJECT_NAME .
         
@@ -696,11 +696,11 @@ if [ $install == true ]; then
 
             echo "Updating Apache configuration"
             if [[ $linux_distribution == "Ubuntu" ]]; then
-                cp conf/pathoweb_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
+                cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
             fi
 
             if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-                cp conf/pathoweb_apache_centos_redhat.conf /etc/httpd/conf.d/pathoweb-platform.conf
+                cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
             fi
 
             echo "Creating super user "

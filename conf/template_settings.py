@@ -18,7 +18,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "localserverip", "dns_url"]
 
 # Application definition
-# TODO: The project should be renamed. "Pathoweb-'${project_name}' via env variable
+# FIXME: The project should be renamed. "Pathoweb-'${project_name}' ?
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -50,7 +50,7 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.BaseMiddleware",
 ]
 
-ROOT_URLCONF = "pathoweb_platform.urls"
+ROOT_URLCONF = "relecov_platform.urls"
 
 TEMPLATES = [
     {
@@ -68,7 +68,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "pathoweb_platform.wsgi.application"
+WSGI_APPLICATION = "relecov_platform.wsgi.application"
 
 DATABASES = {
     "default": {
@@ -76,7 +76,7 @@ DATABASES = {
         "USER": "djangouser",
         "PASSWORD": "djangopass",
         "PORT": "djangoport",
-        "NAME": "pathoweb",
+        "NAME": "relecov",
         "HOST": "djangohost",
     },
 }
@@ -104,8 +104,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "PathoWeb Platform API",
-    "DESCRIPTION": "REST API to access PathoWeb platform",
+    "TITLE": "Relecov Platform API",
+    "DESCRIPTION": "REST API to access relecov platform",
     "VERSION": "1.0",
     "SERVE_INCLUDE_SCHEMA": True,
     # OTHER SETTINGS
@@ -129,7 +129,7 @@ USE_L10N = True
 
 USE_TZ = False
 
-ASGI_APPLICATION = "pathoweb_platform.routing.application"
+ASGI_APPLICATION = "relecov_platform.routing.application"
 
 CHANNEL_LAYERS = {
     "default": {

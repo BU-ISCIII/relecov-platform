@@ -8,12 +8,12 @@ from dash import dcc, html
 from django_plotly_dash import DjangoDash
 
 # Local imports
-import pathoweb_platform.settings
+import relecov_platform.settings
 
 
 def parse_json_file():
     input_file = os.path.join(
-        pathoweb_platform.settings.BASE_DIR,
+        relecov_platform.settings.BASE_DIR,
         "core",
         "docs",
         "data_for_geomap_from_ISkyLims.json",

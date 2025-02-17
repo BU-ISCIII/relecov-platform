@@ -9,7 +9,7 @@ from dash.dependencies import Input, Output
 from django_plotly_dash import DjangoDash
 
 # Local imports
-import pathoweb_platform.settings
+import relecov_platform.settings
 
 
 # Note: PDB parserThis module contains a class that can read PDB files and return a dictionary of structural data
@@ -87,7 +87,7 @@ def create_model3D_bn():
 
     pdb_file = PdbParser(
         os.path.join(
-            pathoweb_platform.settings.BASE_DIR,
+            relecov_platform.settings.BASE_DIR,
             "dashboard",
             "assets",
             "pdb_files",
