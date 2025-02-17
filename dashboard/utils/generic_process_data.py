@@ -10,7 +10,10 @@ import core.utils.lineage
 import core.utils.variants
 import core.utils.rest_api
 import dashboard.models
+<<<<<<< HEAD
 from relecov_platform import settings as relecov_platform_settings
+=======
+>>>>>>> fb47eb6 (Revert "replace project name by pathoweb")
 
 
 def pre_proc_calculation_date():
