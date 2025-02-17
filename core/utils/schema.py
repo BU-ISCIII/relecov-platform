@@ -297,44 +297,55 @@ def remove_existing_default_schema(schema_name, apps_name):
 
 
 def process_schema_file(json_file, default, user, apps_name):
-    """Check json file and store in database"""
+    """Check JSON file and store it in the database, handling default schemas correctly."""
     schema_data = load_schema(json_file)
+
+    # Check if there are erros when loading the schema
     if "ERROR" in schema_data:
         return schema_data
-    # store root data of json schema
+
     if not check_heading_valid_json(
         schema_data["full_schema"], core.config.MAIN_SCHEMA_STRUCTURE
     ):
         return {"ERROR": core.config.ERROR_INVALID_SCHEMA}
+
     schema_name = schema_data["full_schema"]["title"]
     version = schema_data["full_schema"]["version"]
-    if default == "on":
-        remove_existing_default_schema(schema_name, apps_name)
-        default = True
-    else:
-        default = False
+
+    # Return Error when a schema with the same name and version already exists
     if core.models.Schema.objects.filter(
         schema_name__iexact=schema_name,
         schema_version__iexact=version,
         schema_apps_name__exact=apps_name,
     ).exists():
         return {"ERROR": core.config.ERROR_SCHEMA_ALREADY_LOADED}
+
+    # Prepare data for storing it in database
     data = {
         "schema_name": schema_name,
         "file_name": schema_data["file_name"],
         "schema_version": version,
-        "schema_default": default,
+        "schema_default": True if default == "on" else False,
         "schema_app_name": apps_name,
         "user_name": user,
     }
+
+    # Create the new schema
     new_schema = core.models.Schema.objects.create_new_schema(data)
+    if default:
+        remove_existing_default_schema(schema_name, apps_name)
+
     result = store_schema_properties(
         new_schema,
         schema_data["full_schema"]["properties"],
         schema_data["full_schema"]["required"],
     )
+
+    # Return Error if they appeared when storing schema properties
     if "ERROR" in result:
         return result
+
+    # Store additional schema-related fields
     store_lineage_fields(new_schema, schema_data["full_schema"]["properties"])
     store_public_data_fields(new_schema, schema_data["full_schema"]["properties"])
 
