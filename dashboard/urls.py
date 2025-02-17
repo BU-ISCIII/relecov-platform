@@ -51,11 +51,7 @@ urlpatterns = [
         dashboard.views.lineages_voc,
         name="lineages_voc",
     ),
-    path(
-        "browse-data/", 
-        dashboard.views.browse_data,
-        name= 'browse_data'
-    )
+    path("browse-data/", dashboard.views.browse_data, name="browse_data"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
