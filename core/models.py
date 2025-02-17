@@ -1,4 +1,5 @@
 # Generic imports
+import json
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -176,11 +177,11 @@ class SchemaProperties(models.Model):
         Classification, on_delete=models.CASCADE, null=True, blank=True
     )
     property = models.CharField(max_length=50)
-    examples = models.CharField(max_length=200, null=True, blank=True)
+    examples = models.CharField(max_length=250, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
     type = models.CharField(max_length=20)
     format = models.CharField(max_length=20, null=True, blank=True)
-    description = models.CharField(max_length=250, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     label = models.CharField(max_length=200, null=True, blank=True)
     required = models.BooleanField(default=False)
     options = models.BooleanField(default=False)
@@ -246,7 +247,7 @@ class PropertyOptionsManager(models.Manager):
 
 class PropertyOptions(models.Model):
     propertyID = models.ForeignKey(SchemaProperties, on_delete=models.CASCADE)
-    enum = models.CharField(max_length=80, null=True, blank=True)
+    enum = models.CharField(max_length=250, null=True, blank=True)
     ontology = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
