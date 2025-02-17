@@ -1,0 +1,169 @@
+.browse-data-page {
+  font-family: 'Kanit', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  color: #2e2e5b;
+}
+
+/* Container */
+.browse-data-page .container-browser {
+  width: 90%;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* Banner */
+.browse-data-page .banner-browser {
+  background: linear-gradient(to right, #e0e8f9, #b3cde7, #7fa6d8);
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.browse-data-page .banner-browser h2 {
+  font-size: 45px;
+  font-weight: bold;
+  color: #2e2e5b;
+}
+
+.browse-data-page .banner-browser p {
+  font-size: 16px;
+  max-width: 800px;
+  margin: 10px auto;
+  color: #2e2e5b;
+}
+
+.browse-data-page .banner-browser-btn {
+  background-color: #2e2e5b;
+  color: white;
+  font-size: 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 20px;
+  transition: background 0.3s ease;
+}
+
+.browse-data-page .banner-browser-btn:hover {
+  background-color: #1d1d3b;
+}
+
+/* Search Container */
+.browse-data-page .search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px 0;
+  position: relative;
+}
+
+.browse-data-page .search-container input {
+  width: 40%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.browse-data-page .close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  position: absolute;
+  right: 30%;
+}
+
+/* FAQ Button */
+.browse-data-page .faq-btn {
+  background-color: #2e2e5b;
+  border: 2px solid #2e2e5b;
+  color: #b3cde7;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.browse-data-page .faq-btn:hover {
+  background-color: #b3cde7;
+  border: 2px solid #b3cde7;
+  color: #2e2e5b;
+  transition: 0.3s;
+}
+
+/* Data Info */
+.browse-data-page .data-info {
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+}
+
+/* Data Section */
+.browse-data-page .data-section {
+  margin-top: 40px;
+}
+
+/* Headers */
+.browse-data-page h2 {
+  font-size: 32px;
+  color: #2e2e5b;
+}
+
+/* Card Grid */
+.browse-data-page .card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+/* Card */
+.browse-data-page .card {
+  background-color: white;
+  border-radius: 10px;
+  position: relative; 
+  padding: 20px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.browse-data-page .card:hover {
+  transform: translateY(-5px);
+}
+
+/* Card Elements */
+.browse-data-page h3 {
+  font-size: 25px;
+  margin-bottom: 10px;
+}
+
+.browse-data-page .value {
+  font-size: 34px;
+  font-weight: bold;
+}
+
+.browse-data-page .subtext {
+  font-size: 14px;
+  color: #666;
+}
+
+.browse-data-page .participants {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+/* Links */
+.browse-data-page a {
+  display: inline-block;
+  text-decoration: none;
+  color: #a9b8e7;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+

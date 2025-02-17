@@ -212,3 +212,7 @@ def methodology_sample_processing(request):
 def methodology_bioinfo(request):
     bioinfo = dashboard.utils.met_bioinfo.bioinfo_graphics()
     return render(request, "dashboard/methodologyBioinfo.html", {"bioinfo": bioinfo})
+
+
+def browse_data(request):
+    return render(request, 'dashboard/browse_data.html')
