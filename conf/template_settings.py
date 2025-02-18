@@ -18,11 +18,6 @@ DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "localserverip", "dns_url"]
 
 # Application definition
-<<<<<<< HEAD
-
-=======
-# FIXME: The project should be renamed. "Pathoweb-'${project_name}' ?
->>>>>>> fb47eb6 (Revert "replace project name by pathoweb")
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
