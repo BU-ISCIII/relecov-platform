@@ -519,6 +519,7 @@ def get_sample_per_date_per_all_lab(detailed=None):
                 lab_date_count.append(lab_data)
         return lab_date_count
 
+
 # FIXME: If no lab name is assigned to the user, display a custom error screen.
 #        The error occurs when lab_name is 'None' after accessing to intranet.
 def get_sample_per_date_per_lab(lab_name):
