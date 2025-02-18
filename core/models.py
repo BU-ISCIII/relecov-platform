@@ -1,5 +1,4 @@
 # Generic imports
-import json
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -181,7 +180,7 @@ class SchemaProperties(models.Model):
     ontology = models.CharField(max_length=40, null=True, blank=True)
     type = models.CharField(max_length=20)
     format = models.CharField(max_length=20, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.CharField(max_length=500, null=True, blank=True)
     label = models.CharField(max_length=200, null=True, blank=True)
     required = models.BooleanField(default=False)
     options = models.BooleanField(default=False)
