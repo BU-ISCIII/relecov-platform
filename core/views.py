@@ -230,7 +230,7 @@ def intranet(request):
                 core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(lab_name)
             )
             cust_data = {
-                "col_names": ["Sequencing Date", "Number of samples"],
+                "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
             }
             cust_data["options"]["title"] = "Samples Received"
@@ -268,7 +268,7 @@ def intranet(request):
         num_of_samples = core.utils.samples.count_handled_samples()
         if len(all_sample_per_date) > 0:
             cust_data = {
-                "col_names": ["Sequencing Date", "Number of samples"],
+                "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
             }
             cust_data["options"]["title"] = "Samples Received for all laboratories"
@@ -475,17 +475,12 @@ def received_samples(request):
     sample_data = {}
     # samples receive over time map
     sample_data["map"] = core.utils.samples_map.create_samples_received_map()
-    # samples receive over time graph
-    # df = create_dataframe_from_json()
-    # create_samples_over_time_graph(df)
 
     # # collecting now data from database
     sample_data["received_samples_graph"] = (
         core.utils.samples_graphics.received_samples_graph()
     )
     # Pie charts
-    # data = parse_json_file()
-    # create_samples_received_over_time_per_ccaa_pieChart(data)
     sample_data["samples_per_ccaa"] = core.utils.samples_graphics.received_per_ccaa()
     # create_samples_received_over_time_per_laboratory_pieChart(data)
     sample_data["samples_per_lab"] = core.utils.samples_graphics.received_per_lab()
