@@ -10,7 +10,6 @@ def dash_bar_lab(option_list, data):
     option = []
     for opt_list in option_list:
         option.append({"label": opt_list, "value": opt_list})
-    import pdb; pdb.set_trace()
     app = DjangoDash("samplePerLabGraphic")
     empty_fig = px.bar(x=[0], y=[0], height=300)
 
@@ -44,6 +43,12 @@ def dash_bar_lab(option_list, data):
         if select_collecting_inst is None or select_collecting_inst == 1:
             raise PreventUpdate
         sub_data = data[data.collecting_institution == select_collecting_inst]
+        sub_data = sub_data.drop_duplicates(subset=["iso_yearweek"]).reset_index(drop=True)
+        sub_data["iso_yearweek"] = sub_data["iso_yearweek"].str.replace(
+            r"W(\d{1})$", r"W0\1", regex=True
+        ) # Add padding: W5 -> W05
+        sub_data["num_samples"] = sub_data["num_samples"].astype(int)
+        sub_data = sub_data.sort_values("iso_yearweek")
         if sub_data.empty:
             # Return an empty figure if no data is available
             return (
@@ -52,8 +57,8 @@ def dash_bar_lab(option_list, data):
             )
         graph = px.bar(
             sub_data,
-            x=sub_data["collecting_date"],
-            y=sub_data["num_samples"],
+            x=sub_data["iso_yearweek"].astype(str),
+            y=sub_data["num_samples"].astype(int),
             text_auto=True,
             width=520,
             height=300,
@@ -65,12 +70,12 @@ def dash_bar_lab(option_list, data):
             opacity=0.6,
         )
         graph.update_layout(
-            title="Register samples",
+            title="Registered samples over time",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             xaxis_tickangle=-45,
             margin=dict(l=20, r=40, t=30, b=20),
-            xaxis_title="Collecting date",
+            xaxis_title="Collecting date (ISOWeeks)",
             yaxis_title="Number of samples",
         )
         return graph, f"Laboratory selected: {select_collecting_inst}"

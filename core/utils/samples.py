@@ -505,7 +505,7 @@ def get_sample_per_date_per_all_lab(detailed=None):
         )
         if lab_date_count is None:
             # Execute the pre-processed task to get the data
-            result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(detailed)
+            result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(detailed=True)
             if "ERROR" in result:
                 return result
             lab_date_count = dashboard.utils.generic_graphic_data.get_graphic_json_data(
