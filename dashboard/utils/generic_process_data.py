@@ -146,67 +146,74 @@ def pre_proc_variant_graphic():
 
     date_sample = {}
     date_variant = {}
+    date_variant2 = {}
     for s_data in in_date_samples["DATA"]:
         if s_data["collection_sample_date"] not in date_sample:
             date_sample[s_data["collection_sample_date"]] = []
         date_sample[s_data["collection_sample_date"]].append(s_data["Sample Name"])
 
+    print("Iterating over sample-date fetched data")
     for date, samples in date_sample.items():
+        invalid_values = ["Not Provided [GENEPIO:0001668]", "Omicron (Unassigned)", "Probable Omicron (Unassigned)"]
         variant_samples = (
             core.models.LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
                 sample__collecting_lab_sample_id__in=samples,
             )
+            .exclude(value__in=invalid_values)
             .values_list("value", flat=True)
             .distinct()
         )
-        if len(variant_samples) == 0:
+        # Skip if no variants found
+        variant_samples = [v for v in variant_samples if v]
+        if not variant_samples:
             continue
-        if date not in date_variant:
-            date_variant[date] = {}
+        # Query sample counts instead of summing up
+        sample_counts = (
+            core.models.Sample.objects.filter(
+                collecting_lab_sample_id__in=samples,
+                lineage_values__value__in=variant_samples,
+            )
+            .values("lineage_values__value")  # Group by variant_name
+            .annotate(count=Count("id"))  # Count samples per variant
+        )
 
-        date_samples = 0
-        for variant_name in variant_samples:
-            if variant_name == "":
-                continue
+        date_samples = sum(entry["count"] for entry in sample_counts)
 
-            if variant_name not in date_variant[date]:
-                num_samples = core.models.Sample.objects.filter(
-                    collecting_lab_sample_id__in=samples,
-                    lineage_values__value__iexact=variant_name,
-                ).count()
-                date_variant[date][variant_name] = num_samples
-
-            date_samples += num_samples
-        # Discard the variants that the number of the samples are lower than
-        # 5% for the total number of the samples collected from a specific date
+        # Discard variants with <5% of total samples for the date
         min_num_samples = date_samples / 20
-        for v_name, number in date_variant[date].items():
-            key_to_delete = []
-            if number < min_num_samples:
-                key_to_delete.append(v_name)
-        # Delete the entry date if no variant name was identified for this
-        # date
-        if len(date_variant[date]) == 0:
-            date_variant.pop(date, None)
-            continue
-        # Delete the variants where the number of samples is below the minimum
-        # number of samples.
-        for key in key_to_delete:
-            date_variant[date].pop(key, None)
+        date_variant[date] = {
+            entry["lineage_values__value"]: entry["count"]
+            for entry in sample_counts
+            if entry["count"] >= min_num_samples
+        }
+
+        # Remove date if no variants remain
+        if not date_variant[date]:
+            del date_variant[date]
 
     # convert dictionary to list date, variant and samples to store in json
     # for reading later as table to create the dataframe
+    print("Constructing df-columns dict from date_variant data")
     collect_data = []
+    collect_isoweeks = []
     num_samples_data = []
     variant_names = []
     for date_key, values in date_variant.items():
+        # In order to extract ISOWeek, date must be of type datetime and not None
+        if date_key is None:
+            continue
+        format_date = datetime.strptime(date_key, "%Y-%m-%d")
         for variant_key, value in values.items():
             collect_data.append(date_key)
+            # Extract ISOWeek in YYYY-WXX format
+            isoweek = str(format_date.isocalendar().year) + "-W" + str(format_date.isocalendar().week).zfill(2)
+            collect_isoweeks.append(isoweek)
             variant_names.append(variant_key)
             num_samples_data.append(value)
     variant_var_data = {
         "Collection date": collect_data,
+        "Collection ISOWeek": collect_isoweeks,
         "Lineage": variant_names,
         "samples": num_samples_data,
     }

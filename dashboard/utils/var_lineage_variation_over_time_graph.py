@@ -12,6 +12,7 @@ from plotly.subplots import make_subplots
 # Local imports
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
+import core.utils.generic_functions
 
 
 def create_lineages_variations_graphic():
@@ -44,7 +45,7 @@ def create_lineages_variations_graphic():
         [
             html.Div(
                 [
-                    dbc.Label("Select period of time"),
+                    dbc.Label("Select period of time (MM/DD/YYYY)"),
                     dcc.DatePickerRange(
                         id="datePickerRange",
                         start_date_placeholder_text="Start Date",
