@@ -334,6 +334,11 @@ def process_schema_file(json_file, default, user, apps_name):
 
     schema_name = schema_data["full_schema"]["title"]
     version = schema_data["full_schema"]["version"]
+    if default == "on":
+        remove_existing_default_schema(schema_name, apps_name)
+        default = True
+    else:
+        default = False
 
     # Return Error when a schema with the same name and version already exists
     if core.models.Schema.objects.filter(
@@ -348,15 +353,13 @@ def process_schema_file(json_file, default, user, apps_name):
         "schema_name": schema_name,
         "file_name": schema_data["file_name"],
         "schema_version": version,
-        "schema_default": True if default == "on" else False,
+        "schema_default": default,
         "schema_app_name": apps_name,
         "user_name": user,
     }
 
     # Create the new schema
     new_schema = core.models.Schema.objects.create_new_schema(data)
-    if default:
-        remove_existing_default_schema(schema_name, apps_name)
 
     result = store_schema_properties(
         new_schema,
@@ -369,6 +372,7 @@ def process_schema_file(json_file, default, user, apps_name):
         return result
 
     # Store additional schema-related fields
+    store_bioinfo_fields(new_schema, schema_data["full_schema"]["properties"])
     store_lineage_fields(new_schema, schema_data["full_schema"]["properties"])
     store_public_data_fields(new_schema, schema_data["full_schema"]["properties"])
 
