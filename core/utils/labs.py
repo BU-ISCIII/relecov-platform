@@ -10,7 +10,8 @@ def get_lab_contact_details(user_obj):
         data = core.utils.rest_api.get_laboratory_data(lab_name)
         if "ERROR" in data:
             return data["ERROR"]
-        for key in ["labEmail", "labPhone", "labContactName"]:
+        # TODO: this should be improved by avoiding to have harcoded keys.
+        for key in ["Lab email", "Lab phone", "Lab contact name"]:
             if key not in data["DATA"].keys():
                 break
             lab_data[key] = data["DATA"][key]
