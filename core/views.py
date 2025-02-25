@@ -457,7 +457,10 @@ def laboratory_contact(request):
             request, "core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]}
         )
     if request.method == "POST" and request.POST["action"] == "updateLabData":
-        result = core.utils.labs.update_contact_lab(lab_data, request.POST)
+        result = core.utils.labs.update_contact_lab(
+            old_data = lab_data,
+            new_data = request.POST
+        )
         if isinstance(result, dict):
             return render(
                 request,
