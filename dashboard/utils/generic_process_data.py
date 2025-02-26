@@ -2,8 +2,8 @@
 import os
 import json
 from datetime import datetime
-from collections import OrderedDict, Counter
-from django.db.models import F, Count, Case, When, Value, DateField, CharField
+from collections import OrderedDict, Counter, defaultdict
+from django.db.models import F, Count, Case, When, Value, DateField, CharField, Prefetch
 from django.db.models.functions import ExtractWeek, ExtractYear, Concat
 
 # Local imports
@@ -11,9 +11,11 @@ import core.models
 import core.utils.lineage
 import core.utils.variants
 import core.utils.rest_api
+import core.utils.generic_functions
 import dashboard.models
 from relecov_platform import settings as relecov_platform_settings
 
+import time
 
 def pre_proc_calculation_date():
     """Fetch the information about date for each sample to know about the
@@ -146,7 +148,6 @@ def pre_proc_variant_graphic():
 
     date_sample = {}
     date_variant = {}
-    date_variant2 = {}
     for s_data in in_date_samples["DATA"]:
         if s_data["collection_sample_date"] not in date_sample:
             date_sample[s_data["collection_sample_date"]] = []
@@ -154,7 +155,7 @@ def pre_proc_variant_graphic():
 
     print("Iterating over sample-date fetched data")
     for date, samples in date_sample.items():
-        invalid_values = ["Not Provided [GENEPIO:0001668]", "Omicron (Unassigned)", "Probable Omicron (Unassigned)"]
+        invalid_values = ['Not Provided [GENEPIO:0001668]', 'Omicron (Unassigned)', 'Probable Omicron (Unassigned)']
         variant_samples = (
             core.models.LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
@@ -196,24 +197,18 @@ def pre_proc_variant_graphic():
     # for reading later as table to create the dataframe
     print("Constructing df-columns dict from date_variant data")
     collect_data = []
-    collect_isoweeks = []
     num_samples_data = []
     variant_names = []
     for date_key, values in date_variant.items():
         # In order to extract ISOWeek, date must be of type datetime and not None
         if date_key is None:
             continue
-        format_date = datetime.strptime(date_key, "%Y-%m-%d")
         for variant_key, value in values.items():
             collect_data.append(date_key)
-            # Extract ISOWeek in YYYY-WXX format
-            isoweek = str(format_date.isocalendar().year) + "-W" + str(format_date.isocalendar().week).zfill(2)
-            collect_isoweeks.append(isoweek)
             variant_names.append(variant_key)
             num_samples_data.append(value)
     variant_var_data = {
         "Collection date": collect_data,
-        "Collection ISOWeek": collect_isoweeks,
         "Lineage": variant_names,
         "samples": num_samples_data,
     }
@@ -230,24 +225,38 @@ def pre_proc_variations_per_lineage(chromosome=None):
     """Process variants per lineages"""
 
     lineage_data = {}
-
+    invalid_lineages = [
+        "Not Provided [GENEPIO:0001668]",
+        "Omicron (Unassigned)",
+        "Probable Omicron (Unassigned)",
+        "Unassigned"
+    ]
+    start = time.time()
     # Grab lineages matching selected lineage
-    for lineage in core.utils.lineage.get_lineages_list():
+    filtered_lineage_queryset = (
+        core.models.LineageValues.objects.filter(
+            lineage_fieldID__property_name="lineage_name",
+        ).exclude(value__in=invalid_lineages)
+    )
+    valid_lineages = filtered_lineage_queryset.values_list("value", flat=True).distinct()
+
+    print("Pre-fetching all samples and lineages...")
+    all_samples = core.models.Sample.objects.prefetch_related(
+        Prefetch("lineage_values", queryset=filtered_lineage_queryset)
+    )
+    lineage_samples_map = defaultdict(list)
+    for sample in all_samples:
+        for lineage in sample.lineage_values.all():
+            lineage_samples_map[lineage.value].append(sample)
+    for lineage in valid_lineages:
+        print(f"Processing lineage {lineage}")
         mutation_data = {}
         list_of_af = []
         list_of_pos = []
         list_of_effects = []
 
-        lineage_value_objs = core.models.LineageValues.objects.filter(
-            value__iexact=lineage
-        )
-        # Query samples matching that lineage
-        sample_objs = core.models.Sample.objects.filter(
-            lineage_values__in=lineage_value_objs
-        )
-        number_samples_wlineage = core.models.Sample.objects.filter(
-            lineage_values__in=lineage_value_objs
-        ).count()
+        sample_objs = lineage_samples_map.get(lineage, [])
+        number_samples_wlineage = len(sample_objs)
         # Query variants with AF>0.75 for samples matching desired lineage. TODO: get this from threshold AF in metadata bioinfo in db.
         variants = (
             core.models.VariantInSample.objects.filter(
@@ -256,19 +265,25 @@ def pre_proc_variations_per_lineage(chromosome=None):
             .values_list("variantID_id", flat=True)
             .distinct()
         )
-
+        variant_sample_counts_pos = (
+            core.models.VariantInSample.objects
+            .filter(sampleID_id__in=sample_objs, variantID_id__in=variants)
+            .values("variantID_id")
+            .annotate(sample_count=Count("sampleID_id"))
+            .annotate(pos=F("variantID_id__pos"))
+        )
+        poscount_variant_dict = {
+            entry["variantID_id"]: {
+                "sample_count": entry["sample_count"], "pos":entry["pos"]
+            } for entry in variant_sample_counts_pos
+        }
         for variant in variants:
-            number_samples_wmutation = (
-                core.models.VariantInSample.objects.filter(
-                    sampleID_id__in=sample_objs, variantID_id=variant
-                )
-                .values_list("sampleID_id", flat=True)
-                .count()
-            )
+            if not variant in poscount_variant_dict.keys():
+                print(f"Could not find variant {variant} in database")
+                continue
+            number_samples_wmutation = poscount_variant_dict[variant]["sample_count"]
             mut_freq_population = number_samples_wmutation / number_samples_wlineage
-            pos = core.models.VariantInSample.objects.filter(variantID_id=variant)[
-                0
-            ].get_pos()
+            pos = poscount_variant_dict[variant]["pos"]
 
             effects = (
                 core.models.VariantAnnotation.objects.filter(variantID_id__pk=variant)
@@ -292,6 +307,7 @@ def pre_proc_variations_per_lineage(chromosome=None):
 
         lineage_data[lineage] = mutation_data
 
+    print(f"Took {start - time.time()} seconds to process all lineages")
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
         {"graphic_name": "variations_per_lineage", "graphic_data": lineage_data}
     )
