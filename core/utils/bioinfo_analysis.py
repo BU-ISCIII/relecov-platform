@@ -15,14 +15,15 @@ def get_bio_analysis_stats_from_lab(lab_name=None):
             stateID__state__iexact="Bioinfo"
         )
         bio_stats["analized"] = bioqry.values("sampleID").distinct().count()
-        bio_stats["received"] = core.models.Sample.objects.all().count()
+        bio_stats["received"] = core.models.Sample.objects.count()
     else:
-        sample_objs = core.models.Sample.objects.filter(
+        lab_samples = core.models.Sample.objects.filter(
             collecting_institution__iexact=lab_name
         )
-        samples_bioquery = bioqry.filter(sampleID__in=sample_objs)
-        bio_stats["analized"] = samples_bioquery.values("sampleID").distinct().count()
-        bio_stats["received"] = len(sample_objs)
+        bio_stats["analized"] = lab_samples.select_related("state_id").filter(
+            state_id__state__iexact="Bioinfo"
+        ).values("sequencing_sample_id").distinct().count()
+        bio_stats["received"] = lab_samples.values("sequencing_sample_id").distinct().count()
     return bio_stats
 
 
@@ -35,7 +36,7 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
     schema_obj = sample_obj.get_schema_obj()
     bio_anlys_data = []
     bioan_fields = core.models.BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
-    if not bioan_fields.exists():
+    if not bioan_fields:
         return None
     for bio_field in bioan_fields:
         samples_bio = core.models.BioinfoAnalysisValue.objects.filter(
