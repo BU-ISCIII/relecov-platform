@@ -36,9 +36,8 @@ def create_samples_received_map():
         json_data,
         geojson=counties,
         locations=json_data["ccaa_id"],
-        color=json_data["samples"],
+        color=json_data["ccaa_id"],
         color_continuous_scale="Viridis",
-        range_color=json_data["ccaa_name"],
         mapbox_style="carto-positron",
         zoom=3.8,
         center={"lat": 35.9, "lon": -5.3},
@@ -51,11 +50,14 @@ def create_samples_received_map():
             "samples",
         ],
         hover_name="ccaa_name",
-        hover_data={"ccaa_id": False},
+        hover_data={"ccaa_id": False, "samples": True},
     )
-    fig.update_layout(margin={"r": 0, "t": 30, "l": 0, "b": 0})
+    fig.update_layout(coloraxis_showscale=False, margin={"r": 0, "t": 30, "l": 0, "b": 0})
     # Don't show legend in plotly.express
-    fig.update_traces(showlegend=False)
+    fig.update_traces(
+        showlegend=False,
+        hovertemplate="<b>%{hovertext}</b><br>Samples: %{customdata[0]}"
+    )
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
         children=[
