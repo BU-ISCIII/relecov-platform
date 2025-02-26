@@ -24,18 +24,12 @@ def get_variant_data_from_lineages(graphic_name=None, lineage=None, chromosome=N
     json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(graphic_name)
     # Return None to indicate that there is no data stored yet
     if json_data is None:
-        return None, None
-    #    if not LineageValues.objects.filter(
-    #        lineage_fieldID__property_name__iexact="lineage_name"
-    #    ).exists():
-    #        return None
-    all_lineages = core.models.LineageValues.objects.filter(
-        lineage_fieldID__property_name__iexact="lineage_name"
-    ).values_list("value", flat=True)
+        return None, None, None
+
     if lineage is None:
-        lineage = all_lineages.first()
+        lineage = sorted(list(json_data.keys()))[0]
     mdata = json_data[lineage]
-    n_samples = len([x for x in all_lineages if x == lineage])
+    n_samples = mdata["SamplesWithLineage"]
 
     return mdata, lineage, n_samples
 
@@ -67,11 +61,11 @@ def create_needle_plot_graph_mutation_by_lineage(
                                 value=1,
                                 style={"width": "150px", "margin-right": "30px"},
                             ),
-                        ]
+                        ],
                     ),
                     html.Div(
                         children=[
-                            "Select a Lineage",
+                            "Select Lineage",
                             dcc.Dropdown(
                                 id="needleplot-select-lineage",
                                 options=options,
@@ -80,7 +74,8 @@ def create_needle_plot_graph_mutation_by_lineage(
                                 value=lineage,
                                 style={"width": "150px", "margin-right": "30px"},
                             ),
-                        ]
+                        ],
+                        style={"margin-left": "20px"},
                     ),
                     html.Div(
                         children=[
@@ -88,7 +83,8 @@ def create_needle_plot_graph_mutation_by_lineage(
                                 id="samples_markdown",
                                 children=f"Showing mutations for {n_samples} samples",
                             )
-                        ]
+                        ],
+                        style={"margin-left": "50px"},
                     ),
                 ],
                 style={
