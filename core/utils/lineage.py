@@ -5,9 +5,17 @@ import core.models
 
 def get_lineages_list():
     """Function gets the lineage names and return then in an ordered list"""
+    # Exclude unassigned and not provided lineages
+    invalid_lineages = [
+        "Not Provided [GENEPIO:0001668]",
+        "Omicron (Unassigned)",
+        "Probable Omicron (Unassigned)",
+        "Unassigned"
+    ]
     return list(
         core.models.LineageValues.objects.all()
         .filter(lineage_fieldID__property_name__iexact="lineage_name")
+        .exclude(value__in=invalid_lineages)
         .values_list("value", flat=True)
         .distinct()
         .order_by("value")
