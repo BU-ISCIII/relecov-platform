@@ -71,6 +71,7 @@ def dash_bar_lab(option_list, data):
         )
         graph.update_layout(
             title="Registered samples over time",
+            autotypenumbers="convert types",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             xaxis_tickangle=-45,
