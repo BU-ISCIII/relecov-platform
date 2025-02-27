@@ -93,8 +93,7 @@ def count_handled_samples():
     """Count the number of samples handled in each process"""
     process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
     counted_data = (
-        core.models.DateUpdateState.objects
-        .filter(stateID__state__in=process)
+        core.models.DateUpdateState.objects.filter(stateID__state__in=process)
         .values("stateID__state")
         .annotate(count=Count("id"))
     )
@@ -327,11 +326,9 @@ def get_lab_last_actions(lab_name=None):
     action_list = ["Defined", "Analysis", "Gisaid", "Ena"]
     if lab_name is None:
         lab_actions = []
-        labs = (
-            core.models.core.models.Sample.objects
-            .values_list("collecting_institution")
-            .distinct()
-        )
+        labs = core.models.core.models.Sample.objects.values_list(
+            "collecting_institution"
+        ).distinct()
         for lab in labs:
             sam_obj = core.models.core.models.Sample.objects.filter(
                 collecting_institution__exact=lab[0]
@@ -487,25 +484,35 @@ def get_sample_per_date_per_all_lab(detailed=None):
     with dates and number of samples if detailed is true return a
     """
     if detailed is None:
-        all_samples_per_date = dashboard.utils.generic_graphic_data.get_graphic_json_data(
-        "samples_per_date_all_lab"
+        all_samples_per_date = (
+            dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                "samples_per_date_all_lab"
+            )
         )
         if all_samples_per_date is None:
             # Execute the pre-processed task to get the data
-            result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
+            result = (
+                dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
+            )
             if "ERROR" in result:
                 return result
-            all_samples_per_date = dashboard.utils.generic_graphic_data.get_graphic_json_data(
-                "samples_per_date_all_lab"
+            all_samples_per_date = (
+                dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                    "samples_per_date_all_lab"
+                )
             )
         return all_samples_per_date
     else:
         lab_date_count = dashboard.utils.generic_graphic_data.get_graphic_json_data(
-        "samples_per_date_all_lab_detailed"
+            "samples_per_date_all_lab_detailed"
         )
         if lab_date_count is None:
             # Execute the pre-processed task to get the data
-            result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(detailed=True)
+            result = (
+                dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(
+                    detailed=True
+                )
+            )
             if "ERROR" in result:
                 return result
             lab_date_count = dashboard.utils.generic_graphic_data.get_graphic_json_data(
@@ -611,8 +618,7 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
 def get_all_lab_list():
     """Function gets the lab names and return then in an ordered list"""
     return list(
-        core.models.Sample.objects
-        .values_list("collecting_institution", flat=True)
+        core.models.Sample.objects.values_list("collecting_institution", flat=True)
         .distinct()
         .order_by("collecting_institution")
     )

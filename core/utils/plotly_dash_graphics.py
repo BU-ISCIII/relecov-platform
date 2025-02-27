@@ -43,10 +43,12 @@ def dash_bar_lab(option_list, data):
         if select_collecting_inst is None or select_collecting_inst == 1:
             raise PreventUpdate
         sub_data = data[data.collecting_institution == select_collecting_inst]
-        sub_data = sub_data.drop_duplicates(subset=["iso_yearweek"]).reset_index(drop=True)
+        sub_data = sub_data.drop_duplicates(subset=["iso_yearweek"]).reset_index(
+            drop=True
+        )
         sub_data["iso_yearweek"] = sub_data["iso_yearweek"].str.replace(
             r"W(\d{1})$", r"W0\1", regex=True
-        ) # Add padding: W5 -> W05
+        )  # Add padding: W5 -> W05
         sub_data["num_samples"] = sub_data["num_samples"].astype(int)
         sub_data = sub_data.sort_values("iso_yearweek")
         if sub_data.empty:
