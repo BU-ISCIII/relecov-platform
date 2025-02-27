@@ -19,5 +19,5 @@ mod-wsgi==5.0.0
 mysqlclient==2.2.4
 numpy==2.1.0
 pandas==2.2.2
-relecov-tools==1.4.0
+relecov-tools>=1.4.0
 xlrd==1.2.0
