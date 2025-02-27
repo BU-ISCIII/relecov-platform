@@ -5,7 +5,6 @@ from dash.dependencies import Input, Output
 from django_plotly_dash import DjangoDash
 
 # Local imports
-import core.models
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
 
