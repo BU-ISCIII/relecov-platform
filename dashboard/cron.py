@@ -84,7 +84,9 @@ def update_graphic_json_data():
     print("Running pre_proc_samples_per_date_all_lab()")
     dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
     print("Running pre_proc_samples_per_date_all_lab(detailed=True)")
-    dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(detailed=True)
+    dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(
+        detailed=True
+    )
     print(f"List of extracted unique chromosomes: {uniq_chrom_id_list}")
     print("Running pre_proc_variations_per_lineage() for each chromosome")
     for chromosome in uniq_chrom_id_list:
