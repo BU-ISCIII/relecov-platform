@@ -10,7 +10,7 @@ def get_lineages_list():
         "Not Provided [GENEPIO:0001668]",
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
-        "Unassigned"
+        "Unassigned",
     ]
     return list(
         core.models.LineageValues.objects.all()
