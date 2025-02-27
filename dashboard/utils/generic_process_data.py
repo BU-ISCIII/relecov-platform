@@ -17,6 +17,7 @@ from relecov_platform import settings as relecov_platform_settings
 
 import time
 
+
 def pre_proc_calculation_date():
     """Fetch the information about date for each sample to know about the
     number of days between different steps of samples
@@ -155,7 +156,11 @@ def pre_proc_variant_graphic():
 
     print("Iterating over sample-date fetched data")
     for date, samples in date_sample.items():
-        invalid_values = ['Not Provided [GENEPIO:0001668]', 'Omicron (Unassigned)', 'Probable Omicron (Unassigned)']
+        invalid_values = [
+            "Not Provided [GENEPIO:0001668]",
+            "Omicron (Unassigned)",
+            "Probable Omicron (Unassigned)",
+        ]
         variant_samples = (
             core.models.LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
@@ -229,16 +234,16 @@ def pre_proc_variations_per_lineage(chromosome=None):
         "Not Provided [GENEPIO:0001668]",
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
-        "Unassigned"
+        "Unassigned",
     ]
     start = time.time()
     # Grab lineages matching selected lineage
-    filtered_lineage_queryset = (
-        core.models.LineageValues.objects.filter(
-            lineage_fieldID__property_name="lineage_name",
-        ).exclude(value__in=invalid_lineages)
-    )
-    valid_lineages = filtered_lineage_queryset.values_list("value", flat=True).distinct()
+    filtered_lineage_queryset = core.models.LineageValues.objects.filter(
+        lineage_fieldID__property_name="lineage_name",
+    ).exclude(value__in=invalid_lineages)
+    valid_lineages = filtered_lineage_queryset.values_list(
+        "value", flat=True
+    ).distinct()
 
     print("Pre-fetching all samples and lineages...")
     all_samples = core.models.Sample.objects.prefetch_related(
@@ -266,19 +271,22 @@ def pre_proc_variations_per_lineage(chromosome=None):
             .distinct()
         )
         variant_sample_counts_pos = (
-            core.models.VariantInSample.objects
-            .filter(sampleID_id__in=sample_objs, variantID_id__in=variants)
+            core.models.VariantInSample.objects.filter(
+                sampleID_id__in=sample_objs, variantID_id__in=variants
+            )
             .values("variantID_id")
             .annotate(sample_count=Count("sampleID_id"))
             .annotate(pos=F("variantID_id__pos"))
         )
         poscount_variant_dict = {
             entry["variantID_id"]: {
-                "sample_count": entry["sample_count"], "pos":entry["pos"]
-            } for entry in variant_sample_counts_pos
+                "sample_count": entry["sample_count"],
+                "pos": entry["pos"],
+            }
+            for entry in variant_sample_counts_pos
         }
         for variant in variants:
-            if not variant in poscount_variant_dict.keys():
+            if variant not in poscount_variant_dict.keys():
                 print(f"Could not find variant {variant} in database")
                 continue
             number_samples_wmutation = poscount_variant_dict[variant]["sample_count"]
@@ -664,7 +672,8 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
             .order_by("collecting_institution")
         )
         samples_dates_dict = {
-            x["Sample Name"]: x["collection_sample_date"] for x in in_date_samples["DATA"]
+            x["Sample Name"]: x["collection_sample_date"]
+            for x in in_date_samples["DATA"]
         }
         join_conditions = [
             When(sequencing_sample_id=sample_id, then=Value(collect_date))
@@ -677,11 +686,12 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         )
         lab_date_count = list(
             all_sample_counts_by_lab.exclude(collecting_date__isnull=True)
-            .annotate(iso_yearweek=Concat(
-                ExtractYear(F("collecting_date")), # get ISO year
-                Value('-W'), # This just adds a W to match ISO format of YYYY-WW
-                ExtractWeek(F("collecting_date")), # get ISO week
-                output_field=CharField()
+            .annotate(
+                iso_yearweek=Concat(
+                    ExtractYear(F("collecting_date")),  # get ISO year
+                    Value("-W"),  # This just adds a W to match ISO format of YYYY-WW
+                    ExtractWeek(F("collecting_date")),  # get ISO week
+                    output_field=CharField(),
                 ),
             )
             .values("collecting_institution", "iso_yearweek")
