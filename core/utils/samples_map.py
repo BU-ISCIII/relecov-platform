@@ -52,11 +52,13 @@ def create_samples_received_map():
         hover_name="ccaa_name",
         hover_data={"ccaa_id": False, "samples": True},
     )
-    fig.update_layout(coloraxis_showscale=False, margin={"r": 0, "t": 30, "l": 0, "b": 0})
+    fig.update_layout(
+        coloraxis_showscale=False, margin={"r": 0, "t": 30, "l": 0, "b": 0}
+    )
     # Don't show legend in plotly.express
     fig.update_traces(
         showlegend=False,
-        hovertemplate="<b>%{hovertext}</b><br>Samples: %{customdata[0]}"
+        hovertemplate="<b>%{hovertext}</b><br>Samples: %{customdata[0]}",
     )
     app = DjangoDash("samplesReceivedOverTimeMap")
     app.layout = html.Div(
