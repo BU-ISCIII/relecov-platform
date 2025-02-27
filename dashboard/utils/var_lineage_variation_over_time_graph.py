@@ -104,7 +104,9 @@ def create_lineages_variations_graphic():
                 (data_df["Collection date"] >= start_date_obj)
                 & (data_df["Collection date"] < end_date_obj)
             ]
-        sub_data_df = sub_data_df.sort_values("Collection date") # Order by date to ensure isoweeks are ordered too
+        sub_data_df = sub_data_df.sort_values(
+            "Collection date"
+        )  # Order by date to ensure isoweeks are ordered too
         samples_df = pd.DataFrame()
         samples_df["samples"] = sub_data_df.groupby("Collection date")["samples"].sum()
         samples_df = samples_df.reset_index()
@@ -123,9 +125,13 @@ def create_lineages_variations_graphic():
             .reset_index()
             .sort_values("Collection date")
         )
-        data_week_df["Collection ISOWeek"] = data_week_df["Collection date"].dt.strftime("%Y-W%V")
-        graph_df = data_week_df.drop("Collection date", axis=1).set_index(["Lineage", "Collection ISOWeek"]).unstack(
-            ["Lineage"]
+        data_week_df["Collection ISOWeek"] = data_week_df[
+            "Collection date"
+        ].dt.strftime("%Y-W%V")
+        graph_df = (
+            data_week_df.drop("Collection date", axis=1)
+            .set_index(["Lineage", "Collection ISOWeek"])
+            .unstack(["Lineage"])
         )
 
         # remove the sample text from column
@@ -142,9 +148,12 @@ def create_lineages_variations_graphic():
             fig.add_trace(go.Scatter())
             fig.add_annotation(
                 text="No samples found for the selected dates",
-                xref="paper", yref="paper",
-                x=0.5, y=0.5, showarrow=False,
-                font=dict(size=20, color="red")
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False,
+                font=dict(size=20, color="red"),
             )
             fig.update_layout(
                 xaxis=dict(visible=False),
@@ -191,7 +200,7 @@ def create_lineages_variations_graphic():
             )
         # Set x-axis title
         fig.update_xaxes(
-            title='Collection Date (ISOweeks)',
+            title="Collection Date (ISOweeks)",
         )
         # Set y-axes titles
         fig.update_yaxes(
