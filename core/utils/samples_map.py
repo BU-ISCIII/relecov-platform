@@ -34,25 +34,24 @@ def create_samples_received_map():
             "received_samples_map"
         )
 
-    
     samples_df = pd.DataFrame(json_data)
     samples_df["id"] = samples_df["ccaa_id"].astype(str)
-    samples_df["samples"] = pd.to_numeric(samples_df["samples"], errors="coerce").fillna(0)
+    samples_df["samples"] = pd.to_numeric(
+        samples_df["samples"], errors="coerce"
+    ).fillna(0)
 
-    
     samples_dict = samples_df.set_index("id")["samples"].to_dict()
     for feature in counties["features"]:
         ccaa_id = str(feature["properties"]["cartodb_id"])
         feature["properties"]["samples"] = samples_dict.get(ccaa_id, 0)
 
-    
     m = folium.Map(location=[40, -3.7], zoom_start=5, tiles=None)
-    
+
     folium.TileLayer(
-    tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
-    attr='Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
-    name="Esri World Terrain",
-    max_zoom=13
+        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
+        attr="Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS",
+        name="Esri World Terrain",
+        max_zoom=13,
     ).add_to(m)
 
     folium.Choropleth(
@@ -64,7 +63,7 @@ def create_samples_received_map():
         fill_opacity=0.7,
         line_opacity=0.2,
         highlight=True,
-        legend_name="Muestras Recibidas"
+        legend_name="Muestras Recibidas",
     ).add_to(m)
 
     folium.GeoJson(
@@ -75,11 +74,11 @@ def create_samples_received_map():
             "color": "black",
             "weight": 1,
         },
-        highlight_function= lambda feature: {
+        highlight_function=lambda feature: {
             "fillColor": "ffff00",
             "color": "transparent",
             "weight": "3",
-            "dashArray": "5, 5"
+            "dashArray": "5, 5",
         },
         tooltip=folium.GeoJsonTooltip(
             fields=["name", "samples"],
@@ -88,14 +87,18 @@ def create_samples_received_map():
             sticky=False,
             labels=True,
             style="background-color: white; color: black; font-weight: bold;",
-        )
+        ),
     ).add_to(m)
-    
-    m.get_root().html.add_child(folium.Element("""
+
+    m.get_root().html.add_child(
+        folium.Element(
+            """
     <style>
         .leaflet-interactive:focus { outline: none !important; box-shadow: none !important; }
     </style>
-    """))
+    """
+        )
+    )
 
     # Generar el HTML del mapa
     map_html = m.get_root().render()
