@@ -4,21 +4,19 @@ import core.utils.rest_api
 
 
 def get_lab_contact_details(user_obj):
-    lab_data = {}
+    """"Get the user's contact data"""
     lab_name = get_lab_name_from_user(user_obj)
-    if lab_name != "":
-        data = core.utils.rest_api.get_laboratory_data(lab_name)
-        if "ERROR" in data:
-            return data["ERROR"]
-        # TODO: this should be improved by avoiding to have harcoded keys.
-        for key in ["Lab email", "Lab phone", "Lab contact name"]:
-            if key not in data["DATA"].keys():
-                break
-            lab_data[key] = data["DATA"][key]
-        else:
-            lab_data["lab_name"] = lab_name
-            return lab_data
-    return ""
+    if not lab_name or len(lab_name) == 0:
+        return ""
+
+    data = core.utils.rest_api.get_laboratory_data(lab_name)
+    if "ERROR" in data:
+        return data["ERROR"]
+
+    if not data["DATA"]:
+        return ""
+    lab_data = data.get("DATA", {}).copy()
+    return lab_data
 
 
 def get_all_defined_labs():
@@ -42,13 +40,24 @@ def update_contact_lab(old_data, new_data):
     """Update the contact information. If any field is empty it will set the
     old value. In case that all new_data are empty returns than no changes
     """
+    # TODO: This should be improved by maintaining consistence between keys used to get and post data between apis.
+    key_mapping = {
+        "Lab email": "lab_contact_email",
+        "Lab phone": "lab_contact_telephone",
+        "Lab contact name": "lab_contact_name",
+        "Lab name": "lab_name",
+    }
+
     data = {}
-    for key, value in old_data.items():
-        if new_data[key] == "":
-            data[key] = value
-        else:
-            data[key] = new_data[key]
+
+    for old_key, new_key in key_mapping.items():
+        # Obtiene el nuevo valor, si está vacío usa el valor viejo
+        new_value = new_data.get(new_key, "").strip()
+        data[new_key] = old_data.get(old_key, "") if new_value == "" else new_value
+
+    import pdb; pdb.set_trace()
     result = core.utils.rest_api.set_laboratory_data(data)
     if "ERROR" in result:
-        return result
-    return "OK"
+        return result 
+    else:
+        return "OK"
