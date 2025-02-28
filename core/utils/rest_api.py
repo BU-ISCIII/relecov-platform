@@ -68,7 +68,6 @@ def get_user_credentials():
 
 def set_laboratory_data(lab_data):
     """Send api request to iSkyLIMS to update laboratory data"""
-
     iskylims_server = core.utils.generic_functions.get_configuration_value(
         "ISKYLIMS_SERVER"
     )
