@@ -646,16 +646,24 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         return in_date_samples
     if detailed is None:
         # No group by collection institution is needed
-        counted_dates = Counter( # Use counter to get a dictionary of {date: num_samples}
+        counted_dates = Counter(  # Use counter to get a dictionary of {date: num_samples}
             (
                 datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
                     "%d-%B-%Y"
                 )
-                if isinstance(x["collection_sample_date"], str) # If data is in string format, convert it to date first
-                else x["collection_sample_date"].strftime("%d-%B-%Y") # Else just process date directly
+                if isinstance(
+                    x["collection_sample_date"], str
+                )  # If data is in string format, convert it to date first
+                else x["collection_sample_date"].strftime(
+                    "%d-%B-%Y"
+                )  # Else just process date directly
             )
-            for x in in_date_samples["DATA"] # each x is a dict of [{"Sample Name": name, "collection_sample_date": date}]
-            if isinstance(x["collection_sample_date"], (datetime, str)) # Only process data in string or date formats
+            for x in in_date_samples[
+                "DATA"
+            ]  # each x is a dict of [{"Sample Name": name, "collection_sample_date": date}]
+            if isinstance(
+                x["collection_sample_date"], (datetime, str)
+            )  # Only process data in string or date formats
         )
         all_samples_per_date = dict(counted_dates)
         dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
