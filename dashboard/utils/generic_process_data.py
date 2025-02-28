@@ -638,22 +638,24 @@ def pre_proc_host_info():
 
 
 def pre_proc_samples_per_date_all_lab(detailed=None):
+    # Fetch a list of dictionaries of [{Sample Name: sample_name, Collection_sample_date: collection date}]
     in_date_samples = core.utils.rest_api.fetch_samples_on_condition(
         "collection_sample_date"
     )
     if "ERROR" in in_date_samples:
         return in_date_samples
     if detailed is None:
-        counted_dates = Counter(
+        # No group by collection institution is needed
+        counted_dates = Counter( # Use counter to get a dictionary of {date: num_samples}
             (
                 datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
                     "%d-%B-%Y"
                 )
-                if isinstance(x["collection_sample_date"], str)
-                else x["collection_sample_date"].strftime("%d-%B-%Y")
+                if isinstance(x["collection_sample_date"], str) # If data is in string format, convert it to date first
+                else x["collection_sample_date"].strftime("%d-%B-%Y") # Else just process date directly
             )
-            for x in in_date_samples["DATA"]
-            if isinstance(x["collection_sample_date"], (datetime, str))
+            for x in in_date_samples["DATA"] # each x is a dict of [{"Sample Name": name, "collection_sample_date": date}]
+            if isinstance(x["collection_sample_date"], (datetime, str)) # Only process data in string or date formats
         )
         all_samples_per_date = dict(counted_dates)
         dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
