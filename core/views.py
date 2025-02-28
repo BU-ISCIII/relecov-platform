@@ -458,8 +458,7 @@ def laboratory_contact(request):
         )
     if request.method == "POST" and request.POST["action"] == "updateLabData":
         result = core.utils.labs.update_contact_lab(
-            old_data = lab_data,
-            new_data = request.POST
+            old_data=lab_data, new_data=request.POST
         )
         if isinstance(result, dict):
             return render(

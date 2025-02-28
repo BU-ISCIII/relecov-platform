@@ -4,7 +4,7 @@ import core.utils.rest_api
 
 
 def get_lab_contact_details(user_obj):
-    """"Get the user's contact data"""
+    """ "Get the user's contact data"""
     lab_name = get_lab_name_from_user(user_obj)
     if not lab_name or len(lab_name) == 0:
         return ""
@@ -40,7 +40,7 @@ def update_contact_lab(old_data, new_data):
     """Update the contact information. If any field is empty it will set the
     old value. In case that all new_data are empty returns than no changes
     """
-    # TODO: This should be improved by maintaining consistence between keys used to get and post data between apis.
+    # TODO: Improve this. There is an inconsistency between GET and POST data when APIs communicate.
     key_mapping = {
         "Lab email": "lab_contact_email",
         "Lab phone": "lab_contact_telephone",
@@ -55,9 +55,8 @@ def update_contact_lab(old_data, new_data):
         new_value = new_data.get(new_key, "").strip()
         data[new_key] = old_data.get(old_key, "") if new_value == "" else new_value
 
-    import pdb; pdb.set_trace()
     result = core.utils.rest_api.set_laboratory_data(data)
     if "ERROR" in result:
-        return result 
+        return result
     else:
         return "OK"
