@@ -165,7 +165,7 @@ update_system_deps() {
             python3-venv  \
             libpq-dev \
             python3-dev python3-pip python3-wheel \
-            apache2-dev\
+            apache2-dev libxml2 libxml2-dev libxslt1-dev\
             gnuplot
     fi
 
@@ -174,7 +174,7 @@ update_system_deps() {
         yum groupinstall "Development tools"
         yum install zlib-devel bzip2-devel openssl-devel \
                         wget httpd-devel mysql-libs sqlite sqlite-devel \
-                        mariadb-devel libffi-devel \
+                        mariadb-devel libffi-devel libxml2 libxml2-devel libxslt libxslt-devel \
                         gnuplot
     fi
 
