@@ -10,7 +10,7 @@ def create_or_get_filter_obj(filter_value):
     if core.models.Filter.objects.filter(filter__iexact=filter_value).exists():
         return core.models.Filter.objects.filter(filter__iexact=filter_value).last()
     filter_serializer = core.api.serializers.CreateFilterSerializer(
-        data={"Filter": filter_value}
+        data={"filter": filter_value}
     )
     if filter_serializer.is_valid():
         filter_obj = filter_serializer.save()
@@ -116,6 +116,7 @@ def split_variant_data(data, sample_obj, date):
     """Separate the information received into groups"""
     split_data = {"variant_in_sample": {}, "variant_ann": {}}
     split_data["variant_in_sample"]["sampleID_id"] = sample_obj.get_sample_id()
+
     variant_id = get_variant_id(data)
     if isinstance(variant_id, dict):
         return variant_id
