@@ -59,14 +59,8 @@ def schema_fields_utilization():
     if not bool(bio_fields):
         util_data["ERROR_ANALYSIS"] = "Not Data to process"
         return util_data
-
-    #f_values = []
-    #for value in bio_fields["fields_norm"].values():
-    #    f_values.append(value)
-    #if len(f_values) > 1:
-    #    util_data["bio_f_values"] = float("%.1f" % (mean(f_values) * 100))
-    #else:
-    #    util_data["bio_f_values"] = 0
+    
+    # Calculate bio_f_values
     num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj.get_schema_name())
     num_fields = len(bio_fields["fields_value"])
     total_filled_values = sum(bio_fields["fields_value"].values())
