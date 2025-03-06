@@ -67,6 +67,24 @@ class SchemaManager(models.Manager):
             schema_in_use=True,
             schema_apps_name=data["schema_app_name"],
         )
+        # Check if schema default is available
+        if new_schema.schema_default:
+            self.filter(schema_apps_name=new_schema.schema_apps_name).exclude(
+                id=new_schema.id
+            ).update(schema_default=False)
+
+        # If not schema default selected, then use the last loaded schema
+        if not self.filter(
+            schema_default=True, schema_apps_name=new_schema.schema_apps_name
+        ).exists():
+            last_schema = (
+                self.filter(schema_apps_name=new_schema.schema_apps_name)
+                .order_by("-generated_at")
+                .first()
+            )
+            if last_schema:
+                last_schema.schema_default = True
+                last_schema.save()
         return new_schema
 
 
