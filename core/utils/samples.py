@@ -477,7 +477,7 @@ def get_sample_obj_from_id(sample_id):
 def get_samples_count_per_schema(schema_id):
     """Get the number of samples that are stored in the schema"""
     return core.models.Sample.objects.filter(
-        schema_obj__schema_name__iexact=schema_id
+        schema_obj__id=schema_id
     ).count()
 
 
