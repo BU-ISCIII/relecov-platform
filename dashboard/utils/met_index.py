@@ -61,9 +61,7 @@ def schema_fields_utilization():
         return util_data
 
     # Calculate bio_f_values
-    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(
-        schema_obj.get_schema_name()
-    )
+    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj.id)
     num_fields = len(bio_fields["fields_value"])
     total_filled_values = sum(bio_fields["fields_value"].values())
     total_possible_values = num_fields * num_samples_in_sch
