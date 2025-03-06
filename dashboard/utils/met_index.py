@@ -4,6 +4,7 @@ from statistics import mean
 # Local imports
 import core.utils.bioinfo_analysis
 import core.utils.rest_api
+import core.utils.samples
 import core.utils.schema
 import dashboard.dashboard_config
 import dashboard.utils.plotly
@@ -59,13 +60,20 @@ def schema_fields_utilization():
         util_data["ERROR_ANALYSIS"] = "Not Data to process"
         return util_data
 
-    f_values = []
-    for value in bio_fields["fields_norm"].values():
-        f_values.append(value)
-    if len(f_values) > 1:
-        util_data["bio_f_values"] = float("%.1f" % (mean(f_values) * 100))
-    else:
-        util_data["bio_f_values"] = 0
+    #f_values = []
+    #for value in bio_fields["fields_norm"].values():
+    #    f_values.append(value)
+    #if len(f_values) > 1:
+    #    util_data["bio_f_values"] = float("%.1f" % (mean(f_values) * 100))
+    #else:
+    #    util_data["bio_f_values"] = 0
+    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj.get_schema_name())
+    num_fields = len(bio_fields["fields_value"])
+    total_filled_values = sum(bio_fields["fields_value"].values())
+    total_possible_values = num_fields * num_samples_in_sch 
+    bio_f_values = (total_filled_values / total_possible_values) * 100 if total_possible_values > 0 else 0
+    util_data["bio_f_values"] = float("%.1f" % bio_f_values)
+    
     # Calculate empty fields and total fields for bio analysis fields
     empty_fields = len(bio_fields["always_none"]) + len(bio_fields["never_used"])
     total_fields = len(bio_fields["fields_norm"]) + empty_fields
