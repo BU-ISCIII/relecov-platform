@@ -2,7 +2,7 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 import plotly.graph_objects as go
-from dash import html
+from dash import html, dcc
 from django_plotly_dash import DjangoDash
 from plotly.offline import plot
 
@@ -11,30 +11,24 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
     """Create Dashboard application for showing a gauge graphic for the
     percentage  values
     """
-    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
-    if value <= 40:
-        text_color = "red"
-    elif value <= 75:
-        text_color = "#e6e600"
-    else:
-        text_color = "green"
-    app.layout = html.Div(
-        daq.Gauge(
-            showCurrentValue=True,
-            color={
-                "default": text_color,
-                "gradient": True,
-                "ranges": {"red": [0, 40], "yellow": [40, 80], "green": [80, 100]},
-            },
-            id="my-gauge-1",
-            label={"label": label, "style": {"font-size": "1.40rem", "color": "green"}},
-            labelPosition="bottom",
+    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])    
+    graph = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
             value=value,
-            max=100,
-            min=0,
-            size=size,
-        ),
+            number={"suffix": "%"},
+            domain={"x": [0, 1], "y": [0, 1]},
+            title={"text": label},
+            gauge={"axis": {"range": [None, 100]}},
+        )
     )
+    graph.update_layout(margin=dict(t=10, b=0, l=30, r=30),
+                        height=250)
+    
+    app.layout = html.Div([
+        dcc.Graph(figure=graph, config={"displayModeBar": False},
+                  style={"width": "100%", "height": "250px"}),
+    ], style={"width": "100%", "height": "250px"})
 
 
 def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
