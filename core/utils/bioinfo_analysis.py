@@ -88,7 +88,7 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
             b_data["fields_value"][f_name] = 0
             continue
         # b_data[schema_name][f_name] = [count]
-        count_not_empty = b_field_obj_info.exclude(value__in=["None", ""]).count()
+        count_not_empty = b_field_obj_info.exclude(value__in=["None", "Not Provided", ""]).count()
         b_data["fields_value"][f_name] = count_not_empty
         if count_not_empty == 0:
             b_data["always_none"].append(f_name)
