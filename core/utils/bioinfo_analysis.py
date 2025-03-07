@@ -69,7 +69,7 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
     if not b_field_objs.exists():
         return b_data
 
-    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj.id)
+    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj)
     if num_samples_in_sch == 0:
         return b_data
     b_data = {
