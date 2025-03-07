@@ -11,7 +11,7 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
     """Create Dashboard application for showing a gauge graphic for the
     percentage  values
     """
-    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])    
+    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
     graph = go.Figure(
         go.Indicator(
             mode="gauge+number",
@@ -22,13 +22,18 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
             gauge={"axis": {"range": [None, 100]}},
         )
     )
-    graph.update_layout(margin=dict(t=10, b=0, l=30, r=30),
-                        height=250)
-    
-    app.layout = html.Div([
-        dcc.Graph(figure=graph, config={"displayModeBar": False},
-                  style={"width": "100%", "height": "250px"}),
-    ], style={"width": "100%", "height": "250px"})
+    graph.update_layout(margin=dict(t=10, b=0, l=30, r=30), height=250)
+
+    app.layout = html.Div(
+        [
+            dcc.Graph(
+                figure=graph,
+                config={"displayModeBar": False},
+                style={"width": "100%", "height": "250px"},
+            ),
+        ],
+        style={"width": "100%", "height": "250px"},
+    )
 
 
 def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
