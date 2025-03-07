@@ -44,7 +44,7 @@ def pre_proc_calculation_date():
         for sample in data.keys():
             if sample in invalid_samples:
                 continue
-            if sample == "Not Provided [GENEPIO:0001668]":
+            if data[sample] == "Not Provided [GENEPIO:0001668]":
                 continue
             if data[sample]:
                 f_date = datetime.strptime(data[sample], d_format)
