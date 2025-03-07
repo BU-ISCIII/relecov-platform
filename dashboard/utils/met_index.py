@@ -113,7 +113,7 @@ def index_dash_fields():
         dashboard.utils.plotly.graph_gauge_percent_values(
             app_name="lims_filled_values",
             value=util_data["lims_f_values"],
-            label="Lab filled values %",
+            label="Lab filled values",
         )
         # ##### Create comparison graphics #######
         if "ERROR_ANALYSIS" in util_data:
@@ -138,7 +138,7 @@ def index_dash_fields():
         dashboard.utils.plotly.graph_gauge_percent_values(
             app_name="bio_filled_values",
             value=util_data["bio_f_values"],
-            label="Bio filled values %",
+            label="Bio filled values",
             size=150,
         )
         # ##### create bar graph with all fields and values
