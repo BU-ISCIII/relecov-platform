@@ -45,7 +45,7 @@ db_check(){
         echo -e "${RED}ERROR : Unable to connect to database. Check if your database is running and accessible${NC}"
         exit 1
     fi
-    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o $DB_NAME`
+    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -w -o $DB_NAME`
 
     if  ! [ "$RESULT" == "$DB_NAME" ] ; then
         echo -e "${RED}ERROR : $DB_NAME database is not defined yet ${NC}"
