@@ -31,7 +31,7 @@
                             <div class="row p-4" style="text-align: center;">
                                 <div class="col-sm-10" >
                                     <div class="card  border-danger mb-3">
-                                        <div class="card-header text-center text-danger"><h3 style="text-align:center">Error No Schema</h3> </div>
+                                        <div class="card-header text-center text-danger"><h3 style="text-align:center">Schema Not Found</h3> </div>
                                         <div class="card-body  text-center">
                                             <br>
                                             <p><strong>{{graphics.NO_SCHEMA}}</strong></p>
@@ -44,7 +44,7 @@
                                 <div class="row p-4" style="text-align: center;">
                                         <div class="col-sm-10" >
                                             <div class="card  border-danger mb-3">
-                                                <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when connecting to LIMS</h3> </div>
+                                                <div class="card-header text-center text-danger"><h3 style="text-align:center">Error connecting to LIMS</h3> </div>
                                                 <div class="card-body  text-center">
                                                     <p><strong>{{graphics.ERROR}}</strong></p>
                                                 </div> <!-- end card body  -->
@@ -57,7 +57,7 @@
                                 <div class="row p-4" style="text-align: center;">
                                         <div class="col-sm-10" >
                                             <div class="card  border-danger mb-3">
-                                                <div class="card-header text-center text-danger"><h3 style="text-align:center">No Bio Analysis data</h3> </div>
+                                                <div class="card-header text-center text-danger"><h3 style="text-align:center">No Bioinformatics Analysis Data Available</h3> </div>
                                                 <div class="card-body  text-center">
                                                     <br>
                                                     <p><strong>{{graphics.ERROR_ANALYSIS}}</strong></p>
@@ -75,7 +75,7 @@
                                 <div class="col-sm-4">
                                     {% if graphics.ERROR %}
                                         <div class="card-body  text-center text-danger">
-                                            <p>Metadata filled values </p>
+                                            <p>Completed fields in metadata </p>
                                             <p>Unable to fetch data from LIMS</p>
                                         </div> <!-- end card body  -->
                                     {% else %}
@@ -86,7 +86,7 @@
                                     {% if graphics.ERROR_ANALYSIS %}
                                         <div class="card-body  text-center text-danger">
                                             <br>
-                                            <p>No Bioinformatics analysis data</p>
+                                            <p>No Bioinformatics Analysis data</p>
                                         </div> <!-- end card body  -->
                                     {% else %}
                                         {% plotly_app name="bio_filled_values" ratio=1.2 %}
