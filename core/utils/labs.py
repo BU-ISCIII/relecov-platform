@@ -36,6 +36,17 @@ def get_lab_name_from_user(user_obj):
         return ""
 
 
+def get_collecting_insts_from_lab(lab_name):
+    """Get a list of collecting institutions associated to the given
+    laboratory (submitting_institution)
+    """
+    return (
+        core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
+        .values_list("collecting_institution", flat=True)
+        .distinct()
+    )
+
+
 def update_contact_lab(old_data, new_data):
     """Update the contact information. If any field is empty it will set the
     old value. In case that all new_data are empty returns than no changes
