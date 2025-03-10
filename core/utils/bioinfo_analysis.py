@@ -86,7 +86,7 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
     return bio_anlys_data
 
 
-# FIXME: This is not invoked in the project 
+# FIXME: This is not invoked in the project
 def get_bioinfo_analyis_fields_utilization(schema_obj=None):
     """Get the level of utilization for the bioinfo analysis fields.
     If schema is not given, the function get the latest default schema
@@ -98,8 +98,8 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
     # get field names
     b_field_objs = core.models.SchemaProperties.objects.filter(
         schemaID=schema_obj,
-        classificationID__classification_name__icontains="Bioinformatic"
-        )
+        classificationID__classification_name__icontains="Bioinformatic",
+    )
 
     if not b_field_objs.exists():
         return b_data
@@ -119,8 +119,8 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
         f_name = b_field_obj.get_label()
         b_field_obj_info = (
             core.models.MetadataValues.objects.filter(schema_property__in=b_field_objs)
-            .values('schema_property')
-            .annotate(latest_generated_at=Max('generated_at'))
+            .values("schema_property")
+            .annotate(latest_generated_at=Max("generated_at"))
         )
         if not b_field_obj_info.exists():
             b_data["never_used"].append(f_name)

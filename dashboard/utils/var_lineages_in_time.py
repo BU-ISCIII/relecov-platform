@@ -15,7 +15,6 @@ from django_plotly_dash import DjangoDash
 import core.models
 
 
-
 def create_dataframe_from_database():
     """
     This function reads data from database, SampleStateHistory model:
