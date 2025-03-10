@@ -2,7 +2,7 @@
 import json
 import os
 import shutil
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime
 import pandas as pd
 from django.contrib.auth.models import Group, User
@@ -78,10 +78,10 @@ def assign_samples_to_new_user(data):
     """Assign all samples from a laboratory to a new userID"""
     user_obj = User.objects.filter(pk__exact=data["userName"])
     if core.models.core.models.Sample.objects.filter(
-        collecting_institution__iexact=data["lab"]
+        submitting_institution__iexact=data["lab"]
     ).exists():
         core.models.core.models.Sample.objects.filter(
-            collecting_institution__iexact=data["lab"]
+            submitting_institution__iexact=data["lab"]
         ).update(user=user_obj[0])
         return {"Success": "Success"}
     return {
@@ -327,11 +327,11 @@ def get_lab_last_actions(lab_name=None):
     if lab_name is None:
         lab_actions = []
         labs = core.models.core.models.Sample.objects.values_list(
-            "collecting_institution"
+            "submitting_institution"
         ).distinct()
         for lab in labs:
             sam_obj = core.models.core.models.Sample.objects.filter(
-                collecting_institution__exact=lab[0]
+                submitting_institution__exact=lab[0]
             ).last()
             lab_data = [lab[0]]
             for action in action_list:
@@ -352,7 +352,7 @@ def get_lab_last_actions(lab_name=None):
     else:
         actions = {}
         last_sample_obj = core.models.core.models.Sample.objects.filter(
-            collecting_institution__iexact=lab_name
+            submitting_institution__iexact=lab_name
         ).last()
         action_objs = core.models.DateUpdateState.objects.filter(
             sampleID=last_sample_obj
@@ -403,7 +403,7 @@ def get_sample_display_data(sample_id, user):
     # Allow to see information obut sample to relecovManager
     group = Group.objects.get(name="RelecovManager")
     if group not in user.groups.all():
-        lab_name = sample_obj.get_collecting_institution()
+        lab_name = sample_obj.get_submitting_institution()
         if not core.models.Profile.objects.filter(
             user=user, laboratory__iexact=lab_name
         ).exists():
@@ -530,22 +530,22 @@ def get_sample_per_date_per_lab(lab_name):
     samples_per_date = OrderedDict()
 
     s_dates = (
-        core.models.Sample.objects.filter(collecting_institution__iexact=lab_name)
-        .values_list("sequencing_date", flat=True)
+        core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
+        .values_list("collecting_date", flat=True)
         .distinct()
-        .order_by("sequencing_date")
+        .order_by("collecting_date")
     )
     for s_date in s_dates:
-        date = datetime.strftime(s_date, "%d-%B-%Y")
+        date = datetime.strftime(s_date, "%Y-W%V")
         samples_per_date[date] = core.models.Sample.objects.filter(
-            collecting_institution__iexact=lab_name, sequencing_date=s_date
+            submitting_institution__iexact=lab_name, collecting_date=s_date
         ).count()
     return samples_per_date
 
 
 def get_sample_objs_per_lab(lab_name):
     """Get all sample instance for the lab who the user is responsible"""
-    return core.models.Sample.objects.filter(collecting_institution__iexact=lab_name)
+    return core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
 
 
 def get_search_data(user_obj):
@@ -570,9 +570,9 @@ def get_search_data(user_obj):
     return s_data
 
 
-def get_user_id_from_collecting_institution(lab):
-    """Use the laboratory name defined in the Profile to find out the user.
-    if no user is not defined with this lab it retruns None
+def get_user_id_from_submitting_institution(lab):
+    """Use the laboratory name defined in the Profile (submitting-institution)
+    to find out the user. if no user is not defined with this lab it returns None
     """
     if core.models.Profile.objects.filter(laboratory__iexact=lab).exists():
         return core.models.Profile.objects.filter(laboratory__iexact=lab).last().user.pk
@@ -618,9 +618,9 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
 def get_all_lab_list():
     """Function gets the lab names and return then in an ordered list"""
     return list(
-        core.models.Sample.objects.values_list("collecting_institution", flat=True)
+        core.models.Sample.objects.values_list("submitting_institution", flat=True)
         .distinct()
-        .order_by("collecting_institution")
+        .order_by("submitting_institution")
     )
 
 
