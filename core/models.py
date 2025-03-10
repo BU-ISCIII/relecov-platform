@@ -437,6 +437,9 @@ class LineageFields(models.Model):
     def get_lineage_property_name(self):
         return "%s" % (self.property_name)
 
+    def get_lineage_label_name(self):
+        return "%s" % (self.label_name)
+
     def get_lineage_field_id(self):
         return "%s" % (self.pk)
 
