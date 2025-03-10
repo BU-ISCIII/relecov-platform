@@ -46,7 +46,9 @@ def bioinfo_graphics():
         graph_list = ["per_Ns", "per_reads_host", "per_reads_virus", "per_unmapped"]
         labels_map = {
             field.property_name: field.label_name
-            for field in core.models.BioinfoAnalysisField.objects.filter(property_name__in=graph_list)
+            for field in core.models.BioinfoAnalysisField.objects.filter(
+                property_name__in=graph_list
+            )
         }
         for graph in graph_list:
             if core.models.BioinfoAnalysisValue.objects.filter(
@@ -58,7 +60,9 @@ def bioinfo_graphics():
                     ).values_list("value", flat=True)
                 )
                 try:
-                    per_data.append({labels_map.get(graph, graph): list(map(float, str_data))})
+                    per_data.append(
+                        {labels_map.get(graph, graph): list(map(float, str_data))}
+                    )
                 except ValueError:
                     filter_list = []
                     for value in str_data:
