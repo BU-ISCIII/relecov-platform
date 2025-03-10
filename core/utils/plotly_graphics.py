@@ -221,7 +221,6 @@ def needle_plot(m_data):
     def update_needleplot(show_rangeslider):
         return True if show_rangeslider else False
 
-
 def log_ydata_if_needed(graph, ydata, ratio=100):
     """Try to apply logaritmic scale to ydata if necessary
 
@@ -237,13 +236,13 @@ def log_ydata_if_needed(graph, ydata, ratio=100):
     max_score = max(ydata)
     if min_score == 0:
         drop_0s = [x for x in ydata if x != 0]
-        if not drop_0s:  # All data is 0 so do not scale
+        if not drop_0s: # All data is 0 so do not scale
             return graph
         min_score = min(drop_0s)
     minmax_ratio = max_score / min_score
     if minmax_ratio >= ratio:
         try:
             graph.update_layout(yaxis_type="log", yaxis_dtick=1)
-        except TypeError as e:  # Input graph does not accept log scaling
+        except TypeError as e: # Input graph does not accept log scaling
             print(f"ERROR while trying to scale ydata: {e}")
     return graph
