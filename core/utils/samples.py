@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group, User
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.db.models import Q
+from django.db.models import Count
 import relecov_tools.utils
 
 # Local imports
@@ -90,10 +91,12 @@ def count_handled_samples():
     """Count the number of samples handled in each process"""
     data = {}
     process = ["Defined", "Gisaid", "Ena", "Bioinfo"]
-    for proc in process:
-        data[proc] = core.models.SampleStateHistory.objects.filter(
-            state__state__iexact=proc
-        ).count()
+    counted_data = (
+        core.models.SampleStateHistory.objects.filter(state_id__state__in=process)
+        .values("state_id__state")
+        .annotate(count=Count("id"))
+    )
+    data = {entry["state_id__state"]: entry["count"] for entry in counted_data}
     return data
 
 
