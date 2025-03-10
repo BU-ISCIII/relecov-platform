@@ -97,9 +97,9 @@ def index_dash_fields():
         graphics["grouped_fields"] = dashboard.utils.plotly.bar_graphic(
             data=util_data["summary"],
             col_names=["group", "bio_values"],
-            legend=["Bio analysis"],
+            legend=["Bioinformatic analysis"],
             yaxis={"title": "Number of fields"},
-            options={"title": "Schema Fields Utilization", "height": 300},
+            options={"title": "Completion Status of Fields", "height": 300},
         )
 
     else:
@@ -114,17 +114,17 @@ def index_dash_fields():
             graphics["grouped_fields"] = dashboard.utils.plotly.bar_graphic(
                 data=util_data["summary"],
                 col_names=["group", "lab_values"],
-                legend=["Metada lab"],
+                legend=["Laboratory metadata"],
                 yaxis={"title": "Number of fields"},
-                options={"title": "Schema Fields Utilization", "height": 300},
+                options={"title": "Completion Status of Fields", "height": 300},
             )
         else:
             graphics["grouped_fields"] = dashboard.utils.plotly.bar_graphic(
                 data=util_data["summary"],
                 col_names=["group", "lab_values", "bio_values"],
-                legend=["Metada lab", "Bio analysis"],
+                legend=["Laboratory metadata", "Bioinformatic analysis"],
                 yaxis={"title": "Number of fields"},
-                options={"title": "Schema Fields Utilization", "height": 300},
+                options={"title": "Completion Status of Fields", "height": 300},
             )
 
     if "ERROR_ANALYSIS" not in util_data:
