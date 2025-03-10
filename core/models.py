@@ -738,6 +738,9 @@ class Sample(models.Model):
 
     def get_collecting_institution(self):
         return "%s" % (self.collecting_institution)
+    
+    def get_submitting_institution(self):
+        return "%s" % (self.submitting_institution)
 
     def get_submitting_institution(self):
         return "%s" % (self.submitting_institution)
