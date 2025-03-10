@@ -559,9 +559,9 @@ def pre_proc_host_info():
         host_age_range = OrderedDict()
         for idx in range(max_value + 1):
             try:
-                host_age_range[dashboard.dashboard_config.HOST_RANGE_AGE_TEXT[idx]] = (
-                    tmp_range[idx]
-                )
+                host_age_range[
+                    dashboard.dashboard_config.HOST_RANGE_AGE_TEXT[idx]
+                ] = tmp_range[idx]
             except KeyError:
                 host_age_range[dashboard.dashboard_config.HOST_RANGE_AGE_TEXT[idx]] = 0
         return host_age_range, invalid_data
