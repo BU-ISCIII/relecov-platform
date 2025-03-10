@@ -15,17 +15,17 @@ from django_plotly_dash import DjangoDash
 import core.models
 
 
+
 def create_dataframe_from_database():
     """
-    This function reads data from database, DateUpdateState model:
+    This function reads data from database, SampleStateHistory model:
         - number of sample from "sampleID" field,
         - date from "date" field
 
     Returns a pandas dataframe object.
     """
 
-    # sample_objs = DateUpdateState.objects.all()
-    sample_objs = core.models.DateUpdateState.objects.filter(stateID__iexact="Defined")
+    sample_objs = core.models.SampleStateHistory.objects.filter(state__iexact="Defined")
     date_list = []
     list_of_dates = []
     list_of_samples = []
