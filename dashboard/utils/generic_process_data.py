@@ -67,9 +67,9 @@ def pre_proc_calculation_date():
                         print(sample, "numero dias ", days)
                     out_data.append((date_2[sample] - date_1[sample]).days)
                 except TypeError:
-                    out_data.append("bbbb")
+                    continue
             else:
-                out_data.append("aaaaaa")
+                continue
         return out_data
 
     # get sequencing date from sample table
