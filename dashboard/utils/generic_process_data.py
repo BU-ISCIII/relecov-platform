@@ -118,15 +118,13 @@ def pre_proc_calculation_date():
             sample_list.append(sam)
 
     # calculation_dates["samples"] = sample_list
-    calculation_dates["coll_rec_date"] = calculate_days(
+    calculation_dates["Collection to sequencing"] = calculate_days(
         sample_list, collection_date, recorded_date
     )
-    calculation_dates["rec_seq_date"] = calculate_days(
-        sample_list, recorded_date, seq_date
-    )
-    calculation_dates["seq_analyis_date"] = calculate_days(
+    calculation_dates["Sequencing to analysis"] = calculate_days(
         sample_list, seq_date, analysis_date
     )
+    calculation_dates["Sequenging to DB recording"] = calculate_days(
     # json_data = json.dumps(calculation_dates)
     # Save json in database
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
