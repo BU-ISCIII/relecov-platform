@@ -124,7 +124,7 @@ def pre_proc_calculation_date():
     calculation_dates["Sequencing to analysis"] = calculate_days(
         sample_list, seq_date, analysis_date
     )
-    calculation_dates["Sequenging to DB recording"] = calculate_days(
+    calculation_dates["Sequencing to DB recording"] = calculate_days(
         sample_list, seq_date, recorded_date
     )
     # json_data = json.dumps(calculation_dates)
