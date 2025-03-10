@@ -41,5 +41,5 @@ def get_lineage_data_from_sample(sample_id):
             value = sample_lineage_fields.last().get_value()
         else:
             value = ""
-        a_data.append([a_field.get_lineage_property_name(), value])
+        a_data.append([a_field.get_lineage_label_name(), value])
     return a_data
