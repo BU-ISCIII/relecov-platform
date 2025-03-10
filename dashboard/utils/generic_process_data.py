@@ -732,3 +732,77 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
             }
         )
         return {"SUCCESS": "Success"}
+
+
+def pre_proc_samples_received_per_lab():
+    """Fetch the samples received per laboratory data from LIMS and save it"""
+    raw_data = core.utils.rest_api.get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
+    data = {"x": [], "y": []}
+    for key, value in raw_data["laboratory"].items():
+        data["x"].append(key)
+        data["y"].append(value)
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_received_per_lab",
+            "graphic_data": data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_samples_received_per_ccaa():
+    """Fetch the received samples per ccaa data from LIMS and save it"""
+    raw_data = core.utils.rest_api.get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
+    data = {"x": [], "y": []}
+    for key, value in raw_data["region"].items():
+        data["x"].append(key)
+        data["y"].append(value)
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_received_per_ccaa",
+            "graphic_data": data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_intranet_gisaid_data():
+    """Get the list of the accesion values for gisaid data to show in intranet"""
+    gisaid_acc = core.utils.public_db.get_public_accession_from_sample_lab(
+        "gisaid_accession_id", None
+    )
+    gisaid_data = defaultdict(list)
+    for acc in gisaid_acc:
+        lab_name = acc[0]
+        gisaid_data[lab_name].append(acc[1:])
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "intranet_gisaid_data",
+            "graphic_data": gisaid_data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_intranet_ena_data():
+    """Get the list of the accesion values for ena data to show in intranet"""
+    ena_acc = core.utils.public_db.get_public_accession_from_sample_lab(
+        "ena_sample_accession", None
+    )
+    ena_data = defaultdict(list)
+    for acc in ena_acc:
+        lab_name = acc[0]
+        ena_data[lab_name].append(acc[1:])
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "intranet_ena_data",
+            "graphic_data": ena_data,
+        }
+    )
+    return {"SUCCESS": "Success"}

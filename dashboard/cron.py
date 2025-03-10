@@ -77,16 +77,24 @@ def update_graphic_json_data():
     dashboard.utils.generic_process_data.pre_proc_samples_received_map()
     print("Running pre_proc_host_info()")
     dashboard.utils.generic_process_data.pre_proc_host_info()
-    uniq_chrom_id_list = [
-        x["chromosomeID"]
-        for x in core.models.Gene.objects.values("chromosomeID").distinct()
-    ]
     print("Running pre_proc_samples_per_date_all_lab()")
     dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
     print("Running pre_proc_samples_per_date_all_lab(detailed=True)")
     dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(
         detailed=True
     )
+    print("Running pre_proc_samples_received_per_lab()")
+    dashboard.utils.generic_process_data.pre_proc_samples_received_per_lab()
+    print("Running pre_proc_samples_received_per_ccaa()")
+    dashboard.utils.generic_process_data.pre_proc_samples_received_per_ccaa()
+    print("Running pre_proc_intranet_gisaid_data")
+    dashboard.utils.generic_process_data.pre_proc_intranet_gisaid_data()
+    print("Running pre_proc_intranet_ena_data()")
+    dashboard.utils.generic_process_data.pre_proc_intranet_ena_data()
+    uniq_chrom_id_list = [
+        x["chromosomeID"]
+        for x in core.models.Gene.objects.values("chromosomeID").distinct()
+    ]
     print(f"List of extracted unique chromosomes: {uniq_chrom_id_list}")
     print("Running pre_proc_variations_per_lineage() for each chromosome")
     for chromosome in uniq_chrom_id_list:
