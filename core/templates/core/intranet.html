@@ -291,7 +291,7 @@
                                                         {% else %}
                                                             <div class="col-md-7">
                                                                 <div class="card border-warning mb-3">
-                                                                    <div class="card-header text-center text-warning"><h2 style="text-align:center">No samples are upload yet to Relecov Platform</h2> </div>
+                                                                    <div class="card-header text-center text-warning"><h2 style="text-align:center">No samples found for your laboratory: {{ intra_data.lab|default:"Unknown" }}</h2> </div>
                                                                 </div> <!-- end card  -->
                                                             </div> <!-- end col-md-4 -->
                                                         {% endif %}
