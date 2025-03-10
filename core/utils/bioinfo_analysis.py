@@ -18,7 +18,7 @@ def get_bio_analysis_stats_from_lab(lab_name=None):
         bio_stats["received"] = core.models.Sample.objects.count()
     else:
         lab_samples = core.models.Sample.objects.filter(
-            collecting_institution__iexact=lab_name
+            submitting_institution__iexact=lab_name
         )
         bio_stats["analized"] = (
             lab_samples.select_related("state_id")
