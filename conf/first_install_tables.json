@@ -168,15 +168,6 @@
 },
 {
     "model": "core.errorname",
-    "pk": 4,
-    "fields": {
-        "error_code": "4",
-        "error_name": "Sample already defined"
-    }
-},
-
-{
-    "model": "core.errorname",
     "pk": 5,
     "fields": {
         "error_code": "5",
