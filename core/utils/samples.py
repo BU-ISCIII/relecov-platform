@@ -304,8 +304,11 @@ def create_dash_bar_for_each_lab():
 
 def perc_gauge_graphic(values):
     data = {}
-    x = values["analized"] / values["received"] * 100
-    data["value"] = float("{:.2f}".format(x))
+    if values["received"] == 0:
+        data["value"] = 0
+    else:
+        x = values["analized"] / values["received"] * 100
+        data["value"] = float("{:.2f}".format(x))
     gauge_graph = core.utils.plotly_graphics.gauge_graphic(data)
     return gauge_graph
 
@@ -717,9 +720,23 @@ def save_excel_form_in_samba_folder(m_file, user_name):
 def search_samples(sample_name, lab_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
-    sample_objs = core.models.Sample.objects.all()
+    if s_date != "":
+        samples_with_coldate = core.utils.rest_api.fetch_samples_on_condition(
+            "collection_sample_date"
+        )
+        dates_samples_dict = defaultdict(list)
+        if "ERROR" in samples_with_coldate:
+            return samples_with_coldate
+        for d in samples_with_coldate["DATA"]:
+            dates_samples_dict[d["collection_sample_date"]].append(d["Sample Name"])
+        sample_objs = core.models.Sample.objects.filter(
+            Q(sequencing_sample_id__in=dates_samples_dict.get(s_date, []))
+            | Q(collecting_lab_sample_id__iexact=dates_samples_dict.get(s_date, []))
+        )
+    else:
+        sample_objs = core.models.Sample.objects.all()
     if lab_name != "":
-        sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
+        sample_objs = sample_objs.filter(submitting_institution__iexact=lab_name)
     if sample_name != "":
         if sample_objs.filter(
             Q(sequencing_sample_id__iexact=sample_name)
@@ -753,8 +770,6 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
             ).values_list("sampleID__pk", flat=True)
         )
         sample_objs = sample_objs.filter(pk__in=state_ids)
-    if s_date != "":
-        sample_objs = sample_objs.filter(sequencing_date__exact=s_date)
     if len(sample_objs) == 1:
         sample_list.append(sample_objs[0].get_sample_id())
         return sample_list
