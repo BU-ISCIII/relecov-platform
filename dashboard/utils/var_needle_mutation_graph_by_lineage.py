@@ -136,6 +136,7 @@ def create_needle_plot_graph_mutation_by_lineage(
     def update_sample(selected_lineage, toogle_rangeslider, relayout_data, prev_data):
         current_time = time.time()
         first_load = prev_data["first_load"]
+        next_data = {}
         if not relayout_data:
             next_data["prev_relayout"] = relayout_data
         if not first_load:
@@ -156,7 +157,6 @@ def create_needle_plot_graph_mutation_by_lineage(
                 print(f"Did not update. Diff was {time.time() - last_time}")
                 raise dash.exceptions.PreventUpdate
         # Update previous relayout data
-        next_data = {}
         next_data["prev_relayout"] = relayout_data
         next_data["first_load"] = False
         # Start updating process
