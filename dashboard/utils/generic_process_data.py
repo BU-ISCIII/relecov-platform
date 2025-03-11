@@ -623,22 +623,26 @@ def pre_proc_host_info():
         empty_vals = label_val_dict.get("", 0)
         if "" in label_val_dict.keys():
             del label_val_dict[""]
-        if "Not Provided" in label_val_dict:
-            label_val_dict["Not Provided"] += empty_vals
-        else:
-            label_val_dict["Not Provided"] = empty_vals
+        if empty_vals:
+            if "Not Provided" in label_val_dict:
+                label_val_dict["Not Provided"] += empty_vals
+            else:
+                label_val_dict["Not Provided"] = empty_vals
 
         host_info_json["gender_label"] = list(label_val_dict.keys())
         host_info_json["gender_values"] = list(label_val_dict.values())
     # graphic for gender and age
     host_gender_data, invalid_gender_data = fetching_data_for_sex_and_range_data()
-    empty_vals = host_gender_data.get("", 0)
+    empty_vals = host_gender_data.get("", [])
     if "" in host_gender_data.keys():
         del host_gender_data[""]
-    if "Not Provided" in host_gender_data:
-        host_gender_data["Not Provided"] += empty_vals
-    else:
-        host_gender_data["Not Provided"] = empty_vals
+    if empty_vals:
+        if "Not Provided" in host_gender_data:
+            host_gender_data["Not Provided"] = [
+                x + y for x, y in zip(host_gender_data["Not Provided"], empty_vals)
+            ]
+        else:
+            host_gender_data["Not Provided"] = empty_vals
     total_invalid_data["invalid_gender_data"] = invalid_gender_data
     host_info_json["gender_data"] = host_gender_data
     host_age_data, invalid_age_data = fetching_data_for_range_age()
