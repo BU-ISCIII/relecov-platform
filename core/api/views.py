@@ -111,7 +111,7 @@ def create_sample_data(request):
         required_db_fields = [
             "sequencing_sample_id",
             "collecting_institution",
-            "submitting_institution"
+            "submitting_institution",
         ]
         if any(field not in data for field in required_db_fields):
             print(f"ERROR. Missing: {[f for f in required_db_fields if f not in data]}")
