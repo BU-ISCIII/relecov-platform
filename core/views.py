@@ -277,9 +277,6 @@ def intranet(request):
                     len(sample_lab_objs), len(ena_acc_filtered), ""
                 )
             print(f"Took {start - time.time()} seconds for ena graph")
-        import pdb
-
-        pdb.set_trace()
         return render(request, "core/intranet.html", {"intra_data": intra_data})
     else:
         # loged user belongs to Relecov Manager group
