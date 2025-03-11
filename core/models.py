@@ -21,7 +21,8 @@ class Profile(models.Model):
         return self.user.username
 
     def get_lab_name(self):
-        return "%s" % (self.laboratory) # Mapped to submitting_institution field in Sample model
+        # Mapped to submitting_institution field in Sample model
+        return "%s" % (self.laboratory)
 
     def get_lab_code(self):
         return "%s" % (self.code_id)
@@ -737,7 +738,7 @@ class Sample(models.Model):
 
     def get_collecting_institution(self):
         return "%s" % (self.collecting_institution)
-    
+
     def get_submitting_institution(self):
         return "%s" % (self.submitting_institution)
 
