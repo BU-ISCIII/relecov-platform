@@ -12,6 +12,7 @@ import core.utils.lineage
 import core.utils.variants
 import core.utils.rest_api
 import core.utils.generic_functions
+import core.utils.public_db
 import dashboard.models
 from relecov_platform import settings as relecov_platform_settings
 
@@ -618,10 +619,26 @@ def pre_proc_host_info():
         host_info_json["gender_label"] = {"ERROR": gender_label}
         host_info_json["gender_values"] = {"ERROR": gender_values}
     else:
-        host_info_json["gender_label"] = gender_label
-        host_info_json["gender_values"] = gender_values
+        label_val_dict = dict(zip(gender_label, gender_values))
+        empty_vals = label_val_dict.get("", 0)
+        if "" in label_val_dict.keys():
+            del label_val_dict[""]
+        if "Not Provided" in label_val_dict:
+            label_val_dict["Not Provided"] += empty_vals
+        else:
+            label_val_dict["Not Provided"] = empty_vals
+
+        host_info_json["gender_label"] = list(label_val_dict.keys())
+        host_info_json["gender_values"] = list(label_val_dict.values())
     # graphic for gender and age
     host_gender_data, invalid_gender_data = fetching_data_for_sex_and_range_data()
+    empty_vals = host_gender_data.get("", 0)
+    if "" in host_gender_data.keys():
+        del host_gender_data[""]
+    if "Not Provided" in host_gender_data:
+        host_gender_data["Not Provided"] += empty_vals
+    else:
+        host_gender_data["Not Provided"] = empty_vals
     total_invalid_data["invalid_gender_data"] = invalid_gender_data
     host_info_json["gender_data"] = host_gender_data
     host_age_data, invalid_age_data = fetching_data_for_range_age()
@@ -655,7 +672,7 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
                     x["collection_sample_date"], str
                 )  # If data is in string format, convert it to date first
                 else x["collection_sample_date"].strftime(
-                    "%d-%B-%Y"
+                    "%Y-W%V"
                 )  # Else just process date directly
             )
             for x in in_date_samples[
@@ -715,3 +732,77 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
             }
         )
         return {"SUCCESS": "Success"}
+
+
+def pre_proc_samples_received_per_lab():
+    """Fetch the samples received per laboratory data from LIMS and save it"""
+    raw_data = core.utils.rest_api.get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
+    data = {"x": [], "y": []}
+    for key, value in raw_data["laboratory"].items():
+        data["x"].append(key)
+        data["y"].append(value)
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_received_per_lab",
+            "graphic_data": data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_samples_received_per_ccaa():
+    """Fetch the received samples per ccaa data from LIMS and save it"""
+    raw_data = core.utils.rest_api.get_summarize_data("")
+    if "ERROR" in raw_data:
+        return raw_data
+
+    data = {"x": [], "y": []}
+    for key, value in raw_data["region"].items():
+        data["x"].append(key)
+        data["y"].append(value)
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "samples_received_per_ccaa",
+            "graphic_data": data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_intranet_gisaid_data():
+    """Get the list of the accesion values for gisaid data to show in intranet"""
+    gisaid_acc = core.utils.public_db.get_public_accession_from_sample_lab(
+        "gisaid_accession_id", None
+    )
+    gisaid_data = defaultdict(list)
+    for acc in gisaid_acc:
+        lab_name = acc[0]
+        gisaid_data[lab_name].append(acc[1:])
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "intranet_gisaid_data",
+            "graphic_data": gisaid_data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_intranet_ena_data():
+    """Get the list of the accesion values for ena data to show in intranet"""
+    ena_acc = core.utils.public_db.get_public_accession_from_sample_lab(
+        "ena_sample_accession", None
+    )
+    ena_data = defaultdict(list)
+    for acc in ena_acc:
+        lab_name = acc[0]
+        ena_data[lab_name].append(acc[1:])
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "intranet_ena_data",
+            "graphic_data": ena_data,
+        }
+    )
+    return {"SUCCESS": "Success"}

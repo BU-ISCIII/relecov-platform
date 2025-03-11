@@ -20,6 +20,7 @@ import core.utils.samples_graphics
 import core.utils.samples_map
 
 #  End of imports  received samples
+import time
 
 
 def index(request):
@@ -221,14 +222,28 @@ def metadata_visualization(request):
 def intranet(request):
     relecov_group = Group.objects.filter(name="RelecovManager").last()
     if relecov_group not in request.user.groups.all():
+        start = time.time()
         intra_data = {}
         lab_name = core.utils.labs.get_lab_name_from_user(request.user)
-        date_lab_samples = core.utils.samples.get_sample_per_date_per_lab(lab_name)
+        related_insts_list = core.utils.labs.get_collecting_insts_from_lab(lab_name)
+        all_sample_per_date_detailed = (
+            core.utils.samples.get_sample_per_date_per_all_lab(detailed=True)
+        )
+        date_lab_samples = [
+            x
+            for x in all_sample_per_date_detailed
+            if x["collecting_institution"] in related_insts_list
+        ]
+        intra_data["lab"] = lab_name
+        print(f"Took {start - time.time()} seconds for date_lab_samples")
         if len(date_lab_samples) > 0:
+            start = time.time()
             sample_lab_objs = core.utils.samples.get_sample_objs_per_lab(lab_name)
+            print(f"Took {start - time.time()} seconds for sample_lab_objs")
             analysis_percent = (
                 core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(lab_name)
             )
+            print(f"Took {start - time.time()} seconds for analysis_percent")
             cust_data = {
                 "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
@@ -238,28 +253,30 @@ def intranet(request):
             intra_data["sample_bar_graph"] = core.utils.samples.create_date_sample_bar(
                 date_lab_samples, cust_data
             )
+            print(f"Took {start - time.time()} seconds for sample_bar_graph")
             intra_data["sample_gauge_graph"] = core.utils.samples.perc_gauge_graphic(
                 analysis_percent
             )
+            print(f"Took {start - time.time()} seconds for gauge_graph")
             intra_data["actions"] = core.utils.samples.get_lab_last_actions(lab_name)
-            gisaid_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "gisaid_accession_id", sample_lab_objs
-            )
-            if len(gisaid_acc) > 0:
-                intra_data["gisaid_accession"] = gisaid_acc
-            intra_data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
-                len(sample_lab_objs), len(gisaid_acc), ""
-            )
-            ena_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "ena_sample_accession", sample_lab_objs
-            )
-            if len(ena_acc) > 0:
-                intra_data["ena_accession"] = ena_acc
-                intra_data["ena_graph"] = core.utils.public_db.percentage_graphic(
-                    len(sample_lab_objs), len(ena_acc), ""
+            gisaid_acc = core.utils.public_db.get_preprocessed_gisaid_data()
+            # NOTE: Filters by lab_name instead of sample_lab_objs to improve performance, but could lead to mismatches
+            print(f"Took {start - time.time()} seconds for gisaid data")
+            if gisaid_acc:
+                gisaid_acc_filtered = gisaid_acc.get(lab_name, [])
+                intra_data["gisaid_accession"] = gisaid_acc_filtered
+                intra_data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
+                    len(sample_lab_objs), len(gisaid_acc_filtered), ""
                 )
-        else:
-            intra_data = f"No samples found for selected laboratory: {lab_name}"
+            print(f"Took {start - time.time()} seconds for gisaig graph")
+            ena_acc = core.utils.public_db.get_preprocessed_ena_data()
+            if ena_acc:
+                ena_acc_filtered = ena_acc.get(lab_name, [])
+                intra_data["ena_accession"] = ena_acc_filtered
+                intra_data["ena_graph"] = core.utils.public_db.percentage_graphic(
+                    len(sample_lab_objs), len(ena_acc_filtered), ""
+                )
+            print(f"Took {start - time.time()} seconds for ena graph")
         return render(request, "core/intranet.html", {"intra_data": intra_data})
     else:
         # loged user belongs to Relecov Manager group
@@ -290,25 +307,27 @@ def intranet(request):
             # Get the latest action from each lab
             manager_intra_data["actions"] = core.utils.samples.get_lab_last_actions()
             # Collect GISAID information
-            gisaid_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "gisaid_accession_id", None
-            )
+            gisaid_acc = core.utils.public_db.get_preprocessed_gisaid_data()
+            full_gisaid_data = [
+                (lab, *tup) for lab, tuples in gisaid_acc.items() for tup in tuples
+            ]
             if len(gisaid_acc) > 0:
-                manager_intra_data["gisaid_accession"] = gisaid_acc
+                manager_intra_data["gisaid_accession"] = full_gisaid_data
                 manager_intra_data["gisaid_graph"] = (
                     core.utils.public_db.percentage_graphic(
-                        num_of_samples["Defined"], len(gisaid_acc), ""
+                        num_of_samples["Defined"], len(full_gisaid_data), ""
                     )
                 )
             # Collect Ena information
-            ena_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "ena_sample_accession", None
-            )
+            ena_acc = core.utils.public_db.get_preprocessed_ena_data()
+            full_ena_data = [
+                (lab, *tup) for lab, tuples in ena_acc.items() for tup in tuples
+            ]
             if len(ena_acc) > 0:
-                manager_intra_data["ena_accession"] = ena_acc
+                manager_intra_data["ena_accession"] = full_ena_data
                 manager_intra_data["ena_graph"] = (
                     core.utils.public_db.percentage_graphic(
-                        num_of_samples["Defined"], len(ena_acc), ""
+                        num_of_samples["Defined"], len(full_ena_data), ""
                     )
                 )
         return render(

@@ -25,6 +25,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
                 marker_color=colors if "colors" in options else colors[idx - 1],
             )
         )
+        fig = log_ydata_if_needed(fig, data[col_names[idx]], ratio=100)
 
     # Customize aspect
     fig.update_traces(
@@ -45,7 +46,6 @@ def bar_graphic(data, col_names, legend, yaxis, options):
     )
     if "xaxis_tics" in options:
         fig.update_layout(xaxis=options["xaxis"])
-
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
 
     return plot_div
@@ -68,6 +68,7 @@ def line_graphic(x_data, y_data, options):
         title_font_color="green",
         title_font_size=20,
     )
+    log_ydata_if_needed(fig, y_data, ratio=100)
     if "xaxis" in options:
         fig.update_layout(xaxis=options["xaxis"])
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
@@ -92,6 +93,8 @@ def histogram_graphic(data, col_names, options):
         xaxis_tickangle=-45,
         margin=dict(l=20, r=40, t=30, b=20),
     )
+    ydata = data[col_names[1]]
+    graph = log_ydata_if_needed(graph, ydata, ratio=100)
 
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
     return plot_div
@@ -217,3 +220,30 @@ def needle_plot(m_data):
     )
     def update_needleplot(show_rangeslider):
         return True if show_rangeslider else False
+
+
+def log_ydata_if_needed(graph, ydata, ratio=100):
+    """Try to apply logaritmic scale to ydata if necessary
+
+    Args:
+        graph (plotly.figure): Plotly figure ready to be renderized
+        ydata (list): list of values or pandas.series (e.g. df[col])
+        ratio (int): ratio threshold to apply log scale or not
+
+    Return:
+        graph: Graph with ydata scaled with logarithmic scale
+    """
+    min_score = min(ydata)
+    max_score = max(ydata)
+    if min_score == 0:
+        drop_0s = [x for x in ydata if x != 0]
+        if not drop_0s:  # All data is 0 so do not scale
+            return graph
+        min_score = min(drop_0s)
+    minmax_ratio = max_score / min_score
+    if minmax_ratio >= ratio:
+        try:
+            graph.update_layout(yaxis_type="log", yaxis_dtick=1)
+        except TypeError as e:  # Input graph does not accept log scaling
+            print(f"ERROR while trying to scale ydata: {e}")
+    return graph

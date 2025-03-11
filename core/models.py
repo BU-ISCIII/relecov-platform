@@ -21,6 +21,7 @@ class Profile(models.Model):
         return self.user.username
 
     def get_lab_name(self):
+        # Mapped to submitting_institution field in Sample model
         return "%s" % (self.laboratory)
 
     def get_lab_code(self):
@@ -703,6 +704,7 @@ class Sample(models.Model):
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     collecting_institution = models.CharField(max_length=120, null=True, blank=True)
+    submitting_institution = models.CharField(max_length=120, null=True, blank=True)
     sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R2_fastq = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_md5 = models.CharField(max_length=80, null=True, blank=True)
@@ -736,6 +738,9 @@ class Sample(models.Model):
 
     def get_collecting_institution(self):
         return "%s" % (self.collecting_institution)
+
+    def get_submitting_institution(self):
+        return "%s" % (self.submitting_institution)
 
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)

@@ -108,7 +108,13 @@ def create_sample_data(request):
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         schema_id = schema_obj.get_schema_id()
         # check if sample id field and collecting_institution are in the request
-        if "sequencing_sample_id" not in data or "collecting_institution" not in data:
+        required_db_fields = [
+            "sequencing_sample_id",
+            "collecting_institution",
+            "submitting_institution",
+        ]
+        if any(field not in data for field in required_db_fields):
+            print(f"ERROR. Missing: {[f for f in required_db_fields if f not in data]}")
             return Response(status=status.HTTP_400_BAD_REQUEST)
         # check if sample is already defined
         if core.utils.samples.get_sample_obj_from_sample_name(

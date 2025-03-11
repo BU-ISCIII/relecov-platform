@@ -60,8 +60,8 @@ def split_sample_data(data):
         .get_state_id()
     )
     split_data["sample"]["user"] = (
-        core.utils.samples.get_user_id_from_collecting_institution(
-            split_data["sample"]["collecting_institution"]
+        core.utils.samples.get_user_id_from_submitting_institution(
+            split_data["sample"]["submitting_institution"]
         )
     )
     if core.models.Sample.objects.all().exists():

@@ -74,7 +74,10 @@ def create_lineages_variations_graphic():
                     dbc.Col(period_text, md=6),
                     dbc.Col(
                         dcc.Graph(
-                            id="lineageGraph", figure="", config={"displaylogo": False}
+                            id="lineageGraph",
+                            figure="",
+                            config={"displaylogo": False},
+                            style={"padding-top": "15px"},
                         ),
                         md=12,
                     ),
@@ -115,7 +118,6 @@ def create_lineages_variations_graphic():
         # samples_per_week = samples_df.groupby(["samples", pd.Grouper(key="Collection date", freq="W-MON")]).sum().reset_index().sort_values("Collection date")
         # samples_df["Collection date"] = samples_df.index
         lineages = sub_data_df["Lineage"].unique().tolist()
-
         # group samples in variants per weeks
         data_week_df = (
             sub_data_df.groupby(
@@ -141,7 +143,7 @@ def create_lineages_variations_graphic():
         graph_df[lineages] = graph_df[lineages].astype(int)
         # Do the percentage calculation
         value_per_df = (graph_df.div(graph_df.sum(axis=1), axis=0) * 100).round(2)
-        # value_per_df = value_per_df
+
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         if sub_data_df.empty:
@@ -164,20 +166,20 @@ def create_lineages_variations_graphic():
                 legend_yanchor="top",
                 legend_orientation="h",  # show entries horizontally
                 legend_x=0.5,  # put legend in center of x-axis
-                legend_y=-0.25,
+                legend_y=-0.30,
                 bargap=0,  # gap between bars of adjacent location coordinates.
                 bargroupgap=0,  # gap between bars of the same location coordinate.
                 margin_l=10,
                 margin_r=10,
                 margin_b=40,
-                margin_t=30,
+                margin_t=40,
                 height=600,
             )
             return fig
         fig.add_trace(
             go.Scatter(
                 x=value_per_df.index,
-                y=samples_df["samples"],
+                y=data_week_df["samples"],
                 mode="lines",
                 line_color="#0066cc",
                 line_width=2,
@@ -219,13 +221,13 @@ def create_lineages_variations_graphic():
             legend_yanchor="top",
             legend_orientation="h",  # show entries horizontally
             legend_x=0.5,  # put legend in center of x-axis
-            legend_y=-0.25,
+            legend_y=-0.30,
             bargap=0,  # gap between bars of adjacent location coordinates.
             bargroupgap=0,  # gap between bars of the same location coordinate.
             margin_l=10,
             margin_r=10,
             margin_b=40,
-            margin_t=30,
+            margin_t=40,
             height=600,
         )
         return fig
