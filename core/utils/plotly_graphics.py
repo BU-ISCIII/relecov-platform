@@ -292,7 +292,7 @@ def needle_plot(mdata):
         next_data["first_load"] = False
         # Start updating process
         next_data["last_update"] = current_time
-        markdown_text = f"Showing mutations for selected sample"
+        markdown_text = "Showing mutations for selected sample"
         # TODO: Include all color mapping dicts for domains and mutation types in graphic_json
         domain_color_map = {
             "orf1ab": "#1f77b4",  # Blue
