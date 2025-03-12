@@ -232,7 +232,7 @@ def needle_plot(mdata):
                                     dcc.Graph(
                                         id="needleplot-graph",
                                         style={"padding-top": "15px"},
-                                    )
+                                    ),
                                 ],
                                 style={"position": "relative"},
                             )
