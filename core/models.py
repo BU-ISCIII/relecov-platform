@@ -742,9 +742,6 @@ class Sample(models.Model):
     def get_submitting_institution(self):
         return "%s" % (self.submitting_institution)
 
-    def get_submitting_institution(self):
-        return "%s" % (self.submitting_institution)
-
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
 
