@@ -1,4 +1,5 @@
 # Generic imports
+from collections import defaultdict
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -229,11 +230,11 @@ def intranet(request):
         all_sample_per_date_detailed = (
             core.utils.samples.get_sample_per_date_per_all_lab(detailed=True)
         )
-        date_lab_samples = [
-            x
-            for x in all_sample_per_date_detailed
-            if x["collecting_institution"] in related_insts_list
-        ]
+        date_lab_samples = defaultdict(int)
+        for x in all_sample_per_date_detailed:
+            if x["collecting_institution"] not in related_insts_list:
+                continue
+            date_lab_samples[x["iso_yearweek"]] += x["num_samples"]
         intra_data["lab"] = lab_name
         print(f"Took {start - time.time()} seconds for date_lab_samples")
         if len(date_lab_samples) > 0:
