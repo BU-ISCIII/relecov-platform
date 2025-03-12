@@ -176,27 +176,43 @@ def create_lineages_variations_graphic():
                 height=600,
             )
             return fig
+        hover_text = [f"{y}" for y in data_week_df["samples"].values]
         fig.add_trace(
             go.Scatter(
                 x=value_per_df.index,
                 y=data_week_df["samples"],
+                hoverinfo="text",
+                hovertemplate="%{text}",
                 mode="lines",
+                name="Number of samples",
                 line_color="#0066cc",
                 line_width=2,
-                name="Number of samples processed",
+                text=hover_text,
             ),
             secondary_y=True,
         )
         for lineage in lineages:
+            values_ydata = value_per_df[lineage].copy()
+            # Setting hovertext to show values > 0 in bold
+            hover_text = [
+                (
+                    f"<b>{lineage}: {y}%</b><extra></extra>"
+                    if y > 0
+                    else f"{lineage}: {y}%<extra></extra>"
+                )
+                for y in values_ydata.values
+            ]
             fig.add_trace(
                 go.Scatter(
                     x=value_per_df.index,
-                    y=value_per_df[lineage],
-                    hoverinfo="name+y",
+                    y=values_ydata,
+                    hoverinfo="text",
+                    hovertemplate="%{text}",
                     mode="lines",
                     name=lineage,
                     opacity=0.7,
                     stackgroup="variants",
+                    text=hover_text,
                 ),
                 secondary_y=False,
             )
