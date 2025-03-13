@@ -39,7 +39,38 @@ def create_lineages_variations_graphic():
     )
     first_date = data_df["Collection date"].min()
     last_date = data_df["Collection date"].max()
-    # plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    # Order by date to ensure isoweeks are ordered too later on
+    data_df = data_df.sort_values(
+        "Collection date"
+    )
+    samples_df = pd.DataFrame()
+    samples_df["samples"] = data_df.groupby("Collection date")["samples"].sum()
+    samples_df = samples_df.reset_index()
+
+    lineages = data_df["Lineage"].unique().tolist()
+    # group samples in variants per weeks
+    data_week_df = (
+        data_df.groupby(
+            ["Lineage", pd.Grouper(key="Collection date", freq="W-MON")]
+        )["samples"]
+        .sum()
+        .reset_index()
+        .sort_values("Collection date")
+    )
+    # Include all the weeks with no data as 0 samples
+    full_weeks_as_str = pd.date_range(
+        data_week_df["Collection date"].min(),
+        data_week_df["Collection date"].max(),
+        freq="W-MON"
+    ).strftime("%G-W%V-%u")
+
+    # Create a full DataFrame with the combination of all Lineages and all possible weeks
+    df_full = pd.MultiIndex.from_product([data_week_df["Lineage"].unique(), full_weeks_as_str], names=["Lineage", "Collection date"]).to_frame(index=False)
+    df_full["Collection date"] = pd.to_datetime(df_full["Collection date"], format="%G-W%V-%u")
+
+    # Merge with the original data and fill missing values with 0
+    df_full = df_full.merge(data_week_df, on=["Lineage", "Collection date"], how="left").fillna(0)
+
     controls = dbc.Card(
         [
             html.Div(
@@ -95,43 +126,23 @@ def create_lineages_variations_graphic():
     def update_graph(start_date, end_date):
         if start_date is None or end_date is None:
             # Select the samples from all registered years
-            sub_data_df = data_df.loc[
-                (data_df["Collection date"] >= first_date)
-                & (data_df["Collection date"] < last_date)
+            sub_data_df = df_full.loc[
+                (df_full["Collection date"] >= first_date)
+                & (df_full["Collection date"] < last_date)
             ]
 
         else:
             start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
             end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
-            sub_data_df = data_df.loc[
-                (data_df["Collection date"] >= start_date_obj)
-                & (data_df["Collection date"] < end_date_obj)
+            sub_data_df = df_full.loc[
+                (df_full["Collection date"] >= start_date_obj)
+                & (df_full["Collection date"] < end_date_obj)
             ]
-        sub_data_df = sub_data_df.sort_values(
-            "Collection date"
-        )  # Order by date to ensure isoweeks are ordered too
-        samples_df = pd.DataFrame()
-        samples_df["samples"] = sub_data_df.groupby("Collection date")["samples"].sum()
-        samples_df = samples_df.reset_index()
-        # samples_df["samples_moving_mean"] = samples_df["samples"].rolling(7).mean()
 
-        # samples_per_week = samples_df.groupby(["samples", pd.Grouper(key="Collection date", freq="W-MON")]).sum().reset_index().sort_values("Collection date")
-        # samples_df["Collection date"] = samples_df.index
-        lineages = sub_data_df["Lineage"].unique().tolist()
-        # group samples in variants per weeks
-        data_week_df = (
-            sub_data_df.groupby(
-                ["Lineage", pd.Grouper(key="Collection date", freq="W-MON")]
-            )["samples"]
-            .sum()
-            .reset_index()
-            .sort_values("Collection date")
-        )
-        data_week_df["Collection ISOWeek"] = data_week_df[
-            "Collection date"
-        ].dt.strftime("%Y-W%V")
+        sub_data_df["Collection ISOWeek"] = sub_data_df["Collection date"].dt.strftime("%Y-W%V")
+
         graph_df = (
-            data_week_df.drop("Collection date", axis=1)
+            sub_data_df.drop(["Collection date"], axis=1)
             .set_index(["Lineage", "Collection ISOWeek"])
             .unstack(["Lineage"])
         )
@@ -143,7 +154,8 @@ def create_lineages_variations_graphic():
         graph_df[lineages] = graph_df[lineages].astype(int)
         # Do the percentage calculation
         value_per_df = (graph_df.div(graph_df.sum(axis=1), axis=0) * 100).round(2)
-
+        value_per_df = value_per_df.fillna(0)
+        samples_per_week = graph_df.sum(axis=1)
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         if sub_data_df.empty:
@@ -158,8 +170,18 @@ def create_lineages_variations_graphic():
                 font=dict(size=20, color="red"),
             )
             fig.update_layout(
-                xaxis=dict(visible=False),
-                yaxis=dict(visible=False),
+                xaxis=dict(
+                    showline=True,
+                    linecolor="black",
+                    linewidth=2,
+                    mirror=True
+                ),
+                yaxis=dict(
+                    showline=True,
+                    linecolor="black",
+                    linewidth=2,
+                    mirror=True
+                ),
                 barmode="stack",
                 hovermode="x unified",
                 legend_xanchor="center",  # use center of legend as anchor
@@ -174,13 +196,15 @@ def create_lineages_variations_graphic():
                 margin_b=40,
                 margin_t=40,
                 height=600,
+                paper_bgcolor="white",
+                plot_bgcolor="white",
             )
             return fig
-        hover_text = [f"{y}" for y in data_week_df["samples"].values]
+        hover_text = [f"{y}" for y in samples_per_week.values]
         fig.add_trace(
             go.Scatter(
                 x=value_per_df.index,
-                y=data_week_df["samples"],
+                y=samples_per_week,
                 hoverinfo="text",
                 hovertemplate="%{text}",
                 mode="lines",
@@ -192,7 +216,6 @@ def create_lineages_variations_graphic():
             secondary_y=True,
         )
         for lineage in lineages:
-            values_ydata = value_per_df[lineage].copy()
             # Setting hovertext to show values > 0 in bold
             hover_text = [
                 (
@@ -200,12 +223,12 @@ def create_lineages_variations_graphic():
                     if y > 0
                     else f"{lineage}: {y}%<extra></extra>"
                 )
-                for y in values_ydata.values
+                for y in value_per_df[lineage].values
             ]
             fig.add_trace(
                 go.Scatter(
                     x=value_per_df.index,
-                    y=values_ydata,
+                    y=value_per_df[lineage],
                     hoverinfo="text",
                     hovertemplate="%{text}",
                     mode="lines",
@@ -245,5 +268,21 @@ def create_lineages_variations_graphic():
             margin_b=40,
             margin_t=40,
             height=600,
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            xaxis=dict(
+                showline=True,
+                linecolor="black",
+                linewidth=2,
+                mirror=True
+            ),
+            yaxis=dict(
+                showline=True,
+                linecolor="black",
+                linewidth=2,
+                mirror=True,
+                ticksuffix=" ",
+            ),
+            yaxis2_tickprefix=" "
         )
         return fig
