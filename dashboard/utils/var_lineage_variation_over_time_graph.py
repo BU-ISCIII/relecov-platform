@@ -40,9 +40,7 @@ def create_lineages_variations_graphic():
     first_date = data_df["Collection date"].min()
     last_date = data_df["Collection date"].max()
     # Order by date to ensure isoweeks are ordered too later on
-    data_df = data_df.sort_values(
-        "Collection date"
-    )
+    data_df = data_df.sort_values("Collection date")
     samples_df = pd.DataFrame()
     samples_df["samples"] = data_df.groupby("Collection date")["samples"].sum()
     samples_df = samples_df.reset_index()
@@ -50,9 +48,9 @@ def create_lineages_variations_graphic():
     lineages = data_df["Lineage"].unique().tolist()
     # group samples in variants per weeks
     data_week_df = (
-        data_df.groupby(
-            ["Lineage", pd.Grouper(key="Collection date", freq="W-MON")]
-        )["samples"]
+        data_df.groupby(["Lineage", pd.Grouper(key="Collection date", freq="W-MON")])[
+            "samples"
+        ]
         .sum()
         .reset_index()
         .sort_values("Collection date")
@@ -61,15 +59,22 @@ def create_lineages_variations_graphic():
     full_weeks_as_str = pd.date_range(
         data_week_df["Collection date"].min(),
         data_week_df["Collection date"].max(),
-        freq="W-MON"
+        freq="W-MON",
     ).strftime("%G-W%V-%u")
 
     # Create a full DataFrame with the combination of all Lineages and all possible weeks
-    df_full = pd.MultiIndex.from_product([data_week_df["Lineage"].unique(), full_weeks_as_str], names=["Lineage", "Collection date"]).to_frame(index=False)
-    df_full["Collection date"] = pd.to_datetime(df_full["Collection date"], format="%G-W%V-%u")
+    df_full = pd.MultiIndex.from_product(
+        [data_week_df["Lineage"].unique(), full_weeks_as_str],
+        names=["Lineage", "Collection date"],
+    ).to_frame(index=False)
+    df_full["Collection date"] = pd.to_datetime(
+        df_full["Collection date"], format="%G-W%V-%u"
+    )
 
     # Merge with the original data and fill missing values with 0
-    df_full = df_full.merge(data_week_df, on=["Lineage", "Collection date"], how="left").fillna(0)
+    df_full = df_full.merge(
+        data_week_df, on=["Lineage", "Collection date"], how="left"
+    ).fillna(0)
 
     controls = dbc.Card(
         [
@@ -139,7 +144,9 @@ def create_lineages_variations_graphic():
                 & (df_full["Collection date"] < end_date_obj)
             ]
 
-        sub_data_df["Collection ISOWeek"] = sub_data_df["Collection date"].dt.strftime("%Y-W%V")
+        sub_data_df["Collection ISOWeek"] = sub_data_df["Collection date"].dt.strftime(
+            "%Y-W%V"
+        )
 
         graph_df = (
             sub_data_df.drop(["Collection date"], axis=1)
@@ -170,18 +177,8 @@ def create_lineages_variations_graphic():
                 font=dict(size=20, color="red"),
             )
             fig.update_layout(
-                xaxis=dict(
-                    showline=True,
-                    linecolor="black",
-                    linewidth=2,
-                    mirror=True
-                ),
-                yaxis=dict(
-                    showline=True,
-                    linecolor="black",
-                    linewidth=2,
-                    mirror=True
-                ),
+                xaxis=dict(showline=True, linecolor="black", linewidth=2, mirror=True),
+                yaxis=dict(showline=True, linecolor="black", linewidth=2, mirror=True),
                 barmode="stack",
                 hovermode="x unified",
                 legend_xanchor="center",  # use center of legend as anchor
@@ -270,12 +267,7 @@ def create_lineages_variations_graphic():
             height=600,
             paper_bgcolor="white",
             plot_bgcolor="white",
-            xaxis=dict(
-                showline=True,
-                linecolor="black",
-                linewidth=2,
-                mirror=True
-            ),
+            xaxis=dict(showline=True, linecolor="black", linewidth=2, mirror=True),
             yaxis=dict(
                 showline=True,
                 linecolor="black",
@@ -283,6 +275,6 @@ def create_lineages_variations_graphic():
                 mirror=True,
                 ticksuffix=" ",
             ),
-            yaxis2_tickprefix=" "
+            yaxis2_tickprefix=" ",
         )
         return fig
