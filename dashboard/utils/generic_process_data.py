@@ -670,13 +670,13 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         counted_dates = Counter(  # Use counter to get a dictionary of {date: num_samples}
             (
                 datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
-                    "%Y-W%V"
+                    "%G-W%V"
                 )
                 if isinstance(
                     x["collection_sample_date"], str
                 )  # If data is in string format, convert it to date first
                 else x["collection_sample_date"].strftime(
-                    "%Y-W%V"
+                    "%G-W%V"
                 )  # Else just process date directly
             )
             for x in in_date_samples[
