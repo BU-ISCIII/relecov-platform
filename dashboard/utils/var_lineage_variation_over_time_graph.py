@@ -145,7 +145,7 @@ def create_lineages_variations_graphic():
             ]
 
         sub_data_df["Collection ISOWeek"] = sub_data_df["Collection date"].dt.strftime(
-            "%G-W%V"
+            "%Y-W%V"
         )
 
         graph_df = (

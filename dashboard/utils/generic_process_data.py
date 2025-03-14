@@ -680,13 +680,13 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         counted_dates = Counter(  # Use counter to get a dictionary of {date: num_samples}
             (
                 datetime.strptime(x["collection_sample_date"], "%Y-%m-%d").strftime(
-                    "%G-W%V"
+                    "%Y-W%V"
                 )
                 if isinstance(
                     x["collection_sample_date"], str
                 )  # If data is in string format, convert it to date first
                 else x["collection_sample_date"].strftime(
-                    "%G-W%V"
+                    "%Y-W%V"
                 )  # Else just process date directly
             )
             for x in in_date_samples[
@@ -707,7 +707,7 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         max_date = max(date_objects)
         # Generate all dates between min_date and max_date
         all_weeks = core.utils.generic_functions.list_all_possible_weeks(
-            min_date, max_date, output_format="%G-W%V"
+            min_date, max_date, output_format="%Y-W%V"
         )
         # Dict keys are not ordered by default
         all_count_dates = OrderedDict()
