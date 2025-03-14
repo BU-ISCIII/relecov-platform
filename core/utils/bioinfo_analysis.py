@@ -21,10 +21,8 @@ def get_bio_analysis_stats_from_lab(lab_name=None):
             submitting_institution__iexact=lab_name
         )
         bio_stats["analized"] = (
-            lab_samples.select_related("state_id")
-            .filter(state_id__state__iexact="Bioinfo")
-            .values("sequencing_sample_id")
-            .distinct()
+            core.models.DateUpdateState.objects.select_related("sampleID")
+            .filter(sampleID__pk__in=lab_samples, stateID__state__iexact="Bioinfo")
             .count()
         )
         bio_stats["received"] = (
