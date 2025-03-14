@@ -1,4 +1,5 @@
 # Generic imports
+from datetime import datetime, timedelta
 from collections import defaultdict
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -222,19 +223,29 @@ def metadata_visualization(request):
 @login_required
 def intranet(request):
     relecov_group = Group.objects.filter(name="RelecovManager").last()
+    all_sample_per_date_detailed = core.utils.samples.get_sample_per_date_per_all_lab(
+        detailed=True
+    )
+    clean_samples_per_date_detailed = []
     if relecov_group not in request.user.groups.all():
         start = time.time()
         intra_data = {}
         lab_name = core.utils.labs.get_lab_name_from_user(request.user)
-        related_insts_list = core.utils.labs.get_collecting_insts_from_lab(lab_name)
-        all_sample_per_date_detailed = (
-            core.utils.samples.get_sample_per_date_per_all_lab(detailed=True)
-        )
+
         date_lab_samples = defaultdict(int)
-        for x in all_sample_per_date_detailed:
-            if x["collecting_institution"] not in related_insts_list:
+        for d in all_sample_per_date_detailed:
+            if d["submitting_institution"] != lab_name:
                 continue
-            date_lab_samples[x["iso_yearweek"]] += x["num_samples"]
+            # Adapt YYYY-WNN to datetime format so it can be converted to date object
+            converted_date = datetime.strptime(d["iso_yearweek"] + "-1", "%G-W%V-%u")
+            # Filter out old data
+            if converted_date.year < 2019:
+                continue
+            date_lab_samples[d["iso_yearweek"]] += d["num_samples"]
+            clean_samples_per_date_detailed.append(
+                {k: v for k, v in d.items() if k != "submitting_institution"}
+            )
+
         intra_data["lab"] = lab_name
         print(f"Took {start - time.time()} seconds for date_lab_samples")
         if len(date_lab_samples) > 0:
@@ -249,7 +260,9 @@ def intranet(request):
                 "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
             }
-            cust_data["options"]["title"] = "Samples Received"
+            cust_data["options"][
+                "title"
+            ] = f"Samples Received: {sum(date_lab_samples.values())}"
             cust_data["options"]["width"] = 600
             intra_data["sample_bar_graph"] = core.utils.samples.create_date_sample_bar(
                 date_lab_samples, cust_data
@@ -257,6 +270,12 @@ def intranet(request):
             print(f"Took {start - time.time()} seconds for sample_bar_graph")
             intra_data["sample_gauge_graph"] = core.utils.samples.perc_gauge_graphic(
                 analysis_percent
+            )
+            lablist = set(
+                [x["collecting_institution"] for x in clean_samples_per_date_detailed]
+            )
+            core.utils.samples.create_dash_bar_for_each_lab(
+                clean_samples_per_date_detailed, lablist
             )
             print(f"Took {start - time.time()} seconds for gauge_graph")
             intra_data["actions"] = core.utils.samples.get_lab_last_actions(lab_name)
@@ -303,8 +322,15 @@ def intranet(request):
             manager_intra_data["sample_gauge_graph"] = (
                 core.utils.samples.perc_gauge_graphic(analysis_percent)
             )
-            # dash graph for samples per lab
-            core.utils.samples.create_dash_bar_for_each_lab()
+            all_labs = core.utils.samples.get_all_collecting_insts()
+            # dash graph for samples per all lab
+            clean_samples_per_date_detailed = [
+                {k: v for k, v in d.items() if k != "submitting_institution"}
+                for d in all_sample_per_date_detailed
+            ]
+            core.utils.samples.create_dash_bar_for_each_lab(
+                clean_samples_per_date_detailed, all_labs
+            )
             # Get the latest action from each lab
             manager_intra_data["actions"] = core.utils.samples.get_lab_last_actions()
             # Collect GISAID information
