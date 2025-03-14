@@ -18,7 +18,7 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
             value=value,
             number={"suffix": "%"},
             domain={"x": [0, 1], "y": [0, 1]},
-            title={"text": label},
+            title={"text": label, "font": {"size": 18}},
             gauge={"axis": {"range": [None, 100]}},
         )
     )

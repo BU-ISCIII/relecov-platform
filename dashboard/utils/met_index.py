@@ -113,7 +113,7 @@ def index_dash_fields():
         dashboard.utils.plotly.graph_gauge_percent_values(
             app_name="lims_filled_values",
             value=util_data["lims_f_values"],
-            label="Lab filled values",
+            label="Laboratory Data Completeness",
         )
         # ##### Create comparison graphics #######
         if "ERROR_ANALYSIS" in util_data:
@@ -122,7 +122,7 @@ def index_dash_fields():
                 col_names=["group", "lab_values"],
                 legend=["Laboratory metadata"],
                 yaxis={"title": "Number of fields"},
-                options={"title": "Completion Status of Fields", "height": 300},
+                options={"title": "Data Field Completeness", "height": 300},
             )
         else:
             graphics["grouped_fields"] = dashboard.utils.plotly.bar_graphic(
@@ -130,7 +130,7 @@ def index_dash_fields():
                 col_names=["group", "lab_values", "bio_values"],
                 legend=["Laboratory metadata", "Bioinformatic analysis"],
                 yaxis={"title": "Number of fields"},
-                options={"title": "Completion Status of Fields", "height": 300},
+                options={"title": "Data Field Completeness", "height": 300},
             )
 
     if "ERROR_ANALYSIS" not in util_data:
@@ -138,7 +138,7 @@ def index_dash_fields():
         dashboard.utils.plotly.graph_gauge_percent_values(
             app_name="bio_filled_values",
             value=util_data["bio_f_values"],
-            label="Bio filled values",
+            label="Bioinformatics Data Completeness",
             size=150,
         )
         # ##### create bar graph with all fields and values
