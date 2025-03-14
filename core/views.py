@@ -1,5 +1,5 @@
 # Generic imports
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
