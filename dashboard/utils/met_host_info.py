@@ -34,7 +34,7 @@ def host_info_graphics():
         legend=col_names[1:],
         yaxis={"title": "Number of samples"},
         options={
-            "title": "Samples received for host gender and host age",
+            "title": "Sample Distribution by Host Age and Gender",
             "height": 300,
         },
     )
@@ -46,7 +46,7 @@ def host_info_graphics():
         col_names=["range_age", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Samples received for host age", "height": 300},
+        options={"title": "Sample Distribution by Host Age", "height": 300},
     )
     if any(v > 0 for v in host_info_json["invalid_data"].values()):
         total_invalid_data = sum(x for x in host_info_json["invalid_data"].values())
