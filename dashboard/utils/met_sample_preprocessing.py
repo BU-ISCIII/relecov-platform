@@ -93,7 +93,7 @@ def sample_processing_graphics():
         legend=[""],
         yaxis={"title": "Number of samples"},
         options={
-            "title": "Nucleic acid extraction protocol",
+            "title": "Nucleic Acid Extraction Protocol",
             "height": 400,
             "width": 320,
         },
@@ -103,19 +103,19 @@ def sample_processing_graphics():
 
     sample_processing["cts_extraction"] = dashboard.utils.plotly.box_plot_graphic(
         cts_extraction_data,
-        {"title": "Boxplot Cts / Extraction protocol", "height": 400, "width": 520},
+        {"title": "PCR Ct Values by Extraction Protocol", "height": 400, "width": 520},
     )
     # specimen source graphics
     cts_specimen_data = get_pre_proc_data("specimen_source_pcr_1")
 
     sample_processing["cts_specimen"] = dashboard.utils.plotly.box_plot_graphic(
         cts_specimen_data,
-        {"title": "Boxplot Cts / specimen source", "height": 400, "width": 600},
+        {"title": "PCR Ct Values by Specimen Source", "height": 400, "width": 600},
     )
     # calculate the number of days spent in each state before moved on to the next step
     calculation_date_data = get_pre_proc_data("calculation_date")
     sample_processing["calculation_date"] = dashboard.utils.plotly.box_plot_graphic(
         calculation_date_data,
-        {"title": "Time between sample step actions", "height": 400, "width": 420},
+        {"title": "Processing Time Between Sample Steps", "height": 400, "width": 420},
     )
     return sample_processing
