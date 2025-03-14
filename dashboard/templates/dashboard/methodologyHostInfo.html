@@ -40,15 +40,17 @@
                             </div> <!--// end row -->
                         {% else %}
                             <div class="row justify-content-center p-4" style="text-align: center;">
-                                <div class="col-sm-8">
+                                <div class="col-lg-8 col-md-6 col-sm-12">
                                     {{ host_info.range_age_graph | safe }}
                                 </div> <!--// end col-sm-8 -->
-                                <div class="col-sm-4">
+                                <div class="col-lg-4 col-md-6 col-sm-12">
                                     {{ host_info.gender_graph | safe }}
                                 </div> <!--// end col-sm-8 -->
                             </div>  <!-- end row-->
                             <div class="row" style="text-align: center;">
-                                {{ host_info.gender_age_graph | safe }}
+                                <div class="col-12">
+                                    {{ host_info.gender_age_graph | safe }}
+                                </div>
                             </div>  <!-- end row-->
                         {% endif %}
                     </div> <!-- /.container-fluid -->
