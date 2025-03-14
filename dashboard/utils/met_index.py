@@ -154,7 +154,7 @@ def index_dash_fields():
             legend=["metadata fields"],
             yaxis={"title": "Number of samples"},
             options={
-                "title": "Number of samples for each schema field",
+                "title": "Sample Count per Schema Field",
                 "height": 400,
                 "colors": colors,
             },
