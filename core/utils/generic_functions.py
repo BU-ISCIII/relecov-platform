@@ -1,7 +1,7 @@
 # Generic imports
 import time
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.models import User
 
@@ -68,3 +68,27 @@ def check_valid_date_format(date):
         return True
     except ValueError:
         return False
+
+def list_all_possible_weeks(min_date, max_date, output_format=""):
+    """Generate a list of all weeks in date or string format between min_date and max_date
+
+    Args:
+        min_date (datetime): starting date
+        max_date (datetime): last date
+        date_format (str, optional): Return dates as strings instead of dates
+        in output format. Defaults to "". e.g. "%Y-W%V"
+
+    Returns:
+        all_dates: list of dates between starting and end date, one per week
+    """
+    all_dates = []
+    current_date = min_date
+    if output_format:
+        while current_date <= max_date:
+            all_dates.append(current_date.strftime(output_format))
+            current_date += timedelta(weeks=1)
+    else:
+        while current_date <= max_date:
+            all_dates.append(current_date)
+            current_date += timedelta(weeks=1)
+    return all_dates
