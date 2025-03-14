@@ -119,7 +119,7 @@ def sequencing_graphics():
     sequencing["cts_library"] = dashboard.utils.plotly.box_plot_graphic(
         cts_library_data,
         {
-            "title": "PCR Ct Values by Library Preparation Kit",
+            "title": "PCR Ct Values<br>by Library Preparation Kit",
             "height": 400,
             "width": 420,
             "y_title": "PCR Ct Value"
@@ -131,7 +131,7 @@ def sequencing_graphics():
         cts_pcr_1["based"],
         cts_pcr_1["cts"],
         {
-            "title": "Sequenced Base Pairs vs PCR Ct Values",
+            "title": "Sequenced Base Pairs<br>vs PCR Ct Values",
             "height": 350,
             "width": 300,
             "x_title": "Number of base pairs sequenced",
