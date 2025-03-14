@@ -3,8 +3,18 @@ import os
 import json
 from datetime import datetime
 from collections import OrderedDict, Counter, defaultdict
-from django.db.models import F, Count, Case, When, Value, DateField, CharField, Prefetch
-from django.db.models.functions import ExtractWeek, ExtractYear, Concat
+from django.db.models import (
+    F,
+    Count,
+    Case,
+    When,
+    Value,
+    DateField,
+    CharField,
+    IntegerField,
+    Prefetch,
+)
+from django.db.models.functions import ExtractWeek, ExtractIsoYear, Concat, Cast, LPad
 
 # Local imports
 import core.models
@@ -686,11 +696,29 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
                 x["collection_sample_date"], (datetime, str)
             )  # Only process data in string or date formats
         )
-        all_samples_per_date = dict(counted_dates)
+        # Convert the list of date strings back to datetime objects for comparison
+        date_objects = [
+            datetime.strptime(date + "-1", "%G-W%V-%u") for date in counted_dates.keys()
+        ]
+        # FIXME: This filter should not be necessary if database was correctly curated
+        date_objects = [x for x in date_objects if x.year > 2019]
+        # Find the earliest and latest dates
+        min_date = min(date_objects)
+        max_date = max(date_objects)
+        # Generate all dates between min_date and max_date
+        all_weeks = core.utils.generic_functions.list_all_possible_weeks(
+            min_date, max_date, output_format="%G-W%V"
+        )
+        # Dict keys are not ordered by default
+        all_count_dates = OrderedDict()
+        # Fill missing dates with 0s
+        for date in all_weeks:
+            all_count_dates[date] = counted_dates.get(date, 0)
+
         dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
             {
                 "graphic_name": "samples_per_date_all_lab",
-                "graphic_data": all_samples_per_date,
+                "graphic_data": all_count_dates,
             }
         )
         return {"SUCCESS": "Success"}
@@ -713,26 +741,84 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         all_sample_counts_by_lab = (
             core.models.Sample.objects.filter(collecting_institution__in=lab_list)
             .annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
-            .values("collecting_institution", "collecting_date")
+            .values(
+                "submitting_institution", "collecting_institution", "collecting_date"
+            )
         )
-        lab_date_count = list(
-            all_sample_counts_by_lab.exclude(collecting_date__isnull=True)
-            .annotate(
+        valid_insts = all_sample_counts_by_lab.exclude(
+            collecting_date__isnull=True,
+        )
+        # FIXME: This filter should not be necessary if database was correctly curated
+        valid_insts = valid_insts.filter(collecting_date__gte=datetime(2019, 1, 1))
+        # Collect all the data https://stackoverflow.com/questions/56219162/annotate-response-of-query-based-on-week-number
+        lab_date_count = (
+            valid_insts.annotate(
                 iso_yearweek=Concat(
-                    ExtractYear(F("collecting_date")),  # get ISO year
+                    Cast(
+                        ExtractIsoYear(F("collecting_date")), IntegerField()
+                    ),  # get ISO year
                     Value("-W"),  # This just adds a W to match ISO format of YYYY-WW
-                    ExtractWeek(F("collecting_date")),  # get ISO week
+                    LPad(
+                        ExtractWeek(F("collecting_date")), 2, Value("0")
+                    ),  # get ISO week and add leading 0 padding
                     output_field=CharField(),
                 ),
             )
-            .values("collecting_institution", "iso_yearweek")
+            .values("submitting_institution", "collecting_institution", "iso_yearweek")
             .order_by("collecting_institution", "iso_yearweek")
             .annotate(num_samples=Count("iso_yearweek"))
         )
+        # Create an auxiliar dict to get all registered events of collecting_institution+iso_yearweek
+        lab_date_count_dict = {
+            (
+                item["submitting_institution"],
+                item["collecting_institution"],
+                item["iso_yearweek"],
+            ): item["num_samples"]
+            for item in lab_date_count
+        }
+        all_submitters = set([x[0] for x in lab_date_count_dict.keys()])
+
+        # Fill non-registered dates in lab_date_count_dict with num_samples=0
+        final_lab_dates_count = []
+        for subinst in all_submitters:
+            subinst_date_counts = [x for x in lab_date_count_dict if x[0] == subinst]
+            related_colinsts = set([x[1] for x in subinst_date_counts])
+            for colinst in related_colinsts:
+                inst_date_counts = [x for x in subinst_date_counts if x[1] == colinst]
+                # For each institution, simulate all the possible weeks between the first and the last registered date
+                first_date = min(
+                    [
+                        datetime.strptime(x[2] + "-1", "%G-W%V-%u")
+                        for x in inst_date_counts
+                    ]
+                )
+                last_date = max(
+                    [
+                        datetime.strptime(x[2] + "-1", "%G-W%V-%u")
+                        for x in inst_date_counts
+                    ]
+                )
+                date_range = core.utils.generic_functions.list_all_possible_weeks(
+                    first_date, last_date, output_format="%G-W%V"
+                )
+                for date in date_range:
+                    # Get the number of samples (defaulting to 0 if not found)
+                    num_samples = lab_date_count_dict.get((subinst, colinst, date), 0)
+
+                    # Append the result for this institution and week
+                    final_lab_dates_count.append(
+                        {
+                            "submitting_institution": subinst,
+                            "collecting_institution": colinst,
+                            "iso_yearweek": date,
+                            "num_samples": num_samples,
+                        }
+                    )
         dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
             {
                 "graphic_name": "samples_per_date_all_lab_detailed",
-                "graphic_data": lab_date_count,
+                "graphic_data": final_lab_dates_count,
             }
         )
         return {"SUCCESS": "Success"}
