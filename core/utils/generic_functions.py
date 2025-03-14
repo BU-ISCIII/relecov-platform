@@ -69,6 +69,7 @@ def check_valid_date_format(date):
     except ValueError:
         return False
 
+
 def list_all_possible_weeks(min_date, max_date, output_format=""):
     """Generate a list of all weeks in date or string format between min_date and max_date
 
