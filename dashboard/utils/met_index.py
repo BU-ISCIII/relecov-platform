@@ -105,7 +105,7 @@ def index_dash_fields():
             col_names=["group", "bio_values"],
             legend=["Bioinformatic analysis"],
             yaxis={"title": "Number of fields"},
-            options={"title": "Completion Status of Fields", "height": 300},
+            options={"title": "Data Field Completeness", "height": 300},
         )
 
     else:
