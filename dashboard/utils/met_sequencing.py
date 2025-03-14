@@ -78,7 +78,7 @@ def sequencing_graphics():
         col_names=["instrument_platform", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Instrument platform", "height": 400},
+        options={"title": "Instrument Platform", "height": 400},
     )
     inst_model_df = fetch_sequencing_data(
         project_field="sequencing_instrument_model",
@@ -89,7 +89,7 @@ def sequencing_graphics():
         col_names=["instrument_model", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Instrument model", "height": 400},
+        options={"title": "Instrument Model", "height": 400},
     )
     lib_preparation_df = fetch_sequencing_data(
         project_field="library_preparation_kit",
@@ -100,7 +100,7 @@ def sequencing_graphics():
         col_names=["library_preparation", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Library preparation", "height": 400},
+        options={"title": "Library Preparation", "height": 400},
     )
     read_length_df = fetch_sequencing_data(
         project_field="read_length",
@@ -111,7 +111,7 @@ def sequencing_graphics():
         col_names=["read_length", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Read length", "height": 400, "colors": "#1aff8c"},
+        options={"title": "Read Length Distribution", "height": 400, "colors": "#1aff8c"},
     )
     # box plot for library preparation kit
 
@@ -119,9 +119,10 @@ def sequencing_graphics():
     sequencing["cts_library"] = dashboard.utils.plotly.box_plot_graphic(
         cts_library_data,
         {
-            "title": "Boxplot Cts / Library preparation kit",
+            "title": "PCR Ct Values by Library Preparation Kit",
             "height": 400,
             "width": 420,
+            "y_title": "PCR Ct Value"
         },
     )
 
@@ -130,11 +131,11 @@ def sequencing_graphics():
         cts_pcr_1["based"],
         cts_pcr_1["cts"],
         {
-            "title": "CTs / Base pairs sequenced",
+            "title": "Sequenced Base Pairs vs PCR Ct Values",
             "height": 350,
             "width": 300,
             "x_title": "Number of base pairs sequenced",
-            "y_title": "PCR CT 1",
+            "y_title": "PCR Ct Value",
         },
     )
     return sequencing
