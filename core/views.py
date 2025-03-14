@@ -1,6 +1,6 @@
 # Generic imports
 from datetime import datetime
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -232,7 +232,7 @@ def intranet(request):
         intra_data = {}
         lab_name = core.utils.labs.get_lab_name_from_user(request.user)
 
-        date_lab_samples = defaultdict(int)
+        counted_dates = defaultdict(int)
         for d in all_sample_per_date_detailed:
             if d["submitting_institution"] != lab_name:
                 continue
@@ -241,11 +241,15 @@ def intranet(request):
             # Filter out old data
             if converted_date.year < 2019:
                 continue
-            date_lab_samples[d["iso_yearweek"]] += d["num_samples"]
+            counted_dates[d["iso_yearweek"]] += d["num_samples"]
             clean_samples_per_date_detailed.append(
                 {k: v for k, v in d.items() if k != "submitting_institution"}
             )
-
+        dates_sorted = sorted(
+            counted_dates.keys(),
+            key=lambda x: datetime.strptime(x + "-1", "%G-W%V-%u"),
+        )
+        date_lab_samples = OrderedDict({k: counted_dates[k] for k in dates_sorted})
         intra_data["lab"] = lab_name
         print(f"Took {start - time.time()} seconds for date_lab_samples")
         if len(date_lab_samples) > 0:
