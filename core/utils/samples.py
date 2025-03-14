@@ -284,7 +284,7 @@ def create_metadata_form(schema_obj, user_obj):
 
 def create_date_sample_bar(lab_sample, cust_data):
     """Create bar graph where X-axis are the dates and Y-axis the number of
-    samples
+    samples. NOTE: Keep in mind that cust_data should already be ordered
     """
     df = pd.DataFrame(lab_sample.items(), columns=cust_data["col_names"])
     histogram = core.utils.plotly_graphics.histogram_graphic(
@@ -293,12 +293,23 @@ def create_date_sample_bar(lab_sample, cust_data):
     return histogram
 
 
-def create_dash_bar_for_each_lab():
-    """Function collect the list of lab and the samples per date per each lab
-    and call dash plotly function to display
+def create_dash_bar_for_each_lab(labs_data, labs_list=[]):
+    """Create a dash_bar plot for the given labs_data and list of laboratories
+
+    Args:
+        labs_data (dict): Dictionary with the following structure:
+            {
+                'submitting_institution': subinst,
+                'collecting_institution': colinst,
+                'iso_yearweek': single_date,
+                'num_samples': num_samples
+            }
+        labs_list (list, optional): _description_. Defaults to [].
     """
-    df_data = pd.DataFrame(get_sample_per_date_per_all_lab(detailed=True))
-    core.utils.plotly_dash_graphics.dash_bar_lab(get_all_lab_list(), df_data)
+    df_data = pd.DataFrame(labs_data)
+    if not labs_list:
+        labs_list = get_all_collecting_insts()
+    core.utils.plotly_dash_graphics.dash_bar_lab(labs_list, df_data)
     return
 
 
@@ -616,12 +627,21 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
     return join_data
 
 
-def get_all_lab_list():
-    """Function gets the lab names and return then in an ordered list"""
+def get_all_submitting_insts():
+    """Function to get all lab/submitting_institutions in an ordered list"""
     return list(
         core.models.Sample.objects.values_list("submitting_institution", flat=True)
         .distinct()
         .order_by("submitting_institution")
+    )
+
+
+def get_all_collecting_insts():
+    """Function to get all collecting_institutions in an ordered list"""
+    return list(
+        core.models.Sample.objects.values_list("collecting_institution", flat=True)
+        .distinct()
+        .order_by("collecting_institution")
     )
 
 
