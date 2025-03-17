@@ -148,7 +148,7 @@ def create_sample_data(request):
             date_serilizer.save()
 
         # Save ENA info if included
-        if len(split_data["ena"]) > 0:
+        if split_data.get("ena") and any(split_data["ena"].values()):
             result = core.api.utils.public_db.store_pub_databases_data(
                 split_data["ena"], "ena", schema_obj, sample_id
             )
@@ -174,7 +174,7 @@ def create_sample_data(request):
                 if date_serilizer.is_valid():
                     date_serilizer.save()
         # Save GISAID info if included
-        if len(split_data["gisaid"]) > 0:
+        if split_data.get("gisaid") and any(split_data["gisaid"].values()):
             if "EPI_ISL" in split_data["gisaid"]["gisaid_accession_id"]:
                 result = core.api.utils.public_db.store_pub_databases_data(
                     split_data["gisaid"], "gisaid", schema_obj, sample_id
