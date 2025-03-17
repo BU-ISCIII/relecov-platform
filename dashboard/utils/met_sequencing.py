@@ -111,7 +111,11 @@ def sequencing_graphics():
         col_names=["read_length", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Read Length Distribution", "height": 400, "colors": "#1aff8c"},
+        options={
+            "title": "Read Length Distribution",
+            "height": 400,
+            "colors": "#1aff8c",
+        },
     )
     # box plot for library preparation kit
 
@@ -122,7 +126,7 @@ def sequencing_graphics():
             "title": "PCR Ct Values<br>by Library Preparation Kit",
             "height": 400,
             "width": 420,
-            "y_title": "PCR Ct Value"
+            "y_title": "PCR Ct Value",
         },
     )
 
