@@ -5,7 +5,9 @@ import plotly.graph_objects as go
 from dash import html, dcc
 from django_plotly_dash import DjangoDash
 from plotly.offline import plot
-
+from ridgeplot import ridgeplot
+from plotly.offline import plot
+import numpy as np
 
 def graph_gauge_percent_values(app_name, value, label, size=180):
     """Create Dashboard application for showing a gauge graphic for the
@@ -172,5 +174,45 @@ def box_plot_graphic(data, options):
         title_font_color="green",
         title_font_size=20,
     )
+    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    return plot_div
+
+def ridge_plot_graphic(data, options):
+    samples = []
+    labels = []
+
+    for box_data in data:
+        for key, values in box_data.items():
+            values = np.array(values, dtype=float)
+            samples.append(values)
+            labels.append(key)
+
+
+    fig = ridgeplot(
+        samples=samples,  
+        bandwidth=4,  
+        kde_points=np.linspace(
+            np.nanmin(np.concatenate(samples)),  
+            np.nanmax(np.concatenate(samples)), 
+            500
+        ),
+        colormode="row-index",
+        opacity=0.6,
+        labels=labels,
+        spacing=5 / 9, 
+    )
+
+    fig.update_layout(
+        height=options["height"],
+        width=options["width"],
+        title=options["title"],
+        font_size=16,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis_title="",
+        yaxis_title="",
+        showlegend=False,
+    )
+
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
