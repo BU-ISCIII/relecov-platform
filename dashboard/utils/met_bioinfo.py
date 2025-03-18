@@ -77,9 +77,9 @@ def bioinfo_graphics():
     bioinfo = {}
     percentage_data = get_percentage_data()
     if "ERROR" not in percentage_data:
-        bioinfo["boxplot_comparation"] = dashboard.utils.plotly.box_plot_graphic(
+        bioinfo["boxplot_comparation"] = dashboard.utils.plotly.ridge_plot_graphic(
             percentage_data,
-            {"title": "Boxplot Percentage", "height": 400, "width": 420},
+            {"title": "Density Plot Percentage", "height": 400, "width": 800},
         )
     depth_variants_data = get_pre_proc_data("depth_variant_consensus")
     if "ERROR" not in depth_variants_data:
@@ -89,7 +89,7 @@ def bioinfo_graphics():
             {
                 "title": "Depth / variant consensus",
                 "height": 350,
-                "width": 420,
+                "width": 800,
                 "x_title": "Depth",
                 "y_title": "number of variants",
             },
@@ -102,7 +102,7 @@ def bioinfo_graphics():
             {
                 "title": "Depth / number of samples in run",
                 "height": 350,
-                "width": 420,
+                "width": 800,
                 "x_title": "Depth",
                 "y_title": "Samples in run",
             },
