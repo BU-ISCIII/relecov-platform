@@ -23,3 +23,4 @@ relecov-tools>=1.4.0
 xlrd==1.2.0
 folium==0.19.4
 django-crontab==0.7.1
+ridgeplot==0.3.1
