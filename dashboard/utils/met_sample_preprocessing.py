@@ -87,6 +87,13 @@ def sample_processing_graphics():
     )
     if "ERROR" in extraction_protocol_df:
         return extraction_protocol_df
+    
+    extraction_protocol_df["protocol"] = extraction_protocol_df["protocol"].replace(
+    {"": "Not Provided", None: "Not Provided"}
+    )
+    
+    extraction_protocol_df = extraction_protocol_df.groupby("protocol", as_index=False).sum()
+    
     sample_processing["nucleic_protocol"] = dashboard.utils.plotly.bar_graphic(
         data=extraction_protocol_df,
         col_names=["protocol", "number"],
