@@ -10,6 +10,7 @@ from plotly.offline import plot
 import numpy as np
 import pandas as pd
 
+
 def graph_gauge_percent_values(app_name, value, label, size=180):
     """Create Dashboard application for showing a gauge graphic for the
     percentage  values
@@ -177,6 +178,7 @@ def box_plot_graphic(data, options):
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
 
+
 def ridge_plot_graphic(data, options):
     samples = []
     labels = []
@@ -187,26 +189,23 @@ def ridge_plot_graphic(data, options):
             samples.append(values)
             labels.append(key)
 
-
     fig = ridgeplot(
-        samples=samples,  
-        bandwidth=4,  
+        samples=samples,
+        bandwidth=4,
         kde_points=np.linspace(
-            np.nanmin(np.concatenate(samples)),  
-            np.nanmax(np.concatenate(samples)), 
-            500
+            np.nanmin(np.concatenate(samples)), np.nanmax(np.concatenate(samples)), 500
         ),
         colormode="row-index",
         opacity=0.6,
         labels=labels,
-        spacing=5 / 9, 
+        spacing=5 / 9,
     )
 
     fig.update_layout(
         autosize=True,
         title=options["title"],
         title_font_color="green",
-        title_font_size=20, 
+        title_font_size=20,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         xaxis_title="",
@@ -217,11 +216,20 @@ def ridge_plot_graphic(data, options):
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
 
+
 def box_plot_graphic_bins(x_data, y_data, options):
     df = pd.DataFrame({"Depth": x_data, "Samples": y_data})
 
     bins = [0, 100, 500, 1000, 2000, 3000, 5000, float("inf")]
-    labels = ["0-100", "100-500", "500-1000", "1000-2000", "2000-3000", "3000-5000", ">5000"]
+    labels = [
+        "0-100",
+        "100-500",
+        "500-1000",
+        "1000-2000",
+        "2000-3000",
+        "3000-5000",
+        ">5000",
+    ]
     df["Depth Group"] = pd.cut(df["Depth"], bins=bins, labels=labels)
 
     fig = go.Figure()
@@ -229,12 +237,14 @@ def box_plot_graphic_bins(x_data, y_data, options):
     for label in labels:
         subset = df[df["Depth Group"] == label]
         if not subset.empty:
-            fig.add_trace(go.Box(
-                y=subset["Samples"],
-                name=label,
-                boxmean=True,
-                marker_color="blue",
-            ))
+            fig.add_trace(
+                go.Box(
+                    y=subset["Samples"],
+                    name=label,
+                    boxmean=True,
+                    marker_color="blue",
+                )
+            )
 
     fig.update_layout(
         autosize=True,
