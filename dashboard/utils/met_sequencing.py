@@ -106,6 +106,9 @@ def sequencing_graphics():
         project_field="read_length",
         columns=["read_length", "number"],
     )
+    
+    read_length_df["read_length"] = pd.to_numeric(read_length_df["read_length"], errors="coerce")
+    
     sequencing["read_length"] = dashboard.utils.plotly.bar_graphic(
         data=read_length_df,
         col_names=["read_length", "number"],
