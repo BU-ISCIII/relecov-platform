@@ -36,8 +36,5 @@ def get_graphic_json_data(graphic_name):
             .last()
             .get_json_data()
         )
-        if not json_data:
-            return None
-        else:
-            return json_data
+        return json_data
     return None
