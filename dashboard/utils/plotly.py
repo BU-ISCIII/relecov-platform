@@ -94,6 +94,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         yaxis=yaxis,
         margin=dict(l=0, r=0, t=30, b=0),
         height=options["height"],
+        xaxis=options.get("xaxis", {}),
     )
     if "xaxis_tics" in options:
         fig.update_layout(xaxis=options["xaxis"])

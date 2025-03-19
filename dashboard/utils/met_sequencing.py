@@ -115,6 +115,7 @@ def sequencing_graphics():
             "title": "Read Length Distribution",
             "height": 400,
             "colors": "#1aff8c",
+            "xaxis": {"type": "category"},
         },
     )
     # box plot for library preparation kit
