@@ -79,31 +79,27 @@ def bioinfo_graphics():
     if "ERROR" not in percentage_data:
         bioinfo["boxplot_comparation"] = dashboard.utils.plotly.ridge_plot_graphic(
             percentage_data,
-            {"title": "Density Plot Percentage", "height": 400, "width": 800},
-        )
+            {"title": "Density Plot Percentage"},
+        ) 
     depth_variants_data = get_pre_proc_data("depth_variant_consensus")
     if "ERROR" not in depth_variants_data:
-        bioinfo["depth_variants"] = dashboard.utils.plotly.line_graphic(
+        bioinfo["depth_variants"] = dashboard.utils.plotly.box_plot_graphic_bins(
             depth_variants_data["depth"],
             depth_variants_data["variant"],
             {
-                "title": "Depth / variant consensus",
-                "height": 350,
-                "width": 800,
-                "x_title": "Depth",
+                "title": "Distribution of Variants Across Depth Ranges",
+                "x_title": "Depth Range",
                 "y_title": "number of variants",
             },
         )
     depth_sample_run_data = get_pre_proc_data("depth_samples_in_run")
     if "ERROR" not in depth_sample_run_data:
-        bioinfo["depth_sample_run"] = dashboard.utils.plotly.line_graphic(
+        bioinfo["depth_sample_run"] = dashboard.utils.plotly.box_plot_graphic_bins(
             depth_sample_run_data["depth"],
             depth_sample_run_data["variant"],
             {
-                "title": "Depth / number of samples in run",
-                "height": 350,
-                "width": 800,
-                "x_title": "Depth",
+                "title": "Number of Samples per Depth Interval",
+                "x_title": "Depth Range",
                 "y_title": "Samples in run",
             },
         )

@@ -8,6 +8,7 @@ from plotly.offline import plot
 from ridgeplot import ridgeplot
 from plotly.offline import plot
 import numpy as np
+import pandas as pd
 
 def graph_gauge_percent_values(app_name, value, label, size=180):
     """Create Dashboard application for showing a gauge graphic for the
@@ -108,8 +109,7 @@ def line_graphic(x_data, y_data, options):
     fig.add_trace(go.Scatter(x=x_data, y=y_data, mode="lines", name="lines"))
 
     fig.update_layout(
-        height=options["height"],
-        width=options["width"],
+        autosize=True,
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
         margin=dict(t=30, b=0, l=0, r=0),
@@ -205,12 +205,48 @@ def ridge_plot_graphic(data, options):
     fig.update_layout(
         autosize=True,
         title=options["title"],
-        font_size=16,
+        title_font_color="green",
+        title_font_size=20, 
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         xaxis_title="",
         yaxis_title="",
         showlegend=False,
+    )
+
+    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    return plot_div
+
+def box_plot_graphic_bins(x_data, y_data, options):
+    df = pd.DataFrame({"Depth": x_data, "Samples": y_data})
+
+    bins = [0, 100, 500, 1000, 2000, 3000, 5000, float("inf")]
+    labels = ["0-100", "100-500", "500-1000", "1000-2000", "2000-3000", "3000-5000", ">5000"]
+    df["Depth Group"] = pd.cut(df["Depth"], bins=bins, labels=labels)
+
+    fig = go.Figure()
+
+    for label in labels:
+        subset = df[df["Depth Group"] == label]
+        if not subset.empty:
+            fig.add_trace(go.Box(
+                y=subset["Samples"],
+                name=label,
+                boxmean=True,
+                marker_color="blue",
+            ))
+
+    fig.update_layout(
+        autosize=True,
+        showlegend=False,
+        margin=dict(t=30, b=30, l=10, r=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis_title=options["x_title"],
+        yaxis_title=options["y_title"],
+        title=options["title"],
+        title_font_color="green",
+        title_font_size=20,
     )
 
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
