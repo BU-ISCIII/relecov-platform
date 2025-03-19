@@ -6,7 +6,6 @@ from dash import html, dcc
 from django_plotly_dash import DjangoDash
 from plotly.offline import plot
 from ridgeplot import ridgeplot
-from plotly.offline import plot
 import numpy as np
 import pandas as pd
 
