@@ -203,8 +203,7 @@ def ridge_plot_graphic(data, options):
     )
 
     fig.update_layout(
-        height=options["height"],
-        width=options["width"],
+        autosize=True,
         title=options["title"],
         font_size=16,
         paper_bgcolor="rgba(0,0,0,0)",
