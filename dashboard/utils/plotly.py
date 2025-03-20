@@ -67,9 +67,9 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         colors = options["colors"]
     else:
         colors = ["#0099ff", "#1aff8c", "#ffad33", "#ff7733", "#66b3ff", "#66ffcc"]
-        
+
     wrapped_labels = options.get("labels", data[col_names[0]])
-    
+
     fig = go.Figure()
     for idx in range(1, len(col_names)):
         fig.add_trace(
@@ -97,9 +97,13 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         yaxis=yaxis,
         margin=dict(l=0, r=0, t=30, b=0),
         height=options["height"],
-        xaxis=dict(
-            ticktext=wrapped_labels, 
-        ) if "labels" in options else options.get("xaxis", {}),
+        xaxis=(
+            dict(
+                ticktext=wrapped_labels,
+            )
+            if "labels" in options
+            else options.get("xaxis", {})
+        ),
     )
     if "xaxis_tics" in options:
         fig.update_layout(xaxis=options["xaxis"])
