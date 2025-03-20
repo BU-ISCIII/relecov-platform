@@ -74,8 +74,10 @@ def bar_graphic(data, col_names, legend, yaxis, options):
     labels = data[col_names[0]]
     wrap_length = options.get("wrap_labels")
     truncate_length = options.get("truncate_labels")
-    
-    formatted_labels, hover_labels = format_labels(labels, wrap=wrap_length, truncate=truncate_length)
+
+    formatted_labels, hover_labels = format_labels(
+        labels, wrap=wrap_length, truncate=truncate_length
+    )
 
     fig = go.Figure()
     for idx in range(1, len(col_names)):
@@ -85,8 +87,8 @@ def bar_graphic(data, col_names, legend, yaxis, options):
                 y=data[col_names[idx]],
                 name=legend[idx - 1],
                 marker_color=colors if "colors" in options else colors[idx - 1],
-                hovertext=hover_labels, 
-                hoverinfo="text"
+                hovertext=hover_labels,
+                hoverinfo="text",
             )
         )
 
