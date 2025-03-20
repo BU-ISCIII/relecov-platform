@@ -1,5 +1,6 @@
 # Generc imports
 import pandas
+from textwrap import wrap
 
 # Local imports
 import core.utils.rest_api
@@ -87,12 +88,19 @@ def sample_processing_graphics():
     )
     if "ERROR" in extraction_protocol_df:
         return extraction_protocol_df
-    
+
     extraction_protocol_df["protocol"] = extraction_protocol_df["protocol"].replace(
-    {"": "Not Provided", None: "Not Provided"}
+        {"": "Not Provided", None: "Not Provided"}
     )
+
+    extraction_protocol_df = extraction_protocol_df.groupby(
+        "protocol", as_index=False
+    ).sum()
     
-    extraction_protocol_df = extraction_protocol_df.groupby("protocol", as_index=False).sum()
+    wrapped_labels = [
+    "<br>".join(wrap(label, 20)) if len(label) > 20 else label
+    for label in extraction_protocol_df["protocol"]
+    ]
     
     sample_processing["nucleic_protocol"] = dashboard.utils.plotly.bar_graphic(
         data=extraction_protocol_df,
@@ -103,6 +111,7 @@ def sample_processing_graphics():
             "title": "Nucleic Acid Extraction Protocol",
             "height": 400,
             "width": 320,
+            "labels": wrapped_labels,
         },
     )
 
