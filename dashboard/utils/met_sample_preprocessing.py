@@ -1,6 +1,5 @@
 # Generc imports
 import pandas
-from textwrap import wrap
 
 # Local imports
 import core.utils.rest_api
@@ -106,7 +105,7 @@ def sample_processing_graphics():
             "title": "Nucleic Acid Extraction Protocol",
             "height": 400,
             "width": 320,
-            # "wrap_labels": 20,
+            "wrap_labels": 20,
             "truncate_labels": 15,
         },
     )
