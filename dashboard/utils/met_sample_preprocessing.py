@@ -97,11 +97,6 @@ def sample_processing_graphics():
         "protocol", as_index=False
     ).sum()
 
-    wrapped_labels = [
-        "<br>".join(wrap(label, 20)) if len(label) > 20 else label
-        for label in extraction_protocol_df["protocol"]
-    ]
-
     sample_processing["nucleic_protocol"] = dashboard.utils.plotly.bar_graphic(
         data=extraction_protocol_df,
         col_names=["protocol", "number"],
@@ -111,7 +106,8 @@ def sample_processing_graphics():
             "title": "Nucleic Acid Extraction Protocol",
             "height": 400,
             "width": 320,
-            "labels": wrapped_labels,
+            #"wrap_labels": 20,
+            "truncate_labels": 15,
         },
     )
 
