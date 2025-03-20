@@ -1,3 +1,6 @@
+# Local imports
+from dashboard.utils.process_labels import format_labels
+
 # Generic imports
 import dash_bootstrap_components as dbc
 import dash_daq as daq
@@ -68,16 +71,22 @@ def bar_graphic(data, col_names, legend, yaxis, options):
     else:
         colors = ["#0099ff", "#1aff8c", "#ffad33", "#ff7733", "#66b3ff", "#66ffcc"]
 
-    wrapped_labels = options.get("labels", data[col_names[0]])
+    labels = data[col_names[0]]
+    wrap_length = options.get("wrap_labels")
+    truncate_length = options.get("truncate_labels")
+    
+    formatted_labels, hover_labels = format_labels(labels, wrap=wrap_length, truncate=truncate_length)
 
     fig = go.Figure()
     for idx in range(1, len(col_names)):
         fig.add_trace(
             go.Bar(
-                x=wrapped_labels,
+                x=formatted_labels,
                 y=data[col_names[idx]],
                 name=legend[idx - 1],
                 marker_color=colors if "colors" in options else colors[idx - 1],
+                hovertext=hover_labels, 
+                hoverinfo="text"
             )
         )
 
@@ -99,9 +108,9 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         height=options["height"],
         xaxis=(
             dict(
-                ticktext=wrapped_labels,
+                ticktext=formatted_labels,
             )
-            if "labels" in options
+            if "wrap_labels" in options or "truncate_labels" in options
             else options.get("xaxis", {})
         ),
     )
