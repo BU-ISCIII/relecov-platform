@@ -114,7 +114,12 @@ def sample_processing_graphics():
 
     sample_processing["cts_extraction"] = dashboard.utils.plotly.box_plot_graphic(
         cts_extraction_data,
-        {"title": "PCR Ct Values by Extraction Protocol", "height": 400, "width": 520},
+        {"title": "PCR Ct Values by Extraction Protocol",
+         "height": 400,
+         "width": 520,
+         "truncate_labels": 15,
+         "wrap_labels": None, 
+        },
     )
     # specimen source graphics
     cts_specimen_data = get_pre_proc_data("specimen_source_pcr_1")
