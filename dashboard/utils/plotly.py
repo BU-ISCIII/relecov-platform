@@ -270,7 +270,8 @@ def box_plot_graphic(data, options):
                     y=values,
                     mode="markers",
                     marker=dict(color=colors[key], opacity=0),
-                    customdata=[[hover_label[0], min_val, q1, median, q3, max_val]] * len(values),
+                    customdata=[[hover_label[0], min_val, q1, median, q3, max_val]] # noqa: W503
+                    * len(values), # noqa: W503
                     hovertemplate="<b>%{customdata[0]}</b><br>"
                     "Min: %{customdata[1]:.2f}<br>"
                     "Q1: %{customdata[2]:.2f}<br>"
