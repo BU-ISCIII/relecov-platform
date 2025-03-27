@@ -158,7 +158,7 @@ def index_dash_fields():
                 "height": 400,
                 "colors": colors,
                 "truncate_labels": 15,
-                "wrap_labels": None, 
+                "wrap_labels": None,
             },
         )
         # ###### create table for detailed field information ######
