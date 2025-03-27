@@ -12,7 +12,6 @@ import re
 from textwrap import wrap as text_wrap
 
 
-
 def format_labels(labels, wrap=None, truncate=None, separator="..."):
     """
     Formats labels by applying word wrapping and/or truncation.
@@ -35,7 +34,7 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
         original_label = label
 
         if truncate and len(label) > truncate:
-            words = re.split(r'[\s_]', label)
+            words = re.split(r"[\s_]", label)
             if len(words) == 1:
                 label = label[: truncate - len(separator)] + separator
             else:
@@ -129,8 +128,8 @@ def bar_graphic(data, col_names, legend, yaxis, options):
                 marker_color=colors if "colors" in options else colors[idx - 1],
                 customdata=list(zip(hover_labels, [col_names[idx]] * len(values))),
                 hovertemplate="<b>%{customdata[0]}</b><br>"
-                              "%{customdata[1]}: %{y}<br>"
-                              "<extra></extra>",
+                "%{customdata[1]}: %{y}<br>"
+                "<extra></extra>",
             )
         )
 
@@ -152,7 +151,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         height=options["height"],
         xaxis=dict(options.get("xaxis", {})),
     )
-    
+
     if "wrap_labels" in options or "truncate_labels" in options:
         fig.update_xaxes(ticktext=formatted_labels)
 
@@ -218,65 +217,75 @@ def pie_graphic(labels, values, options, show_legend=True):
 
 
 def box_plot_graphic(data, options):
-    
+
     wrap_length = options.get("wrap_labels")
     truncate_length = options.get("truncate_labels")
-    
+
     fig = go.Figure()
-    formatted_labels = [] 
+    formatted_labels = []
     colors = {}
     for box_data in data:
         for key, values in box_data.items():
-            if not values: 
+            if not values:
                 continue
 
-            values = np.array(values)  
+            values = np.array(values)
 
             if values.size == 0:
                 continue
-            min_val, q1, median, q3, max_val = np.min(values), np.percentile(values, 25), np.median(values), np.percentile(values, 75), np.max(values)
-            
-            formatted_label, hover_label = format_labels([key], wrap=wrap_length, truncate=truncate_length)
+            min_val, q1, median, q3, max_val = (
+                np.min(values),
+                np.percentile(values, 25),
+                np.median(values),
+                np.percentile(values, 75),
+                np.max(values),
+            )
+
+            formatted_label, hover_label = format_labels(
+                [key], wrap=wrap_length, truncate=truncate_length
+            )
             full_label = key
             formatted_labels.append(formatted_label[0])
-            
-            if key not in colors:
-                colors[key] = f"rgba({np.random.randint(50, 200)}, {np.random.randint(50, 200)}, {np.random.randint(50, 200)}, 0.6)"  
 
-            
-            fig.add_trace(go.Box(
-                y=values,
-                name=formatted_label[0],
-                boxmean=True,
-                jitter=0.4,
-                boxpoints='all',
-                pointpos=0,
-                marker=dict(
-                    size=3,
-                    opacity=0.25
-                ),
-                marker_color=colors[key],
-                hoverinfo="skip"
-                ))
-            fig.add_trace(go.Scatter(
-                x=[formatted_label[0]] * len(values),
-                y=values,
-                mode="markers",
-                marker=dict(color=colors[key], opacity=0), 
-                customdata=[[hover_label[0], min_val, q1, median, q3, max_val]] * len(values),
-                hovertemplate="<b>%{customdata[0]}</b><br>"
-                              "Min: %{customdata[1]:.2f}<br>"
-                              "Q1: %{customdata[2]:.2f}<br>"
-                              "Median: %{customdata[3]:.2f}<br>"
-                              "Q3: %{customdata[4]:.2f}<br>"
-                              "Max: %{customdata[5]:.2f}<br>"
-                              "<extra></extra>",
-            ))
-            
-    
+            if key not in colors:
+                colors[key] = (
+                    f"rgba({np.random.randint(50, 200)}, {np.random.randint(50, 200)}, {np.random.randint(50, 200)}, 0.6)"
+                )
+
+            fig.add_trace(
+                go.Box(
+                    y=values,
+                    name=formatted_label[0],
+                    boxmean=True,
+                    jitter=0.4,
+                    boxpoints="all",
+                    pointpos=0,
+                    marker=dict(size=3, opacity=0.25),
+                    marker_color=colors[key],
+                    hoverinfo="skip",
+                )
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=[formatted_label[0]] * len(values),
+                    y=values,
+                    mode="markers",
+                    marker=dict(color=colors[key], opacity=0),
+                    customdata=[[hover_label[0], min_val, q1, median, q3, max_val]]
+                    * len(values),
+                    hovertemplate="<b>%{customdata[0]}</b><br>"
+                    "Min: %{customdata[1]:.2f}<br>"
+                    "Q1: %{customdata[2]:.2f}<br>"
+                    "Median: %{customdata[3]:.2f}<br>"
+                    "Q3: %{customdata[4]:.2f}<br>"
+                    "Max: %{customdata[5]:.2f}<br>"
+                    "<extra></extra>",
+                )
+            )
+
     if wrap_length or truncate_length:
         fig.update_xaxes(ticktext=formatted_labels)
-    
+
     fig.update_layout(
         height=options["height"],
         width=options["width"],
