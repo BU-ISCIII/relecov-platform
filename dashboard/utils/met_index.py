@@ -157,6 +157,8 @@ def index_dash_fields():
                 "title": "Sample Count per Schema Field",
                 "height": 400,
                 "colors": colors,
+                "truncate_labels": 15,
+                "wrap_labels": None, 
             },
         )
         # ###### create table for detailed field information ######

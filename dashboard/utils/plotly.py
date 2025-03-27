@@ -8,6 +8,7 @@ from plotly.offline import plot
 from ridgeplot import ridgeplot
 import numpy as np
 import pandas as pd
+import re
 from textwrap import wrap as text_wrap
 
 
@@ -34,13 +35,13 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
         original_label = label
 
         if truncate and len(label) > truncate:
-            words = label.split()
+            words = re.split(r'[\s_]', label)
             if len(words) == 1:
                 label = label[: truncate - len(separator)] + separator
             else:
                 first_part = words[0][: truncate // 2]
                 last_part = words[-1][-truncate // 2 :]
-                label = f"{first_part}{separator}{last_part}"
+                label = f"{first_part}{separator}{last_part}<span style='display:none'>_{hash(original_label)}</span>"
 
         elif wrap and len(label) > wrap:
             label = "<br>".join(text_wrap(label, wrap))
