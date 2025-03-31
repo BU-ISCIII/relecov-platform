@@ -39,6 +39,9 @@ def get_index_data():
 
 def assign_samples_to_user_by_lab(lab, user_id):
     """Asign labortory samples to a new user."""
+    if not user_id:
+        return {"ERROR": "No user selected. Please choose a user before submitting."}
+
     try:
         user_obj = core.models.User.objects.get(pk=user_id)
     except core.models.User.DoesNotExist:
