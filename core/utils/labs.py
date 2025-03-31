@@ -20,14 +20,6 @@ def get_lab_contact_details(user_obj):
     return ""
 
 
-def get_all_defined_labs():
-    """Get a list of laboratories that are defined in iSkyLIMS"""
-    sum_data = core.utils.rest_api.get_summarize_data(None)
-    if "ERROR" in sum_data:
-        return sum_data
-    return list(sum_data["laboratory"].keys())
-
-
 def get_lab_name_from_user(user_obj):
     """Get the laboratory name for the user"""
     if core.models.Profile.objects.filter(user=user_obj).exists():

@@ -37,22 +37,26 @@ def index(request):
         }
     )
 
-
+# TODO: Template should be modify cause lab_data is now in serailze structure
 @login_required
 def assign_samples_to_user(request):
     if request.user.username != "admin":
         return redirect("/")
-    if request.method == "POST" and request.POST["action"] == "assignSamples":
-        assign = core.utils.samples.assign_samples_to_new_user(request.POST)
-        return render(request, "core/assignSamplesToUser.html", assign)
 
-    lab_data = {}
-    lab_data["labs"] = core.utils.labs.get_all_defined_labs()
-    lab_data["users"] = core.utils.generic_functions.get_defined_users()
+    if request.method == "POST" and request.POST.get("action") == "assignSamples":
+        result = core.services.assign_samples_to_user_by_lab(
+            lab=request.POST.get("lab"),
+            user_id=request.POST.get("userName")
+        )
+        return render(
+            request,
+            "core/assignSamplesToUser.html", result
+        )
+
+    lab_data = core.services.get_labs_and_users()
     return render(
         request,
-        "core/assignSamplesToUser.html",
-        {"lab_data": lab_data},
+        "core/assignSamplesToUser.html", {"lab_data": lab_data}
     )
 
 

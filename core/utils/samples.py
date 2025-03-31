@@ -20,7 +20,7 @@ import core.utils.plotly_graphics
 import core.utils.rest_api
 import core.utils.generic_functions
 import core.models
-
+import core.services
 
 def analyze_input_samples(request):
     result = {}
@@ -569,7 +569,7 @@ def get_search_data(user_obj):
     # Allow to search information from any laboratoryr
     group = Group.objects.get(name="RelecovManager")
     if group in user_obj.groups.all():
-        def_labs = core.utils.labs.get_all_defined_labs()
+        def_labs = core.services.get_all_defined_labs()
         if "ERROR" in def_labs:
             s_data["labs"] = ["", ""]
         else:

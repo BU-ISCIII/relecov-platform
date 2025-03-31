@@ -32,17 +32,6 @@ def get_configuration_value(parameter_name):
     return parameter_value
 
 
-def get_defined_users():
-    """Get the id and the user names defined in relecov"""
-    user_list = []
-    user_objs = (
-        User.objects.all().exclude(username__iexact="admin").order_by("username")
-    )
-    for user_obj in user_objs:
-        user_list.append([user_obj.pk, user_obj.username])
-    return user_list
-
-
 def store_file(user_file, folder):
     """
     Description:
