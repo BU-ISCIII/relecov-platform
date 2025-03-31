@@ -2,6 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+import core.api.serializers
 
 # Local imports
 import core.utils.samples
@@ -14,6 +15,8 @@ import core.utils.generic_functions
 import core.utils.annotation
 import core.utils.lineage
 import core.config
+import core.services
+
 
 # Imports for received samples graphic at intranet
 import core.utils.samples_graphics
@@ -23,14 +26,15 @@ import core.utils.samples_map
 
 
 def index(request):
-    number_of_samples = core.utils.samples.count_handled_samples()
-    nextstrain_url = core.utils.generic_functions.get_configuration_value(
-        "NEXTSTRAIN_URL"
-    )
+    index_data = core.services.get_index_data()
+    samples_count =  {item["state_id__state"]: item["count"] for item in index_data["number_of_samples"]}
     return render(
         request,
         "core/index.html",
-        {"number_of_samples": number_of_samples, "nextstrain_url": nextstrain_url},
+        {
+            "number_of_samples": samples_count,
+            "nextstrain_url": index_data["nextstrain_url"],
+        }
     )
 
 

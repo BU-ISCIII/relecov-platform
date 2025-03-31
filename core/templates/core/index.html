@@ -57,28 +57,28 @@
         <div class="info-item">
             <div class="info-content">
                 <i class="bi bi-file-earmark-text-fill"></i>
-                <h2><div class="value" akhi="{{ number_of_samples.Defined }}">0</div></h2>
+                <h2><div class="value" akhi="{{ number_of_samples.Defined|default:0 }}">0</div></h2>
                 <p>Received Samples</p>
             </div>
         </div>
         <div class="info-item">
             <div class="info-content">
                 <i class="bi bi-clipboard-data-fill"></i>
-                <h2><div class="value" akhi="{{ number_of_samples.Bioinfo }}">0</div></h2>
+                <h2><div class="value" akhi="{{ number_of_samples.Bioinfo|default:0  }}">0</div></h2>
                 <p>Analysis Performed</p>
             </div>
         </div>
         <div class="info-item">
             <div class="info-content">
                 <i class="bi bi-cloud-upload-fill"></i>
-                <h2><div class="value" akhi="{{ number_of_samples.Gisaid }}">0</div></h2>
+                <h2><div class="value" akhi="{{ number_of_samples.Gisaid|default:0 }}">0</div></h2>
                 <p>Uploads to GISAID</p>
             </div>
         </div>
         <div class="info-item">
             <div class="info-content">
                 <i class="bi bi-file-earmark-arrow-up-fill"></i>
-                <h2><div class="value" akhi="{{ number_of_samples.Ena }}">0</div></h2>
+                <h2><div class="value" akhi="{{ number_of_samples.Ena|default:0  }}">0</div></h2>
                 <p>Uploads to ENA</p>
             </div>
         </div>
