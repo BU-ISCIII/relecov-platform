@@ -1,9 +1,10 @@
 from django.db.models import Count
+from django.contrib.auth.models import Group
 import core.models
 import core.serializers
 import core.config
 import core.utils.rest_api
-
+from django.db.models import Q
 
 def get_configuration_value(parameter_name):
     """Get a value from the configuration model."""
@@ -81,3 +82,88 @@ def get_labs_and_users():
         "users": get_defined_users()
     }
     return core.serializers.LabUserDataSerializer.from_raw_data(raw_data)
+
+def get_lab_name_from_user(user_obj):
+    """Get the laboratory name for the user"""
+    if core.models.Profile.objects.filter(user=user_obj).exists():
+        profile_obj = core.models.Profile.objects.filter(user=user_obj).last()
+        return profile_obj.get_lab_name()
+    else:
+        return ""
+
+
+def get_search_data(user_obj):
+    """Structure data to render form in search sample view."""
+    if core.models.Sample.objects.count() == 0:
+        return {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
+
+    # Serialize available states request
+    states_qs = core.models.SampleState.objects.all()
+    serialized_states = core.serializers.SampleStateSerializer(states_qs, many=True).data
+
+    # Get laboratories available in the user's group
+    group = Group.objects.get(name="RelecovManager")
+    if group in user_obj.groups.all():
+        labs = get_all_defined_labs()
+        if isinstance(labs, dict) and "ERROR" in labs:
+            labs = ["", ""]
+    else:
+        labs = [get_lab_name_from_user(user_obj)]
+
+    return {
+        "labs": labs,
+        "states": serialized_states,
+    }
+
+
+def display_samples(sample_name, lab_name, sample_state, s_date, user):
+    """Sample filtering accoding to specific params and return serialized data."""
+
+    sample_objs = core.models.Sample.objects.all()
+
+    if lab_name:
+        sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
+
+    if sample_name:
+        exact_qs = sample_objs.filter(
+            Q(sequencing_sample_id__iexact=sample_name)
+            | Q(collecting_lab_sample_id__iexact=sample_name)
+        )
+        if exact_qs.count() == 1:
+            return {"redirect": exact_qs.first().pk}
+        elif exact_qs.exists():
+            sample_objs = exact_qs
+        else:
+            partial_qs = sample_objs.filter(
+                Q(sequencing_sample_id__icontains=sample_name)
+                | Q(collecting_lab_sample_id__icontains=sample_name)
+            )
+            if partial_qs.count() == 1:
+                return {"redirect": partial_qs.first().pk}
+            elif not partial_qs.exists():
+                return {"warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH}
+            sample_objs = partial_qs
+
+    if sample_state:
+        sample_ids = core.models.SampleStateHistory.objects.filter(
+            state_id__pk=sample_state
+        ).values_list("sample__pk", flat=True)
+        sample_objs = sample_objs.filter(pk__in=sample_ids)
+
+    if s_date:
+        sample_objs = sample_objs.filter(created_at__exact=s_date)
+
+    if not sample_objs.exists():
+        return {"warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH}
+
+    if sample_objs.count() == 1:
+        return {"redirect": sample_objs.first().pk}
+
+    serialized_samples = core.serializers.SampleSearchResultSerializer(sample_objs, many=True).data
+
+    return {
+        "list_display": {
+            "s_data": serialized_samples,
+            "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+        }
+    }

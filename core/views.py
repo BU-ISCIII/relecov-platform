@@ -127,17 +127,19 @@ def schema_display(request, schema_id):
     return render(request, "core/schemaDisplay.html", {"schema_data": schema_data})
 
 
+# TODO: Post section needs to be tested
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
-    search_data = core.utils.samples.get_search_data(request.user)
-    if request.method == "POST" and request.POST["action"] == "searchSample":
-        sample_name = request.POST["sampleName"]
-        s_date = request.POST["sDate"]
-        lab_name = request.POST["lab"]
-        sample_state = request.POST["sampleState"]
+    search_data = core.services.get_search_data(user_obj=request.user)
+    if request.method == "POST" and request.POST.get("action") == "searchSample":
+        sample_name = request.POST.get("sampleName", "")
+        s_date = request.POST.get("sDate", "")
+        lab_name = request.POST.get("lab", "")
+        sample_state = request.POST.get("sampleState", "")
+
         # check that some values are in the request if not return the form
-        if lab_name == "" and s_date == "" and sample_name == "" and sample_state == "":
+        if not any([sample_name, s_date, lab_name, sample_state]):
             return render(
                 request, "core/searchSample.html", {"search_data": search_data}
             )
@@ -153,10 +155,16 @@ def search_sample(request):
                     "warning": core.config.ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
                 },
             )
-        sample_list = core.utils.samples.search_samples(
-            sample_name, lab_name, sample_state, s_date, request.user
+
+        # Generate sample display data
+        display_data = core.services.display_samples(
+            sample_name=sample_name,
+            lab_name=lab_name,
+            sample_state=sample_state,
+            s_date=s_date,
+            user=request.user
         )
-        if len(sample_list) == 0:
+        if len(display_data["list_display"]["s_data"]) == 0:
             return render(
                 request,
                 "core/searchSample.html",
@@ -165,11 +173,11 @@ def search_sample(request):
                     "warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
                 },
             )
-        if len(sample_list) == 1:
-            return redirect("sample_display", sample_id=sample_list[0])
+        if len(display_data["list_display"]["s_data"]) == 1:
+            return redirect("sample_display", sample_id=display_data[0])
         else:
             sample = {
-                "s_data": sample_list,
+                "s_data": display_data["list_display"]["s_data"],
                 "heading": core.config.HEADING_FOR_SAMPLE_LIST,
             }
             return render(request, "core/searchSample.html", {"list_display": sample})

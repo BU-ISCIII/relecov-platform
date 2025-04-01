@@ -112,8 +112,8 @@
                                                     <div class="col-sm-7">
                                                         <select name="sampleState" id="sampleState" class="form-select">
                                                             <option value="">Choose a value</option>
-                                                            {% for id, value in search_data.s_state %}
-                                                                <option value="{{id}}">{{value}}</option>
+                                                            {% for state in search_data.states %}
+                                                                <option value="{{ state.id }}">{{ state.label }}</option>
                                                             {% endfor %}
                                                         </select>
                                                 </div>  <!-- end select input -->
