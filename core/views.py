@@ -44,6 +44,7 @@ def assign_samples_to_user(request):
         return redirect("/")
 
     if request.method == "POST" and request.POST.get("action") == "assignSamples":
+        import pdb; pdb.set_trace()
         result = core.services.assign_samples_to_user_by_lab(
             lab=request.POST.get("lab"),
             user_id=request.POST.get("userName")
@@ -62,6 +63,7 @@ def assign_samples_to_user(request):
 
 @login_required
 def sample_display(request, sample_id):
+    import pdb; pdb.set_trace()
     sample_data = core.utils.samples.get_sample_display_data(sample_id, request.user)
     if "ERROR" in sample_data:
         return render(
@@ -132,6 +134,7 @@ def schema_display(request, schema_id):
 def search_sample(request):
     """Search sample using the filter in the form"""
     search_data = core.services.get_search_data(user_obj=request.user)
+    import pdb; pdb.set_trace()
     if request.method == "POST" and request.POST.get("action") == "searchSample":
         sample_name = request.POST.get("sampleName", "")
         s_date = request.POST.get("sDate", "")
@@ -235,7 +238,18 @@ def metadata_visualization(request):
         {"m_visualization": m_visualization},
     )
 
+# TODO: implementation in progress - not tested
+@login_required
+def intranet(request):
+    is_manager = Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()
 
+    if is_manager:
+        manager_intra_data = core.services.get_intranet_data_for_manager()
+        return render(request, "core/intranet.html", {"manager_intra_data": manager_intra_data})
+
+    intra_data = core.services.get_intranet_data_for_user(request.user)
+    return render(request, "core/intranet.html", {"intra_data": intra_data})
+"""
 @login_required
 def intranet(request):
     relecov_group = Group.objects.filter(name="RelecovManager").last()
@@ -335,7 +349,7 @@ def intranet(request):
             "core/intranet.html",
             {"manager_intra_data": manager_intra_data},
         )
-
+"""
 
 def variants(request):
     return render(request, "core/variants.html", {})

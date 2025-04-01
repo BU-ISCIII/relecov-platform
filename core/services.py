@@ -167,3 +167,83 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
             "heading": core.config.HEADING_FOR_SAMPLE_LIST,
         }
     }
+
+def get_intranet_data_for_user(user):
+    lab_name = get_lab_name_from_user(user)
+    date_lab_samples = core.utils.samples.get_sample_per_date_per_lab(lab_name)
+
+    if not date_lab_samples:
+        return f"No samples found for selected laboratory: {lab_name}"
+
+    sample_lab_objs = core.utils.samples.get_sample_objs_per_lab(lab_name)
+    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(lab_name)
+
+    bar_config = {
+        "col_names": ["Sequencing Date", "Number of samples"],
+        "options": {
+            "title": "Samples Received",
+            "width": 600,
+        },
+    }
+
+    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id", sample_lab_objs)
+    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession", sample_lab_objs)
+    actions_raw = core.utils.samples.get_lab_last_actions(lab_name)
+
+    intra_data = {
+        "sample_bar_graph": core.utils.samples.create_date_sample_bar(date_lab_samples, bar_config),
+        "sample_gauge_graph": core.utils.samples.perc_gauge_graphic(analysis_percent),
+        "actions": core.serializers.LabLastActionDictSerializer.from_raw(actions_raw),
+    }
+
+    if gisaid_raw:
+        intra_data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
+        intra_data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
+            len(sample_lab_objs), len(gisaid_raw), ""
+        )
+
+    if ena_raw:
+        intra_data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
+        intra_data["ena_graph"] = core.utils.public_db.percentage_graphic(
+            len(sample_lab_objs), len(ena_raw), ""
+        )
+
+    return intra_data
+
+
+def get_intranet_data_for_manager():
+    all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
+    num_of_samples = core.utils.samples.count_handled_samples()
+    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
+
+    bar_config = {
+        "col_names": ["Sequencing Date", "Number of samples"],
+        "options": {
+            "title": "Samples Received for all laboratories",
+            "width": 590,
+        },
+    }
+
+    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id")
+    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession")
+    actions_raw = core.utils.samples.get_lab_last_actions()
+
+    data = {
+        "sample_bar_graph": core.utils.samples.create_date_sample_bar(all_sample_per_date, bar_config),
+        "sample_gauge_graph": core.utils.samples.perc_gauge_graphic(analysis_percent),
+        "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
+    }
+
+    if gisaid_raw:
+        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
+        data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
+            num_of_samples.get("Defined", 0), len(gisaid_raw), ""
+        )
+
+    if ena_raw:
+        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
+        data["ena_graph"] = core.utils.public_db.percentage_graphic(
+            num_of_samples.get("Defined", 0), len(ena_raw), ""
+        )
+
+    return data

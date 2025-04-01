@@ -10,6 +10,7 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.db.models import Q
 from django.db.models import Count
+import core.services
 import relecov_tools.utils
 
 # Local imports
@@ -20,7 +21,7 @@ import core.utils.plotly_graphics
 import core.utils.rest_api
 import core.utils.generic_functions
 import core.models
-import core.services
+
 
 def analyze_input_samples(request):
     result = {}
@@ -485,7 +486,7 @@ def get_sample_per_date_per_all_lab(detailed=None):
         all_samples_per_date = OrderedDict()
 
         s_dates = (
-            core.models.Sample.objects.all()
+            core.models.Sample.objects.exclude(sequencing_date__isnull=True)
             .values_list("sequencing_date", flat=True)
             .distinct()
             .order_by("sequencing_date")
@@ -575,7 +576,7 @@ def get_search_data(user_obj):
         else:
             s_data["labs"] = def_labs
     else:
-        s_data["labs"] = core.utils.labs.get_lab_name_from_user(user_obj)
+        s_data["labs"] = core.services.get_lab_name_from_user(user_obj)
 
     return s_data
 

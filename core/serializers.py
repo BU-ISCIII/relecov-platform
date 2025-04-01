@@ -58,3 +58,41 @@ class SampleSearchResultSerializer(serializers.ModelSerializer):
 
     def get_recorded_date(self, obj):
         return obj.created_at.strftime("%d-%B-%Y") if obj.created_at else ""
+
+
+class SampleStateCountSerializer(serializers.Serializer):
+    state = serializers.CharField(source="state_id__state")
+    count = serializers.IntegerField()
+
+
+class PublicAccessionSerializer(serializers.Serializer):
+    sample_name = serializers.CharField()
+    accession_id = serializers.CharField()
+
+    @classmethod
+    def from_raw(cls, raw_tuples):
+        return [cls({"sample_name": tup[0], "accession_id": tup[1]}).data for tup in raw_tuples]
+
+
+class LabLastActionSerializer(serializers.Serializer):
+    lab = serializers.CharField()
+    defined = serializers.CharField(allow_blank=True)
+    analysis = serializers.CharField(allow_blank=True)
+    gisaid = serializers.CharField(allow_blank=True)
+    ena = serializers.CharField(allow_blank=True)
+
+    @classmethod
+    def from_raw(cls, raw_list):
+        keys = ["lab", "defined", "analysis", "gisaid", "ena"]
+        return [cls(dict(zip(keys, entry))).data for entry in raw_list]
+
+
+class LabLastActionDictSerializer(serializers.Serializer):
+    Defined = serializers.CharField(allow_blank=True, required=False)
+    Analysis = serializers.CharField(allow_blank=True, required=False)
+    Gisaid = serializers.CharField(allow_blank=True, required=False)
+    Ena = serializers.CharField(allow_blank=True, required=False)
+
+    @classmethod
+    def from_raw(cls, raw_dict):
+        return cls(raw_dict).data
