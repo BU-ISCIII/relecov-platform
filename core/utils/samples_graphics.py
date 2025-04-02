@@ -5,6 +5,7 @@ import core.utils.samples
 import dashboard.utils.generic_process_data
 import dashboard.utils.plotly
 
+
 def received_per_ccaa():
     """Fetch the data from LIMS and show them in a graphic bar"""
     samples_per_ccaa = dashboard.utils.generic_graphic_data.get_graphic_json_data(
@@ -49,8 +50,12 @@ def received_per_lab():
         col_names=["x", "y"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "", "height": 400, "colors": "#1aff8c",
-                 "truncate_labels": 15},
+        options={
+            "title": "",
+            "height": 400,
+            "colors": "#1aff8c",
+            "truncate_labels": 15,
+        },
     )
 
 
