@@ -11,6 +11,18 @@ import pandas as pd
 import re
 from textwrap import wrap as text_wrap
 
+COLOR_PALETTE = [
+    "#87c1ac",
+    "#c08948",
+    "#968c69",
+    "#a1a3be",
+    "#649d68",
+    "#828b3c",
+    "#51418b",
+    "#45777c",
+    "#73423f",
+    "#46523a"
+]
 
 def format_labels(labels, wrap=None, truncate=None, separator="..."):
     """
@@ -108,7 +120,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
     if "colors" in options:
         colors = options["colors"]
     else:
-        colors = ["#0099ff", "#1aff8c", "#ffad33", "#ff7733", "#66b3ff", "#66ffcc"]
+        colors = COLOR_PALETTE
 
     labels = data[col_names[0]]
     wrap_length = options.get("wrap_labels")
@@ -134,12 +146,6 @@ def bar_graphic(data, col_names, legend, yaxis, options):
             )
         )
 
-    # Customize aspect
-    fig.update_traces(
-        marker_line_color="rgb(8,48,107)",
-        marker_line_width=1.5,
-        opacity=0.6,
-    )
     fig.update_layout(
         title=options["title"],
         title_font_color="green",
@@ -165,9 +171,11 @@ def bar_graphic(data, col_names, legend, yaxis, options):
 
 
 def line_graphic(x_data, y_data, options):
+    # Default color
+    marker_color=options.get("line_color", COLOR_PALETTE[0])
     # Create line
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode="lines", name="lines"))
+    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode="lines", name="lines", line=dict(color=marker_color)))
 
     fig.update_layout(
         autosize=True,
@@ -185,7 +193,7 @@ def line_graphic(x_data, y_data, options):
 
 
 def pie_graphic(labels, values, options, show_legend=True):
-    colors = ["#0099ff", "#1aff8c", "#ffad33", "#ff7733", "#66b3ff", "#66ffcc"]
+    colors = COLOR_PALETTE
     fig = go.Figure(
         data=go.Pie(
             labels=labels,
@@ -225,6 +233,7 @@ def box_plot_graphic(data, options):
     fig = go.Figure()
     formatted_labels = []
     colors = {}
+    color_idx = 0
     for box_data in data:
         for key, values in box_data.items():
             if not values:
@@ -248,9 +257,10 @@ def box_plot_graphic(data, options):
             formatted_labels.append(formatted_label[0])
 
             if key not in colors:
-                colors[key] = (
-                    f"rgba({np.random.randint(50, 200)}, {np.random.randint(50, 200)}, {np.random.randint(50, 200)}, 0.6)"
-                )
+                colors[key] = COLOR_PALETTE[color_idx % len(COLOR_PALETTE)]
+                color_idx += 1
+            
+            color = colors[key]
 
             fig.add_trace(
                 go.Box(
@@ -261,7 +271,7 @@ def box_plot_graphic(data, options):
                     boxpoints="all",
                     pointpos=0,
                     marker=dict(size=3, opacity=0.25),
-                    marker_color=colors[key],
+                    marker_color=color,
                     hoverinfo="skip",
                 )
             )
@@ -270,7 +280,7 @@ def box_plot_graphic(data, options):
                     x=[formatted_label[0]] * len(values),
                     y=values,
                     mode="markers",
-                    marker=dict(color=colors[key], opacity=0),
+                    marker=dict(color=color, opacity=0),
                     customdata=[[hover_label[0], min_val, q1, median, q3, max_val]]
                     * len(values),
                     hovertemplate="<b>%{customdata[0]}</b><br>"
