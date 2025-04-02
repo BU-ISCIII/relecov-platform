@@ -32,6 +32,7 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
 
     for label in labels:
         original_label = label
+        label_hash = str(abs(hash(original_label)))[:6]
 
         if truncate and len(label) > truncate:
             words = re.split(r"[\s_]", label)
@@ -40,7 +41,7 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
             else:
                 first_part = words[0][: truncate // 2]
                 last_part = words[-1][-truncate // 2 :]
-                label = f"{first_part}{separator}{last_part}<span style='display:none'>_{hash(original_label)}</span>"
+                label = f"{first_part}{separator}{last_part}<span style='display:none'>_{label_hash}</span>"
 
         elif wrap and len(label) > wrap:
             label = "<br>".join(text_wrap(label, wrap))
