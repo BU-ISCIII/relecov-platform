@@ -330,7 +330,7 @@
   }
 
   .sidebar-dark .sidebar-brand {
-    color: #80aaff;
+    color: #448873;
   }
 
   .sidebar-dark hr.sidebar-divider {
@@ -362,11 +362,11 @@
   }
 
   .sidebar-dark .nav-item.active .nav-link {
-    color: #05c46b;
+    color: #448873;
   }
 
   .sidebar-dark .nav-item.active .nav-link i {
-    color: #05c46b;
+    color: #448873;
   }
 
   .sidebar-dark #sidebarToggle {
@@ -374,7 +374,7 @@
   }
 
   .sidebar-dark #sidebarToggle::after {
-    color: #05c46b;
+    color: #448873;
   }
 
   .sidebar-dark #sidebarToggle:hover {

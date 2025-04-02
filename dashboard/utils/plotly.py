@@ -12,16 +12,16 @@ import re
 from textwrap import wrap as text_wrap
 
 COLOR_PALETTE = [
-    "#87c1ac",
-    "#c08948",
-    "#968c69",
-    "#a1a3be",
-    "#649d68",
-    "#828b3c",
-    "#51418b",
-    "#45777c",
-    "#73423f",
-    "#46523a"
+    '#448873', 
+    '#809dd4', 
+    '#99b4c7', 
+    "#6ca0c4", 
+    '#649d68', 
+    '#7c8fb2',  
+    '#828b3c', 
+    '#45777c', 
+    '#73423f', 
+    '#46523a'
 ]
 
 def format_labels(labels, wrap=None, truncate=None, separator="..."):
@@ -148,7 +148,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
 
     fig.update_layout(
         title=options["title"],
-        title_font_color="green",
+        title_font_color="#448873",
         title_font_size=20,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
@@ -185,7 +185,7 @@ def line_graphic(x_data, y_data, options):
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         title=options["title"],
-        title_font_color="green",
+        title_font_color="#448873",
         title_font_size=20,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
@@ -205,8 +205,8 @@ def pie_graphic(labels, values, options, show_legend=True):
         hoverinfo="label+percent",
         textinfo="value",
         textfont_size=16,
-        title_font=dict(size=18, family="Verdana", color="darkgreen"),
-        marker=dict(colors=colors, line=dict(color="darkblue", width=1)),
+        title_font=dict(size=18, family="Verdana", color="#448873"),
+        marker=dict(colors=colors),
         opacity=0.6,
     )
 
@@ -218,7 +218,7 @@ def pie_graphic(labels, values, options, show_legend=True):
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         title=options["title"],
-        title_font_color="green",
+        title_font_color="#448873",
         title_font_size=20,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
@@ -305,7 +305,7 @@ def box_plot_graphic(data, options):
         plot_bgcolor="rgba(0,0,0,0)",
         xaxis_tickangle=-45,
         title=options["title"],
-        title_font_color="green",
+        title_font_color="#448873",
         title_font_size=20,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
@@ -328,7 +328,8 @@ def ridge_plot_graphic(data, options):
         kde_points=np.linspace(
             np.nanmin(np.concatenate(samples)), np.nanmax(np.concatenate(samples)), 500
         ),
-        colormode="row-index",
+        colorscale= COLOR_PALETTE,
+        colormode="trace-index",
         opacity=0.6,
         labels=labels,
         spacing=5 / 9,
@@ -337,7 +338,7 @@ def ridge_plot_graphic(data, options):
     fig.update_layout(
         autosize=True,
         title=options["title"],
-        title_font_color="green",
+        title_font_color="#448873",
         title_font_size=20,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
@@ -375,7 +376,7 @@ def box_plot_graphic_bins(x_data, y_data, options):
                     y=subset["Samples"],
                     name=label,
                     boxmean=True,
-                    marker_color="blue",
+                    marker_color=COLOR_PALETTE[0],
                 )
             )
 
@@ -388,7 +389,7 @@ def box_plot_graphic_bins(x_data, y_data, options):
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
         title=options["title"],
-        title_font_color="green",
+        title_font_color="#448873",
         title_font_size=20,
     )
 
