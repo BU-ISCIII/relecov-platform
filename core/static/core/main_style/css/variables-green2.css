@@ -21,9 +21,9 @@
 :root {
 
   /* Fonts */
-  --font-default: 'Open Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-primary: 'Source Sans Pro', sans-serif;
-  --font-secondary: 'Poppins', sans-serif;
+  --font-default: 'Oxanium', system-ui, sans-serif;
+  --font-primary: 'Oxanium', sans-serif;
+  --font-secondary: 'Oxanium', sans-serif;
 
   /* Colors */
   /* The *-rgb color names are simply the RGB converted value of the corresponding color for use in the rgba() function */
@@ -33,11 +33,11 @@
   --color-default-rgb: 26, 31, 36;
 
   /* Defult links color */
-  --color-links: #448873;
-  --color-links-hover: #1de789;
+  --color-links: #042940;
+  --color-links-hover: #809dd4;
 
   /* Primay colors */
-   --color-primary: #448873; 
+   --color-primary: #042940; 
   --color-primary-light: #1de789;
   --color-primary-dark: #01a156;
 
