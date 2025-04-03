@@ -330,7 +330,7 @@
   }
 
   .sidebar-dark .sidebar-brand {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark hr.sidebar-divider {
@@ -362,11 +362,11 @@
   }
 
   .sidebar-dark .nav-item.active .nav-link {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark .nav-item.active .nav-link i {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark #sidebarToggle {
@@ -374,7 +374,7 @@
   }
 
   .sidebar-dark #sidebarToggle::after {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark #sidebarToggle:hover {
@@ -430,8 +430,9 @@
 
 
   .bg-gradient-primary {
-    background-color: #f2f2f2;
-    background-image: linear-gradient(180deg, #f2f2f2 40%, #bfbfbf 100%);
+    background-color: #448873;
+    background-image: linear-gradient(180deg, #448873 40%, #ffffff 100%);
     background-size: cover;
+    border-radius: 10px;
 }
 
