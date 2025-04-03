@@ -304,8 +304,17 @@ def create_dash_bar_for_each_lab():
 
 def perc_gauge_graphic(values):
     data = {}
-    x = values["analized"] / values["received"] * 100
-    data["value"] = float("{:.2f}".format(x))
+    try:
+        analized = values.get("analized", 0)
+        received = values.get("received", 0)
+        if received == 0:
+            data["value"] = 0.0
+        else:
+            x = analized / received * 100
+            data["value"] = round(x, 2)
+    except Exception as e:
+        return {"ERROR": f"Failed to generate gauge graphic: {str(e)}"}
+
     gauge_graph = core.utils.plotly_graphics.gauge_graphic(data)
     return gauge_graph
 
@@ -561,7 +570,6 @@ def get_sample_objs_per_lab(lab_name):
 
 def get_search_data(user_obj):
     """Fetch data to show in form"""
-    import pdb; pdb.set_trace()
     s_data = {}
     if core.models.Sample.objects.count() == 0:
         return {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
