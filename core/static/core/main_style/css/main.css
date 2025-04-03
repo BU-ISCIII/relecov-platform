@@ -243,8 +243,8 @@ section {
   font-family: var(--font-secondary);
 }
 .header .btn-getstarted:hover, .header .btn-getstarted:focus:hover {
-  color: var(--color-white);
-  background: rgba(var(--color-primary-rgb), 0.85);
+  background: var(--color-white);
+  color: var(--color-primary);
 }
 @media (max-width: 1279px) {
   .header .btn-getstarted, .header .btn-getstarted:focus {
