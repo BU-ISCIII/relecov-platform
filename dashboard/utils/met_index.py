@@ -143,7 +143,7 @@ def index_dash_fields():
         )
         # ##### create bar graph with all fields and values
         if "num_lab_fields" in util_data:
-            lab_colors = ["#87c1ac"] * util_data["num_lab_fields"]
+            lab_colors = ["#448873"] * util_data["num_lab_fields"]
             bio_colors = ["#809dd4"] * util_data["num_bio_fields"]
             colors = lab_colors + bio_colors
         else:

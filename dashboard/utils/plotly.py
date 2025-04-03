@@ -24,6 +24,44 @@ COLOR_PALETTE = [
     '#46523a'
 ]
 
+mi_template = go.layout.Template(
+    layout=dict(
+        paper_bgcolor="#f8f9fc",
+        plot_bgcolor="#f8f9fc",
+        font=dict(
+            family="Oxanium, sans-serif", 
+            color="#042940"
+        ),
+        xaxis=dict(
+            color="#042940",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.6)",
+            gridwidth=1.5,
+            automargin=True,
+            title_standoff=10,
+            zeroline=False
+        ),
+        yaxis=dict(
+            color="#042940",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.6)",
+            gridwidth=1.5,
+            automargin=True,
+            title_standoff=10,
+            zeroline=False
+        ),
+        legend=dict(
+            font=dict(color="#042940"),
+            bgcolor="rgba(0,0,0,0)"
+        ),
+        title=dict(
+            font=dict(color="#042940"),
+            x=0.01,
+            xanchor="left"
+        )
+    )
+)
+
 def format_labels(labels, wrap=None, truncate=None, separator="..."):
     """
     Formats labels by applying word wrapping and/or truncation.
@@ -147,12 +185,10 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         )
 
     fig.update_layout(
-        title=options["title"],
-        title_font_color="#448873",
+        title=options["title"], ##828997
         title_font_size=20,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
         xaxis_tickangle=-45,
+        template=mi_template,
         yaxis=yaxis,
         margin=dict(l=0, r=0, t=30, b=0),
         height=options["height"],
@@ -182,11 +218,8 @@ def line_graphic(x_data, y_data, options):
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
         margin=dict(t=30, b=0, l=0, r=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
         title=options["title"],
-        title_font_color="#448873",
-        title_font_size=20,
+        template=mi_template,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
@@ -215,11 +248,8 @@ def pie_graphic(labels, values, options, show_legend=True):
         width=320,
         showlegend=show_legend,
         margin=dict(t=0, b=0, l=0, r=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        template=mi_template,
         title=options["title"],
-        title_font_color="#448873",
-        title_font_size=20,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
@@ -301,12 +331,9 @@ def box_plot_graphic(data, options):
         width=options["width"],
         showlegend=False,
         margin=dict(t=30, b=0, l=0, r=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        template=mi_template,
         xaxis_tickangle=-45,
         title=options["title"],
-        title_font_color="#448873",
-        title_font_size=20,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
@@ -338,11 +365,8 @@ def ridge_plot_graphic(data, options):
     fig.update_layout(
         autosize=True,
         title=options["title"],
-        title_font_color="#448873",
-        title_font_size=20,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
         xaxis_title="",
+        template=mi_template,
         yaxis_title="",
         showlegend=False,
     )
@@ -384,13 +408,10 @@ def box_plot_graphic_bins(x_data, y_data, options):
         autosize=True,
         showlegend=False,
         margin=dict(t=30, b=30, l=10, r=10),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
         title=options["title"],
-        title_font_color="#448873",
-        title_font_size=20,
+        template=mi_template,
     )
 
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
