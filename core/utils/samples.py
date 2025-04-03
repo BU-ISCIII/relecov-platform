@@ -339,7 +339,7 @@ def get_lab_last_actions(lab_name=None):
             for action in action_list:
                 if core.models.SampleStateHistory.objects.filter(
                     sample=sam_obj, state__state__exact=action
-                ).exist():
+                ).exists():
                     lab_data.append(
                         core.models.SampleStateHistory.objects.filter(
                             sample=sam_obj, state__state__exact=action
@@ -561,6 +561,7 @@ def get_sample_objs_per_lab(lab_name):
 
 def get_search_data(user_obj):
     """Fetch data to show in form"""
+    import pdb; pdb.set_trace()
     s_data = {}
     if core.models.Sample.objects.count() == 0:
         return {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}

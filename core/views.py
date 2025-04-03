@@ -44,7 +44,6 @@ def assign_samples_to_user(request):
         return redirect("/")
 
     if request.method == "POST" and request.POST.get("action") == "assignSamples":
-        import pdb; pdb.set_trace()
         result = core.services.assign_samples_to_user_by_lab(
             lab=request.POST.get("lab"),
             user_id=request.POST.get("userName")
@@ -63,7 +62,6 @@ def assign_samples_to_user(request):
 
 @login_required
 def sample_display(request, sample_id):
-    import pdb; pdb.set_trace()
     sample_data = core.utils.samples.get_sample_display_data(sample_id, request.user)
     if "ERROR" in sample_data:
         return render(
@@ -134,7 +132,6 @@ def schema_display(request, schema_id):
 def search_sample(request):
     """Search sample using the filter in the form"""
     search_data = core.services.get_search_data(user_obj=request.user)
-    import pdb; pdb.set_trace()
     if request.method == "POST" and request.POST.get("action") == "searchSample":
         sample_name = request.POST.get("sampleName", "")
         s_date = request.POST.get("sDate", "")
@@ -238,118 +235,20 @@ def metadata_visualization(request):
         {"m_visualization": m_visualization},
     )
 
-# TODO: implementation in progress - not tested
+# TODO: Testing required
 @login_required
 def intranet(request):
     is_manager = Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()
 
+    # Generate data for manager access
     if is_manager:
         manager_intra_data = core.services.get_intranet_data_for_manager()
         return render(request, "core/intranet.html", {"manager_intra_data": manager_intra_data})
 
+    # TODO: Didn't tested due to lack of bioinfodata (api related issues)
     intra_data = core.services.get_intranet_data_for_user(request.user)
     return render(request, "core/intranet.html", {"intra_data": intra_data})
-"""
-@login_required
-def intranet(request):
-    relecov_group = Group.objects.filter(name="RelecovManager").last()
-    if relecov_group not in request.user.groups.all():
-        intra_data = {}
-        lab_name = core.utils.labs.get_lab_name_from_user(request.user)
-        date_lab_samples = core.utils.samples.get_sample_per_date_per_lab(lab_name)
-        if len(date_lab_samples) > 0:
-            sample_lab_objs = core.utils.samples.get_sample_objs_per_lab(lab_name)
-            analysis_percent = (
-                core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(lab_name)
-            )
-            cust_data = {
-                "col_names": ["Sequencing Date", "Number of samples"],
-                "options": {},
-            }
-            cust_data["options"]["title"] = "Samples Received"
-            cust_data["options"]["width"] = 600
-            intra_data["sample_bar_graph"] = core.utils.samples.create_date_sample_bar(
-                date_lab_samples, cust_data
-            )
-            intra_data["sample_gauge_graph"] = core.utils.samples.perc_gauge_graphic(
-                analysis_percent
-            )
-            intra_data["actions"] = core.utils.samples.get_lab_last_actions(lab_name)
-            gisaid_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "gisaid_accession_id", sample_lab_objs
-            )
-            if len(gisaid_acc) > 0:
-                intra_data["gisaid_accession"] = gisaid_acc
-            intra_data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
-                len(sample_lab_objs), len(gisaid_acc), ""
-            )
-            ena_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "ena_sample_accession", sample_lab_objs
-            )
-            if len(ena_acc) > 0:
-                intra_data["ena_accession"] = ena_acc
-                intra_data["ena_graph"] = core.utils.public_db.percentage_graphic(
-                    len(sample_lab_objs), len(ena_acc), ""
-                )
-        else:
-            intra_data = f"No samples found for selected laboratory: {lab_name}"
-        return render(request, "core/intranet.html", {"intra_data": intra_data})
-    else:
-        # loged user belongs to Relecov Manager group
-        manager_intra_data = {}
-        all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
-        num_of_samples = core.utils.samples.count_handled_samples()
-        if len(all_sample_per_date) > 0:
-            cust_data = {
-                "col_names": ["Sequencing Date", "Number of samples"],
-                "options": {},
-            }
-            cust_data["options"]["title"] = "Samples Received for all laboratories"
-            cust_data["options"]["width"] = 590
-            manager_intra_data["sample_bar_graph"] = (
-                core.utils.samples.create_date_sample_bar(
-                    all_sample_per_date, cust_data
-                )
-            )
-            # graph for percentage analysis
-            analysis_percent = (
-                core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
-            )
-            manager_intra_data["sample_gauge_graph"] = (
-                core.utils.samples.perc_gauge_graphic(analysis_percent)
-            )
-            # dash graph for samples per lab
-            core.utils.samples.create_dash_bar_for_each_lab()
-            # Get the latest action from each lab
-            manager_intra_data["actions"] = core.utils.samples.get_lab_last_actions()
-            # Collect GISAID information
-            gisaid_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "gisaid_accession_id", None
-            )
-            if len(gisaid_acc) > 0:
-                manager_intra_data["gisaid_accession"] = gisaid_acc
-                manager_intra_data["gisaid_graph"] = (
-                    core.utils.public_db.percentage_graphic(
-                        num_of_samples["Defined"], len(gisaid_acc), ""
-                    )
-                )
-            # Collect Ena information
-            ena_acc = core.utils.public_db.get_public_accession_from_sample_lab(
-                "ena_sample_accession", None
-            )
-            if len(ena_acc) > 0:
-                manager_intra_data["ena_accession"] = ena_acc
-                manager_intra_data["ena_graph"] = (
-                    core.utils.public_db.percentage_graphic(
-                        num_of_samples["Defined"], len(ena_acc), ""
-                    )
-                )
-        return render(
-            request,
-            "core/intranet.html",
-            {"manager_intra_data": manager_intra_data},
-        )
-"""
+
 
 def variants(request):
     return render(request, "core/variants.html", {})

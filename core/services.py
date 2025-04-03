@@ -1,10 +1,18 @@
 from django.db.models import Count
+from django.db.models import Q
 from django.contrib.auth.models import Group
+from django.db.models.functions import TruncDate
+from collections import OrderedDict
+
 import core.models
 import core.serializers
 import core.config
 import core.utils.rest_api
-from django.db.models import Q
+
+# TODO: Some functions are still being called from utils.py. 
+# Move those functions into proper service modules and import them accordingly. 
+# Keep utils.py only for generic utilities (e.g., data processing, conversions, etc.).
+# TODO: add docsrings and sort functions.
 
 def get_configuration_value(parameter_name):
     """Get a value from the configuration model."""
@@ -168,6 +176,91 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
         }
     }
 
+def get_sample_per_date_per_all_lab(detailed=False):
+    """
+    Return number of samples per sequencing date (grouped by date).
+    
+    - If `detailed` is False (default), return global counts (date -> count).
+    - If `detailed` is True, return per-lab counts: [{"lab_name": ..., "date": ..., "num_samples": ...}, ...]
+    """
+    if not detailed:
+        samples_by_date = (
+            core.models.Sample.objects
+            #.exclude(sequencing_date__isnull=True)
+            .annotate(date_only=TruncDate("sequencing_date"))
+            .values("date_only")
+            .annotate(count=Count("id"))
+            .order_by("date_only")
+        )
+
+        result = OrderedDict()
+        for entry in samples_by_date:
+            formatted_date = entry["date_only"].strftime("%d-%B-%Y")
+            result[formatted_date] = entry["count"]
+        return result
+
+    else:
+        samples_by_lab_and_date = (
+            core.models.Sample.objects
+            .exclude(sequencing_date__isnull=True)
+            .annotate(date_only=TruncDate("sequencing_date"))
+            .values("collecting_institution", "date_only")
+            .annotate(count=Count("id"))
+            .order_by("collecting_institution", "date_only")
+        )
+
+        result = []
+        for entry in samples_by_lab_and_date:
+            result.append({
+                "lab_name": entry["collecting_institution"],
+                "date": entry["date_only"].strftime("%d-%B-%Y"),
+                "num_samples": entry["count"]
+            })
+        return result
+
+
+def get_intranet_data_for_manager():
+    all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
+    num_of_samples = core.utils.samples.count_handled_samples()
+    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
+
+    bar_config = {
+        "col_names": ["Sequencing Date", "Number of samples"],
+        "options": {
+            "title": "Samples Received for all laboratories",
+            "width": 590,
+        },
+    }
+
+    # dash graph for samples per lab
+    core.utils.samples.create_dash_bar_for_each_lab()
+    
+    # Collect data that populate views
+    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id")
+    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession")
+    actions_raw = core.utils.samples.get_lab_last_actions()
+
+    data = {
+        "sample_bar_graph": core.utils.samples.create_date_sample_bar(all_sample_per_date, bar_config),
+        "sample_gauge_graph": core.utils.samples.perc_gauge_graphic(analysis_percent),
+        "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
+    }
+
+    if gisaid_raw:
+        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
+        data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
+            num_of_samples.get("Defined", 0), len(gisaid_raw), ""
+        )
+
+    if ena_raw:
+        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
+        data["ena_graph"] = core.utils.public_db.percentage_graphic(
+            num_of_samples.get("Defined", 0), len(ena_raw), ""
+        )
+
+    return data
+
+
 def get_intranet_data_for_user(user):
     lab_name = get_lab_name_from_user(user)
     date_lab_samples = core.utils.samples.get_sample_per_date_per_lab(lab_name)
@@ -210,40 +303,3 @@ def get_intranet_data_for_user(user):
 
     return intra_data
 
-
-def get_intranet_data_for_manager():
-    all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
-    num_of_samples = core.utils.samples.count_handled_samples()
-    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
-
-    bar_config = {
-        "col_names": ["Sequencing Date", "Number of samples"],
-        "options": {
-            "title": "Samples Received for all laboratories",
-            "width": 590,
-        },
-    }
-
-    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id")
-    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession")
-    actions_raw = core.utils.samples.get_lab_last_actions()
-
-    data = {
-        "sample_bar_graph": core.utils.samples.create_date_sample_bar(all_sample_per_date, bar_config),
-        "sample_gauge_graph": core.utils.samples.perc_gauge_graphic(analysis_percent),
-        "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
-    }
-
-    if gisaid_raw:
-        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
-        data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
-            num_of_samples.get("Defined", 0), len(gisaid_raw), ""
-        )
-
-    if ena_raw:
-        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
-        data["ena_graph"] = core.utils.public_db.percentage_graphic(
-            num_of_samples.get("Defined", 0), len(ena_raw), ""
-        )
-
-    return data

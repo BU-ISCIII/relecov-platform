@@ -66,12 +66,13 @@ class SampleStateCountSerializer(serializers.Serializer):
 
 
 class PublicAccessionSerializer(serializers.Serializer):
+    lab_name = serializers.CharField()
     sample_name = serializers.CharField()
     accession_id = serializers.CharField()
 
     @classmethod
     def from_raw(cls, raw_tuples):
-        return [cls({"sample_name": tup[0], "accession_id": tup[1]}).data for tup in raw_tuples]
+        return [cls({ "lab_name": tup[0], "sample_name": tup[1], "accession_id": tup[2]}).data for tup in raw_tuples]
 
 
 class LabLastActionSerializer(serializers.Serializer):
