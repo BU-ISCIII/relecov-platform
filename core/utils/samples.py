@@ -302,23 +302,6 @@ def create_dash_bar_for_each_lab():
     return
 
 
-def perc_gauge_graphic(values):
-    data = {}
-    try:
-        analized = values.get("analized", 0)
-        received = values.get("received", 0)
-        if received == 0:
-            data["value"] = 0.0
-        else:
-            x = analized / received * 100
-            data["value"] = round(x, 2)
-    except Exception as e:
-        return {"ERROR": f"Failed to generate gauge graphic: {str(e)}"}
-
-    gauge_graph = core.utils.plotly_graphics.gauge_graphic(data)
-    return gauge_graph
-
-
 def delete_temporary_sample_table(user_obj):
     """Set for all samples in the temporary table for the user that are sent
     to folder to start the process for validatation
