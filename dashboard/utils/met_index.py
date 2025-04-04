@@ -91,7 +91,7 @@ def index_dash_fields():
     graphics = {}
     util_data = schema_fields_utilization()
     progress_bars = []
-    
+
     if "NO_SCHEMA" in util_data:
         graphics["NO_SCHEMA"] = util_data["NO_SCHEMA"]
         return graphics
@@ -112,10 +112,10 @@ def index_dash_fields():
     else:
         #  ##### create metadata lab analysis  ######
         progress_bars.append(
-        dashboard.utils.plotly.progress_bar(
-            app_name="lims_filled_values",
-            value=util_data["lims_f_values"],
-            label="Laboratory Data Completeness",
+            dashboard.utils.plotly.progress_bar(
+                app_name="lims_filled_values",
+                value=util_data["lims_f_values"],
+                label="Laboratory Data Completeness",
             )
         )
         # ##### Create comparison graphics #######
@@ -173,6 +173,6 @@ def index_dash_fields():
         )
     else:
         graphics["ERROR_ANALYSIS"] = util_data["ERROR_ANALYSIS"]
-    
+
     graphics["progress_bars"] = progress_bars
     return graphics
