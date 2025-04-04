@@ -90,7 +90,8 @@ def schema_fields_utilization():
 def index_dash_fields():
     graphics = {}
     util_data = schema_fields_utilization()
-    graphics = {}
+    progress_bars = []
+    
     if "NO_SCHEMA" in util_data:
         graphics["NO_SCHEMA"] = util_data["NO_SCHEMA"]
         return graphics
@@ -110,10 +111,12 @@ def index_dash_fields():
 
     else:
         #  ##### create metadata lab analysis  ######
-        dashboard.utils.plotly.graph_gauge_percent_values(
+        progress_bars.append(
+        dashboard.utils.plotly.progress_bar(
             app_name="lims_filled_values",
             value=util_data["lims_f_values"],
             label="Laboratory Data Completeness",
+            )
         )
         # ##### Create comparison graphics #######
         if "ERROR_ANALYSIS" in util_data:
@@ -135,11 +138,12 @@ def index_dash_fields():
 
     if "ERROR_ANALYSIS" not in util_data:
         #  ##### create Bio info analysis  ######
-        dashboard.utils.plotly.graph_gauge_percent_values(
-            app_name="bio_filled_values",
-            value=util_data["bio_f_values"],
-            label="Bioinformatics Data Completeness",
-            size=150,
+        progress_bars.append(
+            dashboard.utils.plotly.progress_bar(
+                app_name="bio_filled_values",
+                value=util_data["bio_f_values"],
+                label="Bioinformatics Data Completeness",
+            )
         )
         # ##### create bar graph with all fields and values
         if "num_lab_fields" in util_data:
@@ -169,4 +173,6 @@ def index_dash_fields():
         )
     else:
         graphics["ERROR_ANALYSIS"] = util_data["ERROR_ANALYSIS"]
+    
+    graphics["progress_bars"] = progress_bars
     return graphics
