@@ -68,30 +68,21 @@
                             {% endif %}
                             <div class="row p-4" style="text-align: center;">
                                 {% if graphics.grouped_fields %}
-                                    <div class="col-lg-4 col-md-6 col-sm-12">
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
                                         {{graphics.grouped_fields | safe }}
                                     </div> <!-- end col -->
                                 {% endif %}
-                                <div class="col-lg-4 col-md-6 col-sm-12">
-                                    {% if graphics.ERROR %}
-                                        <div class="card-body  text-center text-danger">
-                                            <p>Completed fields in metadata </p>
-                                            <p>Unable to fetch data from LIMS</p>
-                                        </div> <!-- end card body  -->
-                                    {% else %}
-                                        {% plotly_app name="lims_filled_values" ratio=1.2 %}
-                                    {% endif %}
-                                </div> <!-- end col -->
-                                <div class="col-lg-4 col-md-6 col-sm-12">
-                                    {% if graphics.ERROR_ANALYSIS %}
-                                        <div class="card-body  text-center text-danger">
-                                            <br>
-                                            <p>No Bioinformatics Analysis data</p>
-                                        </div> <!-- end card body  -->
-                                    {% else %}
-                                        {% plotly_app name="bio_filled_values" ratio=1.2 %}
-                                    {% endif %}
-                                </div> <!-- end col -->
+                                {% if graphics.progress_bars %}
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                        <div class="d-flex flex-column align-items-center gap-3 justify-content-center">
+                                            {% for bar in graphics.progress_bars %}
+                                                <div class="w-75">
+                                                    {{ bar|safe }}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
                             </div> <!-- end row -->
 
                             {% if not graphics.ERROR_ANALYSIS %}
@@ -144,5 +135,18 @@
         });
     });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const bars = document.querySelectorAll(".progress-fill");
+  
+      bars.forEach((bar) => {
+        const target = bar.getAttribute("data-target");
+        setTimeout(() => {
+          bar.style.width = target;
+        }, 100);
+      });
+    });
+  </script>
 
 {% endblock %}
