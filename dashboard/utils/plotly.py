@@ -13,26 +13,23 @@ from textwrap import wrap as text_wrap
 from django.template.loader import render_to_string
 
 COLOR_PALETTE = [
-    '#448873', 
-    '#809dd4', 
-    '#99b4c7', 
-    "#6ca0c4", 
-    '#649d68', 
-    '#7c8fb2',  
-    '#828b3c', 
-    '#45777c', 
-    '#73423f', 
-    '#46523a'
+    "#448873",
+    "#809dd4",
+    "#99b4c7",
+    "#6ca0c4",
+    "#649d68",
+    "#7c8fb2",
+    "#828b3c",
+    "#45777c",
+    "#73423f",
+    "#46523a",
 ]
 
 mi_template = go.layout.Template(
     layout=dict(
         paper_bgcolor="#f8f9fc",
         plot_bgcolor="#f8f9fc",
-        font=dict(
-            family="Oxanium, sans-serif", 
-            color="#042940"
-        ),
+        font=dict(family="Oxanium, sans-serif", color="#042940"),
         xaxis=dict(
             color="#042940",
             showgrid=True,
@@ -40,7 +37,7 @@ mi_template = go.layout.Template(
             gridwidth=1.5,
             automargin=True,
             title_standoff=10,
-            zeroline=False
+            zeroline=False,
         ),
         yaxis=dict(
             color="#042940",
@@ -49,19 +46,13 @@ mi_template = go.layout.Template(
             gridwidth=1.5,
             automargin=True,
             title_standoff=10,
-            zeroline=False
+            zeroline=False,
         ),
-        legend=dict(
-            font=dict(color="#042940"),
-            bgcolor="rgba(0,0,0,0)"
-        ),
-        title=dict(
-            font=dict(color="#042940"),
-            x=0.01,
-            xanchor="left"
-        )
+        legend=dict(font=dict(color="#042940"), bgcolor="rgba(0,0,0,0)"),
+        title=dict(font=dict(color="#042940"), x=0.01, xanchor="left"),
     )
 )
+
 
 def format_labels(labels, wrap=None, truncate=None, separator="..."):
     """
@@ -130,12 +121,12 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
         ],
         style={"width": "100%", "height": "250px"},
     )
-    
+
+
 def progress_bar(app_name, value, label):
     """Renderiza una barra de progreso HTML en vez de un gauge."""
     return render_to_string(
-        "dashboard/progress_bar.html",
-        {"value": value, "label": label}
+        "dashboard/progress_bar.html", {"value": value, "label": label}
     )
 
 
@@ -193,7 +184,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         )
 
     fig.update_layout(
-        title=options["title"], ##828997
+        title=options["title"],  ##828997
         title_font_size=20,
         xaxis_tickangle=-45,
         template=mi_template,
@@ -216,10 +207,18 @@ def bar_graphic(data, col_names, legend, yaxis, options):
 
 def line_graphic(x_data, y_data, options):
     # Default color
-    marker_color=options.get("line_color", COLOR_PALETTE[0])
+    marker_color = options.get("line_color", COLOR_PALETTE[0])
     # Create line
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode="lines", name="lines", line=dict(color=marker_color)))
+    fig.add_trace(
+        go.Scatter(
+            x=x_data,
+            y=y_data,
+            mode="lines",
+            name="lines",
+            line=dict(color=marker_color),
+        )
+    )
 
     fig.update_layout(
         autosize=True,
@@ -297,7 +296,7 @@ def box_plot_graphic(data, options):
             if key not in colors:
                 colors[key] = COLOR_PALETTE[color_idx % len(COLOR_PALETTE)]
                 color_idx += 1
-            
+
             color = colors[key]
 
             fig.add_trace(
@@ -363,7 +362,7 @@ def ridge_plot_graphic(data, options):
         kde_points=np.linspace(
             np.nanmin(np.concatenate(samples)), np.nanmax(np.concatenate(samples)), 500
         ),
-        colorscale= COLOR_PALETTE,
+        colorscale=COLOR_PALETTE,
         colormode="trace-index",
         opacity=0.6,
         labels=labels,
