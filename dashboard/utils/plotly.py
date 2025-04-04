@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import re
 from textwrap import wrap as text_wrap
+from django.template.loader import render_to_string
 
 COLOR_PALETTE = [
     '#448873', 
@@ -128,6 +129,13 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
             ),
         ],
         style={"width": "100%", "height": "250px"},
+    )
+    
+def progress_bar(app_name, value, label):
+    """Renderiza una barra de progreso HTML en vez de un gauge."""
+    return render_to_string(
+        "dashboard/progress_bar.html",
+        {"value": value, "label": label}
     )
 
 
