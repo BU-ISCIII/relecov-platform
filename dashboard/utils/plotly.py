@@ -184,7 +184,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         )
 
     fig.update_layout(
-        title=options["title"],  ##828997
+        title=options["title"],
         title_font_size=20,
         xaxis_tickangle=-45,
         template=mi_template,
