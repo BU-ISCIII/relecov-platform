@@ -163,7 +163,7 @@ def create_sample_data(request):
             )
 
         # Save ENA info if included
-        if len(split_data["ena"]) > 0:
+        if split_data.get("ena") and any(split_data["ena"].values()):
             state_id = (
                 core.models.SampleState.objects.filter(state__exact="Ena")
                 .last()
@@ -214,7 +214,7 @@ def create_sample_data(request):
                 return Response({"ERROR": error}, status=status.HTTP_400_BAD_REQUEST)
 
         # Save GISAID info if included
-        if len(split_data["gisaid"]) > 0:
+        if split_data.get("gisaid") and any(split_data["gisaid"].values()):
             state_id = (
                 core.models.SampleState.objects.filter(state__exact="Gisaid")
                 .last()
@@ -434,7 +434,7 @@ def create_metadata_value(request):
 
     analysis_defined = core.api.utils.metadata_values.get_analysis_defined(sample_obj)
     # TODO: This field should be updated in order to make it more general
-    analysis_date = data.get("lineage_analysis_date", None)
+    analysis_date = data.get("bioinformatics_analysis_date", None)
     if analysis_date is not None:
         if analysis_date in list(analysis_defined):
             return Response(
