@@ -89,11 +89,15 @@ def line_graphic(x_data, y_data, options):
     # Create line
     marker_color = options.get("line_color", COLOR_PALETTE[1])
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x_data,
-                             y=y_data,
-                             mode="lines",
-                             name="lines",
-                             line=dict(color=marker_color)))
+    fig.add_trace(
+        go.Scatter(
+            x=x_data,
+            y=y_data,
+            mode="lines",
+            name="lines",
+            line=dict(color=marker_color),
+        )
+    )
 
     fig.update_layout(
         height=options["height"],
