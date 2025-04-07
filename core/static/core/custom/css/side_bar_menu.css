@@ -5,7 +5,7 @@
   }
 
   #wrapper #content-wrapper {
-    background-color: #ffffff;
+    background-color: #f8f9fc;
     width: 100%;
     overflow-x: hidden;
   }
@@ -330,7 +330,7 @@
   }
 
   .sidebar-dark .sidebar-brand {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark hr.sidebar-divider {
@@ -338,7 +338,7 @@
   }
 
   .sidebar-dark .sidebar-heading {
-    color: rgba(5, 196, 107, 0.8);
+    color: rgba(255, 255, 255, 0.4);
   }
 
   .sidebar-dark .nav-item .nav-link {
@@ -362,11 +362,11 @@
   }
 
   .sidebar-dark .nav-item.active .nav-link {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark .nav-item.active .nav-link i {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark #sidebarToggle {
@@ -374,7 +374,7 @@
   }
 
   .sidebar-dark #sidebarToggle::after {
-    color: #448873;
+    color: #ffffff;
   }
 
   .sidebar-dark #sidebarToggle:hover {
@@ -429,9 +429,11 @@
   }
 
 
+
   .bg-gradient-primary {
-    background-color: #3f7e79;
-    background-image: linear-gradient(180deg, #3f7e79 40%, #bfbfbf 100%);
+    background-color: #448873;
+    background-image: linear-gradient(180deg, #448873 40%, #ffffff 100%);
     background-size: cover;
+    border-radius: 10px;
 }
 
