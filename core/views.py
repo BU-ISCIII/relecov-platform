@@ -127,7 +127,6 @@ def schema_display(request, schema_id):
     return render(request, "core/schemaDisplay.html", {"schema_data": schema_data})
 
 
-# TODO: Post section needs to be tested
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
@@ -143,6 +142,7 @@ def search_sample(request):
             return render(
                 request, "core/searchSample.html", {"search_data": search_data}
             )
+
         # check the right format of s_date
         if s_date != "" and not core.utils.generic_functions.check_valid_date_format(
             s_date
@@ -164,28 +164,34 @@ def search_sample(request):
             s_date=s_date,
             user=request.user
         )
-        if len(display_data["list_display"]["s_data"]) == 0:
+        list_display = display_data["list_display"]
+        # Redirection (samples == 1 )
+        if list_display["redirect"]:
+            return redirect(
+                "sample_display", 
+                sample_id=list_display["redirect"]
+            )
+        if list_display["ERROR"]:
             return render(
                 request,
                 "core/searchSample.html",
                 {
                     "search_data": search_data,
-                    "warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
-                },
+                    "ERROR": list_display["ERROR"]
+                }
             )
-        if len(display_data["list_display"]["s_data"]) == 1:
-            return redirect("sample_display", sample_id=display_data[0])
-        else:
-            sample = {
-                "s_data": display_data["list_display"]["s_data"],
-                "heading": core.config.HEADING_FOR_SAMPLE_LIST,
-            }
-            return render(request, "core/searchSample.html", {"list_display": sample})
-    if "ERROR" in search_data:
-        return render(
-            request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
+        # POST return sample list display
+        return render(request,
+            "core/searchSample.html",
+            {"list_display": list_display}
         )
-    return render(request, "core/searchSample.html", {"search_data": search_data})
+
+    # GET returns search data
+    return render(
+        request,
+        "core/searchSample.html",
+        {"search_data": search_data}
+    )
 
 
 # FIXME: This needs a template or error message when user != admin tryies to access.

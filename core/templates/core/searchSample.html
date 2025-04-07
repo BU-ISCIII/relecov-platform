@@ -57,12 +57,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for pk, s_name, state, seq_date, r_date in list_display.s_data %}
+                                                {% for sample in list_display.s_data %}
                                                     <tr>
-                                                        <td><a href="sampleDisplay={{pk}}">{{s_name}}</a></td>
-                                                        <td>{{state}}</td>
-                                                        <td>{{seq_date}}</td>
-                                                        <td>{{r_date}}</td>
+                                                        <td><a href="sampleDisplay={{ sample.id }}">{{ sample.name }}</a></td>
+                                                        <td>{{ sample.state }}</td>
+                                                        <td>{{ sample.sequencing_date }}</td>
+                                                        <td>{{ sample.recorded_date }}</td>
                                                     </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -141,7 +141,7 @@
                                                             <select class="form-select" aria-label="Select the Laboratory" name="lab">
                                                                 <option value="">Choose a Laboratory </option>
                                                                 {% for lab in search_data.labs %}
-                                                                    <<option value={{lab}}>{{lab}}</option>
+                                                                <option value="{{ lab }}">{{ lab }}</option>
                                                                 {% endfor %}
                                                             </select>
                                                         </div>

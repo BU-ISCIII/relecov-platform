@@ -7,6 +7,7 @@ from collections import OrderedDict
 import core.models
 import core.serializers
 import core.config
+import core.utils.utils
 import core.utils.rest_api
 
 # TODO: Some functions are still being called from utils.py. 
@@ -32,7 +33,7 @@ def count_samples_by_state():
         .annotate(count=Count("id"))
     )
 
-def get_recent_samples(limit=10):
+def get_recent_samples(limit=20):
     samples = core.models.Sample.objects.order_by("-created_at")[:limit]
     return core.serializers.SampleSerializer(samples, many=True).data
 
@@ -125,7 +126,7 @@ def get_search_data(user_obj):
 
 
 def display_samples(sample_name, lab_name, sample_state, s_date, user):
-    """Sample filtering accoding to specific params and return serialized data."""
+    """Sample filtering according to params and return structured, serialized data."""
 
     sample_objs = core.models.Sample.objects.all()
 
@@ -137,20 +138,24 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
             Q(sequencing_sample_id__iexact=sample_name)
             | Q(collecting_lab_sample_id__iexact=sample_name)
         )
-        if exact_qs.count() == 1:
-            return {"redirect": exact_qs.first().pk}
-        elif exact_qs.exists():
+        if exact_qs.exists():
             sample_objs = exact_qs
         else:
             partial_qs = sample_objs.filter(
                 Q(sequencing_sample_id__icontains=sample_name)
                 | Q(collecting_lab_sample_id__icontains=sample_name)
             )
-            if partial_qs.count() == 1:
-                return {"redirect": partial_qs.first().pk}
-            elif not partial_qs.exists():
-                return {"warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH}
-            sample_objs = partial_qs
+            if partial_qs.exists():
+                sample_objs = partial_qs
+            else:
+                return {
+                    "list_display": {
+                        "s_data": [],
+                        "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+                        "redirect": None,
+                        "ERROR": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH
+                    }
+                }
 
     if sample_state:
         sample_ids = core.models.SampleStateHistory.objects.filter(
@@ -162,10 +167,24 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
         sample_objs = sample_objs.filter(created_at__exact=s_date)
 
     if not sample_objs.exists():
-        return {"warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH}
+        return {
+            "list_display": {
+                "s_data": [],
+                "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+                "redirect": None,
+                "ERROR": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH
+            }
+        }
 
     if sample_objs.count() == 1:
-        return {"redirect": sample_objs.first().pk}
+        return {
+            "list_display": {
+                "s_data": [],
+                "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+                "redirect": sample_objs.first().pk,
+                "ERROR": None
+            }
+        }
 
     serialized_samples = core.serializers.SampleSearchResultSerializer(sample_objs, many=True).data
 
@@ -173,8 +192,11 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
         "list_display": {
             "s_data": serialized_samples,
             "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+            "redirect": None,
+            "ERROR": None
         }
     }
+
 
 def get_sample_per_date_per_all_lab(detailed=False):
     """
@@ -239,10 +261,9 @@ def get_intranet_data_for_manager():
     gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id")
     ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession")
     actions_raw = core.utils.samples.get_lab_last_actions()
-
     data = {
         "sample_bar_graph": core.utils.samples.create_date_sample_bar(all_sample_per_date, bar_config),
-        "sample_gauge_graph": core.utils.samples.perc_gauge_graphic(analysis_percent),
+        "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
         "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
     }
 
@@ -285,7 +306,7 @@ def get_intranet_data_for_user(user):
 
     intra_data = {
         "sample_bar_graph": core.utils.samples.create_date_sample_bar(date_lab_samples, bar_config),
-        "sample_gauge_graph": core.utils.samples.perc_gauge_graphic(analysis_percent),
+        "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
         "actions": core.serializers.LabLastActionDictSerializer.from_raw(actions_raw),
     }
 
