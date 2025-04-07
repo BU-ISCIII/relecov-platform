@@ -56,7 +56,7 @@ def bar_graphic(data, col_names, legend, yaxis, options):
     if "colors" in options:
         colors = options["colors"]
     else:
-        colors = ["#0099ff", "#1aff8c", "#ffad33", "#ff7733", "#66b3ff", "#66ffcc"]
+        colors = COLOR_PALETTE
     fig = go.Figure()
     for idx in range(1, len(col_names)):
         fig.add_trace(
@@ -70,17 +70,9 @@ def bar_graphic(data, col_names, legend, yaxis, options):
         fig = log_ydata_if_needed(fig, data[col_names[idx]], ratio=100)
 
     # Customize aspect
-    fig.update_traces(
-        marker_line_color="rgb(8,48,107)",
-        marker_line_width=1.5,
-        opacity=0.6,
-    )
     fig.update_layout(
         title=options["title"],
-        title_font_color="green",
-        title_font_size=20,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        template=mi_template,
         xaxis_tickangle=-45,
         yaxis=yaxis,
         margin=dict(l=0, r=0, t=30, b=0),
@@ -95,8 +87,13 @@ def bar_graphic(data, col_names, legend, yaxis, options):
 
 def line_graphic(x_data, y_data, options):
     # Create line
+    marker_color = options.get("line_color", COLOR_PALETTE[1])
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode="lines", name="lines"))
+    fig.add_trace(go.Scatter(x=x_data,
+                             y=y_data,
+                             mode="lines",
+                             name="lines",
+                             line=dict(color=marker_color)))
 
     fig.update_layout(
         height=options["height"],
@@ -104,11 +101,8 @@ def line_graphic(x_data, y_data, options):
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
         margin=dict(t=30, b=0, l=0, r=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        template=mi_template,
         title=options["title"],
-        title_font_color="green",
-        title_font_size=20,
     )
     log_ydata_if_needed(fig, y_data, ratio=100)
     if "xaxis" in options:
@@ -194,16 +188,7 @@ def bullet_graphic(value, title):
 
 
 def pie_graphic(data, names, title, show_legend=False):
-    colors = [
-        "cyan",
-        "red",
-        "gold",
-        "darkblue",
-        "darkred",
-        "magenta",
-        "darkorange",
-        "turquoise",
-    ]
+    colors = COLOR_PALETTE
     fig = go.Figure(
         data=go.Pie(
             labels=names,
@@ -212,8 +197,8 @@ def pie_graphic(data, names, title, show_legend=False):
     )
     fig.update_traces(
         title=title,
-        title_font=dict(size=15, family="Verdana", color="darkgreen"),
-        marker=dict(colors=colors, line=dict(color="black", width=1)),
+        template=mi_template,
+        marker=dict(colors=colors),
     )
     fig.update_layout(
         height=350, width=270, showlegend=show_legend, margin=dict(t=0, b=0, l=0, r=0)
