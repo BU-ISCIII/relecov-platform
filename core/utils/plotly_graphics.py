@@ -9,6 +9,47 @@ from dash import dcc, html
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
 
+COLOR_PALETTE = [
+    "#448873",
+    "#809dd4",
+    "#99b4c7",
+    "#6ca0c4",
+    "#649d68",
+    "#7c8fb2",
+    "#828b3c",
+    "#45777c",
+    "#73423f",
+    "#46523a",
+]
+
+mi_template = go.layout.Template(
+    layout=dict(
+        paper_bgcolor="#f8f9fc",
+        plot_bgcolor="#f8f9fc",
+        font=dict(family="Oxanium, sans-serif", color="#042940"),
+        xaxis=dict(
+            color="#042940",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.6)",
+            gridwidth=1.5,
+            automargin=True,
+            title_standoff=10,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            color="#042940",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.6)",
+            gridwidth=1.5,
+            automargin=True,
+            title_standoff=10,
+            zeroline=False,
+        ),
+        legend=dict(font=dict(color="#042940"), bgcolor="rgba(0,0,0,0)"),
+        title=dict(font=dict(color="#042940"), x=0.01, xanchor="left"),
+    )
+)
+
 
 def bar_graphic(data, col_names, legend, yaxis, options):
     """Options fields are: title, height"""
