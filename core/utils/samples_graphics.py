@@ -53,7 +53,6 @@ def received_per_lab():
         options={
             "title": "",
             "height": 400,
-            "colors": "#1aff8c",
             "truncate_labels": 15,
         },
     )
