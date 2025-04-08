@@ -3,6 +3,11 @@
 
 {% block content %}
 {% include "core/sideMenuFuncionality.html" %}
+
+{% block extra_css %}
+<link href="{% static 'docs/css/relecov_documentation.css' %}" rel="stylesheet">
+{% endblock %}
+
 <section class="hero-animated d-flex">
     <div class="container docs position-relative">
         <!-- Page Wrapper -->
