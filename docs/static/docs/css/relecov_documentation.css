@@ -130,3 +130,35 @@ span.linenos.special { color: #c9d1d9; background-color: #6e7681; padding-left: 
 .codehilite .vi { color: #79c0ff } /* Name.Variable.Instance */
 .codehilite .vm { color: #79c0ff } /* Name.Variable.Magic */
 .codehilite .il { color: #a5d6ff } /* Literal.Number.Integer.Long */
+
+ /* Responsive styles */
+
+@media (max-width: 768px) {
+    .docs h1 {
+        font-size: 32px;
+    }
+
+    .docs h2 {
+        font-size: 24px;
+    }
+
+    .docs h3 {
+        font-size: 20px;
+    }
+
+    .docs h4 {
+        font-size: 14px;
+    }
+
+    .hero-animated .docs p,
+    .docs ol,
+    .docs dl,
+    .docs ul {
+        font-size: 14px;
+    }
+
+    .docs img {
+        width: 100%;
+        height: auto;
+    }
+}
