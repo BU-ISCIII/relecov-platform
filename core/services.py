@@ -27,22 +27,18 @@ def get_configuration_value(parameter_name):
 
 def count_samples_by_state():
     """Count number of samples by state."""
-    return (
+    queryset = (
         core.models.SampleStateHistory.objects
         .values("state_id__state")
         .annotate(count=Count("id"))
     )
-
-def get_recent_samples(limit=20):
-    samples = core.models.Sample.objects.order_by("-created_at")[:limit]
-    return core.serializers.SampleSerializer(samples, many=True).data
+    return core.serializers.SampleCountByStateSerializer(queryset, many=True).data
 
 
 def get_index_data():
     """Pack index data and return dict."""
     return {
         "number_of_samples": count_samples_by_state(),
-        "recent_samples": get_recent_samples(),
         "nextstrain_url": get_configuration_value("NEXTSTRAIN_URL")
     }
 

@@ -1,6 +1,11 @@
 from rest_framework import serializers
 import core.models
 
+
+class SampleCountByStateSerializer(serializers.Serializer):
+    label = serializers.CharField(source="state_id__state")
+    count = serializers.IntegerField()
+
 class SampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = core.models.Sample

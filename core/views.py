@@ -24,7 +24,8 @@ import core.utils.samples_map
 
 def index(request):
     index_data = core.services.get_index_data()
-    samples_count =  {item["state_id__state"]: item["count"] for item in index_data["number_of_samples"]}
+    samples_count =  {item["label"]: item["count"] for item in index_data["number_of_samples"]}
+
     return render(
         request,
         "core/index.html",
