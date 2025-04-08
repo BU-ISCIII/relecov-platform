@@ -101,3 +101,6 @@ protocols used for sample preparation library.
 
 
 ![m_dashboard_bioinfo_2](img/m_dashboard_bioinfo_2.png)
+
+
+![m_dashboard_bioinfo_3](img/m_dashboard_bioinfo_3.png)
