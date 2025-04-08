@@ -230,6 +230,7 @@ install_type="full"
 upgrade=false
 upgrade_type="full"
 docker=false
+SUPERUSER="admin"
 
 # PARSE VARIABLE ARGUMENTS WITH getops
 options=":c:s:i:u:g:tdkvh"
@@ -394,7 +395,9 @@ if [ $upgrade == true ]; then
         # Linux distribution
         linux_distribution=$(lsb_release -i | cut -f 2-)
         update_system_deps
-        
+
+        mkdir -p $INSTALL_PATH/conf
+
         if [ -d $INSTALL_PATH/virtualenv ]; then
             read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
             echo    # (optional) move to a new line
@@ -436,10 +439,57 @@ if [ $upgrade == true ]; then
         rsync -rlv --fuzzy --delay-updates --delete-delay \
             --exclude "logs" --exclude "documents" --exclude "migrations" --exclude "__pycache__" \
             README.md LICENSE conf $REQUIRED_MODULES $INSTALL_PATH/
+        
+        PROJECT_FOLDER="$INSTALL_PATH/$PROJECT_FOLDER"
+        if [ ! -f "$PROJECT_FOLDER" ]; then
+            # Starting Relecov Platform
+            echo "No valid $PROJECT_NAME project was found in $INSTALL_PATH. Creating it..."
+            cd $INSTALL_PATH
+
+            echo "activate the virtualenv"
+            source virtualenv/bin/activate
+
+            django-admin startproject "$PROJECT_NAME" .
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to create Django project. Aborting."
+                exit 1
+            fi
             
-        # update the settings.py and the main urls
-        echo "Update settings and url file."
-        update_settings_and_urls
+            # update the settings.py and the main urls
+            echo "Update settings and url file."
+            update_settings_and_urls
+
+            if [ $docker == false ]; then
+                echo "Creating the database structure for $PROJECT_NAME"
+                python manage.py migrate
+                python manage.py makemigrations django_plotly_dash $MIGRATION_MODULES
+                python manage.py migrate
+                echo "Loading in database initial data"
+                python manage.py loaddata conf/first_install_tables.json
+                # Set load tables to false since they are already loaded
+                tables = false
+                echo "Updating Apache configuration"
+                if [[ $linux_distribution == "Ubuntu" ]]; then
+                    cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
+                fi
+
+                if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+                    cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
+                fi
+
+                echo "Creating super user "
+                admin_exists=$(python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username=${SUPERUSER}).exists())")
+                if [ "$admin_exists" = "False" ]; then
+                    echo "Super user $SUPERUSER does not exist. Creating one now..."
+                    python manage.py createsuperuser --username admin
+                elif [ $? -ne 0 ]; then
+                    echo "There was an error trying to check superuser status. No superuser created..."
+                else
+                    echo "Super user $SUPERUSER already exists. Skipping superuser creation."
+                fi
+            fi
+            cd -
+        fi
 
         cd $INSTALL_PATH
         echo "activate the virtualenv"
@@ -550,19 +600,6 @@ if [ $install == true ]; then
             apache_group="www-data"
         else
             apache_group="apache"
-        fi
-
-        echo "Starting $PROJECT_NAME installation"
-        if [ -d $INSTALL_PATH ]; then
-            echo "There already is an installation of $PROJECT_NAME in $INSTALL_PATH."
-            read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
-            echo    # (optional) move to a new line
-            if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-                echo "Exiting without running $PROJECT_NAME installation"
-                exit 1
-            else
-                rm -rf $INSTALL_PATH
-            fi
         fi
 
         echo "Starting $PROJECT_NAME installation"
