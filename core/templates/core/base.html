@@ -26,6 +26,7 @@
 
         <!-- Template Main CSS File -->
         <link href="{% static 'core/main_style/css/main.css' %}" rel="stylesheet">
+        {% block extra_css %}{% endblock %}
         <!--   Jquery scripts   -->
         <script src="{% static 'core/vendor/jquery/js/jquery-3.6.0.min.js' %}"></script>
         <link href="{% static 'docs/css/docs.css' %}" rel="stylesheet">
