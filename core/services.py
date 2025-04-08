@@ -47,22 +47,49 @@ def get_index_data():
     }
 
 
+def get_labs_and_users_data():
+    labs = get_all_defined_labs()
+    users = get_defined_users()
+    return core.serializers.LabUserAssignSerializer.from_raw_data(
+        labs=labs,
+        users=users,
+
+    )
+
+
 def assign_samples_to_user_by_lab(lab, user_id):
-    """Asign labortory samples to a new user."""
+    labs = get_all_defined_labs()
+    users = get_defined_users()
     if not user_id:
-        return {"ERROR": "No user selected. Please choose a user before submitting."}
+        return core.serializers.LabUserAssignSerializer.from_raw_data(
+            labs=labs,
+            users=users,
+            ERROR="No user selected. Please choose a user before submitting."
+        )
 
     try:
         user_obj = core.models.User.objects.get(pk=user_id)
     except core.models.User.DoesNotExist:
-        return {"ERROR": f"User with ID {user_id} does not exist."}
+        return core.serializers.LabUserAssignSerializer.from_raw_data(
+            labs=labs,
+            users=users,
+            ERROR=f"User with ID {user_id} does not exist."
+        )
 
     samples_qs = core.models.Sample.objects.filter(collecting_institution__iexact=lab)
-
     if samples_qs.exists():
         samples_qs.update(user=user_obj)
-        return {"SUCCESS": "Samples successfully reassigned."}
-    return {"ERROR": f"{core.config.ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB} {lab}"}
+        return core.serializers.LabUserAssignSerializer.from_raw_data(
+            labs=labs,
+            users=users,
+            SUCCESS="Samples successfully reassigned."
+        )
+
+    return core.serializers.LabUserAssignSerializer.from_raw_data(
+        labs=labs,
+        users=users,
+        ERROR=f"{core.config.ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB} {lab}"
+    )
 
 
 def get_all_defined_labs():
@@ -123,7 +150,6 @@ def get_search_data(user_obj):
         "labs": labs,
         "states": serialized_states,
     }
-
 
 def display_samples(sample_name, lab_name, sample_state, s_date, user):
     """Sample filtering according to params and return structured, serialized data."""

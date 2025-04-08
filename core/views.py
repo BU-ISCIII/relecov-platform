@@ -22,9 +22,6 @@ import core.services
 import core.utils.samples_graphics
 import core.utils.samples_map
 
-#  End of imports  received samples
-
-
 def index(request):
     index_data = core.services.get_index_data()
     samples_count =  {item["state_id__state"]: item["count"] for item in index_data["number_of_samples"]}
@@ -37,29 +34,23 @@ def index(request):
         }
     )
 
-# TODO: Template should be modify cause lab_data is now in serailze structure
 @login_required
 def assign_samples_to_user(request):
     if request.user.username != "admin":
         return redirect("/")
 
+    # Load lab/user data to always include it
     if request.method == "POST" and request.POST.get("action") == "assignSamples":
-        result = core.services.assign_samples_to_user_by_lab(
+        lab_data = core.services.assign_samples_to_user_by_lab(
             lab=request.POST.get("lab"),
             user_id=request.POST.get("userName")
         )
-        return render(
-            request,
-            "core/assignSamplesToUser.html", result
-        )
-
-    lab_data = core.services.get_labs_and_users()
-    return render(
-        request,
-        "core/assignSamplesToUser.html", {"lab_data": lab_data}
-    )
+    else:
+        lab_data = core.services.get_labs_and_users_data()
+    return render(request, "core/assignSamplesToUser.html", {"lab_data": lab_data})
 
 
+# TODO: this needs serialized-based refactor 
 @login_required
 def sample_display(request, sample_id):
     sample_data = core.utils.samples.get_sample_display_data(sample_id, request.user)
@@ -87,7 +78,7 @@ def sample_display(request, sample_id):
         )
     return render(request, "core/sampleDisplay.html", {"sample_data": sample_data})
 
-
+# TODO: this needs serialized-based refactor
 @login_required
 def schema_handling(request):
     if request.user.username != "admin":
@@ -118,7 +109,7 @@ def schema_handling(request):
     schemas = core.utils.schema.get_schemas_loaded(__package__)
     return render(request, "core/schemaHandling.html", {"schemas": schemas})
 
-
+# TODO: this needs serialized-based refactor
 @login_required
 def schema_display(request, schema_id):
     if request.user.username != "admin":
@@ -193,7 +184,7 @@ def search_sample(request):
         {"search_data": search_data}
     )
 
-
+# TODO: this needs serialized-based refactor
 # FIXME: This needs a template or error message when user != admin tryies to access.
 @login_required
 def metadata_visualization(request):
@@ -259,7 +250,7 @@ def intranet(request):
 def variants(request):
     return render(request, "core/variants.html", {})
 
-
+# TODO: this needs serialized-based refactor
 @login_required()
 def metadata_form(request):
     schema_obj = core.utils.schema.get_latest_schema("relecov", __package__)
@@ -347,7 +338,7 @@ def metadata_form(request):
             )
         return render(request, "core/metadataForm.html", {"m_form": m_form})
 
-
+# TODO: this needs serialized-based refactor
 @login_required()
 def annotation_display(request, annot_id):
     """Display the full information about the organism annotation stored in
@@ -362,7 +353,7 @@ def annotation_display(request, annot_id):
         request, "core/annotationDisplay.html", {"annotation_data": annot_data}
     )
 
-
+# TODO: this needs serialized-based refactor
 @login_required()
 def organism_annotation(request):
     """Store the organism annotation gff file"""
@@ -386,7 +377,7 @@ def organism_annotation(request):
         )
     return render(request, "core/organismAnnotation.html", {"annotations": annotations})
 
-
+# TODO: this needs serialized-based refactor
 @login_required()
 def laboratory_contact(request):
     lab_data = core.utils.labs.get_lab_contact_details(request.user)
@@ -405,7 +396,7 @@ def laboratory_contact(request):
         return render(request, "core/laboratoryContact.html", {"Success": "Success"})
     return render(request, "core/laboratoryContact.html", {"lab_data": lab_data})
 
-
+# TODO: this needs serialized-based refactor
 @login_required
 def received_samples(request):
     sample_data = {}
