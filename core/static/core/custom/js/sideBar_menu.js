@@ -15,19 +15,32 @@
     $icon.toggleClass("bi-chevron-left bi-chevron-right");
   });
 
-  // Close any open menu accordions when window is resized below 768px
-  $(window).resize(function() {
-    if ($(window).width() < 768) {
-      $('.sidebar .collapse').collapse('hide');
-    };
-    
-    // Toggle the side navigation when window is resized below 480px
-    if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
-      $("body").addClass("sidebar-toggled");
-      $(".sidebar").addClass("toggled");
-      $('.sidebar .collapse').collapse('hide');
-    };
-  });
+// Auto-collapse sidebar on small screens
+function autoCollapseSidebar() {
+  if ($(window).width() < 768) {
+    $("body").addClass("sidebar-toggled");
+    $(".sidebar").addClass("toggled");
+    $('.sidebar .collapse').collapse('hide');
+
+    $("#sidebarToggle").find("i.toggle-icon")
+      .removeClass("bi-chevron-left")
+      .addClass("bi-chevron-right");
+  } else {
+    $("body").removeClass("sidebar-toggled");
+    $(".sidebar").removeClass("toggled");
+    $("#sidebarToggle").find("i.toggle-icon")
+      .removeClass("bi-chevron-right")
+      .addClass("bi-chevron-left");
+  }
+}
+
+$(document).ready(function() {
+  autoCollapseSidebar();
+});
+
+$(window).resize(function() {
+  autoCollapseSidebar();
+});
 
   // Prevent the content wrapper from scrolling when the fixed side navigation hovered over
   $('body.fixed-nav .sidebar').on('mousewheel DOMMouseScroll wheel', function(e) {
