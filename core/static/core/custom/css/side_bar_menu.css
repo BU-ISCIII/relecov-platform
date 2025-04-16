@@ -36,7 +36,7 @@
 /* Sidebar background */
 .bg-gradient-primary {
   background-color: #448873;
-  background-image: linear-gradient(180deg, #448873 40%, var(--color-secondary) 100%);
+  background-image: linear-gradient(180deg, #448873 95%, var(--color-secondary) 100%);
   background-size: cover;
   border-radius: 10px;
 }
@@ -54,7 +54,7 @@
 }
 
 .sidebar .sidebar-brand i {
-  font-size: 1.3rem;
+  font-size: 1.6rem;
 }
 
 /* ===================== */
@@ -104,7 +104,7 @@
 .sidebar .nav-link:hover,
 .sidebar .nav-link:focus {
   background: rgba(255, 255, 255, 0.08); /* más sutil */
-  color: #ffffff;
+  color: var(--color-links);
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
@@ -134,6 +134,12 @@
   background: rgba(255, 255, 255, 0.4);
 }
 
+#sidebarToggle .toggle-icon {
+  transition: transform 0.3s ease;
+  font-size: 1.2rem;
+  color: white;
+}
+
 /* ===================== */
 /* Responsive expandido */
 /* ===================== */
@@ -156,23 +162,46 @@
 }
 
 /* ===================== */
-/* Responsive colapsado */
+/* Responsive colapsed */
 /* ===================== */
 .sidebar.toggled {
   width: 6.5rem;
 }
+/* Sidebar Brand */
+.sidebar.toggled .sidebar-brand {
+  flex-direction: column;
+}
+.sidebar.toggled .sidebar-brand-text {
+  display: none;
+}
+/* Sidebar Headings */
+.sidebar.toggled .sidebar-heading {
+  font-size: 0;
+  text-align: center;
+  padding: 1rem 0;
+}
 
+.sidebar.toggled .sidebar-heading i {
+  font-size: 1.4rem;
+  display: none;
+  margin: 0 auto;
+}
+
+/* Nav Links */
 .sidebar.toggled .nav-link {
   flex-direction: column;
   justify-content: center;
   text-align: center;
+  padding: 0.75rem 0;
+}
+
+.sidebar.toggled .nav-link i {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .sidebar.toggled .nav-link span {
   display: block;
-  font-size: 0.65rem;
-}
-
-.sidebar.toggled .sidebar-brand {
-  flex-direction: column;
+  font-size: 0.6rem;
+  margin-top: 0.25rem;
 }
