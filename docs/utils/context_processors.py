@@ -1,2 +1,2 @@
-def current_path(request):
-    return {"current_path": request.path}
+def docs_current_path(request):
+    return {"docs_current_path": request.path}
