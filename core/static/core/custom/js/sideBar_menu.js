@@ -5,9 +5,14 @@
   $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
     $("body").toggleClass("sidebar-toggled");
     $(".sidebar").toggleClass("toggled");
+  
     if ($(".sidebar").hasClass("toggled")) {
       $('.sidebar .collapse').collapse('hide');
-    };
+    }
+  
+    // Change arrow icon
+    const $icon = $(this).find("i.toggle-icon");
+    $icon.toggleClass("bi-chevron-left bi-chevron-right");
   });
 
   // Close any open menu accordions when window is resized below 768px
@@ -52,5 +57,4 @@
     }, 1000, 'easeInOutExpo');
     e.preventDefault();
   });
-
 })(jQuery); // End of use strict
