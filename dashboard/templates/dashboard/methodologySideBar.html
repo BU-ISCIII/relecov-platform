@@ -10,22 +10,22 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
     <!-- Nav Item - Dashboard -->
-    <li class="nav-item active">
+    <li class="nav-item {% if '/dashboard/methodology/hostInfo' in docs_current_path %}active{% endif %}">
         <a class="nav-link" href="/dashboard/methodology/hostInfo">
             <i class="bi bi-people"></i>
             <span>Host Demographics</span></a>
     </li>
-    <li class="nav-item active">
+    <li class="nav-item {% if '/dashboard/methodology/sequencing in docs_current_path %}active{% endif %}">
         <a class="nav-link" href="/dashboard/methodology/sequencing">
             <i class="bi bi-body-text"></i>
             <span>Sequencing Overview</span></a>
     </li>
-    <li class="nav-item active">
+    <li class="nav-item {% if '/dashboard/methodology/sampleProcessing in docs_current_path %}active{% endif %}">
         <a class="nav-link" href="/dashboard/methodology/sampleProcessing">
             <i class="bi bi-cpu"></i>
             <span>Sample Processing</span></a>
     </li>
-    <li class="nav-item active">
+    <li class="nav-item {% if '/dashboard/methodology/bioinfo' in docs_current_path %}active{% endif %}">
         <a class="nav-link" href="/dashboard/methodology/bioinfo">
             <i class="bi bi-bar-chart-line"></i>
             <span>Sequencing Quality &amp; Depth Analysis</span></a>
