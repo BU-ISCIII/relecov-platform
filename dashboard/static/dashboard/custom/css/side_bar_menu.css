@@ -128,6 +128,10 @@
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 #sidebarToggle:hover {
@@ -138,6 +142,7 @@
   transition: transform 0.3s ease;
   font-size: 1.2rem;
   color: white;
+  line-height: 1;
 }
 
 /* ===================== */
