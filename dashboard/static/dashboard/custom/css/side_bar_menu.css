@@ -36,7 +36,7 @@
 /* Sidebar background */
 .bg-gradient-primary {
   background-color: #448873;
-  background-image: linear-gradient(180deg, #448873 95%, var(--color-secondary) 100%);
+  background-image: linear-gradient(180deg, #448873 55%, var(--color-secondary) 100%);
   background-size: cover;
   border-radius: 10px;
 }
