@@ -209,7 +209,11 @@ def pie_graphic(data, names, title, show_legend=False):
         opacity=0.6,
     )
     fig.update_layout(
-        height=350, width=270, showlegend=show_legend, margin=dict(t=0, b=0, l=0, r=0), template=mi_template,
+        height=350,
+        width=270,
+        showlegend=show_legend,
+        margin=dict(t=0, b=0, l=0, r=0),
+        template=mi_template,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
