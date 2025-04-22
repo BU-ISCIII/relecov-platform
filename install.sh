@@ -440,10 +440,10 @@ if [ $upgrade == true ]; then
             --exclude "logs" --exclude "documents" --exclude "migrations" --exclude "__pycache__" \
             README.md LICENSE conf $REQUIRED_MODULES $INSTALL_PATH/
         
-        PROJECT_FOLDER="$INSTALL_PATH/$PROJECT_FOLDER"
-        if [ ! -f "$PROJECT_FOLDER" ]; then
+        PROJECT_MANAGE="$INSTALL_PATH/manage.py"
+        if [ ! -f "$PROJECT_MANAGE" ]; then
             # Starting Relecov Platform
-            echo "No valid $PROJECT_NAME project was found in $INSTALL_PATH. Creating it..."
+            echo "No valid $PROJECT_MANAGE project was found in $INSTALL_PATH. Creating it..."
             cd $INSTALL_PATH
 
             echo "activate the virtualenv"
@@ -454,29 +454,8 @@ if [ $upgrade == true ]; then
                 echo "Error: Failed to create Django project. Aborting."
                 exit 1
             fi
-            
-            # update the settings.py and the main urls
-            echo "Update settings and url file."
-            update_settings_and_urls
 
             if [ $docker == false ]; then
-                echo "Creating the database structure for $PROJECT_NAME"
-                python manage.py migrate
-                python manage.py makemigrations django_plotly_dash $MIGRATION_MODULES
-                python manage.py migrate
-                echo "Loading in database initial data"
-                python manage.py loaddata conf/first_install_tables.json
-                # Set load tables to false since they are already loaded
-                tables = false
-                echo "Updating Apache configuration"
-                if [[ $linux_distribution == "Ubuntu" ]]; then
-                    cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
-                fi
-
-                if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-                    cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
-                fi
-
                 echo "Creating super user "
                 admin_exists=$(python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username=${SUPERUSER}).exists())")
                 if [ "$admin_exists" = "False" ]; then
@@ -494,6 +473,10 @@ if [ $upgrade == true ]; then
         cd $INSTALL_PATH
         echo "activate the virtualenv"
         source virtualenv/bin/activate
+
+        # update the settings.py and the main urls
+        echo "Update settings and url file."
+        update_settings_and_urls
 
         if python manage.py makemigrations | grep -q "No changes"; then
             # check for pending migrations
@@ -545,7 +528,13 @@ if [ $upgrade == true ]; then
 
         # Linux distribution
         linux_distribution=$(lsb_release -i | cut -f 2-)
-
+        echo "Updating Apache configuration"
+        if [[ $linux_distribution == "Ubuntu" ]]; then
+            cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
+        fi
+        if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
+            cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
+        fi
         echo ""
         echo "Restart apache server to update changes"
         if [[ $linux_distribution == "Ubuntu" ]]; then
@@ -726,7 +715,7 @@ if [ $install == true ]; then
         if [ $docker == false ]; then
             echo "Creating the database structure for $PROJECT_NAME"
             python manage.py migrate
-            python manage.py makemigrations django_plotly_dash $MIGRATION_MODULES
+            python manage.py makemigrations $MIGRATION_MODULES
             python manage.py migrate
             echo "Loading in database initial data"
             python manage.py loaddata conf/first_install_tables.json
