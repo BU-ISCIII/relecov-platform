@@ -230,7 +230,7 @@ def intranet(request):
         return render(
             request,
             "core/intranet.html",
-            {"ERROR": all_sample_per_date_detailed["ERROR"]}
+            {"ERROR": all_sample_per_date_detailed["ERROR"]},
         )
     clean_samples_per_date_detailed = []
     if relecov_group not in request.user.groups.all():
