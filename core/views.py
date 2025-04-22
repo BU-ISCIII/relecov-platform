@@ -226,6 +226,12 @@ def intranet(request):
     all_sample_per_date_detailed = core.utils.samples.get_sample_per_date_per_all_lab(
         detailed=True
     )
+    if "ERROR" in all_sample_per_date_detailed:
+        return render(
+            request,
+            "core/intranet.html",
+            {"ERROR": all_sample_per_date_detailed["ERROR"]}
+        )
     clean_samples_per_date_detailed = []
     if relecov_group not in request.user.groups.all():
         start = time.time()
