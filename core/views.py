@@ -311,9 +311,32 @@ def intranet(request):
     else:
         # loged user belongs to Relecov Manager group
         manager_intra_data = {}
-        all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
+        all_sample_per_date_detailed = core.utils.samples.get_sample_per_date_per_all_lab(detailed=True)
         num_of_samples = core.utils.samples.count_handled_samples()
-        if len(all_sample_per_date) > 0:
+        if len(all_sample_per_date_detailed) > 0:
+            counted_dates = defaultdict(int)
+            clean_samples_per_date_detailed = []
+
+            for d in all_sample_per_date_detailed:
+                try:
+                    converted_date = datetime.strptime(d["iso_yearweek"] + "-1", "%G-W%V-%u")
+                    if converted_date.year < 2019:
+                        continue
+                except Exception as e:
+                    print(f"Error parsing iso_yearweek: {d['iso_yearweek']}")
+                    continue
+
+                counted_dates[d["iso_yearweek"]] += d["num_samples"]
+                clean_samples_per_date_detailed.append(
+                    {k: v for k, v in d.items() if k != "submitting_institution"}
+                )
+
+            dates_sorted = sorted(
+                counted_dates.keys(),
+                key=lambda x: datetime.strptime(x + "-1", "%G-W%V-%u")
+            )
+            date_samples_all = OrderedDict({k: counted_dates[k] for k in dates_sorted})
+
             cust_data = {
                 "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
@@ -322,7 +345,7 @@ def intranet(request):
             cust_data["options"]["width"] = 590
             manager_intra_data["sample_bar_graph"] = (
                 core.utils.samples.create_date_sample_bar(
-                    all_sample_per_date, cust_data
+                    date_samples_all, cust_data
                 )
             )
             # graph for percentage analysis
