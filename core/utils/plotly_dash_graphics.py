@@ -47,19 +47,25 @@ mi_template = go.layout.Template(
     )
 )
 
+
 def dash_bar_lab(option_list, data):
     option = []
     for opt_list in option_list:
         option.append({"label": opt_list, "value": opt_list})
-    app = DjangoDash("samplePerLabGraphic",     external_stylesheets=[
-        "https://fonts.googleapis.com/css2?family=Oxanium&display=swap",
-        "/static/core/css/dash_style.css",
-    ])
+    app = DjangoDash(
+        "samplePerLabGraphic",
+        external_stylesheets=[
+            "https://fonts.googleapis.com/css2?family=Oxanium&display=swap",
+            "/static/core/css/dash_style.css",
+        ],
+    )
     empty_fig = px.bar(x=[0], y=[0], height=300)
 
     app.layout = html.Div(
         [
-            html.H4("Select the collecting institution", style={"fontFamily": "Oxanium"}),
+            html.H4(
+                "Select the collecting institution", style={"fontFamily": "Oxanium"}
+            ),
             html.Div(
                 [
                     dcc.Dropdown(
