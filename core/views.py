@@ -326,7 +326,7 @@ def intranet(request):
                     )
                     if converted_date.year < 2019:
                         continue
-                except Exception as e:
+                except Exception:
                     print(f"Error parsing iso_yearweek: {d['iso_yearweek']}")
                     continue
 
