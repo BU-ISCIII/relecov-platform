@@ -4,18 +4,62 @@ from dash.dependencies import Input, Output
 from dash import dcc, html
 import plotly.express as px
 from dash.exceptions import PreventUpdate
+import plotly.graph_objects as go
 
+COLOR_PALETTE = [
+    "#448873",
+    "#809dd4",
+    "#99b4c7",
+    "#6ca0c4",
+    "#649d68",
+    "#7c8fb2",
+    "#828b3c",
+    "#45777c",
+    "#73423f",
+    "#46523a",
+]
+
+mi_template = go.layout.Template(
+    layout=dict(
+        paper_bgcolor="#f8f9fc",
+        plot_bgcolor="#f8f9fc",
+        font=dict(family="Oxanium, sans-serif", color="#042940"),
+        xaxis=dict(
+            color="#042940",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.6)",
+            gridwidth=1.5,
+            automargin=True,
+            title_standoff=10,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            color="#042940",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.6)",
+            gridwidth=1.5,
+            automargin=True,
+            title_standoff=10,
+            zeroline=False,
+        ),
+        legend=dict(font=dict(color="#042940"), bgcolor="rgba(0,0,0,0)"),
+        title=dict(font=dict(color="#042940"), x=0.01, xanchor="left"),
+    )
+)
 
 def dash_bar_lab(option_list, data):
     option = []
     for opt_list in option_list:
         option.append({"label": opt_list, "value": opt_list})
-    app = DjangoDash("samplePerLabGraphic")
+    app = DjangoDash("samplePerLabGraphic",     external_stylesheets=[
+        "https://fonts.googleapis.com/css2?family=Oxanium&display=swap",
+        "/static/core/css/dash_style.css",
+    ])
     empty_fig = px.bar(x=[0], y=[0], height=300)
 
     app.layout = html.Div(
         [
-            html.H4("Select the collecting institution"),
+            html.H4("Select the collecting institution", style={"fontFamily": "Oxanium"}),
             html.Div(
                 [
                     dcc.Dropdown(
@@ -29,14 +73,12 @@ def dash_bar_lab(option_list, data):
                 ]
             ),
             html.Br(),
-            html.Div(id="lab_selection"),
             dcc.Graph(id="bar_graph", figure=empty_fig),
         ]
     )
 
     @app.callback(
         Output("bar_graph", "figure"),
-        Output("lab_selection", "children"),
         Input("select_collecting_inst", "value"),
     )
     def update_graph(select_collecting_inst):
@@ -62,23 +104,18 @@ def dash_bar_lab(option_list, data):
             x=sub_data["iso_yearweek"].astype(str),
             y=sub_data["num_samples"].astype(int),
             text_auto=True,
-            width=520,
-            height=300,
         )
         graph.update_traces(
-            marker_color="rgb(0,179,0)",
-            marker_line_color="rgb(8,48,107)",
-            marker_line_width=1.5,
+            marker=dict(color=COLOR_PALETTE[1]),
             opacity=0.6,
         )
         graph.update_layout(
             title="Registered samples over time",
             autotypenumbers="convert types",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            template=mi_template,
             xaxis_tickangle=-45,
             margin=dict(l=20, r=40, t=30, b=20),
             xaxis_title="Collecting date (ISOWeeks)",
             yaxis_title="Number of samples",
         )
-        return graph, f"Laboratory selected: {select_collecting_inst}"
+        return graph
