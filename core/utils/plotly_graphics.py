@@ -116,20 +116,18 @@ def line_graphic(x_data, y_data, options):
 
 
 def histogram_graphic(data, col_names, options):
+    colors = COLOR_PALETTE
     graph = px.bar(
         data, y=col_names[1], x=col_names[0], text_auto=True, width=options["width"]
     )
     # Customize aspect
     graph.update_traces(
-        marker_color="rgb(158,202,225)",
-        marker_line_color="rgb(8,48,107)",
-        marker_line_width=1.5,
+        marker=dict(color=colors[1]),
         opacity=0.6,
     )
     graph.update_layout(
         title=options["title"],
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        template=mi_template,
         xaxis_tickangle=-45,
         margin=dict(l=20, r=40, t=30, b=20),
     )
