@@ -311,7 +311,9 @@ def intranet(request):
     else:
         # loged user belongs to Relecov Manager group
         manager_intra_data = {}
-        all_sample_per_date_detailed = core.utils.samples.get_sample_per_date_per_all_lab(detailed=True)
+        all_sample_per_date_detailed = (
+            core.utils.samples.get_sample_per_date_per_all_lab(detailed=True)
+        )
         num_of_samples = core.utils.samples.count_handled_samples()
         if len(all_sample_per_date_detailed) > 0:
             counted_dates = defaultdict(int)
@@ -319,7 +321,9 @@ def intranet(request):
 
             for d in all_sample_per_date_detailed:
                 try:
-                    converted_date = datetime.strptime(d["iso_yearweek"] + "-1", "%G-W%V-%u")
+                    converted_date = datetime.strptime(
+                        d["iso_yearweek"] + "-1", "%G-W%V-%u"
+                    )
                     if converted_date.year < 2019:
                         continue
                 except Exception as e:
@@ -333,7 +337,7 @@ def intranet(request):
 
             dates_sorted = sorted(
                 counted_dates.keys(),
-                key=lambda x: datetime.strptime(x + "-1", "%G-W%V-%u")
+                key=lambda x: datetime.strptime(x + "-1", "%G-W%V-%u"),
             )
             date_samples_all = OrderedDict({k: counted_dates[k] for k in dates_sorted})
 
@@ -344,9 +348,7 @@ def intranet(request):
             cust_data["options"]["title"] = "Samples Received for all laboratories"
             cust_data["options"]["width"] = 590
             manager_intra_data["sample_bar_graph"] = (
-                core.utils.samples.create_date_sample_bar(
-                    date_samples_all, cust_data
-                )
+                core.utils.samples.create_date_sample_bar(date_samples_all, cust_data)
             )
             # graph for percentage analysis
             analysis_percent = (
