@@ -287,8 +287,10 @@ def create_date_sample_bar(lab_sample, cust_data):
     samples. NOTE: Keep in mind that cust_data should already be ordered
     """
     df = pd.DataFrame(lab_sample.items(), columns=cust_data["col_names"])
-    df[cust_data["col_names"][0]] = df[cust_data["col_names"][0]].astype(str).str.replace(
-        r"W(\d{1})$", r"W0\1", regex=True
+    df[cust_data["col_names"][0]] = (
+        df[cust_data["col_names"][0]]
+        .astype(str)
+        .str.replace(r"W(\d{1})$", r"W0\1", regex=True)
     )
     histogram = core.utils.plotly_graphics.histogram_graphic(
         df, cust_data["col_names"], cust_data["options"]
