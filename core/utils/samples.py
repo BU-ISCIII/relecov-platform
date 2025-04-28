@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 import relecov_tools.utils
+from django.template.loader import render_to_string
 
 # Local imports
 import core.utils.plotly_dash_graphics
@@ -317,6 +318,12 @@ def create_dash_bar_for_each_lab(labs_data, labs_list=[]):
     core.utils.plotly_dash_graphics.dash_bar_lab(labs_list, df_data)
     return
 
+
+def fancy_gauge_graphic(value):
+    return render_to_string(
+        "core/gauge_component.html",
+        {"value": value}
+    )
 
 def perc_gauge_graphic(values):
     data = {}
