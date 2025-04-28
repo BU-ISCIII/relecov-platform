@@ -1,0 +1,165 @@
+<div class="gauge-container">
+    <h5 class="gauge-title">Percentage of Samples Analyzed</h5>
+    <div class="gauge">
+        <div class="progress">
+            <div class="bar" id="bar"></div>
+            <div class="needle" id="needle"></div>
+        </div>
+        <div class="percentage" id="percentage">0%</div>
+    </div>
+    <p class="gauge-message" id="gauge-message"></p>
+</div>
+
+<style>
+:root {
+    --gray: #f8f9fc;
+    --red: #ff4d4d;
+    --yellow: #ffd633;
+    --green: #00ffc3;
+    --white: #1a1a1a;
+}
+
+.gauge-container {
+    background-color: var(--gray);
+    padding: 20px;
+    text-align: center;
+    border-radius: 12px;
+    font-family: 'Oxanium', sans-serif;
+}
+
+.gauge-title {
+    color: #042940;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.gauge {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    margin: 0 auto;
+}
+
+.progress {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 0.3rem solid var(--white);
+    border-bottom: 0.1rem solid transparent;
+    border-radius: 50%;
+    outline: 0.5rem solid var(--gray);
+    outline-offset: 0.6rem;
+    background: radial-gradient(circle at center, #ffffff 60%, var(--gray) 100%);
+    overflow: hidden;
+}
+
+.progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 75%;
+    height: 75%;
+    background-color: var(--gray);
+    border-radius: 50%;
+    z-index: 2;
+}
+
+.progress::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    height: 50%;
+    background-color: var(--gray);
+    z-index: 1;
+}
+
+.bar {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    background: var(--green);
+    transform: rotate(-90deg);
+    transform-origin: center right;
+    z-index: 0;
+    box-shadow: 0 0 10px var(--green);
+    transition: box-shadow 0.3s ease, filter 0.3s ease, background 0.3s ease;
+}
+
+.needle {
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    background-color: var(--white);
+    clip-path: polygon(50% 0, 52% 100%, 48% 100%);
+    transform: rotate(-90deg);
+    transform-origin: bottom center;
+    z-index: 3;
+}
+
+.percentage {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--white);
+    z-index: 4;
+}
+
+.gauge-message {
+    margin-top: 15px;
+    font-weight: 500;
+    color: #042940;
+    font-size: 1rem;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const targetPercentage = parseFloat('{{ value }}'); 
+    const bar = document.getElementById('bar');
+    const needle = document.getElementById('needle');
+    const percentageDisplay = document.getElementById('percentage');
+    const gaugeMessage = document.getElementById('gauge-message');
+
+    let current = 0;
+
+    const interval = setInterval(() => {
+        if (current >= targetPercentage) {
+            clearInterval(interval);
+            updateGauge(current);
+        } else {
+            current++;
+            updateGauge(current);
+        }
+    }, 20);
+
+    function updateGauge(percent) {
+        const angle = (percent / 100) * 180 - 90;
+        needle.style.transform = `rotate(${angle}deg)`;
+        bar.style.transform = `rotate(${angle}deg)`;
+
+        let color = 'var(--green)';
+        if (percent <= 30) {
+            color = 'var(--red)';
+        } else if (percent <= 60) {
+            color = 'var(--yellow)';
+        }
+
+        bar.style.background = color;
+        bar.style.boxShadow = `0 0 12px ${color}, 0 0 24px ${color}`;
+
+        percentageDisplay.textContent = `${percent}%`;
+
+        if (percent >= 100) {
+            gaugeMessage.textContent = "All samples successfully analyzed.";
+        } else {
+            gaugeMessage.textContent = "Still processing samples.";
+        }
+    }
+});
+</script>
