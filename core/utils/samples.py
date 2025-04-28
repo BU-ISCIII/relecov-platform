@@ -320,10 +320,8 @@ def create_dash_bar_for_each_lab(labs_data, labs_list=[]):
 
 
 def fancy_gauge_graphic(value):
-    return render_to_string(
-        "core/gauge_component.html",
-        {"value": value}
-    )
+    return render_to_string("core/gauge_component.html", {"value": value})
+
 
 def perc_gauge_graphic(values):
     data = {}

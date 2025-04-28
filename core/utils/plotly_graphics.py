@@ -154,12 +154,10 @@ def gauge_graphic(data):
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
     return plot_div
 
+
 # New gauge in html #
 def gauge_component(value):
-    return render_to_string(
-        "core/components/gauge_component.html",  
-        {"value": value}
-    )
+    return render_to_string("core/components/gauge_component.html", {"value": value})
 
 
 # FIXME: This function es never called within the platform
