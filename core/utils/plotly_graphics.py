@@ -8,6 +8,7 @@ import dash
 from dash import dcc, html
 from django_plotly_dash import DjangoDash
 from dash.dependencies import Input, Output
+from django.template.loader import render_to_string
 
 COLOR_PALETTE = [
     "#448873",
@@ -152,6 +153,13 @@ def gauge_graphic(data):
     graph.update_layout(margin=dict(t=20, b=10, l=20, r=30))
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
     return plot_div
+
+# New gauge in html #
+def gauge_component(value):
+    return render_to_string(
+        "core/components/gauge_component.html",  
+        {"value": value}
+    )
 
 
 # FIXME: This function es never called within the platform
