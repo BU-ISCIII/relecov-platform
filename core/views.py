@@ -278,8 +278,8 @@ def intranet(request):
                 date_lab_samples, cust_data
             )
             print(f"Took {start - time.time()} seconds for sample_bar_graph")
-            intra_data["sample_gauge_graph"] = core.utils.samples.perc_gauge_graphic(
-                analysis_percent
+            intra_data["sample_gauge_graph"] = core.utils.samples.fancy_gauge_graphic(
+                value=analysis_percent["analized"] / analysis_percent["received"] * 100 if analysis_percent["received"] else 0
             )
             lablist = set(
                 [x["collecting_institution"] for x in clean_samples_per_date_detailed]
@@ -355,7 +355,9 @@ def intranet(request):
                 core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
             )
             manager_intra_data["sample_gauge_graph"] = (
-                core.utils.samples.perc_gauge_graphic(analysis_percent)
+                core.utils.samples.fancy_gauge_graphic(
+                    value=analysis_percent["analized"] / analysis_percent["received"] * 100 if analysis_percent["received"] else 0
+                )
             )
             all_labs = core.utils.samples.get_all_collecting_insts()
             # dash graph for samples per all lab
