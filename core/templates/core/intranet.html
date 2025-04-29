@@ -281,15 +281,21 @@
                                                     <div class="row mt-4">
 
                                                         {% if intra_data.sample_bar_graph %}
-                                                            <div class="col-md-7">
+                                                            <div class="col-12 col-lg-7 mb-4">
+                                                                <div style="max-width: 100%; overflow-x: auto;">
                                                                     {{ intra_data.sample_bar_graph | safe }}
+                                                                </div>
                                                             </div> <!-- end col-md-7 -->
-                                                            <div class="col-md-5">
+                                                            <div class="col-12 col-lg-5 mb-4 d-flex justify-content-center align-items-center">
+                                                                <div style="max-width: 100%; overflow-x: auto;">
                                                                     {{ intra_data.sample_gauge_graph | safe }}
+                                                                </div>
                                                             </div> <!-- end col-md-5 -->
                                                             <div class="col-md-12">
-                                                                {% plotly_app name="samplePerLabGraphic" ratio=1 %}
-                                                        </div> <!-- end col-md-7 -->
+                                                                <div style="max-width: 100%; overflow-x: auto;">
+                                                                    {% plotly_app name="samplePerLabGraphic" ratio=1 %}
+                                                                </div>
+                                                            </div> <!-- end col-md-7 -->
                                                         {% else %}
                                                             <div class="col-md-7">
                                                                 <div class="card border-warning mb-3">
