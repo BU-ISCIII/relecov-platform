@@ -1,5 +1,4 @@
-from django.db.models import Count
-from django.db.models import Q
+from django.db.models import Count, Q, Max, OuterRef, Subquery
 from django.contrib.auth.models import Group
 from django.db.models.functions import TruncDate
 from collections import OrderedDict
@@ -9,11 +8,14 @@ import core.serializers
 import core.config
 import core.utils.utils
 import core.utils.rest_api
+import core.utils
+import core.utils.variants
 
 # TODO: Some functions are still being called from utils.py. 
 # Move those functions into proper service modules and import them accordingly. 
 # Keep utils.py only for generic utilities (e.g., data processing, conversions, etc.).
 # TODO: add docsrings and sort functions.
+# TODO: There are several functions in utils* that have been reimplemented here. Clean them to avoid duplicates
 
 def get_configuration_value(parameter_name):
     """Get a value from the configuration model."""
@@ -49,9 +51,13 @@ def get_labs_and_users_data():
     return core.serializers.LabUserAssignSerializer.from_raw_data(
         labs=labs,
         users=users,
-
     )
 
+def get_sample_obj_from_id(sample_id):
+    """Return the sample instance from its id"""
+    if core.models.Sample.objects.filter(pk__exact=sample_id).exists():
+        return core.models.Sample.objects.filter(pk__exact=sample_id).last()
+    return None
 
 def assign_samples_to_user_by_lab(lab, user_id):
     labs = get_all_defined_labs()
@@ -124,6 +130,7 @@ def get_lab_name_from_user(user_obj):
         return ""
 
 
+# FIXME: refactor its output
 def get_search_data(user_obj):
     """Structure data to render form in search sample view."""
     if core.models.Sample.objects.count() == 0:
@@ -147,6 +154,7 @@ def get_search_data(user_obj):
         "states": serialized_states,
     }
 
+# FIXME: refactor its output 
 def display_samples(sample_name, lab_name, sample_state, s_date, user):
     """Sample filtering according to params and return structured, serialized data."""
 
@@ -220,6 +228,7 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
     }
 
 
+# FIXME: refactor its output
 def get_sample_per_date_per_all_lab(detailed=False):
     """
     Return number of samples per sequencing date (grouped by date).
@@ -263,6 +272,7 @@ def get_sample_per_date_per_all_lab(detailed=False):
         return result
 
 
+# FIXME: refactor its output
 def get_intranet_data_for_manager():
     all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
     num_of_samples = core.utils.samples.count_handled_samples()
@@ -303,6 +313,8 @@ def get_intranet_data_for_manager():
 
     return data
 
+
+# FIXME: refactor its output
 
 def get_intranet_data_for_user(user):
     lab_name = get_lab_name_from_user(user)
@@ -345,4 +357,161 @@ def get_intranet_data_for_user(user):
         )
 
     return intra_data
+
+def get_actions_qs(sample_obj):
+    try:
+        actions_qs = core.models.SampleStateHistory.objects.filter(sample=sample_obj).order_by("-changed_at")
+        return actions_qs, None
+    except Exception as e:
+        return [], {"code": 500, "message": f"Error fetching actions: {str(e)}"}
+
+def get_public_db_qs(sample_obj, db_name):
+    try:
+        qs = core.models.PublicDatabaseValues.objects.filter(
+            sampleID=sample_obj,
+            public_database_fieldID__database_type__public_type_name__iexact=db_name
+        )
+        return qs, None
+    except Exception as e:
+        return [], {"code": 500, "message": f"Error fetching public DB '{db_name}': {str(e)}"}
+
+
+def get_bioinfo_qs(sample_obj):
+    try:
+        schema_obj = sample_obj.get_schema_obj()
+        if not schema_obj:
+            return [], {"code": 404, "message": "Schema not found for sample"}
+
+        bioan_fields_qs = core.models.MetadataValues.objects.filter(
+            schema_property__schemaID=schema_obj,
+            sample=sample_obj,
+        )
+        latest_analysis_date = bioan_fields_qs.aggregate(Max("analysis_date"))["analysis_date__max"]
+        if not latest_analysis_date:
+            return [], {"code": 404, "message": "No bioinformatics analysis date found"}
+
+        filtered_qs = bioan_fields_qs.filter(
+            analysis_date=latest_analysis_date,
+            generated_at=Subquery(
+                bioan_fields_qs.filter(
+                    analysis_date=latest_analysis_date,
+                    schema_property=OuterRef("schema_property"),
+                    value=OuterRef("value"),
+                ).order_by("-generated_at").values("generated_at")[:1]
+            )
+        )
+        return filtered_qs, None
+    except Exception as e:
+        return [], {"code": 500, "message": f"Error fetching bioinfo data: {str(e)}"}
+
+
+def get_lineage_qs(sample_obj):
+    try:
+        schema_obj = sample_obj.get_schema_obj()
+        if not schema_obj:
+            return [], {"code": 404, "message": "Schema not found for sample"}
+
+        lineage_fields = core.models.LineageFields.objects.filter(schemaID=schema_obj)
+        lineage_qs = []
+        for field in lineage_fields:
+            value_qs = core.models.LineageValues.objects.filter(
+                lineage_fieldID=field, sample=sample_obj
+            ).order_by("-generated_at")
+            if value_qs.exists():
+                lineage_qs.append(value_qs.first())
+
+        return lineage_qs, None
+    except Exception as e:
+        return [], {"code": 500, "message": f"Error fetching lineage data: {str(e)}"}
+
+
+def get_variant_and_graphic_data(sample_id):
+    variant_data = {}
+    graphic_data = None
+    try:
+        # Load variant data
+        variant_data = core.utils.variants.get_variant_qs(sample_id)
+        if "heading" in variant_data:
+            graphic_data = core.utils.variants.get_variant_graphic_from_sample(sample_id)
+    except Exception as e:
+        return None, None, {"code": 500, "message": f"Error getting variant data: {str(e)}"}
+    return variant_data, graphic_data, None
+
+
+def get_sample_display_data(sample_id, user):
+    result = {"data": {}, "success": False, "errors": []}
+
+    # Validate sample
+    sample_obj = get_sample_obj_from_id(sample_id)
+    if not sample_obj:
+        result["errors"].append({"code": 404, "message": core.config.ERROR_SAMPLE_DOES_NOT_EXIST})
+        return result
+
+    # Check by group permissions
+    group = Group.objects.get(name="RelecovManager")
+    if group not in user.groups.all():
+        lab_name = sample_obj.get_collecting_institution()
+        if not core.models.Profile.objects.filter(user=user, laboratory__iexact=lab_name).exists():
+            result["errors"].append({"code": 403, "message": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE})
+            return result
+
+    # Recover error handling
+    actions_qs, err = get_actions_qs(sample_obj)
+    if err:
+        result["errors"].append(err)
+
+    gisaid_qs, err = get_public_db_qs(sample_obj, "gisaid")
+    if err:
+        result["errors"].append(err)
+
+    ena_qs, err = get_public_db_qs(sample_obj, "ena")
+    if err:
+        result["errors"].append(err)
+
+    bioinfo_qs, err = get_bioinfo_qs(sample_obj)
+    if err: 
+        result["errors"].append(err)
+
+    lineage_qs, err = get_lineage_qs(sample_obj)
+    if err:
+        result["errors"].append(err)
+
+    # Generate variant data
+    variant_data, graphic_data, variant_err = get_variant_and_graphic_data(sample_id)
+    if variant_err:
+        result["errors"].append(variant_err)
+
+    # Creating context variable to be serialized
+    context = {
+        "actions_qs": actions_qs,
+        "gisaid_qs": gisaid_qs,
+        "ena_qs": ena_qs,
+        "bioinfo_qs": bioinfo_qs,
+        "lineage_qs": lineage_qs,
+    }
+
+
+    # Serialize data and create results
+    result["data"] = core.serializers.SampleDisplaySerializer(
+        sample_obj,
+        context=context,
+        many=False
+        ).data
+    result["data"]["variant"] = variant_data
+    result["data"]["graphic"] = graphic_data
+
+    # Validate whether process succeed
+    result["success"] = len(result["errors"]) == 0
+    return result
+
+
+def get_public_info(p_type, sample_id):
+    return list(
+        core.models.PublicDatabaseValues.objects
+        .filter(
+            sampleID__pk=sample_id,
+            public_database_fieldID__database_type__public_type_name__iexact=p_type,
+        )
+        .values_list("public_database_fieldID__label_name", "value")
+    )
 

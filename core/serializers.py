@@ -2,14 +2,104 @@ from rest_framework import serializers
 import core.models
 
 
+class MetadataValueSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source="schema_property.label")
+    value = serializers.CharField()
+
+    class Meta:
+        model = core.models.MetadataValues
+        fields = ["label", "value"]
+
+
+class SampleStateHistorySerializer(serializers.ModelSerializer):
+    state = serializers.SerializerMethodField()
+    date = serializers.SerializerMethodField()
+    is_current = serializers.BooleanField()
+
+    class Meta:
+        model = core.models.SampleStateHistory
+        fields = ["state", "date", "is_current"]
+
+    def get_state(self, obj):
+        return obj.get_state()
+
+    def get_date(self, obj):
+        return obj.get_date()
+
+
+class PublicDatabaseValueSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source="public_database_fieldID.label_name")
+    value = serializers.CharField(allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = core.models.PublicDatabaseValues
+        fields = ["label", "value"]
+
+
+class LineageValueSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source="lineage_fieldID.lineage_property_name")
+    value = serializers.CharField(source="get_value")
+
+    class Meta:
+        model = core.models.LineageValues
+        fields = ["label", "value"]
+
+class SampleDisplaySerializer(serializers.ModelSerializer):
+    actions = serializers.SerializerMethodField()
+    gisaid = serializers.SerializerMethodField()
+    ena = serializers.SerializerMethodField()
+    bioinfo = serializers.SerializerMethodField()
+    lineage = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    lab = serializers.SerializerMethodField()
+
+    class Meta:
+        model = core.models.Sample
+        fields = [
+            "id",
+            "sample_unique_id",
+            "sequencing_sample_id",
+            "created_at",
+            "state",
+            "user",
+            "lab",
+            "actions",
+            "bioinfo",
+            "gisaid",
+            "ena",
+            "lineage",
+        ]
+
+    def get_state(self, obj):
+        return obj.get_state()
+
+    def get_user(self, obj):
+        return str(obj.user) if obj.user else None
+
+    def get_lab(self, obj):
+        return obj.get_collecting_institution()
+
+    def get_actions(self, obj):
+        return SampleStateHistorySerializer(self.context.get("actions_qs", []), many=True).data
+
+    def get_gisaid(self, obj):
+        return PublicDatabaseValueSerializer(self.context.get("gisaid_qs", []), many=True).data
+
+    def get_ena(self, obj):
+        return PublicDatabaseValueSerializer(self.context.get("ena_qs", []), many=True).data
+
+    def get_bioinfo(self, obj):
+        return MetadataValueSerializer(self.context.get("bioinfo_qs", []), many=True).data
+
+    def get_lineage(self, obj):
+        return LineageValueSerializer(self.context.get("lineage_qs", []), many=True).data
+
+
+#############################
 class SampleCountByStateSerializer(serializers.Serializer):
     label = serializers.CharField(source="state_id__state")
     count = serializers.IntegerField()
-
-class SampleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = core.models.Sample
-        fields = ["id", "sample_unique_id", "sequencing_sample_id", "created_at"]
 
 
 class UserInfoSerializer(serializers.Serializer):
@@ -63,11 +153,6 @@ class SampleSearchResultSerializer(serializers.ModelSerializer):
 
     def get_recorded_date(self, obj):
         return obj.created_at.strftime("%d-%B-%Y") if obj.created_at else ""
-
-
-class SampleStateCountSerializer(serializers.Serializer):
-    state = serializers.CharField(source="state_id__state")
-    count = serializers.IntegerField()
 
 
 class PublicAccessionSerializer(serializers.Serializer):

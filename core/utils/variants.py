@@ -48,90 +48,79 @@ def get_sample_in_variant_list(chromosome_obj):
     return v_in_sample
 
 
-def get_variant_data_from_sample(sample_id):
-    """Collect the variant information for the sample"""
-    data = {}
-    sample_obj = core.utils.samples.get_sample_obj_from_id(sample_id)
-    if sample_obj is None:
-        return data
+
+def get_variant_qs(sample_obj):
+    if not sample_obj:
+        return None, [{"code": 404, "message": "Sample object is required"}]
+
+    if not core.models.VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
+        return {}, []
+
     variant_data = []
-    if core.models.VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
-        data["heading"] = core.config.HEADING_FOR_VARIANT_TABLE_DISPLAY
-        v_in_s_objs = core.models.VariantInSample.objects.filter(sampleID_id=sample_obj)
-        for v_in_s_obj in v_in_s_objs:
-            # DP,REF_DP,ALT_DP,AF
-            v_in_s_data = v_in_s_obj.get_variant_in_sample_data()
-            v_obj = v_in_s_obj.get_variantID_obj()
-            # CHROM,POS,REF,ALT,FILTER
-            v_data = v_obj.get_variant_data()
-            v_ann_objs = core.models.VariantAnnotation.objects.filter(
-                variantID_id=v_obj
-            )
-            if len(v_ann_objs) > 1:
-                v_ann_data_p = []
-                for v_ann_obj in v_ann_objs:
-                    # HGVS_C	HGVS_P	HGVS_P_1LETTER
-                    v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
-                v_ann_data = []
+    v_in_s_objs = core.models.VariantInSample.objects.filter(sampleID_id=sample_obj)
+    for v_in_s_obj in v_in_s_objs:
+        v_in_s_data = v_in_s_obj.get_variant_in_sample_data()
+        v_obj = v_in_s_obj.get_variantID_obj()
+        v_data = v_obj.get_variant_data()
+        v_ann_objs = core.models.VariantAnnotation.objects.filter(variantID_id=v_obj)
 
-                for idx in range(len(v_ann_data_p[0])):
-                    if v_ann_data_p[0][idx] == v_ann_data_p[1][idx]:
-                        v_ann_data.append(v_ann_data_p[0][idx])
-                    else:
-                        v_ann_data.append(
-                            str(v_ann_data_p[0][idx] + " - " + v_ann_data_p[1][idx])
-                        )
-                v_ann_data_p = v_ann_data
-            elif len(v_ann_objs) == 1:
-                v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
-            # Set dummy values if not variant annotation objects exists
-            else:
-                v_ann_data_p = ["-", "-", "-"]
+        if len(v_ann_objs) > 1:
+            ann_data_list = [ann.get_variant_annot_data() for ann in v_ann_objs]
+            merged = [
+                f"{x} - {y}" if x != y else x
+                for x, y in zip(ann_data_list[0], ann_data_list[1])
+            ]
+            v_ann_data = merged
+        elif len(v_ann_objs) == 1:
+            v_ann_data = v_ann_objs[0].get_variant_annot_data()
+        else:
+            v_ann_data = ["-", "-", "-"]
 
-            variant_data.append(v_data + v_in_s_data + v_ann_data_p)
-    data["variant_data"] = variant_data
-    return data
+        variant_data.append(v_data + v_in_s_data + v_ann_data)
+
+    return {
+        "heading": core.config.HEADING_FOR_VARIANT_TABLE_DISPLAY,
+        "variant_data": variant_data
+    }, []
 
 
-def get_variant_graphic_from_sample(sample_id):
-    """Collect the variant information to send to create the plotly graphic"""
+def get_variant_graphic_data(sample_obj):
+    if not sample_obj:
+        return None, [{"code": 404, "message": "Sample object is required"}]
+
+    if not core.models.VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
+        return {}, []
+
+    raw_data = core.models.VariantInSample.objects.filter(
+        sampleID_id=sample_obj
+    ).values(x=F("variantID_id__pos"), y=F("af"), v_id=F("variantID_id__pk"))
+
     v_data = {"x": [], "y": [], "v_id": []}
-    sample_obj = core.utils.samples.get_sample_obj_from_id(sample_id)
-    if core.models.VariantInSample.objects.filter(sampleID_id=sample_obj).exists():
-        raw_data = core.models.VariantInSample.objects.filter(
-            sampleID_id=sample_obj
-        ).values(x=F("variantID_id__pos"), y=F("af"), v_id=F("variantID_id__pk"))
-        for r_data in raw_data:
-            for key, value in r_data.items():
-                v_data[key].append(value)
+    for r in raw_data:
+        for k, v in r.items():
+            v_data[k].append(v)
 
-        v_data["mutationGroups"] = list(
+    v_data["mutationGroups"] = list(
+        core.models.VariantAnnotation.objects.filter(
+            variantID_id__pk__in=v_data["v_id"]
+        ).values_list("effectID_id__effect", flat=True)
+    )
+
+    try:
+        chromosome_obj = (
             core.models.VariantAnnotation.objects.filter(
-                variantID_id__pk__in=v_data["v_id"]
-            ).values_list("effectID_id__effect", flat=True)
+                variantID_id__pk=v_data["v_id"][0]
+            )
+            .last()
+            .variantID_id.chromosomeID_id
         )
-        try:
-            chromosome_obj = (
-                core.models.VariantAnnotation.objects.filter(
-                    variantID_id__pk=v_data["v_id"][0]
-                )
-                .last()
-                .variantID_id.chromosomeID_id
-            )
-        except AttributeError:
-            # get the chromosome obj from the second variant annotation
-            chromosome_obj = (
-                core.models.VariantAnnotation.objects.filter(
-                    variantID_id__pk=v_data["v_id"][1]
-                )
-                .last()
-                .variantID_id.chromosomeID_id
-            )
-        v_data["domains"] = get_domains_and_coordenates(chromosome_obj)
-        # delete no longer needed ids
-        v_data.pop("v_id")
+    except AttributeError:
+        return {}, [{"code": 500, "message": "Unable to determine chromosome object"}]
 
-    return core.utils.plotly_graphics.needle_plot(v_data)
+    v_data["domains"] = get_domains_and_coordenates(chromosome_obj)
+    v_data.pop("v_id")
+
+    return core.utils.plotly_graphics.needle_plot(v_data), []
 
 
 def get_gene_obj_from_gene_name(gene_name):

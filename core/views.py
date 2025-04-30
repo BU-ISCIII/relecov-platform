@@ -54,30 +54,19 @@ def assign_samples_to_user(request):
 # TODO: this needs serialized-based refactor 
 @login_required
 def sample_display(request, sample_id):
-    sample_data = core.utils.samples.get_sample_display_data(sample_id, request.user)
-    if "ERROR" in sample_data:
+    result = core.services.get_sample_display_data(sample_id, request.user)
+    if not result["success"]:
         return render(
-            request, "core/sampleDisplay.html", {"ERROR": sample_data["ERROR"]}
+            request, 
+            "core/sampleDisplay.html", 
+            {"errors": result["errors"]}
         )
-    sample_data["gisaid"] = core.utils.public_db.get_public_information_from_sample(
-        "gisaid", sample_id
+
+    return render(
+        request, "core/sampleDisplay.html",
+        {"data": result["data"]}
     )
-    sample_data["ena"] = core.utils.public_db.get_public_information_from_sample(
-        "ena", sample_id
-    )
-    # TODO: Reduce search waiting time by optimizing DB queries
-    # FIXME: Some tables in the template appear abnormally. Fix it and discuss the strategy followed in get_bioinfo_analysis_data_from_sample
-    sample_data["bioinfo"] = (
-        core.utils.bioinfo_analysis.get_bioinfo_analysis_data_from_sample(sample_id)
-    )
-    sample_data["lineage"] = core.utils.lineage.get_lineage_data_from_sample(sample_id)
-    sample_data["variant"] = core.utils.variants.get_variant_data_from_sample(sample_id)
-    # Display graphic only if variant data are for the sample
-    if "heading" in sample_data["variant"]:
-        sample_data["graphic"] = core.utils.variants.get_variant_graphic_from_sample(
-            sample_id
-        )
-    return render(request, "core/sampleDisplay.html", {"sample_data": sample_data})
+
 
 # TODO: this needs serialized-based refactor
 @login_required
@@ -118,7 +107,7 @@ def schema_display(request, schema_id):
     schema_data = core.utils.schema.get_schema_display_data(schema_id)
     return render(request, "core/schemaDisplay.html", {"schema_data": schema_data})
 
-
+# TODO: update with serializer structure?
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""

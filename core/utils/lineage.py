@@ -12,7 +12,7 @@ def get_lineages_list():
         .order_by("value")
     )
 
-
+# TODO: I think this is in services.py. And not needed anymore here. 
 def get_lineage_data_from_sample(sample_id):
     """Get the bioinfo analysis for the sample"""
     sample_obj = core.utils.samples.get_sample_obj_from_id(sample_id)

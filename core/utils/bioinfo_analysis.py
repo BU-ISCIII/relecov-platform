@@ -58,7 +58,7 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
 
     # If no data exists, return None
     if not latest_analysis_date:
-        return None
+        return []
 
     # Find the latest generated_at for each unique value and schema_property_id
     latest_bioan_fields = bioan_fields_qs.filter(
