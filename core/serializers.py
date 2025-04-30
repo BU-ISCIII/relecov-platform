@@ -2,6 +2,11 @@ from rest_framework import serializers
 import core.models
 
 
+class SampleCountByStateSerializer(serializers.Serializer):
+    label = serializers.CharField(source="state_id__state")
+    count = serializers.IntegerField()
+
+
 class MetadataValueSerializer(serializers.ModelSerializer):
     label = serializers.CharField(source="schema_property.label")
     value = serializers.CharField()
@@ -97,9 +102,6 @@ class SampleDisplaySerializer(serializers.ModelSerializer):
 
 
 #############################
-class SampleCountByStateSerializer(serializers.Serializer):
-    label = serializers.CharField(source="state_id__state")
-    count = serializers.IntegerField()
 
 
 class UserInfoSerializer(serializers.Serializer):

@@ -17,6 +17,7 @@ import core.utils.variants
 # TODO: add docsrings and sort functions.
 # TODO: There are several functions in utils* that have been reimplemented here. Clean them to avoid duplicates
 
+# util
 def get_configuration_value(parameter_name):
     """Get a value from the configuration model."""
     return (
@@ -26,23 +27,37 @@ def get_configuration_value(parameter_name):
         .last()
     ) or "False"
 
-
-def count_samples_by_state():
+# util
+def get_sample_count_qs():
     """Count number of samples by state."""
-    queryset = (
+    return (
         core.models.SampleStateHistory.objects
         .values("state_id__state")
         .annotate(count=Count("id"))
     )
-    return core.serializers.SampleCountByStateSerializer(queryset, many=True).data
 
-
+# service
 def get_index_data():
-    """Pack index data and return dict."""
-    return {
-        "number_of_samples": count_samples_by_state(),
-        "nextstrain_url": get_configuration_value("NEXTSTRAIN_URL")
-    }
+    result = {"data":{}, "success":False, "errors":[]}
+
+    # Get sample counts by state and serialize data
+    try:
+        sample_count_qs = get_sample_count_qs()
+        serialized = core.serializers.SampleCountByStateSerializer(sample_count_qs, many=True).data
+        # Transform data structur
+        result["data"]["number_of_samples"] = {entry["label"]: entry["count"] for entry in serialized}
+    except Exception as e:
+        result["errors"].append({"code": 500, "message": f"Error loading sample counts: {str(e)}"})
+
+    # Get Nextrain configuration
+    try:
+        result["data"]["nextstrain_url"] = get_configuration_value("NEXTSTRAIN_URL")
+    except Exception as e:
+        result["errors"].append({"code": 500, "message": f"Error loading Nextstrain URL: {str(e)}"})
+
+    # Return success
+    result["success"] = len(result["errors"]) == 0
+    return result
 
 
 def get_labs_and_users_data():

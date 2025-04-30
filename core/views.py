@@ -22,17 +22,13 @@ import core.services
 import core.utils.samples_graphics
 import core.utils.samples_map
 
+# FIXME: fornt end needs to manage error screen
 def index(request):
     index_data = core.services.get_index_data()
-    samples_count =  {item["label"]: item["count"] for item in index_data["number_of_samples"]}
-
     return render(
         request,
         "core/index.html",
-        {
-            "number_of_samples": samples_count,
-            "nextstrain_url": index_data["nextstrain_url"],
-        }
+        { "data": index_data["data"] }
     )
 
 @login_required
