@@ -1,90 +1,82 @@
 {% extends "core/base.html" %}
 {% load static %}
 
+
 {% block content %}
 <section class="hero-animated d-flex">
     <div class="container position-relative">
-        
-        {% if lab_data.ERROR %}
+
+        {% if errors %}
             <div class="row justify-content-center p-4">
                 <div class="col-md-10">
                     <div class="card border border-danger">
                         <div class="card-body">
                             <h2 class="card-title text-danger">Unable to perform your request</h2>
-                            <p class="card-text text-danger">{{ lab_data.error }}</p>
+                            <ul class="card-text text-danger">
+                                {% for error in errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-        {% elif lab_data.SUCCESS %}
+
+        {% elif success %}
             <div class="row justify-content-center p-4">
                 <div class="col-md-10">
                     <div class="card border border-success">
                         <div class="card-body">
-                            <h2 class="card-title text-success">SUCCESSFUL Action</h2>
-                            <p class="card-text">{{ lab_data.success }}</p>
+                            <h2 class="card-title text-success">Samples assigned successfully</h2>
                         </div>
                     </div>
                 </div>
             </div>
         {% else %}
-            {% if lab_data.labs.ERROR %}
-                <div class="row justify-content-center p-4">
-                    <div class="col-md-9">
-                        <div class="card border border-danger">
-                            <div class="card-body">
-                                <h2 class="card-title text-center text-danger">Unable to perform your request</h2>
-                                <p class="card-text text-center text-danger">{{ lab_data.labs.ERROR }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-                <div class="row justify-content-center p-4">
-                    <div class="col-md-10">
-                        <div class="card border border-success">
-                            <div class="card-body">
-                                <h2 class="card-title text-center">Assign Sample to User</h2>
-                                <form method="post" enctype="multipart/form-data" name="assignSamples" id="assignSamples" class="form-horizontal well">
-                                    <div class="card-body">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="assignSamples">
+            <div class="row justify-content-center p-4">
+                <div class="col-md-10">
+                    <div class="card border border-primary">
+                        <div class="card-body">
+                            <h2 class="card-title text-center">Assign Sample to User</h2>
+                            <form method="post" enctype="multipart/form-data" name="assignSamples" id="assignSamples" class="form-horizontal well">
+                                <div class="card-body">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="assignSamples">
 
-                                        <div class="row mb-3">
-                                            <label for="lab" class="col-sm-4 col-form-label">Select the Laboratory name</label>
-                                            <div class="col-sm-7">
-                                                <select class="form-select" name="lab" id="lab" required>
-                                                    <option value="">Choose a Laboratory</option>
-                                                    {% for lab in lab_data.labs %}
-                                                        <option value="{{ lab }}">{{ lab }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="row mb-3">
-                                            <label for="userName" class="col-sm-4 col-form-label">Assign samples to new user</label>
-                                            <div class="col-sm-7">
-                                                <select name="userName" id="userName" class="form-select">
-                                                    <option value="">Choose the user ID</option>
-                                                    {% for user in lab_data.users %}
-                                                        <option value="{{ user.id }}">{{ user.name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="card-body text-left">
-                                            <input class="btn btn-submit" type="reset" value="Reset Fields">
-                                            <input class="btn float-end btn-submit" type="submit" id="btnSubmit" value="Submit">
+                                    <div class="row mb-3">
+                                        <label for="lab" class="col-sm-4 col-form-label">Select the Laboratory name</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select" name="lab" id="lab" required>
+                                                <option value="">Choose a Laboratory</option>
+                                                {% for lab in data.labs %}
+                                                    <option value="{{ lab }}">{{ lab }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+
+                                    <div class="row mb-3">
+                                        <label for="userName" class="col-sm-4 col-form-label">Assign samples to new user</label>
+                                        <div class="col-sm-7">
+                                            <select name="userName" id="userName" class="form-select">
+                                                <option value="">Choose the user ID</option>
+                                                {% for user in data.users %}
+                                                    <option value="{{ user.id }}">{{ user.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-body text-left">
+                                        <input class="btn btn-submit" type="reset" value="Reset Fields">
+                                        <input class="btn float-end btn-submit" type="submit" id="btnSubmit" value="Submit">
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
-            {% endif %}
+            </div>
         {% endif %}
     </div>
 </section>

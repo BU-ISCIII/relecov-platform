@@ -22,7 +22,9 @@ import core.services
 import core.utils.samples_graphics
 import core.utils.samples_map
 
+
 # FIXME: fornt end needs to manage error screen
+# TODO: update the strucuture object that its going to be rendered
 def index(request):
     index_data = core.services.get_index_data()
     return render(
@@ -36,18 +38,22 @@ def assign_samples_to_user(request):
     if request.user.username != "admin":
         return redirect("/")
 
-    # Load lab/user data to always include it
-    if request.method == "POST" and request.POST.get("action") == "assignSamples":
-        lab_data = core.services.assign_samples_to_user_by_lab(
-            lab=request.POST.get("lab"),
-            user_id=request.POST.get("userName")
-        )
-    else:
-        lab_data = core.services.get_labs_and_users_data()
-    return render(request, "core/assignSamplesToUser.html", {"lab_data": lab_data})
+    action = request.POST.get('action') if request.POST else None
+    lab = request.POST.get("lab")
+    user_id = request.POST.get("userName")
+
+    response = core.services.get_assign_samples_data(action=action, lab=lab, user_id=user_id)
+    return render(
+        request,
+        "core/assignSamplesToUser.html",
+        {
+            "data": response["data"],
+            "success": response["success"] if action else None,
+            "errors": response["errors"],
+        }
+    )
 
 
-# TODO: this needs serialized-based refactor 
 @login_required
 def sample_display(request, sample_id):
     result = core.services.get_sample_display_data(sample_id, request.user)
@@ -62,7 +68,6 @@ def sample_display(request, sample_id):
         request, "core/sampleDisplay.html",
         {"data": result["data"]}
     )
-
 
 # TODO: this needs serialized-based refactor
 @login_required
