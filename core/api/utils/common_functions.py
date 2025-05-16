@@ -22,7 +22,7 @@ def get_schema_version_if_exists(data):
 
 def get_analysis_defined(s_obj):
     return core.models.BioinfoAnalysisValue.objects.filter(
-        bioinfo_analysis_fieldID__property_name="analysis_date", sample=s_obj
+        bioinfo_analysis_fieldID__property_name="bioinformatics_analysis_date", sample=s_obj
     ).values_list("value", flat=True)
 
 

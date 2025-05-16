@@ -76,7 +76,7 @@ class ChromosomeAdmin(admin.ModelAdmin):
 
 
 class LineageInfoAdmin(admin.ModelAdmin):
-    list_display = ["lineage_name"]
+    list_display = ["lineage_assignment"]
 
 
 class LineageFieldsAdmin(admin.ModelAdmin):
