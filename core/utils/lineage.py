@@ -8,7 +8,6 @@ def get_lineages_list():
     """Function gets the lineage names and return then in an ordered list"""
     # Exclude unassigned and not provided lineages
     invalid_lineages = [
-        "Not Provided [GENEPIO:0001668]",
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
         "Unassigned",
