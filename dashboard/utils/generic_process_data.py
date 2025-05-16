@@ -86,7 +86,7 @@ def pre_proc_calculation_date():
     # get sequencing date from sample table
     invalid_samples = {}
     analysis_date = core.models.BioinfoAnalysisValue.objects.filter(
-        bioinfo_analysis_fieldID__property_name__exact="analysis_date",
+        bioinfo_analysis_fieldID__property_name__exact="bioinformatics_analysis_date",
     ).values("value", "sample__collecting_lab_sample_id")
     analysis_date = convert_data_to_sample_dict(
         analysis_date, "sample__collecting_lab_sample_id", "value"
