@@ -2,6 +2,7 @@
 import core.models
 import core.utils.samples
 import core.utils.schema
+import core.config
 
 
 def get_bio_analysis_stats_from_lab(lab_name=None):
@@ -87,7 +88,7 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
             continue
         # b_data[schema_name][f_name] = [count]
         count_not_empty = b_field_obj_info.exclude(
-            value__in=["None", "Not Provided", ""]
+            value__in=core.config.FIELD_EMPTY_VALUES
         ).count()
         b_data["fields_value"][f_name] = count_not_empty
         if count_not_empty == 0:

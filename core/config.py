@@ -100,6 +100,16 @@ HEADING_FOR_VARIANT_TABLE_DISPLAY = [
     "hgvs_p_1_letter",
 ]
 FIELD_FOR_GETTING_SAMPLE_ID = "Sample ID given for sequencing"
+FIELD_EMPTY_VALUES = [
+    None,
+    "",
+    "None",
+    "Not Provided",
+    "Not Applicable",
+    "Not Collected",
+    "Not Provided [SNOMED:434941000124101]",
+    "Not Provided [GENEPIO:0001668]",
+]
 
 MAIN_SCHEMA_STRUCTURE = ["$schema", "required", "type", "properties"]
 NO_SELECTED_LABEL_WAS_DONE = (
