@@ -956,7 +956,9 @@ class VariantInSample(models.Model):
     variantID_id = models.ForeignKey(
         Variant, on_delete=models.CASCADE, null=True, blank=True
     )
-    bioinformatics_analysis_date = models.CharField(max_length=100, null=True, blank=True)
+    bioinformatics_analysis_date = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
     alt_dp = models.CharField(max_length=10, null=True, blank=True)
