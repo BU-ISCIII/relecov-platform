@@ -41,16 +41,16 @@ import core.config
                 "authors": "",
                 "experiment_alias": "",
                 "experiment_title": "",
-                "fastq_r1_md5": "b5242d60471e5a5a97b35531dbbe8c30",
-                "fastq_r2_md5": "57525c5a1ec992098e652aa01b366d69",
+                "sequence_file_R1_md5": "b5242d60471e5a5a97b35531dbbe8c30",
+                "sequence_file_R2_md5": "57525c5a1ec992098e652aa01b366d69",
                 "gisaid_id": "EPI_ISL_8625444",
                 "microbiology_lab_sample_id": "20183102",
-                "r1_fastq_filepath": "/media/data/relecov/",
-                "r2_fastq_filepath": "/media/data/relecov/",
+                "sequence_file_path_R1": "/media/data/relecov/",
+                "sequence_file_path_R2": "/media/data/relecov/",
                 "schema_name": "relecov",
                 "schema_version": "",
-                "sequence_file_R1_fastq": "20183102_R1.fastq.gz",
-                "sequence_file_R2_fastq": "20183102_R2.fastq.gz",
+                "sequence_file_R1": "20183102_R1.fastq.gz",
+                "sequence_file_R2": "20183102_R2.fastq.gz",
                 "sequencing_sample_id": "20183102",
                 "study_alias": "",
                 "study_id": "",
@@ -68,16 +68,16 @@ import core.config
             "authors": serializers.CharField(required=False),
             "experiment_alias": serializers.CharField(required=False),
             "experiment_title": serializers.CharField(required=False),
-            "fastq_r1_md5": serializers.CharField(),
-            "fastq_r2_md5": serializers.CharField(),
+            "sequence_file_R1_md5": serializers.CharField(),
+            "sequence_file_R2_md5": serializers.CharField(),
             "gisaid_id": serializers.CharField(required=False),
             "microbiology_lab_sample_id": serializers.CharField(),
-            "r1_fastq_filepath": serializers.CharField(),
-            "r2_fastq_filepath": serializers.CharField(),
+            "sequence_file_path_R1": serializers.CharField(),
+            "sequence_file_path_R2": serializers.CharField(),
             "schema_name": serializers.CharField(),
             "schema_version": serializers.CharField(),
-            "sequence_file_R1_fastq": serializers.CharField(),
-            "sequence_file_R2_fastq": serializers.CharField(),
+            "sequence_file_R1": serializers.CharField(),
+            "sequence_file_R2": serializers.CharField(),
             "sequencing_sample_id": serializers.CharField(),
             "study_alias": serializers.CharField(required=False),
             "study_id": serializers.CharField(required=False),
@@ -155,10 +155,9 @@ def create_sample_data(request):
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_206_PARTIAL_CONTENT)
             # check that the ena_sample_accession is not empty or "Not Provided"
-            if (
-                split_data["ena"]["ena_sample_accession"] != "Not Provided"
-                and split_data["ena"]["ena_sample_accession"] != ""
-                and split_data["ena"]["ena_sample_accession"] is not None
+            if not any(
+                x == split_data["ena"]["ena_sample_accession"]
+                for x in core.config.FIELD_EMPTY_VALUES
             ):
                 # Save entry in update state table for valid ena_sample_accession
                 sample_obj.update_state("Ena")
@@ -210,7 +209,7 @@ def create_sample_data(request):
             "Example",
             description="Variant example",
             value={
-                "analysis_date": "20220705",
+                "bioinformatics_analysis_date": "20220705",
                 "assembly": "None",
                 "assembly_params": "None",
                 "bioinformatics_protocol_software_name": "nf-core/viralrecon",
@@ -235,17 +234,17 @@ def create_sample_data(request):
                 "if_mapping_other": "None",
                 "if_preprocessing_other": "None",
                 "lineage_algorithm_software_version": "PUSHER-v1.9",
-                "lineage_analysis_constellation_version": "v0.1.10",
-                "lineage_analysis_date": "2022-07-05",
-                "lineage_analysis_scorpio_version": "0.3.17",
-                "lineage_analysis_software_name": "pangolin",
-                "lineage_analysis_software_version": "4.0.6",
+                "lineage_assignment_constellation_version": "v0.1.10",
+                "lineage_assignment_date": "2022-07-05",
+                "lineage_assignment_scorpio_version": "0.3.17",
+                "lineage_assignment_software_name": "pangolin",
+                "lineage_assignment_software_version": "4.0.6",
                 "lineage_name": "B.1.1.7",
                 "long_table_path": "",
                 "mapping_params": "--seed 1",
                 "mapping_software_name": "BOWTIE2_ALIGN",
                 "mapping_software_version": "2.4.4",
-                "number_of_base_pairs_sequenced": "9024968",
+                "number_of_reads_sequenced": "9024968",
                 "number_of_samples_in_run": "60",
                 "number_of_variants_in_consensus": "34",
                 "number_of_variants_with_effect": "22",
@@ -257,13 +256,13 @@ def create_sample_data(request):
                 "preprocessing_params": "--cut_front --cut_tail --trim_poly_x --cut_mean_quality 30 --qualified_quality_phred 30 --unqualified_percent_limit 10 --length_required 50",
                 "preprocessing_software_name": "FASTP",
                 "preprocessing_software_version": "0.23.2",
-                "qc_filtered": "573984",
+                "pass_reads": "573984",
                 "reference_genome_accession": "NC_045512.2",
                 "schema_name": "RELECOV schema",
                 "schema_version": "1.0.0",
-                "sequence_file_R1_fastq": "2018086_R1.fastq.gz",
+                "sequence_file_R1": "2018086_R1.fastq.gz",
                 "sequence_file_R1_md5": "eab8b05ef27f4f5cba5cddf6ad627de2",
-                "sequence_file_R2_fastq": "2018086_R2.fastq.gz",
+                "sequence_file_R2": "2018086_R2.fastq.gz",
                 "sequence_file_R2_md5": "d82a37aa970df2b8bf8f547ca7c18ac8",
                 "sequencing_sample_id": "254866",
                 "variant_calling_params": "--ignore-overlaps --count-orphans --no-BAQ --max-depth 0 --min-BQ 0';-t 0.25 -q 20 -m 10",
@@ -276,7 +275,7 @@ def create_sample_data(request):
     request=inline_serializer(
         name="create_bioinfo_metadata",
         fields={
-            "analysis_date": serializers.CharField(),
+            "bioinformatics_analysis_date": serializers.CharField(),
             "assembly": serializers.CharField(),
             "assembly_params": serializers.CharField(),
             "bioinformatics_protocol_software_name": serializers.CharField(),
@@ -303,18 +302,18 @@ def create_sample_data(request):
             "if_mapping_other": serializers.CharField(required=False),
             "if_preprocessing_other": serializers.CharField(required=False),
             "lineage_algorithm_software_version": serializers.CharField(),
-            "lineage_analysis_constellation_version": serializers.CharField(),
-            "lineage_analysis_date": serializers.CharField(),
-            "lineage_analysis_scorpio_version": serializers.CharField(),
-            "lineage_analysis_software_name": serializers.CharField(),
-            "lineage_analysis_software_version": serializers.CharField(),
+            "lineage_assignment_constellation_version": serializers.CharField(),
+            "lineage_assignment_date": serializers.CharField(),
+            "lineage_assignment_scorpio_version": serializers.CharField(),
+            "lineage_assignment_software_name": serializers.CharField(),
+            "lineage_assignment_software_version": serializers.CharField(),
             "lineage_name": serializers.CharField(),
             "long_table_path": serializers.CharField(),
             "mapping_params": serializers.CharField(),
             "mapping_software_name": serializers.CharField(),
             "mapping_software_version": serializers.CharField(),
             "ns_per_100_kbp": serializers.CharField(),
-            "number_of_base_pairs_sequenced": serializers.CharField(),
+            "number_of_reads_sequenced": serializers.CharField(),
             "number_of_variants_in_consensus": serializers.CharField(),
             "number_of_variants_with_effect": serializers.CharField(),
             "per_Ns": serializers.CharField(),
@@ -325,13 +324,13 @@ def create_sample_data(request):
             "preprocessing_params": serializers.CharField(),
             "preprocessing_software_name": serializers.CharField(),
             "preprocessing_software_version": serializers.CharField(),
-            "qc_filtered": serializers.CharField(),
+            "pass_reads": serializers.CharField(),
             "reference_genome_accession": serializers.CharField(),
             "schema_name": serializers.CharField(),
             "schema_version": serializers.CharField(),
-            "sequence_file_R1_fastq": serializers.CharField(),
+            "sequence_file_R1": serializers.CharField(),
             "sequence_file_R1_md5": serializers.CharField(),
-            "sequence_file_R2_fastq": serializers.CharField(),
+            "sequence_file_R2": serializers.CharField(),
             "sequence_file_R2_md5": serializers.CharField(),
             "sequencing_sample_id": serializers.CharField(),
             "variant_calling_params": serializers.CharField(),
@@ -376,9 +375,9 @@ def create_bioinfo_metadata(request):
         )
 
     analysis_defined = core.api.utils.bioinfo_metadata.get_analysis_defined(sample_obj)
-    analysis_date = data.get("analysis_date", None)
-    if analysis_date is not None:
-        if analysis_date in list(analysis_defined):
+    bioinformatics_analysis_date = data.get("bioinformatics_analysis_date", None)
+    if bioinformatics_analysis_date is not None:
+        if bioinformatics_analysis_date in list(analysis_defined):
             return Response(
                 {"ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -528,7 +527,7 @@ def create_variant_data(request):
         analysis_defined = core.api.utils.variants.get_variant_analysis_defined(
             sample_obj
         )
-        if data["analysis_date"] in list(analysis_defined):
+        if data["bioinformatics_analysis_date"] in list(analysis_defined):
             return Response(
                 {"ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -545,7 +544,7 @@ def create_variant_data(request):
 
         for v_data in data["variants"]:
             split_data = core.api.utils.variants.split_variant_data(
-                v_data, sample_obj, data["analysis_date"]
+                v_data, sample_obj, data["bioinformatics_analysis_date"]
             )
             if "ERROR" in split_data:
                 error = {"ERROR": split_data}
