@@ -705,12 +705,12 @@ class Sample(models.Model):
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     collecting_institution = models.CharField(max_length=120, null=True, blank=True)
     submitting_institution = models.CharField(max_length=120, null=True, blank=True)
-    sequence_file_R1_fastq = models.CharField(max_length=80, null=True, blank=True)
-    sequence_file_R2_fastq = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R1 = models.CharField(max_length=80, null=True, blank=True)
+    sequence_file_R2 = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R1_md5 = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R2_md5 = models.CharField(max_length=80, null=True, blank=True)
-    r1_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
-    r2_fastq_filepath = models.CharField(max_length=120, null=True, blank=True)
+    sequence_file_path_R1 = models.CharField(max_length=120, null=True, blank=True)
+    sequence_file_path_R2 = models.CharField(max_length=120, null=True, blank=True)
     sequencing_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -789,10 +789,10 @@ class Sample(models.Model):
 
     def get_fastq_data(self):
         data = []
-        data.append(self.sequence_file_R1_fastq)
-        data.append(self.sequence_file_R2_fastq)
-        data.append(self.r1_fastq_filepath)
-        data.append(self.r2_fastq_filepath)
+        data.append(self.sequence_file_R1)
+        data.append(self.sequence_file_R2)
+        data.append(self.sequence_file_path_R1)
+        data.append(self.sequence_file_path_R2)
         data.append(self.sequence_file_R1_md5)
         data.append(self.sequence_file_R2_md5)
         return data
@@ -956,7 +956,7 @@ class VariantInSample(models.Model):
     variantID_id = models.ForeignKey(
         Variant, on_delete=models.CASCADE, null=True, blank=True
     )
-    analysis_date = models.CharField(max_length=100, null=True, blank=True)
+    bioinformatics_analysis_date = models.CharField(max_length=100, null=True, blank=True)
     dp = models.CharField(max_length=10, null=True, blank=True)
     ref_dp = models.CharField(max_length=10, null=True, blank=True)
     alt_dp = models.CharField(max_length=10, null=True, blank=True)
