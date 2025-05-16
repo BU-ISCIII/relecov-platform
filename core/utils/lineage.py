@@ -1,6 +1,7 @@
 # Local imports
 import core.utils.samples
 import core.models
+import core.config
 
 
 def get_lineages_list():
@@ -11,10 +12,10 @@ def get_lineages_list():
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
         "Unassigned",
-    ]
+    ].extend(core.config.FIELD_EMPTY_VALUES)
     return list(
         core.models.LineageValues.objects.all()
-        .filter(lineage_fieldID__property_name__iexact="lineage_name")
+        .filter(lineage_fieldID__property_name__iexact="lineage_assignment")
         .exclude(value__in=invalid_lineages)
         .values_list("value", flat=True)
         .distinct()

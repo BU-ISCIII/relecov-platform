@@ -18,12 +18,12 @@ from django.db.models.functions import ExtractWeek, ExtractIsoYear, Concat, Cast
 
 # Local imports
 import core.models
-import core.utils.lineage
 import core.utils.variants
 import core.utils.rest_api
 import core.utils.generic_functions
 import core.utils.public_db
 import dashboard.models
+import core.config
 from relecov_platform import settings as relecov_platform_settings
 
 import time
@@ -53,9 +53,9 @@ def pre_proc_calculation_date():
         else:
             d_format = "%Y%m%d"
         for sample in data.keys():
-            if sample in invalid_samples:
+            if sample in invalid_samples or data[sample] is None:
                 continue
-            if data[sample] == "Not Provided [GENEPIO:0001668]":
+            if any(x == data[sample] for x in core.config.FIELD_EMPTY_VALUES):
                 continue
             if data[sample]:
                 f_date = datetime.strptime(data[sample], d_format)
@@ -168,10 +168,9 @@ def pre_proc_variant_graphic():
     print("Iterating over sample-date fetched data")
     for date, samples in date_sample.items():
         invalid_values = [
-            "Not Provided [GENEPIO:0001668]",
             "Omicron (Unassigned)",
             "Probable Omicron (Unassigned)",
-        ]
+        ].extend(core.config.FIELD_EMPTY_VALUES)
         variant_samples = (
             core.models.LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
@@ -242,15 +241,14 @@ def pre_proc_variations_per_lineage(chromosome=None):
 
     lineage_data = {}
     invalid_lineages = [
-        "Not Provided [GENEPIO:0001668]",
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
         "Unassigned",
-    ]
+    ].extend(core.config.FIELD_EMPTY_VALUES)
     start = time.time()
     # Grab lineages matching selected lineage
     filtered_lineage_queryset = core.models.LineageValues.objects.filter(
-        lineage_fieldID__property_name="lineage_name",
+        lineage_fieldID__property_name="lineage_assignment",
     ).exclude(value__in=invalid_lineages)
     valid_lineages = filtered_lineage_queryset.values_list(
         "value", flat=True
@@ -401,7 +399,7 @@ def pre_proc_based_pairs_sequenced():
         sample_name = ct_value["Sample name"]
         base_value = (
             core.models.BioinfoAnalysisValue.objects.filter(
-                bioinfo_analysis_fieldID__property_name__exact="number_of_base_pairs_sequenced",
+                bioinfo_analysis_fieldID__property_name__exact="number_of_reads_sequenced",
                 sample__collecting_lab_sample_id__exact=sample_name,
             )
             .last()
@@ -630,29 +628,28 @@ def pre_proc_host_info():
         host_info_json["gender_values"] = {"ERROR": gender_values}
     else:
         label_val_dict = dict(zip(gender_label, gender_values))
-        empty_vals = label_val_dict.get("", 0)
-        if "" in label_val_dict.keys():
-            del label_val_dict[""]
-        if empty_vals:
-            if "Not Provided" in label_val_dict:
-                label_val_dict["Not Provided"] += empty_vals
-            else:
-                label_val_dict["Not Provided"] = empty_vals
-
+        for field in core.config.FIELD_EMPTY_VALUES:
+            # Group all Not provided values together
+            if field not in label_val_dict.keys() or field == "Not Provided":
+                continue
+            label_val_dict["Not Provided"] = (
+                label_val_dict.get("Not Provided", 0) + label_val_dict[field]
+            )
+            del label_val_dict[field]
         host_info_json["gender_label"] = list(label_val_dict.keys())
         host_info_json["gender_values"] = list(label_val_dict.values())
     # graphic for gender and age
     host_gender_data, invalid_gender_data = fetching_data_for_sex_and_range_data()
-    empty_vals = host_gender_data.get("", [])
-    if "" in host_gender_data.keys():
-        del host_gender_data[""]
-    if empty_vals:
-        if "Not Provided" in host_gender_data:
-            host_gender_data["Not Provided"] = [
-                x + y for x, y in zip(host_gender_data["Not Provided"], empty_vals)
-            ]
-        else:
-            host_gender_data["Not Provided"] = empty_vals
+    for field in core.config.FIELD_EMPTY_VALUES:
+        # Group all Not provided values together
+        if field not in host_gender_data.keys() or field == "Not Provided":
+            continue
+        empty_vals_zip = zip(
+            host_gender_data.get("Not Provided", [0] * len(host_gender_data[field])),
+            host_gender_data[field],
+        )
+        host_gender_data["Not Provided"] = [x + y for x, y in empty_vals_zip]
+        del host_gender_data[field]
     total_invalid_data["invalid_gender_data"] = invalid_gender_data
     host_info_json["gender_data"] = host_gender_data
     host_age_data, invalid_age_data = fetching_data_for_range_age()
