@@ -64,12 +64,12 @@ HEADING_FOR_BASIC_SAMPLE_DATA = [
     "Recorded Date",
 ]
 HEADING_FOR_FASTQ_SAMPLE_DATA = [
-    "Sequence file R1 fastq",
-    "Sequence file R2 fastq",
-    "Filepath R1 fastq",
-    "Filepath R2 fastq",
-    "Fastq md5 r1",
-    "Fastq md5 r2",
+    "Sequence file R1",
+    "Sequence file R2",
+    "Filepath R1",
+    "Filepath R2",
+    "Sequence file R1 md5",
+    "Sequence file R2 md5",
 ]
 HEADING_SCHEMA_DISPLAY = [
     "Property",
@@ -127,12 +127,12 @@ FIELDS_ON_SAMPLE_TABLE = [
     "microbiology_lab_sample_id",
     "sequencing_sample_id",
     "submitting_lab_sample_id",
-    "sequence_file_R1_fastq",
-    "sequence_file_R2_fastq",
-    "fastq_r1_md5",
-    "fastq_r2_md5",
-    "r1_fastq_filepath",
-    "r2_fastq_filepath",
+    "sequence_file_R1",
+    "sequence_file_R2",
+    "sequence_file_R1_md5",
+    "sequence_file_R2_md5",
+    "sequence_file_path_R1",
+    "sequence_file_path_R2",
 ]
 FIELDS_ON_ENA_TABLE = [
     "bioproject_accession_ENA",
