@@ -162,7 +162,7 @@ SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"basic": {"type": "basic"}}}
 
 #  Media settings
 MEDIA_URL = "/documents/"
-MEDIA_ROOT = "documents/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "documents/")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
