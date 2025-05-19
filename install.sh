@@ -695,6 +695,16 @@ if [ $install == true ]; then
             fi
         fi
 
+        if [ ! -d $INSTALL_PATH/documents ]; then
+            echo "Creating documents folder at $INSTALL_PATH/documents"
+            mkdir -p $INSTALL_PATH/documents
+            chown $user:$apache_group $INSTALL_PATH/documents
+            chmod 775 $INSTALL_PATH/documents
+        else
+            echo "Documents folder already exists at $INSTALL_PATH/documents"
+        fi
+
+
         mkdir -p $INSTALL_PATH/$PROJECT_NAME
         rsync -rlv README.md LICENSE conf $REQUIRED_MODULES $INSTALL_PATH/
 
