@@ -395,7 +395,7 @@ class BioinfoAnalysisValue(models.Model):
 
 
 class LineageInfo(models.Model):
-    lineage_name = models.CharField(max_length=100)
+    lineage_assignment = models.CharField(max_length=100)
     pango_lineages = models.CharField(max_length=100)
     variant_name = models.CharField(max_length=100)
     nextclade = models.CharField(max_length=100)
@@ -405,10 +405,10 @@ class LineageInfo(models.Model):
         db_table = "core_lineage_info"
 
     def __str__(self):
-        return "%s" % (self.lineage_name)
+        return "%s" % (self.lineage_assignment)
 
     def get_lineage_name(self):
-        return "%s" % (self.lineage_name)
+        return "%s" % (self.lineage_assignment)
 
     def get_lineage_id(self):
         return "%s" % (self.pk)
