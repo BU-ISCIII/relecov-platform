@@ -92,7 +92,7 @@ def get_variant_id(data):
 
 def get_variant_analysis_defined(s_obj):
     return core.models.VariantInSample.objects.filter(sampleID_id=s_obj).values_list(
-        "analysis_date", flat=True
+        "bioinformatics_analysis_date", flat=True
     )
 
 
