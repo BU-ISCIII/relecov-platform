@@ -538,6 +538,18 @@ def create_variant_data(request):
                 {"ERROR": core.config.ERROR_VARIANT_INFORMATION_NOT_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+        import ast
+
+        if isinstance(data["variants"], str):
+            try:
+                data["variants"] = ast.literal_eval(data["variants"])
+            except Exception as e:
+                return Response(
+                    {"ERROR": f"Unable to parse variants: {str(e)}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         found_error = False
         v_in_sample_list = []
         v_an_list = []
