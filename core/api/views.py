@@ -538,7 +538,7 @@ def create_variant_data(request):
                 {"ERROR": core.config.ERROR_VARIANT_INFORMATION_NOT_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         import ast
 
         if isinstance(data["variants"], str):
