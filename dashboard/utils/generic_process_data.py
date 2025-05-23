@@ -555,14 +555,28 @@ def pre_proc_host_info():
 
     def fetching_data_for_range_age():
         # get stats utilization fields from LIMS
-        lims_fields = core.utils.rest_api.get_stats_data(
-            {"sample_project_name": "Relecov", "project_field": "host_age"}
+        age_years = core.utils.rest_api.get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_age_years"}
+        )
+        age_months = core.utils.rest_api.get_stats_data(
+            {"sample_project_name": "Relecov", "project_field": "host_age_months"}
         )
         host_age = {}
-        for key, val in lims_fields.items():
+        for key, val in age_years.items():
             try:
                 host_age[int(key)] = val
             except ValueError:
+                continue
+        for key, val in age_months.items():
+            try:
+                years = float(key) / 12
+                if not years:
+                    continue
+                if years in host_age:
+                    host_age[years] += val
+                else:
+                    host_age[years] = val
+            except Exception:
                 continue
         # group data by decimal range
         tmp_range, invalid_data = split_age_in_ranges(lims_fields)
@@ -578,14 +592,36 @@ def pre_proc_host_info():
         return host_age_range, invalid_data
 
     def fetching_data_for_sex_and_range_data():
-        lims_fields = core.utils.rest_api.get_stats_data(
-            {"sample_project_name": "Relecov", "project_field": "host_gender,host_age"}
+        years_fields = core.utils.rest_api.get_stats_data(
+            {
+                "sample_project_name": "Relecov",
+                "project_field": "host_gender,host_age_years",
+            }
+        )
+        months_fields = core.utils.rest_api.get_stats_data(
+            {
+                "sample_project_name": "Relecov",
+                "project_field": "host_gender,host_age_months",
+            }
         )
         max_value = 0
         invalid_data = 0
         tmp_range_per_key = {}
         host_age_range_per_key_dict = {}
-        for key, values in lims_fields.items():
+        for gender, age_counts in months_fields.items():
+            for age, counts in age_counts.items():
+                try:
+                    int(age)
+                except ValueError:
+                    continue
+                year_age = str(int(age) / 12)
+                if year_age.endswith(".0"):
+                    year_age = year_age.replace(".0", "")
+                if year_age in years_fields[gender]:
+                    years_fields[gender][year_age] += counts
+                else:
+                    years_fields[gender][year_age] = counts
+        for key, values in years_fields.items():
             tmp_range_per_key[key], tmp_invalid_data = split_age_in_ranges(values)
             invalid_data += tmp_invalid_data
             tmp_max_value = max(tmp_range_per_key[key].keys())
