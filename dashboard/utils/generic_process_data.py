@@ -92,7 +92,7 @@ def pre_proc_calculation_date():
         analysis_date, "sample__collecting_lab_sample_id", "value"
     )
     analysis_date, invalid_samples = convert_str_to_datetime(
-        analysis_date, None, invalid_samples
+        analysis_date, "-", invalid_samples
     )
 
     seq_date = core.models.Sample.objects.all().values(
