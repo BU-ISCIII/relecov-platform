@@ -15,7 +15,7 @@ def get_public_accession_from_sample_lab(p_field, sample_objs=None):
             core.models.PublicDatabaseValues.objects.filter(
                 public_database_fieldID__property_name__iexact=p_field,
             )
-            .exclude(Q(value__in=core.config.FIELD_EMPTY_VAUES) | Q(value__isnull=True))
+            .exclude(Q(value__in=core.config.FIELD_EMPTY_VALUES) | Q(value__isnull=True))
             .values_list(
                 "sampleID__submitting_institution",
                 "sampleID__sequencing_sample_id",
@@ -28,7 +28,7 @@ def get_public_accession_from_sample_lab(p_field, sample_objs=None):
                 sampleID__in=sample_objs,
                 public_database_fieldID__property_name__exact=p_field,
             )
-            .exclude(Q(value__in=core.config.FIELD_EMPTY_VAUES) | Q(value__isnull=True))
+            .exclude(Q(value__in=core.config.FIELD_EMPTY_VALUES) | Q(value__isnull=True))
             .values_list("sampleID__sequencing_sample_id", "value")
         )
 
