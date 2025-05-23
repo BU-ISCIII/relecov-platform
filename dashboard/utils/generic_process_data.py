@@ -579,7 +579,7 @@ def pre_proc_host_info():
             except Exception:
                 continue
         # group data by decimal range
-        tmp_range, invalid_data = split_age_in_ranges(lims_fields)
+        tmp_range, invalid_data = split_age_in_ranges(host_age)
         max_value = max(tmp_range.keys())
         host_age_range = OrderedDict()
         for idx in range(max_value + 1):
