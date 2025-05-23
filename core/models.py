@@ -372,7 +372,7 @@ class BioinfoAnalysisValueManager(models.Manager):
 
 
 class BioinfoAnalysisValue(models.Model):
-    value = models.CharField(max_length=240, null=True, blank=True)
+    value = models.CharField(max_length=400, null=True, blank=True)
     bioinfo_analysis_fieldID = models.ForeignKey(
         BioinfoAnalysisField, on_delete=models.CASCADE
     )
