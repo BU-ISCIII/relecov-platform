@@ -16,6 +16,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import serializers
 from django.http import QueryDict
+import ast
 
 # Local imports
 import core.urls
@@ -538,8 +539,6 @@ def create_variant_data(request):
                 {"ERROR": core.config.ERROR_VARIANT_INFORMATION_NOT_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        import ast
 
         if isinstance(data["variants"], str):
             try:
