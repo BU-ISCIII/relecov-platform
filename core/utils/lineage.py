@@ -11,7 +11,8 @@ def get_lineages_list():
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
         "Unassigned",
-    ].extend(core.config.FIELD_EMPTY_VALUES)
+    ]
+    invalid_lineages.extend(core.config.FIELD_EMPTY_VALUES)
     return list(
         core.models.LineageValues.objects.all()
         .filter(lineage_fieldID__property_name__iexact="lineage_assignment")

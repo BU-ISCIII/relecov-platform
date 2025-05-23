@@ -170,7 +170,8 @@ def pre_proc_variant_graphic():
         invalid_values = [
             "Omicron (Unassigned)",
             "Probable Omicron (Unassigned)",
-        ].extend(core.config.FIELD_EMPTY_VALUES)
+        ]
+        invalid_values.extend(core.config.FIELD_EMPTY_VALUES)
         variant_samples = (
             core.models.LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
@@ -244,7 +245,8 @@ def pre_proc_variations_per_lineage(chromosome=None):
         "Omicron (Unassigned)",
         "Probable Omicron (Unassigned)",
         "Unassigned",
-    ].extend(core.config.FIELD_EMPTY_VALUES)
+    ]
+    invalid_lineages.extend(core.config.FIELD_EMPTY_VALUES)
     start = time.time()
     # Grab lineages matching selected lineage
     filtered_lineage_queryset = core.models.LineageValues.objects.filter(
