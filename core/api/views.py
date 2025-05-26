@@ -175,13 +175,19 @@ def create_sample_data(request):
                     date_serilizer.save()
         # Save GISAID info if included
         if split_data.get("gisaid") and any(split_data["gisaid"].values()):
-            if "EPI_ISL" in split_data["gisaid"]["gisaid_accession_id"]:
-                result = core.api.utils.public_db.store_pub_databases_data(
-                    split_data["gisaid"], "gisaid", schema_obj, sample_id
-                )
-                if "ERROR" in result:
-                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                # Save entry in update state table
+            for key in ["gisaid_accession_id", "gisaid_virus_name"]:
+                if not split_data["gisaid"].get(key):
+                    split_data["gisaid"][key] = "Not Provided"
+
+            result = core.api.utils.public_db.store_pub_databases_data(
+                split_data["gisaid"], "gisaid", schema_obj, sample_id
+            )
+            if "ERROR" in result:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+            # Save entry in update state table only if gisaid_accession_id is valid
+            gisaid_id = split_data["gisaid"].get("gisaid_accession_id")
+            if gisaid_id and isinstance(gisaid_id, str) and "EPI_ISL" in gisaid_id:
                 sample_obj.update_state("Gisaid")
                 state_id = (
                     core.models.SampleState.objects.filter(state__exact="Gisaid")
@@ -194,6 +200,7 @@ def create_sample_data(request):
                 )
                 if date_serilizer.is_valid():
                     date_serilizer.save()
+
         # Save AUTHOR info if included
         if len(split_data["author"]) > 0:
             result = core.api.utils.public_db.store_pub_databases_data(
@@ -201,7 +208,9 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
+
 
 
 @extend_schema(
