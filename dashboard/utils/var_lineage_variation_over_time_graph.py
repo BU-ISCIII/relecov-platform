@@ -147,12 +147,15 @@ def create_lineages_variations_graphic():
         sub_data_df["Collection ISOWeek"] = sub_data_df["Collection date"].dt.strftime(
             "%Y-W%V"
         )
-        
-        agg_df = sub_data_df.groupby(["Lineage", "Collection ISOWeek"])["samples"].sum().reset_index()
 
-        graph_df = (
-            agg_df.set_index(["Collection ISOWeek", "Lineage"])
-            .unstack("Lineage")
+        agg_df = (
+            sub_data_df.groupby(["Lineage", "Collection ISOWeek"])["samples"]
+            .sum()
+            .reset_index()
+        )
+
+        graph_df = agg_df.set_index(["Collection ISOWeek", "Lineage"]).unstack(
+            "Lineage"
         )
 
         # remove the sample text from column
