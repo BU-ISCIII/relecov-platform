@@ -1,8 +1,9 @@
-# Local imports
+from django.db.models import Prefetch
+
+import core.config
 import core.models
 import core.utils.samples
 import core.utils.schema
-import core.config
 
 
 def get_bio_analysis_stats_from_lab(lab_name=None):
@@ -79,17 +80,28 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
     }
     for b_field_obj in b_field_objs:
         f_name = b_field_obj.get_label()
+
         b_field_obj_info = core.models.BioinfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID=b_field_obj
+            bioinfo_analysis_fieldID=b_field_obj, value__isnull=False
+        ).exclude(value__in=core.config.FIELD_EMPTY_VALUES)
+
+        # Prefetch with filtered queryset to avoid multiple queries
+        samples = core.models.Sample.objects.prefetch_related(
+            Prefetch(
+                "bio_analysis_values",
+                queryset=b_field_obj_info,
+                to_attr="filtered_bio_values",
+            )
         )
+
+        # Count the number of samples with non-empty values
+        count_not_empty = sum(1 for sample in samples if sample.filtered_bio_values)
+
         if not b_field_obj_info.exists():
             b_data["never_used"].append(f_name)
             b_data["fields_value"][f_name] = 0
             continue
-        # b_data[schema_name][f_name] = [count]
-        count_not_empty = b_field_obj_info.exclude(
-            value__in=core.config.FIELD_EMPTY_VALUES
-        ).count()
+
         b_data["fields_value"][f_name] = count_not_empty
         if count_not_empty == 0:
             b_data["always_none"].append(f_name)
