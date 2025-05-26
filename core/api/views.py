@@ -212,7 +212,6 @@ def create_sample_data(request):
         return Response("Successful upload information", status=status.HTTP_201_CREATED)
 
 
-
 @extend_schema(
     examples=[
         OpenApiExample(
