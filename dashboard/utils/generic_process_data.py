@@ -393,7 +393,7 @@ def pre_proc_library_kit_pcr_1():
 def pre_proc_based_pairs_sequenced():
     based_pairs = {}
     pcr_ct_1_values = core.utils.rest_api.get_sample_parameter_data(
-        {"sample_project_name": "relecov", "parameter": "diagnostic_pcr_Ct_value_1"}
+        {"sample_project_name": "Relecov", "parameter": "diagnostic_pcr_Ct_value_1"}
     )
     samps_db = core.models.Sample.objects.all().values_list("collecting_lab_sample_id")
     if "ERROR" in pcr_ct_1_values:
@@ -624,12 +624,20 @@ def pre_proc_host_info():
                     years_fields[gender][year_age] += counts
                 else:
                     years_fields[gender][year_age] = counts
+        for invalid_key in ['', 'Not Applicable']:
+            if invalid_key in years_fields:
+                years_fields['Not Provided'] = {
+                    k: years_fields.get('Not Provided', {}).get(k, 0) + years_fields[invalid_key].get(k, 0)
+                    for k in set(years_fields[invalid_key]) | set(years_fields.get('Not Provided', {}))
+                }
+                del years_fields[invalid_key]
         for key, values in years_fields.items():
             tmp_range_per_key[key], tmp_invalid_data = split_age_in_ranges(values)
             invalid_data += tmp_invalid_data
-            tmp_max_value = max(tmp_range_per_key[key].keys())
-            if tmp_max_value > max_value:
-                max_value = tmp_max_value
+            if tmp_range_per_key[key]:
+                tmp_max_value = max(tmp_range_per_key[key].keys())
+                if tmp_max_value > max_value:
+                    max_value = tmp_max_value
 
         age_range_list = []
         for idx in range(max_value + 1):

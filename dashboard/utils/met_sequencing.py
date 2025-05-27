@@ -100,7 +100,8 @@ def sequencing_graphics():
         col_names=["library_preparation", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Library Preparation", "height": 400},
+        options={"title": "Library Preparation", "height": 400,
+                 "truncate_labels": 20},
     )
     read_length_df = fetch_sequencing_data(
         project_field="read_length",
@@ -123,6 +124,7 @@ def sequencing_graphics():
         options={
             "title": "Read Length Distribution",
             "height": 400,
+            "width":400,
             "xaxis": {"type": "category"},
         },
     )
@@ -132,10 +134,11 @@ def sequencing_graphics():
     sequencing["cts_library"] = dashboard.utils.plotly.box_plot_graphic(
         cts_library_data,
         {
-            "title": "PCR Ct Values<br>by Library Preparation Kit",
+            "title": "PCR Ct Values by Library Preparation Kit",
             "height": 400,
-            "width": 420,
+            "width": 400,
             "y_title": "PCR Ct Value",
+            "truncate_labels": 20
         },
     )
 
@@ -144,7 +147,7 @@ def sequencing_graphics():
         cts_pcr_1["based"],
         cts_pcr_1["cts"],
         {
-            "title": "Sequenced Base Pairs<br>vs PCR Ct Values",
+            "title": "Sequenced Base Pairs vs PCR Ct Values",
             "height": 350,
             "width": 300,
             "x_title": "Number of base pairs sequenced",
