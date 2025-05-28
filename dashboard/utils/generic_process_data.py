@@ -624,11 +624,13 @@ def pre_proc_host_info():
                     years_fields[gender][year_age] += counts
                 else:
                     years_fields[gender][year_age] = counts
-        for invalid_key in ['', 'Not Applicable']:
+        for invalid_key in ["", "Not Applicable"]:
             if invalid_key in years_fields:
-                years_fields['Not Provided'] = {
-                    k: years_fields.get('Not Provided', {}).get(k, 0) + years_fields[invalid_key].get(k, 0)
-                    for k in set(years_fields[invalid_key]) | set(years_fields.get('Not Provided', {}))
+                years_fields["Not Provided"] = {
+                    k: years_fields.get("Not Provided", {}).get(k, 0)
+                    + years_fields[invalid_key].get(k, 0)
+                    for k in set(years_fields[invalid_key])
+                    | set(years_fields.get("Not Provided", {}))
                 }
                 del years_fields[invalid_key]
         for key, values in years_fields.items():

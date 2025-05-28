@@ -100,8 +100,7 @@ def sequencing_graphics():
         col_names=["library_preparation", "number"],
         legend=[""],
         yaxis={"title": "Number of samples"},
-        options={"title": "Library Preparation", "height": 400,
-                 "truncate_labels": 20},
+        options={"title": "Library Preparation", "height": 400, "truncate_labels": 20},
     )
     read_length_df = fetch_sequencing_data(
         project_field="read_length",
@@ -124,7 +123,7 @@ def sequencing_graphics():
         options={
             "title": "Read Length Distribution",
             "height": 400,
-            "width":400,
+            "width": 400,
             "xaxis": {"type": "category"},
         },
     )
@@ -138,7 +137,7 @@ def sequencing_graphics():
             "height": 400,
             "width": 400,
             "y_title": "PCR Ct Value",
-            "truncate_labels": 20
+            "truncate_labels": 20,
         },
     )
 
