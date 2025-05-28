@@ -130,6 +130,9 @@ def sequencing_graphics():
     # box plot for library preparation kit
 
     cts_library_data = get_pre_proc_data("library_kit_pcr_1", "list_of_dict")
+    for d in cts_library_data:
+        for k in d:
+            d[k] = [v for v in d[k] if v < 1000]
     sequencing["cts_library"] = dashboard.utils.plotly.box_plot_graphic(
         cts_library_data,
         {
