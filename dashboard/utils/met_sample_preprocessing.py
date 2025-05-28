@@ -131,7 +131,7 @@ def sample_processing_graphics():
             d[k] = [v for v in d[k] if v < 1000]
     sample_processing["cts_specimen"] = dashboard.utils.plotly.box_plot_graphic(
         cts_specimen_data,
-        {"title": "PCR Ct Values by Specimen Source", "height": 400, "width": 600},
+        {"title": "PCR Ct Values by Specimen Source", "height": 400, "width": 600, "truncate_labels": 20},
     )
     # calculate the number of days spent in each state before moved on to the next step
     calculation_date_data = get_pre_proc_data("calculation_date")

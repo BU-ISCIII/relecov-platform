@@ -123,7 +123,7 @@ def sequencing_graphics():
         options={
             "title": "Read Length Distribution",
             "height": 400,
-            "width": 400,
+            "width": 300,
             "xaxis": {"type": "category"},
         },
     )
@@ -138,7 +138,7 @@ def sequencing_graphics():
         {
             "title": "PCR Ct Values by Library Preparation Kit",
             "height": 400,
-            "width": 400,
+            "width": 350,
             "y_title": "PCR Ct Value",
             "truncate_labels": 20,
         },
@@ -151,7 +151,7 @@ def sequencing_graphics():
         {
             "title": "Sequenced Base Pairs vs PCR Ct Values",
             "height": 350,
-            "width": 300,
+            "width": 250,
             "x_title": "Number of base pairs sequenced",
             "y_title": "PCR Ct Value",
         },
