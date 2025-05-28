@@ -50,29 +50,26 @@ def bioinfo_graphics():
                 property_name__in=graph_list
             )
         }
+    
         for graph in graph_list:
-            if core.models.BioinfoAnalysisValue.objects.filter(
+            str_data = core.models.BioinfoAnalysisValue.objects.filter(
                 bioinfo_analysis_fieldID__property_name__exact=graph
-            ).exists():
-                str_data = list(
-                    core.models.BioinfoAnalysisValue.objects.filter(
-                        bioinfo_analysis_fieldID__property_name__exact=graph
-                    ).values_list("value", flat=True)
-                )
+            ).values_list("value", flat=True)
+    
+            values = []
+            for v in str_data:
                 try:
-                    per_data.append(
-                        {labels_map.get(graph, graph): list(map(float, str_data))}
-                    )
+                    val = float(v)
+                    if 0 <= val <= 100:
+                        values.append(val)
                 except ValueError:
-                    filter_list = []
-                    for value in str_data:
-                        try:
-                            filter_list.append(float(value))
-                        except ValueError:
-                            continue
-                    per_data.append({labels_map.get(graph, graph): filter_list})
-
+                    continue
+                
+            if values:
+                per_data.append({labels_map.get(graph, graph): values})
+    
         return per_data
+
 
     bioinfo = {}
     percentage_data = get_percentage_data()
