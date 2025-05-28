@@ -111,7 +111,9 @@ def sample_processing_graphics():
     )
 
     cts_extraction_data = get_pre_proc_data("extraction_protocol_pcr_1")
-
+    for d in cts_extraction_data:
+        for k in d:
+            d[k] = [v for v in d[k] if v < 1000]
     sample_processing["cts_extraction"] = dashboard.utils.plotly.box_plot_graphic(
         cts_extraction_data,
         {
@@ -124,7 +126,9 @@ def sample_processing_graphics():
     )
     # specimen source graphics
     cts_specimen_data = get_pre_proc_data("specimen_source_pcr_1")
-
+    for d in cts_specimen_data:
+        for k in d:
+            d[k] = [v for v in d[k] if v < 1000]
     sample_processing["cts_specimen"] = dashboard.utils.plotly.box_plot_graphic(
         cts_specimen_data,
         {"title": "PCR Ct Values by Specimen Source", "height": 400, "width": 600},
