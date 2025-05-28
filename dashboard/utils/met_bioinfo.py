@@ -50,12 +50,12 @@ def bioinfo_graphics():
                 property_name__in=graph_list
             )
         }
-    
+
         for graph in graph_list:
             str_data = core.models.BioinfoAnalysisValue.objects.filter(
                 bioinfo_analysis_fieldID__property_name__exact=graph
             ).values_list("value", flat=True)
-    
+
             values = []
             for v in str_data:
                 try:
@@ -64,12 +64,11 @@ def bioinfo_graphics():
                         values.append(val)
                 except ValueError:
                     continue
-                
+
             if values:
                 per_data.append({labels_map.get(graph, graph): values})
-    
-        return per_data
 
+        return per_data
 
     bioinfo = {}
     percentage_data = get_percentage_data()
