@@ -148,14 +148,15 @@ def create_lineages_variations_graphic():
             "%Y-W%V"
         )
 
-        agg_df = sub_data_df.drop_duplicates(subset=["Lineage", "Collection ISOWeek"])
-
-        graph_df = agg_df.set_index(["Collection ISOWeek", "Lineage"]).unstack(
-            "Lineage"
+        graph_df = sub_data_df.pivot_table(
+            index="Collection ISOWeek",
+            columns="Lineage",
+            values="samples",
+            aggfunc="sum",
+            fill_value=0,
         )
 
         # remove the sample text from column
-        graph_df.columns = ["{}".format(t) for v, t in graph_df.columns]
         graph_df = graph_df.fillna(0)
         # Convert values to integer
         graph_df[lineages] = graph_df[lineages].astype(int)
