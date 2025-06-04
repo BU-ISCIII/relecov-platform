@@ -347,7 +347,7 @@ def get_lab_last_actions(lab_name=None):
     """Get the last action performed on the samples for a specific lab.
     If no lab is given it returns the info for all labs
     """
-    action_list = ["Defined", "Analysis", "Gisaid", "Ena"]
+    action_list = ["Defined", "Bioinfo", "Gisaid", "Ena"]
     if lab_name is None:
         lab_actions = []
         labs = core.models.core.models.Sample.objects.values_list(
