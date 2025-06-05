@@ -18,7 +18,7 @@ def sequencing_graphics():
         json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
             graphic_name
         )
-        if json_data is None:
+        if json_data is None or json_data == {}:
             # Execute the pre-processed task to get the data
             if graphic_name == "library_kit_pcr_1":
                 result = (
