@@ -395,7 +395,12 @@ def pre_proc_based_pairs_sequenced():
     pcr_ct_1_values = core.utils.rest_api.get_sample_parameter_data(
         {"sample_project_name": "Relecov", "parameter": "diagnostic_pcr_Ct_value_1"}
     )
-    samps_db = set(x[0] for x in core.models.Sample.objects.all().values_list("collecting_lab_sample_id"))
+    samps_db = set(
+        x[0]
+        for x in core.models.Sample.objects.all().values_list(
+            "collecting_lab_sample_id"
+        )
+    )
     if "ERROR" in pcr_ct_1_values:
         return pcr_ct_1_values
     for ct_value in pcr_ct_1_values:
