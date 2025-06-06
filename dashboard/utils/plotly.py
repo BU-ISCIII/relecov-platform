@@ -25,6 +25,10 @@ COLOR_PALETTE = [
     "#46523a",
 ]
 
+DEFAULT_MARGIN = dict(t=30, b=120, l=50, r=20)
+DEFAULT_HEIGHT = 400
+DEFAULT_XAXIS = dict(tickangle=-45, automargin=False)
+
 mi_template = go.layout.Template(
     layout=dict(
         paper_bgcolor="#f8f9fc",
@@ -71,11 +75,9 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
     """
     formatted_labels = []
     hover_labels = []
-
     for label in labels:
         original_label = label
         label_hash = str(abs(hash(original_label)))[:6]
-
         if truncate and len(label) > truncate:
             words = re.split(r"[\s_]", label)
             if len(words) == 1:
@@ -84,13 +86,10 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
                 first_part = words[0][: truncate // 2]
                 last_part = words[-1][-truncate // 2 :]
                 label = f"{first_part}{separator}{last_part}<span style='display:none'>_{label_hash}</span>"
-
         elif wrap and len(label) > wrap:
             label = "<br>".join(text_wrap(label, wrap))
-
         formatted_labels.append(label)
         hover_labels.append(original_label)
-
     return formatted_labels, hover_labels
 
 
@@ -110,7 +109,6 @@ def graph_gauge_percent_values(app_name, value, label, size=180):
         )
     )
     graph.update_layout(margin=dict(t=10, b=0, l=30, r=30), height=250)
-
     app.layout = html.Div(
         [
             dcc.Graph(
@@ -135,7 +133,6 @@ def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
     unused fields
     """
     app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
     app.layout = html.Div(
         daq.Gauge(
             showCurrentValue=True,
@@ -154,19 +151,14 @@ def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
 
 def bar_graphic(data, col_names, legend, yaxis, options):
     """Options fields are: title, height"""
-    if "colors" in options:
-        colors = options["colors"]
-    else:
-        colors = COLOR_PALETTE
 
+    colors = options.get("colors", COLOR_PALETTE)
     labels = data[col_names[0]]
     wrap_length = options.get("wrap_labels")
     truncate_length = options.get("truncate_labels")
-
     formatted_labels, hover_labels = format_labels(
         labels, wrap=wrap_length, truncate=truncate_length
     )
-
     fig = go.Figure()
     for idx in range(1, len(col_names)):
         values = data[col_names[idx]]
@@ -175,33 +167,25 @@ def bar_graphic(data, col_names, legend, yaxis, options):
                 x=formatted_labels,
                 y=values,
                 name=legend[idx - 1],
-                marker_color=colors if "colors" in options else colors[idx - 1],
+                marker_color=(
+                    colors[idx - 1] if "colors" in options else colors[idx - 1]
+                ),
                 customdata=list(zip(hover_labels, [col_names[idx]] * len(values))),
-                hovertemplate="<b>%{customdata[0]}</b><br>"
-                "%{customdata[1]}: %{y}<br>"
-                "<extra></extra>",
+                hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}: %{y}<br><extra></extra>",
             )
         )
-
     fig.update_layout(
         title=options["title"],
         title_font_size=20,
-        xaxis_tickangle=-45,
         template=mi_template,
         yaxis=yaxis,
-        margin=dict(l=0, r=0, t=30, b=0),
-        height=options["height"],
-        xaxis=dict(options.get("xaxis", {})),
+        margin=DEFAULT_MARGIN,
+        height=DEFAULT_HEIGHT,
+        xaxis=DEFAULT_XAXIS,
     )
-
-    if "wrap_labels" in options or "truncate_labels" in options:
+    if wrap_length or truncate_length:
         fig.update_xaxes(ticktext=formatted_labels)
-
-    if "xaxis_tics" in options:
-        fig.update_layout(xaxis=options["xaxis"])
-
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
-
     return plot_div
 
 
@@ -219,14 +203,15 @@ def line_graphic(x_data, y_data, options):
             line=dict(color=marker_color),
         )
     )
-
     fig.update_layout(
         autosize=True,
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
-        margin=dict(t=30, b=0, l=0, r=0),
         title=options["title"],
         template=mi_template,
+        margin=DEFAULT_MARGIN,
+        height=DEFAULT_HEIGHT,
+        xaxis=DEFAULT_XAXIS,
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
@@ -234,13 +219,7 @@ def line_graphic(x_data, y_data, options):
 
 def pie_graphic(labels, values, options, show_legend=True):
     colors = COLOR_PALETTE
-    fig = go.Figure(
-        data=go.Pie(
-            labels=labels,
-            values=values,
-        )
-    )
-
+    fig = go.Figure(data=go.Pie(labels=labels, values=values))
     fig.update_traces(
         hoverinfo="label+percent",
         textinfo="value",
@@ -249,7 +228,6 @@ def pie_graphic(labels, values, options, show_legend=True):
         marker=dict(colors=colors),
         opacity=0.6,
     )
-
     fig.update_layout(
         height=320,
         width=320,
@@ -263,10 +241,8 @@ def pie_graphic(labels, values, options, show_legend=True):
 
 
 def box_plot_graphic(data, options):
-
     wrap_length = options.get("wrap_labels")
     truncate_length = options.get("truncate_labels")
-
     fig = go.Figure()
     formatted_labels = []
     colors = {}
@@ -275,9 +251,7 @@ def box_plot_graphic(data, options):
         for key, values in box_data.items():
             if not values:
                 continue
-
             values = np.array(values)
-
             if values.size == 0:
                 continue
             min_val, q1, median, q3, max_val = (
@@ -287,18 +261,14 @@ def box_plot_graphic(data, options):
                 np.percentile(values, 75),
                 np.max(values),
             )
-
             formatted_label, hover_label = format_labels(
                 [key], wrap=wrap_length, truncate=truncate_length
             )
             formatted_labels.append(formatted_label[0])
-
             if key not in colors:
                 colors[key] = COLOR_PALETTE[color_idx % len(COLOR_PALETTE)]
                 color_idx += 1
-
             color = colors[key]
-
             fig.add_trace(
                 go.Box(
                     y=values,
@@ -325,21 +295,18 @@ def box_plot_graphic(data, options):
                     "Q1: %{customdata[2]:.2f}<br>"
                     "Median: %{customdata[3]:.2f}<br>"
                     "Q3: %{customdata[4]:.2f}<br>"
-                    "Max: %{customdata[5]:.2f}<br>"
-                    "<extra></extra>",
+                    "Max: %{customdata[5]:.2f}<br><extra></extra>",
                 )
             )
-
     if wrap_length or truncate_length:
         fig.update_xaxes(ticktext=formatted_labels)
-
     fig.update_layout(
-        height=options["height"],
+        height=DEFAULT_HEIGHT,
         width=options["width"],
         showlegend=False,
-        margin=dict(t=30, b=0, l=0, r=0),
+        margin=DEFAULT_MARGIN,
         template=mi_template,
-        xaxis_tickangle=-45,
+        xaxis=DEFAULT_XAXIS,
         title=options["title"],
     )
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
@@ -349,13 +316,11 @@ def box_plot_graphic(data, options):
 def ridge_plot_graphic(data, options):
     samples = []
     labels = []
-
     for box_data in data:
         for key, values in box_data.items():
             values = np.array(values, dtype=float)
             samples.append(values)
             labels.append(key)
-
     fig = ridgeplot(
         samples=samples,
         bandwidth=4,
@@ -368,7 +333,6 @@ def ridge_plot_graphic(data, options):
         labels=labels,
         spacing=5 / 9,
     )
-
     fig.update_layout(
         autosize=True,
         title=options["title"],
@@ -377,14 +341,12 @@ def ridge_plot_graphic(data, options):
         yaxis_title="",
         showlegend=False,
     )
-
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
 
 
 def box_plot_graphic_bins(x_data, y_data, options):
     df = pd.DataFrame({"Depth": x_data, "Samples": y_data})
-
     bins = [0, 100, 500, 1000, 2000, 3000, 5000, float("inf")]
     labels = [
         "0-100",
@@ -396,9 +358,7 @@ def box_plot_graphic_bins(x_data, y_data, options):
         ">5000",
     ]
     df["Depth Group"] = pd.cut(df["Depth"], bins=bins, labels=labels)
-
     fig = go.Figure()
-
     for label in labels:
         subset = df[df["Depth Group"] == label]
         if not subset.empty:
@@ -410,16 +370,16 @@ def box_plot_graphic_bins(x_data, y_data, options):
                     marker_color=COLOR_PALETTE[0],
                 )
             )
-
     fig.update_layout(
         autosize=True,
         showlegend=False,
-        margin=dict(t=30, b=30, l=10, r=10),
+        margin=DEFAULT_MARGIN,
         xaxis_title=options["x_title"],
         yaxis_title=options["y_title"],
         title=options["title"],
         template=mi_template,
+        height=DEFAULT_HEIGHT,
+        xaxis=DEFAULT_XAXIS,
     )
-
     plot_div = plot(fig, output_type="div", config={"displaylogo": False})
     return plot_div
