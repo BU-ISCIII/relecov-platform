@@ -50,6 +50,8 @@ def sample_processing_graphics():
                     float_val = float(str_val)
                 except ValueError:
                     continue
+                if float_val > 40:
+                    continue
                 tmp_data += [float_val] * numbers
             data.append({key: tmp_data})
         return data
