@@ -23,6 +23,7 @@ import core.utils.rest_api
 import core.utils.generic_functions
 import core.utils.public_db
 import dashboard.models
+import dashboard.dashboard_config
 import core.config
 from relecov_platform import settings as relecov_platform_settings
 
@@ -450,20 +451,24 @@ def pre_proc_depth_variants():
         try:
             tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
         except ValueError:
-            # ignore the entry if value cannot converted to float
+            # ignore the entry if value cannot converted to float (ex. "Not Provided")
             continue
     for item in variant_sample_list:
-        # ignore the samples that do not have depth value
-        if item["sample__collecting_lab_sample_id"] not in tmp_depth:
+        sample_id = item["sample__collecting_lab_sample_id"]
+        if sample_id not in tmp_depth:
             continue
-        d_value = float(tmp_depth[item["sample__collecting_lab_sample_id"]])
+        d_value = float(tmp_depth[sample_id])
         if d_value not in depth_variant:
             depth_variant[d_value] = []
-        depth_variant[d_value].append(int(item["value"]))
-    # depth_variant_ordered = dict(sorted(depth_variant.items()))
-    # depth.append(tmp_depth[item["sample__collecting_lab_sample_id"]])
-    # variant.append(int(item["value"]))
-    # depth_variant = {"depth": depth, "variant": variant}
+        value_str = item["value"]
+        if value_str is None:
+            continue
+        value_str = str(value_str).strip()
+        if value_str.isdigit():
+            depth_variant[d_value].append(int(value_str))
+        else:
+            continue
+
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
         {
             "graphic_name": "depth_variant_consensus",
