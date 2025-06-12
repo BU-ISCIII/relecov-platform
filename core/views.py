@@ -69,38 +69,23 @@ def sample_display(request, sample_id):
         {"data": result["data"]}
     )
 
-# TODO: this needs serialized-based refactor
+# TODO: Discuss whether render shuld be used once or twice (one if not result["success"] and another one if result["success"]). Example below shows an scenario where render is used once, letting the logic of errors to be addressed in the tempalte.  
 @login_required
 def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
-    if request.method == "POST" and request.POST["action"] == "uploadSchema":
-        if "schemaDefault" in request.POST:
-            schemaDefault = "on"
-        else:
-            schemaDefault = "off"
-        schema_data = core.utils.schema.process_schema_file(
-            request.FILES["schemaFile"],
-            schemaDefault,
-            request.user,
-            __package__,
-        )
-        if "ERROR" in schema_data:
-            return render(
-                request,
-                "core/schemaHandling.html",
-                {"ERROR": schema_data["ERROR"]},
-            )
-        schemas = core.utils.schema.get_schemas_loaded(__package__)
-        return render(
-            request,
-            "core/schemaHandling.html",
-            {"SUCCESS": schema_data["SUCCESS"], "schemas": schemas},
-        )
-    schemas = core.utils.schema.get_schemas_loaded(__package__)
-    return render(request, "core/schemaHandling.html", {"schemas": schemas})
+    result = core.services.get_schema_handling_data(request)
+    show_success = request.method == "POST" and result.get("success")
+    return render(
+        request,
+        "core/schemaHandling.html",
+        {
+            "DATA": result["data"],
+            "SUCCESS": result["success"] if show_success else None,
+            "ERROR": result["errors"]
+        }
+    )
 
-# TODO: this needs serialized-based refactor
 @login_required
 def schema_display(request, schema_id):
     if request.user.username != "admin":
@@ -223,7 +208,6 @@ def metadata_visualization(request):
         {"m_visualization": m_visualization},
     )
 
-# TODO: Testing required
 @login_required
 def intranet(request):
     is_manager = Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()

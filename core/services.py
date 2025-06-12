@@ -8,8 +8,10 @@ import core.serializers
 import core.config
 import core.utils.utils
 import core.utils.rest_api
-import core.utils
+import core.utils.schema
 import core.utils.variants
+import core.utils.samples
+import core.utils.bioinfo_analysis
 
 # TODO: Some functions are still being called from utils.py. 
 # Move those functions into proper service modules and import them accordingly. 
@@ -523,3 +525,28 @@ def get_public_info(p_type, sample_id):
         .values_list("public_database_fieldID__label_name", "value")
     )
 
+
+def get_schema_handling_data(request):
+    """
+    """
+    result = {"data": {}, "success": True, "errors": []}
+    try:
+        if request.method == "POST" and request.POST.get("action") == "uploadSchema":
+            schema_default = "on" if "schemaDefault" in request.POST else "off"
+            schema_data = core.utils.schema.process_schema_file(
+                request.FILES.get("schemaFile"),
+                schema_default,
+                request.user,
+                __package__,
+            )
+            if "ERROR" in schema_data:
+                result["success"] = False
+                result["errors"].append(schema_data["ERROR"])
+            else:
+                result["data"]["SUCCESS"] = schema_data.get("SUCCESS")
+        # Siempre devolver los schemas cargados
+        result["data"]["schemas"] = core.utils.schema.get_schemas_loaded(__package__)
+    except Exception as e:
+        result["success"] = False
+        result["errors"].append(str(e))
+    return result

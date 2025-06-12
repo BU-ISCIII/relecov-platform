@@ -15,6 +15,7 @@ class LabUserAssignSerializer(serializers.Serializer):
     SUCCESS = serializers.CharField(allow_null=True, required=False)
     ERROR = serializers.CharField(allow_null=True, required=False)
 
+    # FIXME: success and errors shouldnt be added here.
     @classmethod
     def from_raw_data(cls, labs, users, SUCCESS=None, ERROR=None):
         # Transform users from list of lists → list of dicts
@@ -23,7 +24,7 @@ class LabUserAssignSerializer(serializers.Serializer):
         data = {
             "labs": labs,
             "users": users_data,
-            "SUCCESS": SUCCESS,
+            "success": SUCCESS,
             "ERROR": ERROR,
         }
         serializer = cls(data=data)
