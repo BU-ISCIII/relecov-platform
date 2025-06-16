@@ -536,7 +536,7 @@ def create_variant_data(request):
         analysis_defined = core.api.utils.variants.get_variant_analysis_defined(
             sample_obj
         )
-        if data["bioinformatics_analysis_date"] in list(analysis_defined):
+        if data["analysis_date"] in list(analysis_defined):
             return Response(
                 {"ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -563,7 +563,7 @@ def create_variant_data(request):
 
         for v_data in data["variants"]:
             split_data = core.api.utils.variants.split_variant_data(
-                v_data, sample_obj, data["bioinformatics_analysis_date"]
+                v_data, sample_obj, data["analysis_date"]
             )
             if "ERROR" in split_data:
                 error = {"ERROR": split_data}
