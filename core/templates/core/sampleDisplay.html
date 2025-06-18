@@ -8,433 +8,291 @@
 {% include "core/sideMenuFuncionality.html" %}
 <section class="hero-animated d-flex">
     <div class="container position-relative">
-        <!-- Page Wrapper -->
         <div id="wrapper">
-            <!-- Sidebar -->
             {% include "core/intranetSideBar.html" %}
-            <!-- End of Sidebar -->
-            <!-- Content Wrapper -->
             <div id="content-wrapper" class="d-flex flex-column">
-                <!-- Main Content -->
                 <div id="content">
-                    <!-- Begin Page Content -->
                     <div class="container-fluid">
-                        <!-- Page Heading -->
-                        <div class="row"  style="text-align: center">
+                        <div class="row" style="text-align: center">
                             <h1>SAMPLE INFORMATION</h1>
                         </div>
                         <hr>
-                        <!-- Content Row -->
                         <div class="row justify-content-center">
-                            {% if ERROR %}
-                                    <div class="col-sm-10" >
-                                        <div class="card  border-danger mb-3">
-                                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Unable to display Sample information</h3> </div>
-                                            <div class="card-body  text-center">
-                                                <br>
-                                                <p><strong>{{ERROR}}</strong></p>
-                                            </div> <!-- end card body  -->
-                                        </div> <!-- end card  -->
-                                    </div> <!--// end col-sm-9 -->
-                            {% else %}
-                                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            {% if errors %}
+                                <div class="col-sm-10">
+                                    <div class="card border-danger mb-3">
+                                        <div class="card-header text-center text-danger">
+                                            <h3 style="text-align:center">Unable to display Sample information</h3>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <br>
+                                            <ul>
+                                                {% for err in errors %}
+                                                    <li><strong>{{ err }}</strong></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% elif data %}
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Data</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database" type="button" role="tab" aria-controls="database" aria-selected="false">Public Databases</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">Analysis</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="lineage-tab" data-bs-toggle="tab" data-bs-target="#lineage" type="button" role="tab" aria-controls="lineage" aria-selected="false">Lineage</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="variant-tab" data-bs-toggle="tab" data-bs-target="#variant" type="button" role="tab" aria-controls="variant" aria-selected="false">Variant</button>
+                                    </li>
+                                    {% if data.graphic %}
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Data</button>
+                                            <button class="nav-link" id="graphic-tab" data-bs-toggle="tab" data-bs-target="#graphic" type="button" role="tab" aria-controls="graphic" aria-selected="false">Graphic</button>
                                         </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database" type="button" role="tab" aria-controls="database" aria-selected="false">Public Databases</button>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="meta-lab-tab" data-bs-toggle="tab" data-bs-target="#meta-lab" type="button" role="tab" aria-controls="iskylims" aria-selected="false">Lab data</button>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">Analysis</button>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="lineage-tab" data-bs-toggle="tab" data-bs-target="#lineage" type="button" role="tab" aria-controls="lineage" aria-selected="false">Lineage</button>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="variant-tab" data-bs-toggle="tab" data-bs-target="#variant" type="button" role="tab" aria-controls="variant" aria-selected="false">Variant</button>
-                                        </li>
-                                        {% if sample_data.variant.heading %}
-                                            <li class="nav-item" role="presentation">
-                                                <button class="nav-link" id="graphic-tab" data-bs-toggle="tab" data-bs-target="#graphic" type="button" role="tab" aria-controls="graphic" aria-selected="false">Graphic</button>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
-                                    <div class="tab-content" id="myTabContent">
-                                        <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
-                                            <div class="container-md">
-                                                <div class="row mt-4">
-                                                    <div class="col-md-7">
-                                                        <div class="card">
-                                                            <div class="card-header text-center"><h3 style="text-align:center">IDs defined for the sample</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                <table id="f_sample" class="table table-striped table-bordered">
-                                                                    <thead>
-                                                                        <tr scope="row">
-                                                                            <th>Field Name</th>
-                                                                            <th>Value</th>
+                                    {% endif %}
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+                                    <!-- Basic Data Tab -->
+                                    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header text-center"><h3>Sample Info</h3></div>
+                                                        <div class="card-body text-center">
+                                                            <table class="table table-striped table-bordered">
+                                                                <tbody>
+                                                                    <tr><th>ID</th><td>{{ data.id }}</td></tr>
+                                                                    <tr><th>Sample Unique ID</th><td>{{ data.sample_unique_id }}</td></tr>
+                                                                    <tr><th>Sequencing Sample ID</th><td>{{ data.sequencing_sample_id }}</td></tr>
+                                                                    <tr><th>Created At</th><td>{{ data.created_at }}</td></tr>
+                                                                    <tr><th>State</th><td>{{ data.state }}</td></tr>
+                                                                    <tr><th>User</th><td>{{ data.user }}</td></tr>
+                                                                    <tr><th>Lab</th><td>{{ data.lab }}</td></tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header text-center"><h3>Actions</h3></div>
+                                                        <div class="card-body text-center">
+                                                            <table class="table table-striped table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>State</th>
+                                                                        <th>Date</th>
+                                                                        <th>Current</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for action in data.actions %}
+                                                                        <tr>
+                                                                            <td>{{ action.state }}</td>
+                                                                            <td>{{ action.date }}</td>
+                                                                            <td>
+                                                                                {% if action.is_current %}
+                                                                                    <span class="badge bg-success">Current</span>
+                                                                                {% else %}
+                                                                                    <span class="badge bg-secondary">Past</span>
+                                                                                {% endif %}
+                                                                            </td>
                                                                         </tr>
-                                                                    </thead>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Public Databases Tab -->
+                                    <div class="tab-pane fade" id="database" role="tabpanel" aria-labelledby="database-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header"><h3>GISAID</h3></div>
+                                                        <div class="card-body text-center">
+                                                            {% if data.gisaid and data.gisaid|length > 0 %}
+                                                                <table class="table table-striped table-bordered">
                                                                     <tbody>
-                                                                        {% for name, value in sample_data.basic %}
+                                                                        {% for item in data.gisaid %}
                                                                             <tr>
-                                                                                <td>{{name}}</td>
-                                                                                <td>{{value}}</td>
+                                                                                <th>{{ item.label }}</th>
+                                                                                <td>{{ item.value|default:"Not Available" }}</td>
                                                                             </tr>
                                                                         {% endfor %}
                                                                     </tbody>
                                                                 </table>
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-7 -->
-                                                    <div class="col-md-5">
-                                                        <div class="card">
-                                                            <div class="card-header text-center"><h3 style="text-align:center">Actions done on sample</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                <table id="f_sample" class="table table-striped table-bordered">
-                                                                    <thead>
-                                                                        <tr scope="row">
-                                                                            <th>Action</th>
-                                                                            <th>Date</th>
-                                                                        </tr>
-                                                                    </thead>
+                                                            {% else %}
+                                                                <h5>No GISAID information for this sample</h5>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header"><h3>ENA</h3></div>
+                                                        <div class="card-body text-center">
+                                                            {% if data.ena and data.ena|length > 0 %}
+                                                                <table class="table table-striped table-bordered">
                                                                     <tbody>
-                                                                        {% for name, value in sample_data.actions %}
+                                                                        {% for item in data.ena %}
                                                                             <tr>
-                                                                                <td>{{name}}</td>
-                                                                                <td>{{value}}</td>
+                                                                                <th>{{ item.label }}</th>
+                                                                                <td>{{ item.value|default:"Not Available" }}</td>
                                                                             </tr>
                                                                         {% endfor %}
                                                                     </tbody>
                                                                 </table>
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-10 -->
-                                                </div> <!-- end row-->
-                                                <div class="row mt-4">
-                                                    <div class="col-md-12">
-                                                        <div class="card">
-                                                            <div class="card-header text-center"><h3 style="text-align:center">Fastq information for the sample</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                <table id="f_sample" class="table table-striped table-bordered">
+                                                            {% else %}
+                                                                <h5>No ENA information for this sample</h5>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Analysis Tab -->
+                                    <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-12">
+                                                    <div class="card">
+                                                        <div class="card-header"><h3>Bioinfo Analysis</h3></div>
+                                                        <div class="card-body text-center">
+                                                            {% if data.bioinfo and data.bioinfo|length > 0 %}
+                                                                <table class="table table-striped table-bordered">
                                                                     <thead>
-                                                                        <tr scope="row">
-                                                                            <th>Field Name</th>
+                                                                        <tr>
+                                                                            <th>Label</th>
                                                                             <th>Value</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                            {% for name, value in sample_data.fastq %}
-                                                                                <tr>
-                                                                                    <td>{{name}}</td>
-                                                                                    <td>
-                                                                                        {% if value == None %}
-                                                                                            Not Provided
-                                                                                        {% else %}
-                                                                                            {{value}}
-                                                                                        {% endif %}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            {% endfor %}
+                                                                        {% for item in data.bioinfo %}
+                                                                            <tr>
+                                                                                <td>{{ item.label }}</td>
+                                                                                <td>{{ item.value }}</td>
+                                                                            </tr>
+                                                                        {% endfor %}
                                                                     </tbody>
                                                                 </table>
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-10 -->
-                                                </div> <!-- end row-->
-                                            </div> <!-- end continer-->
-                                        </div>  <!-- end tab basic -->
-                                        <div class="tab-pane fade" id="database" role="tabpanel" aria-labelledby="database-tab">
-                                            <div class="container-md">
-                                                <div class="row mt-5">
-                                                    <div class="col-md-10">
-                                                        <div class="card">
-                                                            <div class="card-header"><h3 style="text-align:center">GISAID information</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                {% if sample_data.gisaid %}
-                                                                    <table id="f_sample" class="table table-striped table-bordered">
-                                                                        <thead>
-                                                                            <tr scope="row">
-                                                                                <th>Field Name</th>
-                                                                                <th>Value</th>
+                                                            {% else %}
+                                                                <h5>No bioinfo analysis data available</h5>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Lineage Tab -->
+                                    <div class="tab-pane fade" id="lineage" role="tabpanel" aria-labelledby="lineage-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-12">
+                                                    <div class="card">
+                                                        <div class="card-header"><h3>Lineage</h3></div>
+                                                        <div class="card-body text-center">
+                                                            {% if data.lineage and data.lineage|length > 0 %}
+                                                                <table class="table table-striped table-bordered">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Label</th>
+                                                                            <th>Value</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for item in data.lineage %}
+                                                                            <tr>
+                                                                                <td>{{ item.label }}</td>
+                                                                                <td>{{ item.value }}</td>
                                                                             </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for name, value in sample_data.gisaid %}
-                                                                                <tr>
-                                                                                    <td>{{name}}</td>
-                                                                                    <td>
-                                                                                        {% if value == None %}
-                                                                                            Not Available
-                                                                                        {% else %}
-                                                                                            {{value}}
-                                                                                        {% endif %}
-                                                                                    </td>
-                                                                                </tr>
+                                                                        {% endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            {% else %}
+                                                                <h5>No lineage data available</h5>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Variant Tab -->
+                                    <div class="tab-pane fade" id="variant" role="tabpanel" aria-labelledby="variant-tab">
+                                        <div class="container-md">
+                                            <div class="row mt-4">
+                                                <div class="col-md-12">
+                                                    <div class="card">
+                                                        <div class="card-header"><h3>Variant</h3></div>
+                                                        <div class="card-body text-center">
+                                                            {% if data.variant.0.heading and data.variant.1 %}
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-striped table-bordered">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                {% for col in data.variant.0.heading %}
+                                                                                    <th>{{ col }}</th>
                                                                                 {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                {% else %}
-                                                                    <h5>There is no GISAID information for this sample</h5>
-                                                                {% endif %}
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-8 -->
-                                                </div> <!-- end row-->
-                                                <div class="row mt-5">
-                                                    <div class="col-md-10">
-                                                        <div class="card">
-                                                            <div class="card-header"><h3 style="text-align:center">ENA information</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                {% if sample_data.ena %}
-                                                                    <table id="f_sample" class="table table-striped table-bordered">
-                                                                        <thead>
-                                                                            <tr scope="row">
-                                                                                <th>Field Name</th>
-                                                                                <th>Value</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            {% for name, value in sample_data.ena %}
+                                                                            {% for row in data.variant.1 %}
                                                                                 <tr>
-                                                                                    <td>{{name}}</td>
-                                                                                    <td>
-                                                                                        {% if value == None %}
-                                                                                            Not Available
-                                                                                        {% else %}
-                                                                                            {{value}}
-                                                                                        {% endif %}
-                                                                                    </td>
-                                                                                </tr>
-                                                                                {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                {% else %}
-                                                                    <h5>There is no ENA information for this sample</h5>
-                                                                {% endif %}
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-8 -->
-                                                </div> <!-- end row-->
-                                            </div> <!-- end continer-->
-                                        </div>  <!-- end tab database -->
-                                        <div class="tab-pane fade" id="meta-lab" role="tabpanel" aria-labelledby="meta-lab-tab">
-                                            <div class="container-md">
-                                                <div class="row mt-5">
-                                                    <div class="col-md-12">
-                                                        <div class="card">
-                                                            <div class="card-header"><h3 style="text-align:center">Metadata LAB information</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                {% if sample_data.iskylims_basic %}
-                                                                    <table id="f_sample" class="table table-striped table-bordered">
-                                                                        <thead>
-                                                                            <tr scope="row">
-                                                                                <th>Field Name</th>
-                                                                                <th>Value</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for name, value in sample_data.iskylims_basic %}
-                                                                                <tr>
-                                                                                    <td>{{name}}</td>
-                                                                                    <td>
-                                                                                        {% if value == None %}
-                                                                                            Not Available
-                                                                                        {% else %}
-                                                                                            {{value}}
-                                                                                        {% endif %}
-                                                                                    </td>
-                                                                                </tr>
-                                                                                {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                {% else %}
-                                                                    <h5>There is not available information for this sample</h5>
-                                                                {% endif %}
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-8 -->
-                                                </div> <!-- end row-->
-                                                {% if sample_data.iskylims_p_data %}
-                                                    <div class="row mt-4">
-                                                        <div class="col-md-12">
-                                                            <div class="card">
-                                                                <div class="card-header text-center"><h3 style="text-align:center">{{sample_data.iskylims_project}} project data</h3> </div>
-                                                                <div class="card-body  text-center">
-                                                                    <table id="i_project" class="table table-striped table-bordered">
-                                                                        <thead>
-                                                                            <tr scope="row">
-                                                                                <th>Label name</th>
-                                                                                <th>Value</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for label, value in sample_data.iskylims_p_data %}
-                                                                                <tr>
-                                                                                    <td>{{label}}</td>
-                                                                                    <td>{{value}}</td>
-                                                                                </tr>
-                                                                            {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>     <!-- end card body  -->
-                                                            </div> <!-- end card  -->
-                                                        </div> <!-- end col-md-10 -->
-                                                    </div> <!-- end row-->
-                                                {% endif %}
-                                            </div> <!-- end continer-->
-                                        </div>  <!-- end tab meta-lab -->
-                                        <script type="text/javascript">
-                                            $(document).ready(function() {
-                                                $('#i_project').DataTable({
-                                                    responsive: true,
-                                                });
-                                            });
-                                        </script>
-                                        <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
-                                            <div class="container-md">
-                                                <div class="row mt-5">
-                                                    <div class="col-md-12">
-                                                        <div class="card">
-                                                            <div class="card-header"><h3 style="text-align:center">Bio Info Analysis information</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                {% if sample_data.bioinfo %}
-                                                                    <table id="bio_data" class="table table-striped table-bordered">
-                                                                        <thead>
-                                                                            <tr scope="row">
-                                                                                <th>Label name</th>
-                                                                                <th>Value</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for label, value in sample_data.bioinfo %}
-                                                                                <tr>
-                                                                                    <td>{{label}}</td>
-                                                                                    <td>{{value}}</td>
-                                                                                </tr>
-                                                                            {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                {% else %}
-                                                                    <h5>Not Available information </h5>
-                                                                {% endif %}
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-12 -->
-                                                </div> <!-- end row-->
-                                            </div> <!-- end continer-->
-                                        </div>  <!-- end tab analysis -->
-                                        <script type="text/javascript">
-                                            $(document).ready(function() {
-                                                $('#bio_data').DataTable({
-                                                    responsive: true,
-                                                });
-                                        });
-                                        </script>
-                                        <div class="tab-pane fade" id="lineage" role="tabpanel" aria-labelledby="lineage-tab">
-                                            <div class="container-md">
-                                                <div class="row mt-5">
-                                                    <div class="col-md-12">
-                                                        <div class="card">
-                                                            <div class="card-header"><h3 style="text-align:center">Lineage Analysis information</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                {% if sample_data.lineage %}
-                                                                    <table id="lineage_data" class="table table-striped table-bordered">
-                                                                        <thead>
-                                                                            <tr scope="row">
-                                                                                <th>Label name</th>
-                                                                                <th>Value</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for label, value in sample_data.lineage %}
-                                                                                <tr>
-                                                                                    <td>{{label}}</td>
-                                                                                    <td>{{value}}</td>
-                                                                                </tr>
-                                                                            {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                {% else %}
-                                                                    <h5>Not Available information </h5>
-                                                                {% endif %}
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-12 -->
-                                                </div> <!-- end row-->
-                                            </div> <!-- end continer-->
-                                        </div>  <!-- end tab lineage -->
-                                        <script type="text/javascript">
-                                            $(document).ready(function() {
-                                                $('#lineage_data').DataTable({
-                                                    responsive: true,
-                                                });
-                                        });
-                                        </script>
-                                        <div class="tab-pane fade" id="variant" role="tabpanel" aria-labelledby="variant-tab">
-                                            <div class="container-md">
-                                                <div class="row mt-5">
-                                                    <div class="col-md-12">
-                                                        <div class="card">
-                                                            <div class="card-header"><h3 style="text-align:center">Variant information</h3> </div>
-                                                            <div class="card-body  text-center">
-                                                                {% if sample_data.variant.heading %}
-                                                                    <div class="table-responsive">
-                                                                        <table id="variant_table_data" class="table table-striped table-bordered">
-                                                                            <thead>
-                                                                                <tr scope="row">
-                                                                                    {% for col in sample_data.variant.heading %}
-                                                                                        <th>{{col}}</th>
+                                                                                    {% for value in row %}
+                                                                                        <td>{{ value }}</td>
                                                                                     {% endfor %}
                                                                                 </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                {% for values in sample_data.variant.variant_data %}
-                                                                                    <tr>
-                                                                                        {% for value in values %}
-                                                                                            <td>{{value}}</td>
-                                                                                        {% endfor %}
-                                                                                    </tr>
-                                                                                {% endfor %}
-                                                                            </tbody>
-                                                                        </table>
-                                                                        <br>
-                                                                        <br>
-                                                                    </div> <!-- end table responsible  -->
-                                                                {% else %}
-                                                                    <h5>Not Available information </h5>
-                                                                {% endif %}
-                                                            </div>     <!-- end card body  -->
-                                                        </div> <!-- end card  -->
-                                                    </div> <!-- end col-md-12 -->
-                                                </div> <!-- end row-->
-                                            </div> <!-- end continer-->
-                                        </div>  <!-- end tab variant -->
-                                        <script type="text/javascript">
-                                            $(document).ready(function() {
-                                                $('#variant_table_data').DataTable({
-                                                    responsive: true,
-                                                });
-                                        });
-                                        </script>
-                                        {% if sample_data.variant.heading %}
-                                            <div class="tab-pane fade active" id="graphic" role="tabpanel" aria-labelledby="graphic-tab">
-                                                <div class="col-md-12">
-
-                                                    {% plotly_app name="sampleVariantGraphic" ratio=1.0 %}
-                                                </div> <!-- end col-md-12 -->
+                                                                            {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            {% else %}
+                                                                <h5>No variant data available</h5>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        {% endif %}
+                                        </div>
                                     </div>
-                                </div> <!--// end row -->
+                                    <!-- Graphic Tab -->
+                                    {% if data.graphic %}
+                                        <div class="tab-pane fade" id="graphic" role="tabpanel" aria-labelledby="graphic-tab">
+                                            <div class="container-md">
+                                                <div class="row mt-4">
+                                                    <div class="col-md-12">
+                                                        <div class="card">
+                                                            <div class="card-header"><h3>Variant Graphic</h3></div>
+                                                            <div class="card-body text-center">
+                                                                {% plotly_app name="sampleVariantGraphic" ratio=1.0 %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             {% endif %}
-                        </div>   <!-- end row -->
-                    </div> <!-- /.container-fluid -->
-                </div> <!-- End of Main Content -->
-            </div> <!-- End Content wrapper-->
-        </div> <!-- wrapper -->
-    </div>  <!-- End container -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}

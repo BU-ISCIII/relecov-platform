@@ -23,6 +23,7 @@ import core.utils.samples_graphics
 import core.utils.samples_map
 
 
+# FIXME: This needs to homogenize the way passing data to template. 
 # FIXME: fornt end needs to manage error screen
 # TODO: update the strucuture object that its going to be rendered
 def index(request):
@@ -54,22 +55,8 @@ def assign_samples_to_user(request):
     )
 
 
-@login_required
-def sample_display(request, sample_id):
-    result = core.services.get_sample_display_data(sample_id, request.user)
-    if not result["success"]:
-        return render(
-            request, 
-            "core/sampleDisplay.html", 
-            {"errors": result["errors"]}
-        )
-
-    return render(
-        request, "core/sampleDisplay.html",
-        {"data": result["data"]}
-    )
-
-# TODO: Discuss whether render shuld be used once or twice (one if not result["success"] and another one if result["success"]). Example below shows an scenario where render is used once, letting the logic of errors to be addressed in the tempalte.  
+# TODO: Discuss whether render shuld be used once or twice (one if not result["success"] and another one if result["success"]). Example below shows an scenario where render is used once, letting the logic of errors to be addressed in the tempalte.
+# TODO: I think it would be better to put here the request POST/GET logic. 
 @login_required
 def schema_handling(request):
     if request.user.username != "admin":
@@ -93,7 +80,22 @@ def schema_display(request, schema_id):
     schema_data = core.utils.schema.get_schema_display_data(schema_id)
     return render(request, "core/schemaDisplay.html", {"schema_data": schema_data})
 
-# TODO: update with serializer structure?
+@login_required
+def sample_display(request, sample_id):
+    result = core.services.get_sample_display_data(sample_id, request.user)
+    if not result["success"]:
+        return render(
+            request, 
+            "core/sampleDisplay.html", 
+            {"errors": result["errors"]}
+        )
+
+    return render(
+        request, "core/sampleDisplay.html",
+        {"data": result["data"]}
+    )
+
+
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
@@ -104,61 +106,63 @@ def search_sample(request):
         lab_name = request.POST.get("lab", "")
         sample_state = request.POST.get("sampleState", "")
 
-        # check that some values are in the request if not return the form
-        if not any([sample_name, s_date, lab_name, sample_state]):
-            return render(
-                request, "core/searchSample.html", {"search_data": search_data}
-            )
-
-        # check the right format of s_date
-        if s_date != "" and not core.utils.generic_functions.check_valid_date_format(
-            s_date
-        ):
+        # Validate search parameters
+        validation = core.services.validate_search_params(sample_name, lab_name, sample_state, s_date)
+        if "warning" in validation:
             return render(
                 request,
                 "core/searchSample.html",
-                {
-                    "search_data": search_data,
-                    "warning": core.config.ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
-                },
+                {"DATA_QUERY": search_data, "ERROR": validation["warning"]},
             )
 
-        # Generate sample display data
-        display_data = core.services.display_samples(
+        # Get the search results
+        display_result = core.services.display_samples(
             sample_name=sample_name,
             lab_name=lab_name,
             sample_state=sample_state,
             s_date=s_date,
             user=request.user
         )
-        list_display = display_data["list_display"]
-        # Redirection (samples == 1 )
-        if list_display["redirect"]:
+        display_data = display_result["data"]
+
+        # If only one sample is found, redirect to sample display page
+        if display_data.get("redirect"):
             return redirect(
-                "sample_display", 
-                sample_id=list_display["redirect"]
+                "sample_display",
+                sample_id=display_data["redirect"]
             )
-        if list_display["ERROR"]:
+
+        # If more than one sample is found, render the list of records
+        if display_result["success"] and display_data.get("samples") and len(display_data["samples"]) > 1:
             return render(
                 request,
                 "core/searchSample.html",
                 {
-                    "search_data": search_data,
-                    "ERROR": list_display["ERROR"]
+                    "DATA_QUERY": display_data,
+                    "SUCCESS": display_result["success"],
+                    "ERROR": display_result["errors"]
                 }
             )
-        # POST return sample list display
-        return render(request,
+
+        # If there are errors, render the error message
+        if display_result["errors"]:
+            return render(
+                request,
+                "core/searchSample.html",
+                {"DATA_QUERY": search_data, "ERROR": display_result["errors"]}
+            )
+
+        # If no results but no explicit error, render the search form again
+        return render(
+            request,
             "core/searchSample.html",
-            {"list_display": list_display}
+            {"DATA_QUERY": search_data}
         )
 
-    # GET returns search data
-    return render(
-        request,
-        "core/searchSample.html",
-        {"search_data": search_data}
-    )
+    # GET request or first access
+    if "ERROR" in search_data:
+        return render(request, "core/searchSample.html", {"ERROR": search_data["ERROR"]})
+    return render(request, "core/searchSample.html", {"DATA_DISPLAY": search_data})
 
 # TODO: this needs serialized-based refactor
 # FIXME: This needs a template or error message when user != admin tryies to access.

@@ -12,6 +12,7 @@ import core.utils.schema
 import core.utils.variants
 import core.utils.samples
 import core.utils.bioinfo_analysis
+import core.utils.generic_functions
 
 # TODO: Some functions are still being called from utils.py. 
 # Move those functions into proper service modules and import them accordingly. 
@@ -164,79 +165,82 @@ def get_search_data(user_obj):
         "states": serialized_states,
     }
 
-# FIXME: refactor its output 
-def display_samples(sample_name, lab_name, sample_state, s_date, user):
-    """Sample filtering according to params and return structured, serialized data."""
+def validate_search_params(sample_name, lab_name, sample_state, s_date):
+    """Valida los parámetros de búsqueda y devuelve advertencias si corresponde."""
+    if not any([sample_name, lab_name, sample_state, s_date]):
+        return {"warning": "You must fill in at least one field to search."}
+    if s_date and not core.utils.generic_functions.check_valid_date_format(s_date):
+        return {"warning": core.config.ERROR_INVALID_DEFINED_SAMPLE_FORMAT}
+    return {}
 
-    sample_objs = core.models.Sample.objects.all()
+def display_samples(sample_name, lab_name, sample_state, s_date, user):
+    """"""
+    result = {"data": {}, "success": False, "errors": []}
+
+    samples_qs = core.models.Sample.objects.all()
 
     if lab_name:
-        sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
+        samples_qs = samples_qs.filter(collecting_institution__iexact=lab_name)
 
     if sample_name:
-        exact_qs = sample_objs.filter(
+        exact_qs = samples_qs.filter(
             Q(sequencing_sample_id__iexact=sample_name)
             | Q(collecting_lab_sample_id__iexact=sample_name)
         )
         if exact_qs.exists():
-            sample_objs = exact_qs
+            samples_qs = exact_qs
         else:
-            partial_qs = sample_objs.filter(
+            partial_qs = samples_qs.filter(
                 Q(sequencing_sample_id__icontains=sample_name)
                 | Q(collecting_lab_sample_id__icontains=sample_name)
             )
             if partial_qs.exists():
-                sample_objs = partial_qs
+                samples_qs = partial_qs
             else:
-                return {
-                    "list_display": {
-                        "s_data": [],
-                        "heading": core.config.HEADING_FOR_SAMPLE_LIST,
-                        "redirect": None,
-                        "ERROR": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH
-                    }
+                result["data"] = {
+                    "samples": [],
+                    "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+                    "redirect": None,
                 }
+                result["errors"].append(core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH)
+                return result
 
     if sample_state:
         sample_ids = core.models.SampleStateHistory.objects.filter(
             state_id__pk=sample_state
         ).values_list("sample__pk", flat=True)
-        sample_objs = sample_objs.filter(pk__in=sample_ids)
+        samples_qs = samples_qs.filter(pk__in=sample_ids)
 
     if s_date:
-        sample_objs = sample_objs.filter(created_at__exact=s_date)
+        samples_qs = samples_qs.filter(created_at__exact=s_date)
 
-    if not sample_objs.exists():
-        return {
-            "list_display": {
-                "s_data": [],
-                "heading": core.config.HEADING_FOR_SAMPLE_LIST,
-                "redirect": None,
-                "ERROR": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH
-            }
-        }
-
-    if sample_objs.count() == 1:
-        return {
-            "list_display": {
-                "s_data": [],
-                "heading": core.config.HEADING_FOR_SAMPLE_LIST,
-                "redirect": sample_objs.first().pk,
-                "ERROR": None
-            }
-        }
-
-    serialized_samples = core.serializers.SampleSearchResultSerializer(sample_objs, many=True).data
-
-    return {
-        "list_display": {
-            "s_data": serialized_samples,
+    if not samples_qs.exists():
+        result["data"] = {
+            "samples": [],
             "heading": core.config.HEADING_FOR_SAMPLE_LIST,
             "redirect": None,
-            "ERROR": None
         }
-    }
+        result["errors"].append(core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH)
+        return result
 
+    if samples_qs.count() == 1:
+        result["data"] = {
+            "samples": [],
+            "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+            "redirect": samples_qs.first().pk,
+        }
+        result["success"] = True
+        return result
+
+    serialized = core.serializers.SampleSearchResultSerializer(samples_qs, many=True).data
+
+    result["data"] = {
+        "samples": serialized,
+        "heading": core.config.HEADING_FOR_SAMPLE_LIST,
+        "redirect": None,
+    }
+    result["success"] = True
+    return result
 
 # FIXME: refactor its output
 def get_sample_per_date_per_all_lab(detailed=False):
