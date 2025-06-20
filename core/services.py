@@ -13,50 +13,59 @@ import core.utils.variants
 import core.utils.samples
 import core.utils.bioinfo_analysis
 import core.utils.generic_functions
+import json
 
-# TODO: Some functions are still being called from utils.py. 
-# Move those functions into proper service modules and import them accordingly. 
+# TODO: Some functions are still being called from utils.py.
+# Move those functions into proper service modules and import them accordingly.
 # Keep utils.py only for generic utilities (e.g., data processing, conversions, etc.).
 # TODO: add docsrings and sort functions.
 # TODO: There are several functions in utils* that have been reimplemented here. Clean them to avoid duplicates
+
 
 # util
 def get_configuration_value(parameter_name):
     """Get a value from the configuration model."""
     return (
-        core.models.ConfigSetting.objects
-        .filter(configuration_name=parameter_name)
+        core.models.ConfigSetting.objects.filter(configuration_name=parameter_name)
         .values_list("configuration_value", flat=True)
         .last()
     ) or "False"
 
+
 # util
 def get_sample_count_qs():
     """Count number of samples by state."""
-    return (
-        core.models.SampleStateHistory.objects
-        .values("state_id__state")
-        .annotate(count=Count("id"))
+    return core.models.SampleStateHistory.objects.values("state_id__state").annotate(
+        count=Count("id")
     )
+
 
 # service
 def get_index_data():
-    result = {"data":{}, "success":False, "errors":[]}
+    result = {"data": {}, "success": False, "errors": []}
 
     # Get sample counts by state and serialize data
     try:
         sample_count_qs = get_sample_count_qs()
-        serialized = core.serializers.SampleCountByStateSerializer(sample_count_qs, many=True).data
+        serialized = core.serializers.SampleCountByStateSerializer(
+            sample_count_qs, many=True
+        ).data
         # Transform data structur
-        result["data"]["number_of_samples"] = {entry["label"]: entry["count"] for entry in serialized}
+        result["data"]["number_of_samples"] = {
+            entry["label"]: entry["count"] for entry in serialized
+        }
     except Exception as e:
-        result["errors"].append({"code": 500, "message": f"Error loading sample counts: {str(e)}"})
+        result["errors"].append(
+            {"code": 500, "message": f"Error loading sample counts: {str(e)}"}
+        )
 
     # Get Nextrain configuration
     try:
         result["data"]["nextstrain_url"] = get_configuration_value("NEXTSTRAIN_URL")
     except Exception as e:
-        result["errors"].append({"code": 500, "message": f"Error loading Nextstrain URL: {str(e)}"})
+        result["errors"].append(
+            {"code": 500, "message": f"Error loading Nextstrain URL: {str(e)}"}
+        )
 
     # Return success
     result["success"] = len(result["errors"]) == 0
@@ -75,7 +84,9 @@ def get_defined_users():
     """Get the id and the user names defined in relecov"""
     user_list = []
     user_objs = (
-        core.models.User.objects.all().exclude(username__iexact="admin").order_by("username")
+        core.models.User.objects.all()
+        .exclude(username__iexact="admin")
+        .order_by("username")
     )
     for user_obj in user_objs:
         user_list.append([user_obj.pk, user_obj.username])
@@ -90,11 +101,13 @@ def get_labs_and_users_data():
         users=users,
     )
 
+
 def get_sample_obj_from_id(sample_id):
     """Return the sample instance from its id"""
     if core.models.Sample.objects.filter(pk__exact=sample_id).exists():
         return core.models.Sample.objects.filter(pk__exact=sample_id).last()
     return None
+
 
 def get_assign_samples_data(action=None, lab=None, user_id=None):
     result = {"data": {}, "success": False, "errors": []}
@@ -112,25 +125,36 @@ def get_assign_samples_data(action=None, lab=None, user_id=None):
                 )
                 if samples_qs.exists():
                     samples_qs.update(user=user_obj)
-                    result["data"] = core.serializers.LabUserAssignSerializer.from_raw_data(labs, users, SUCCESS="Samples reassigned.")
+                    result["data"] = (
+                        core.serializers.LabUserAssignSerializer.from_raw_data(
+                            labs, users, SUCCESS="Samples reassigned."
+                        )
+                    )
                     result["success"] = True
                 else:
-                    result["errors"].append({"code": 404, "message": f"{core.config.ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB} {lab}"})
+                    result["errors"].append(
+                        {
+                            "code": 404,
+                            "message": f"{core.config.ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB} {lab}",
+                        }
+                    )
             except core.models.User.DoesNotExist:
-                result["errors"].append({"code": 404, "message": f"User with ID {user_id} does not exist."})
+                result["errors"].append(
+                    {"code": 404, "message": f"User with ID {user_id} does not exist."}
+                )
     else:
-        result["data"] = core.serializers.LabUserAssignSerializer.from_raw_data(labs, users)
+        result["data"] = core.serializers.LabUserAssignSerializer.from_raw_data(
+            labs, users
+        )
         result["success"] = True
     return result
 
 
 def get_labs_and_users():
     """Prepares data for sample allocation form."""
-    raw_data = {
-        "labs": get_all_defined_labs(),
-        "users": get_defined_users()
-    }
+    raw_data = {"labs": get_all_defined_labs(), "users": get_defined_users()}
     return core.serializers.LabUserDataSerializer.from_raw_data(raw_data)
+
 
 def get_lab_name_from_user(user_obj):
     """Get the laboratory name for the user"""
@@ -149,7 +173,9 @@ def get_search_data(user_obj):
 
     # Serialize available states request
     states_qs = core.models.SampleState.objects.all()
-    serialized_states = core.serializers.SampleStateSerializer(states_qs, many=True).data
+    serialized_states = core.serializers.SampleStateSerializer(
+        states_qs, many=True
+    ).data
 
     # Get laboratories available in the user's group
     group = Group.objects.get(name="RelecovManager")
@@ -165,13 +191,15 @@ def get_search_data(user_obj):
         "states": serialized_states,
     }
 
+
 def validate_search_params(sample_name, lab_name, sample_state, s_date):
-    """Valida los parámetros de búsqueda y devuelve advertencias si corresponde."""
+    """Validates search parameters and returns warnings if applicable."""
     if not any([sample_name, lab_name, sample_state, s_date]):
         return {"warning": "You must fill in at least one field to search."}
     if s_date and not core.utils.generic_functions.check_valid_date_format(s_date):
         return {"warning": core.config.ERROR_INVALID_DEFINED_SAMPLE_FORMAT}
     return {}
+
 
 def display_samples(sample_name, lab_name, sample_state, s_date, user):
     """"""
@@ -232,7 +260,9 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
         result["success"] = True
         return result
 
-    serialized = core.serializers.SampleSearchResultSerializer(samples_qs, many=True).data
+    serialized = core.serializers.SampleSearchResultSerializer(
+        samples_qs, many=True
+    ).data
 
     result["data"] = {
         "samples": serialized,
@@ -242,19 +272,18 @@ def display_samples(sample_name, lab_name, sample_state, s_date, user):
     result["success"] = True
     return result
 
+
 # FIXME: refactor its output
 def get_sample_per_date_per_all_lab(detailed=False):
     """
     Return number of samples per sequencing date (grouped by date).
-    
+
     - If `detailed` is False (default), return global counts (date -> count).
     - If `detailed` is True, return per-lab counts: [{"lab_name": ..., "date": ..., "num_samples": ...}, ...]
     """
     if not detailed:
         samples_by_date = (
-            core.models.Sample.objects
-            #.exclude(sequencing_date__isnull=True)
-            .annotate(date_only=TruncDate("sequencing_date"))
+            core.models.Sample.objects.annotate(date_only=TruncDate("sequencing_date"))
             .values("date_only")
             .annotate(count=Count("id"))
             .order_by("date_only")
@@ -268,8 +297,7 @@ def get_sample_per_date_per_all_lab(detailed=False):
 
     else:
         samples_by_lab_and_date = (
-            core.models.Sample.objects
-            .exclude(sequencing_date__isnull=True)
+            core.models.Sample.objects.exclude(sequencing_date__isnull=True)
             .annotate(date_only=TruncDate("sequencing_date"))
             .values("collecting_institution", "date_only")
             .annotate(count=Count("id"))
@@ -278,11 +306,13 @@ def get_sample_per_date_per_all_lab(detailed=False):
 
         result = []
         for entry in samples_by_lab_and_date:
-            result.append({
-                "lab_name": entry["collecting_institution"],
-                "date": entry["date_only"].strftime("%d-%B-%Y"),
-                "num_samples": entry["count"]
-            })
+            result.append(
+                {
+                    "lab_name": entry["collecting_institution"],
+                    "date": entry["date_only"].strftime("%d-%B-%Y"),
+                    "num_samples": entry["count"],
+                }
+            )
         return result
 
 
@@ -302,25 +332,35 @@ def get_intranet_data_for_manager():
 
     # dash graph for samples per lab
     core.utils.samples.create_dash_bar_for_each_lab()
-    
+
     # Collect data that populate views
-    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id")
-    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession")
+    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+        "gisaid_accession_id"
+    )
+    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+        "ena_sample_accession"
+    )
     actions_raw = core.utils.samples.get_lab_last_actions()
     data = {
-        "sample_bar_graph": core.utils.samples.create_date_sample_bar(all_sample_per_date, bar_config),
+        "sample_bar_graph": core.utils.samples.create_date_sample_bar(
+            all_sample_per_date, bar_config
+        ),
         "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
         "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
     }
 
     if gisaid_raw:
-        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
+        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
+            gisaid_raw
+        )
         data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
             num_of_samples.get("Defined", 0), len(gisaid_raw), ""
         )
 
     if ena_raw:
-        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
+        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
+            ena_raw
+        )
         data["ena_graph"] = core.utils.public_db.percentage_graphic(
             num_of_samples.get("Defined", 0), len(ena_raw), ""
         )
@@ -330,6 +370,7 @@ def get_intranet_data_for_manager():
 
 # FIXME: refactor its output
 
+
 def get_intranet_data_for_user(user):
     lab_name = get_lab_name_from_user(user)
     date_lab_samples = core.utils.samples.get_sample_per_date_per_lab(lab_name)
@@ -338,7 +379,9 @@ def get_intranet_data_for_user(user):
         return f"No samples found for selected laboratory: {lab_name}"
 
     sample_lab_objs = core.utils.samples.get_sample_objs_per_lab(lab_name)
-    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(lab_name)
+    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(
+        lab_name
+    )
 
     bar_config = {
         "col_names": ["Sequencing Date", "Number of samples"],
@@ -348,46 +391,63 @@ def get_intranet_data_for_user(user):
         },
     }
 
-    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab("gisaid_accession_id", sample_lab_objs)
-    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab("ena_sample_accession", sample_lab_objs)
+    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+        "gisaid_accession_id", sample_lab_objs
+    )
+    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+        "ena_sample_accession", sample_lab_objs
+    )
     actions_raw = core.utils.samples.get_lab_last_actions(lab_name)
 
     intra_data = {
-        "sample_bar_graph": core.utils.samples.create_date_sample_bar(date_lab_samples, bar_config),
+        "sample_bar_graph": core.utils.samples.create_date_sample_bar(
+            date_lab_samples, bar_config
+        ),
         "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
         "actions": core.serializers.LabLastActionDictSerializer.from_raw(actions_raw),
     }
 
     if gisaid_raw:
-        intra_data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
+        intra_data["gisaid_accession"] = (
+            core.serializers.PublicAccessionSerializer.from_raw(gisaid_raw)
+        )
         intra_data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
             len(sample_lab_objs), len(gisaid_raw), ""
         )
 
     if ena_raw:
-        intra_data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
+        intra_data["ena_accession"] = (
+            core.serializers.PublicAccessionSerializer.from_raw(ena_raw)
+        )
         intra_data["ena_graph"] = core.utils.public_db.percentage_graphic(
             len(sample_lab_objs), len(ena_raw), ""
         )
 
     return intra_data
 
+
 def get_actions_qs(sample_obj):
     try:
-        actions_qs = core.models.SampleStateHistory.objects.filter(sample=sample_obj).order_by("-changed_at")
+        actions_qs = core.models.SampleStateHistory.objects.filter(
+            sample=sample_obj
+        ).order_by("-changed_at")
         return actions_qs, None
     except Exception as e:
         return [], {"code": 500, "message": f"Error fetching actions: {str(e)}"}
+
 
 def get_public_db_qs(sample_obj, db_name):
     try:
         qs = core.models.PublicDatabaseValues.objects.filter(
             sampleID=sample_obj,
-            public_database_fieldID__database_type__public_type_name__iexact=db_name
+            public_database_fieldID__database_type__public_type_name__iexact=db_name,
         )
         return qs, None
     except Exception as e:
-        return [], {"code": 500, "message": f"Error fetching public DB '{db_name}': {str(e)}"}
+        return [], {
+            "code": 500,
+            "message": f"Error fetching public DB '{db_name}': {str(e)}",
+        }
 
 
 def get_bioinfo_qs(sample_obj):
@@ -400,7 +460,9 @@ def get_bioinfo_qs(sample_obj):
             schema_property__schemaID=schema_obj,
             sample=sample_obj,
         )
-        latest_analysis_date = bioan_fields_qs.aggregate(Max("analysis_date"))["analysis_date__max"]
+        latest_analysis_date = bioan_fields_qs.aggregate(Max("analysis_date"))[
+            "analysis_date__max"
+        ]
         if not latest_analysis_date:
             return [], {"code": 404, "message": "No bioinformatics analysis date found"}
 
@@ -411,8 +473,10 @@ def get_bioinfo_qs(sample_obj):
                     analysis_date=latest_analysis_date,
                     schema_property=OuterRef("schema_property"),
                     value=OuterRef("value"),
-                ).order_by("-generated_at").values("generated_at")[:1]
-            )
+                )
+                .order_by("-generated_at")
+                .values("generated_at")[:1]
+            ),
         )
         return filtered_qs, None
     except Exception as e:
@@ -446,9 +510,15 @@ def get_variant_and_graphic_data(sample_id):
         # Load variant data
         variant_data = core.utils.variants.get_variant_qs(sample_id)
         if "heading" in variant_data:
-            graphic_data = core.utils.variants.get_variant_graphic_from_sample(sample_id)
+            graphic_data = core.utils.variants.get_variant_graphic_from_sample(
+                sample_id
+            )
     except Exception as e:
-        return None, None, {"code": 500, "message": f"Error getting variant data: {str(e)}"}
+        return (
+            None,
+            None,
+            {"code": 500, "message": f"Error getting variant data: {str(e)}"},
+        )
     return variant_data, graphic_data, None
 
 
@@ -458,15 +528,24 @@ def get_sample_display_data(sample_id, user):
     # Validate sample
     sample_obj = get_sample_obj_from_id(sample_id)
     if not sample_obj:
-        result["errors"].append({"code": 404, "message": core.config.ERROR_SAMPLE_DOES_NOT_EXIST})
+        result["errors"].append(
+            {"code": 404, "message": core.config.ERROR_SAMPLE_DOES_NOT_EXIST}
+        )
         return result
 
     # Check by group permissions
     group = Group.objects.get(name="RelecovManager")
     if group not in user.groups.all():
         lab_name = sample_obj.get_collecting_institution()
-        if not core.models.Profile.objects.filter(user=user, laboratory__iexact=lab_name).exists():
-            result["errors"].append({"code": 403, "message": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE})
+        if not core.models.Profile.objects.filter(
+            user=user, laboratory__iexact=lab_name
+        ).exists():
+            result["errors"].append(
+                {
+                    "code": 403,
+                    "message": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE,
+                }
+            )
             return result
 
     # Recover error handling
@@ -483,7 +562,7 @@ def get_sample_display_data(sample_id, user):
         result["errors"].append(err)
 
     bioinfo_qs, err = get_bioinfo_qs(sample_obj)
-    if err: 
+    if err:
         result["errors"].append(err)
 
     lineage_qs, err = get_lineage_qs(sample_obj)
@@ -504,13 +583,10 @@ def get_sample_display_data(sample_id, user):
         "lineage_qs": lineage_qs,
     }
 
-
     # Serialize data and create results
     result["data"] = core.serializers.SampleDisplaySerializer(
-        sample_obj,
-        context=context,
-        many=False
-        ).data
+        sample_obj, context=context, many=False
+    ).data
     result["data"]["variant"] = variant_data
     result["data"]["graphic"] = graphic_data
 
@@ -521,18 +597,15 @@ def get_sample_display_data(sample_id, user):
 
 def get_public_info(p_type, sample_id):
     return list(
-        core.models.PublicDatabaseValues.objects
-        .filter(
+        core.models.PublicDatabaseValues.objects.filter(
             sampleID__pk=sample_id,
             public_database_fieldID__database_type__public_type_name__iexact=p_type,
-        )
-        .values_list("public_database_fieldID__label_name", "value")
+        ).values_list("public_database_fieldID__label_name", "value")
     )
 
 
 def get_schema_handling_data(request):
-    """
-    """
+    """ """
     result = {"data": {}, "success": True, "errors": []}
     try:
         if request.method == "POST" and request.POST.get("action") == "uploadSchema":
@@ -550,6 +623,142 @@ def get_schema_handling_data(request):
                 result["data"]["SUCCESS"] = schema_data.get("SUCCESS")
         # Siempre devolver los schemas cargados
         result["data"]["schemas"] = core.utils.schema.get_schemas_loaded(__package__)
+    except Exception as e:
+        result["success"] = False
+        result["errors"].append(str(e))
+    return result
+
+
+def get_metadata_visualization_data(schema):
+    data = {}
+    for fill_mode in ["sample", "batch"]:
+        qs = core.models.MetadataVisualization.objects.filter(
+            schemaID=schema, fill_mode=fill_mode, in_use=True
+        ).order_by("order")
+        data[fill_mode] = core.serializers.MetadataVisualizationSerializer(
+            qs, many=True
+        ).data
+    return data
+
+
+def store_metadata_visualization_fields(schema_id, fields, fill_mode="sample"):
+    """
+    Store the selected fields for metadata visualization.
+    'fields' should be a list of dicts: [{"property_name": ..., "label_name": ..., "order": ...}, ...]
+    """
+    # Remove previous visualization for this schema/fill_mode
+    core.models.MetadataVisualization.objects.filter(
+        schemaID=schema_id, fill_mode=fill_mode
+    ).delete()
+    # Create new visualization
+    for field in fields:
+        core.models.MetadataVisualization.objects.create(
+            schemaID_id=schema_id,
+            property_name=field["property_name"],
+            label_name=field["label_name"],
+            order=field["order"],
+            in_use=True,
+            fill_mode=fill_mode,
+        )
+    return True
+
+
+def get_schema_fields_data(schema, template_labels=None):
+    """Returns the serialized schema fields, and if there are template_labels, add ‘used’ and ‘order’."""
+    qs = core.models.SchemaProperties.objects.filter(schemaID=schema).order_by("label")
+    serialized = core.serializers.SchemaPropertiesSerializer(qs, many=True).data
+    if template_labels:
+        for field in serialized:
+            label = field["label"].strip()
+            if label in template_labels:
+                field["used"] = True
+                field["order"] = template_labels.index(label)
+            else:
+                field["used"] = False
+                field["order"] = ""
+    return serialized
+
+
+def get_schema_fields_for_jexcel(schema, template_labels=None):
+    """ "Returns the list of lists structure for JExcel, using the serialized data"""
+    fields = get_schema_fields_data(schema, template_labels)
+    return {
+        "schema_id": str(schema.pk),
+        "fields": [
+            [
+                f["property"],
+                f["label"],
+                f["order"],
+                str(f["used"]).lower(),
+                f["fill_mode"],
+            ]
+            for f in fields
+        ],
+    }
+
+
+def handle_metadata_visualization(request):
+    result = {"data": None, "success": None, "errors": []}
+    try:
+        # Get the latest schema IN USE
+        schema = (
+            core.models.Schema.objects.filter(schema_in_use=True)
+            .order_by("-generated_at")
+            .first()
+        )
+        if not schema:
+            result["success"] = False
+            result["errors"].append(core.config.ERROR_SCHEMA_NOT_DEFINED)
+            return result
+
+        # POST: select fields
+        if request.method == "POST" and request.POST.get("action") == "selectFields":
+            table_data_json = request.POST.get("table_data")
+            if not table_data_json:
+                result["success"] = False
+                result["errors"].append("No table_data provided in POST.")
+                return result
+            try:
+                rows = json.loads(table_data_json)
+            except Exception as e:
+                result["success"] = False
+                result["errors"].append(f"Error parsing table_data: {str(e)}")
+                return result
+
+            # Delete previous metadatavisualization fields
+            core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
+            # Create new metadatavisualization fields
+            for row in rows:
+                # row: [property_name, label_name, order, used, fill_mode]
+                core.models.MetadataVisualization.objects.create(
+                    schemaID=schema,
+                    property_name=row[0],
+                    label_name=row[1],
+                    order=(
+                        row[2] if row[2] != "" else 0
+                    ),  # FIXME: not sure what to use here
+                    in_use=row[3],
+                    fill_mode=row[4] if len(row) > 4 else "sample",
+                )
+            result["data"] = {"visualization": get_metadata_visualization_data(schema)}
+            result["success"] = True
+            return result
+
+        # POST: delete fields
+        if request.method == "POST" and request.POST.get("action") == "deleteFields":
+            core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
+            result["data"] = {"deleted": True}
+            return result
+
+        # GET o fallback: get data for visualization
+        visualization = get_metadata_visualization_data(schema)
+        if visualization["sample"] or visualization["batch"]:
+            result["data"] = {"visualization": visualization}
+        else:
+            template_labels = core.utils.schema.get_fields_if_template()
+            result["data"] = {
+                "schema_fields": get_schema_fields_for_jexcel(schema, template_labels)
+            }
     except Exception as e:
         result["success"] = False
         result["errors"].append(str(e))

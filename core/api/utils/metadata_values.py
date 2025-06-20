@@ -35,20 +35,24 @@ def store_metadata_values(s_data, schema_obj, analysis_date):
 
     missing_required = [prop for prop in required_props if prop not in s_data]
     if missing_required:
-        return {
-            "ERROR": f"Missing required properties: {', '.join(missing_required)}"
-        }
+        return {"ERROR": f"Missing required properties: {', '.join(missing_required)}"}
 
     all_schema_props = core.models.SchemaProperties.objects.filter(
         schemaID=schema_obj
     ).values_list("property", flat=True)
 
-    unexpected_props = [prop for prop in s_data if prop not in all_schema_props and prop != "sequencing_sample_id"]
+    unexpected_props = [
+        prop
+        for prop in s_data
+        if prop not in all_schema_props and prop != "sequencing_sample_id"
+    ]
     if unexpected_props:
-        print(f"WARNING: These properties are not defined in the schema and will be ignored: {', '.join(unexpected_props)}")
+        print(
+            f"WARNING: These properties are not defined in the schema and will be ignored: {', '.join(unexpected_props)}"
+        )
 
     for field, value in s_data.items():
-        if "schema_" in field or field == "sequencing_sample_id": ## harcode not ok here
+        if "schema_" in field or field == "sequencing_sample_id":
             continue
 
         property_name = core.models.SchemaProperties.objects.filter(
@@ -72,9 +76,7 @@ def store_metadata_values(s_data, schema_obj, analysis_date):
             data=data
         )
         if not meta_value_serializer.is_valid():
-            return {
-                "ERROR": f"{field} {core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}"
-            }
+            return {"ERROR": f"{field} {core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}"}
 
         meta_value_serializer.save()
 

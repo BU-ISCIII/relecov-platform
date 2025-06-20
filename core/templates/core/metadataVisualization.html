@@ -1,3 +1,4 @@
+<!-- filepath: core/templates/core/metadataVisualization.html -->
 {% extends "core/base.html" %}
 {% load static %}
 
@@ -9,18 +10,13 @@
     <div class="container d-flex flex-column justify-content-center align-items-center  position-relative">
         <div class="container">
             {% if ERROR %}
-                <div class="row justify-content-center">
-                    <div class="col-sm-9" >
-                        <div class="card  border-danger mb-3">
-                            <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when selecting fields for Metadata</h3> </div>
-                            <div class="card-body  text-center">
-                                <br>
-                                <p><strong>{{ERROR.ERROR}}</strong></p>
-                            </div> <!-- end card body  -->
-                        </div> <!-- end card  -->
-                    </div> <!--// end col-sm-9 -->
-                </div> <!--// end row -->
+                <div class="alert alert-danger">
+                    {% for err in ERROR %}
+                        <div>{{ err }}</div>
+                    {% endfor %}
+                </div>
             {% endif %}
+
             {% if SUCCESS %}
                 <div class="row justify-content-center">
                     <div class="col-sm-9" >
@@ -34,7 +30,7 @@
                     </div> <!--// end col-sm-9 -->
                 </div> <!--// end row -->
             {% endif %}
-            {% if data_visualization %}
+            {% if DATA.visualization %}
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="samples" aria-selected="true">Fields for Sample</button>
@@ -62,10 +58,10 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {% for label, order in data_visualization.sample %}
+                                                    {% for field in DATA.visualization.sample %}
                                                         <tr>
-                                                            <td>{{label}}</td>
-                                                            <td>{{order}}</td>
+                                                            <td>{{ field.label_name }}</td>
+                                                            <td>{{ field.order }}</td>
                                                         </tr>
                                                     {% endfor %}
                                                 </tbody>
@@ -92,10 +88,10 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {% for label, order in data_visualization.batch %}
+                                                    {% for field in DATA.visualization.batch %}
                                                         <tr>
-                                                            <td>{{label}}</td>
-                                                            <td>{{order}}</td>
+                                                            <td>{{ field.label_name }}</td>
+                                                            <td>{{ field.order }}</td>
                                                         </tr>
                                                     {% endfor %}
                                                 </tbody>
@@ -149,7 +145,7 @@
                 </script>
 
             {% endif %}
-            {% if DELETE %}
+            {% if DATA.deleted %}
                 <div class="row row-space-2 margin-b-4">
                     <div class="col-sm-10" >
                         <div class="card">
@@ -166,7 +162,7 @@
                     </div> <!--// end col-sm-9 -->
                 </div> <!--// end row -->
             {% endif %}
-            {% if m_visualization %}
+            {% if DATA.schema_fields %}
                 <div class="row justify-content-center p-5">
                     <div class="col-md-10">
                         <div class="card">
@@ -176,28 +172,28 @@
                                     {% csrf_token %}
                                     <div class="scrolling-wrapper">
                                         <input type="hidden" name="action" value="selectFields">
-                                        <input type="hidden" name="schemaID" value="{{m_visualization.schema_id}}">
+                                        <input type="hidden" name="schemaID" value="{{DATA.schema_fields.schema_id}}">
                                         <div id="spreadsheet"></div>
                                     </div> <!--  end of scrolling  -->
                                     <script>
-                                        var data = [{% for values in m_visualization.fields %} [{% for value in values %} {% if forloop.counter == 3 %}{{value}}{% else %}'{{value}}'{% endif %},{% endfor %}], {% endfor %}];
+                                        var data = [{% for values in DATA.schema_fields.fields %} [{% for value in values %} {% if forloop.counter == 3 %}{{value}}{% else %}'{{value}}'{% endif %},{% endfor %}], {% endfor %}];
 
                                         var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
-                                            data:data,
+                                            data: data,
                                             columns: [
-                                            { type: 'hidden'},
-                                            { type: 'text', title:'Label', width:300 ,readOnly:true},
-                                            { type: 'numeric', title:'Order', width:70, mask:'#.##' },
-                                            { type: 'checkbox', title:'Used', width:80 },
-                                            { type: 'dropdown' , title: 'Select', width:150 , source: ["sample", "batch"] },
-                                           ],
-                                           allowInsertColumn:false,
-                                           allowDeleteColumn:false,
-                                           allowRenameColumn:false,
-                                           search:true,
-                                           pagination:20,
-                                       });
-                                   </script>
+                                                { type: 'hidden'},
+                                                { type: 'text', title:'Label', width:300 ,readOnly:true},
+                                                { type: 'numeric', title:'Order', width:70, mask:'#.##' },
+                                                { type: 'checkbox', title:'Used', width:80 },
+                                                { type: 'dropdown' , title: 'Select', width:150 , source: ["sample", "batch"] },
+                                            ],
+                                            allowInsertColumn:false,
+                                            allowDeleteColumn:false,
+                                            allowRenameColumn:false,
+                                            search:true,
+                                            pagination:20,
+                                        });
+                                    </script>
                                </div> <!-- end card body-->
                                <div class="card-body">
                                    <div class="text-left">

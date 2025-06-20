@@ -48,7 +48,6 @@ def get_sample_in_variant_list(chromosome_obj):
     return v_in_sample
 
 
-
 def get_variant_qs(sample_obj):
     if not sample_obj:
         return None, [{"code": 404, "message": "Sample object is required"}]
@@ -80,7 +79,7 @@ def get_variant_qs(sample_obj):
 
     return {
         "heading": core.config.HEADING_FOR_VARIANT_TABLE_DISPLAY,
-        "variant_data": variant_data
+        "variant_data": variant_data,
     }, []
 
 

@@ -74,6 +74,7 @@ class LineageValueSerializer(serializers.ModelSerializer):
         model = core.models.LineageValues
         fields = ["label", "value"]
 
+
 class SampleDisplaySerializer(serializers.ModelSerializer):
     actions = serializers.SerializerMethodField()
     gisaid = serializers.SerializerMethodField()
@@ -111,19 +112,51 @@ class SampleDisplaySerializer(serializers.ModelSerializer):
         return obj.get_collecting_institution()
 
     def get_actions(self, obj):
-        return SampleStateHistorySerializer(self.context.get("actions_qs", []), many=True).data
+        return SampleStateHistorySerializer(
+            self.context.get("actions_qs", []), many=True
+        ).data
 
     def get_gisaid(self, obj):
-        return PublicDatabaseValueSerializer(self.context.get("gisaid_qs", []), many=True).data
+        return PublicDatabaseValueSerializer(
+            self.context.get("gisaid_qs", []), many=True
+        ).data
 
     def get_ena(self, obj):
-        return PublicDatabaseValueSerializer(self.context.get("ena_qs", []), many=True).data
+        return PublicDatabaseValueSerializer(
+            self.context.get("ena_qs", []), many=True
+        ).data
 
     def get_bioinfo(self, obj):
-        return MetadataValueSerializer(self.context.get("bioinfo_qs", []), many=True).data
+        return MetadataValueSerializer(
+            self.context.get("bioinfo_qs", []), many=True
+        ).data
 
     def get_lineage(self, obj):
-        return LineageValueSerializer(self.context.get("lineage_qs", []), many=True).data
+        return LineageValueSerializer(
+            self.context.get("lineage_qs", []), many=True
+        ).data
+
+
+class MetadataVisualizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = core.models.MetadataVisualization
+        fields = ["id", "label_name", "order", "fill_mode"]
+
+
+class SchemaPropertiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = core.models.SchemaProperties
+        fields = [
+            "id",
+            "schemaID",
+            "property",
+            "label",
+            "required",
+            "options",
+            "format",
+            "description",
+            "fill_mode",
+        ]
 
 
 #############################
@@ -143,17 +176,18 @@ class LabUserDataSerializer(serializers.Serializer):
         """Generate serializable structure."""
         formatted_data = {
             "labs": data.get("labs", []),
-            "users": [{"id": u[0], "username": u[1]} for u in data.get("users", [])]
+            "users": [{"id": u[0], "username": u[1]} for u in data.get("users", [])],
         }
         return cls(formatted_data).data
 
+
 class SampleStateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk')
-    label = serializers.CharField(source='display_string')
+    id = serializers.IntegerField(source="pk")
+    label = serializers.CharField(source="display_string")
 
     class Meta:
         model = core.models.SampleState
-        fields = ['id', 'label']
+        fields = ["id", "label"]
 
 
 class SampleSearchResultSerializer(serializers.ModelSerializer):
@@ -164,13 +198,7 @@ class SampleSearchResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = core.models.Sample
-        fields = [
-            "id",
-            "name",
-            "state",
-            "sequencing_date",
-            "recorded_date"
-        ]
+        fields = ["id", "name", "state", "sequencing_date", "recorded_date"]
 
     def get_state(self, obj):
         return obj.get_state()
@@ -189,7 +217,12 @@ class PublicAccessionSerializer(serializers.Serializer):
 
     @classmethod
     def from_raw(cls, raw_tuples):
-        return [cls({ "lab_name": tup[0], "sample_name": tup[1], "accession_id": tup[2]}).data for tup in raw_tuples]
+        return [
+            cls(
+                {"lab_name": tup[0], "sample_name": tup[1], "accession_id": tup[2]}
+            ).data
+            for tup in raw_tuples
+        ]
 
 
 class LabLastActionSerializer(serializers.Serializer):

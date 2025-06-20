@@ -23,27 +23,26 @@ import core.utils.samples_graphics
 import core.utils.samples_map
 
 
-# FIXME: This needs to homogenize the way passing data to template. 
+# FIXME: This needs to homogenize the way passing data to template.
 # FIXME: fornt end needs to manage error screen
 # TODO: update the strucuture object that its going to be rendered
 def index(request):
     index_data = core.services.get_index_data()
-    return render(
-        request,
-        "core/index.html",
-        { "data": index_data["data"] }
-    )
+    return render(request, "core/index.html", {"data": index_data["data"]})
+
 
 @login_required
 def assign_samples_to_user(request):
     if request.user.username != "admin":
         return redirect("/")
 
-    action = request.POST.get('action') if request.POST else None
+    action = request.POST.get("action") if request.POST else None
     lab = request.POST.get("lab")
     user_id = request.POST.get("userName")
 
-    response = core.services.get_assign_samples_data(action=action, lab=lab, user_id=user_id)
+    response = core.services.get_assign_samples_data(
+        action=action, lab=lab, user_id=user_id
+    )
     return render(
         request,
         "core/assignSamplesToUser.html",
@@ -51,12 +50,12 @@ def assign_samples_to_user(request):
             "data": response["data"],
             "success": response["success"] if action else None,
             "errors": response["errors"],
-        }
+        },
     )
 
 
 # TODO: Discuss whether render shuld be used once or twice (one if not result["success"] and another one if result["success"]). Example below shows an scenario where render is used once, letting the logic of errors to be addressed in the tempalte.
-# TODO: I think it would be better to put here the request POST/GET logic. 
+# TODO: I think it would be better to put here the request POST/GET logic.
 @login_required
 def schema_handling(request):
     if request.user.username != "admin":
@@ -69,9 +68,10 @@ def schema_handling(request):
         {
             "DATA": result["data"],
             "SUCCESS": result["success"] if show_success else None,
-            "ERROR": result["errors"]
-        }
+            "ERROR": result["errors"],
+        },
     )
+
 
 @login_required
 def schema_display(request, schema_id):
@@ -80,20 +80,14 @@ def schema_display(request, schema_id):
     schema_data = core.utils.schema.get_schema_display_data(schema_id)
     return render(request, "core/schemaDisplay.html", {"schema_data": schema_data})
 
+
 @login_required
 def sample_display(request, sample_id):
     result = core.services.get_sample_display_data(sample_id, request.user)
     if not result["success"]:
-        return render(
-            request, 
-            "core/sampleDisplay.html", 
-            {"errors": result["errors"]}
-        )
+        return render(request, "core/sampleDisplay.html", {"errors": result["errors"]})
 
-    return render(
-        request, "core/sampleDisplay.html",
-        {"data": result["data"]}
-    )
+    return render(request, "core/sampleDisplay.html", {"data": result["data"]})
 
 
 @login_required
@@ -107,7 +101,9 @@ def search_sample(request):
         sample_state = request.POST.get("sampleState", "")
 
         # Validate search parameters
-        validation = core.services.validate_search_params(sample_name, lab_name, sample_state, s_date)
+        validation = core.services.validate_search_params(
+            sample_name, lab_name, sample_state, s_date
+        )
         if "warning" in validation:
             return render(
                 request,
@@ -121,27 +117,28 @@ def search_sample(request):
             lab_name=lab_name,
             sample_state=sample_state,
             s_date=s_date,
-            user=request.user
+            user=request.user,
         )
         display_data = display_result["data"]
 
         # If only one sample is found, redirect to sample display page
         if display_data.get("redirect"):
-            return redirect(
-                "sample_display",
-                sample_id=display_data["redirect"]
-            )
+            return redirect("sample_display", sample_id=display_data["redirect"])
 
         # If more than one sample is found, render the list of records
-        if display_result["success"] and display_data.get("samples") and len(display_data["samples"]) > 1:
+        if (
+            display_result["success"]
+            and display_data.get("samples")
+            and len(display_data["samples"]) > 1
+        ):
             return render(
                 request,
                 "core/searchSample.html",
                 {
                     "DATA_QUERY": display_data,
                     "SUCCESS": display_result["success"],
-                    "ERROR": display_result["errors"]
-                }
+                    "ERROR": display_result["errors"],
+                },
             )
 
         # If there are errors, render the error message
@@ -149,77 +146,48 @@ def search_sample(request):
             return render(
                 request,
                 "core/searchSample.html",
-                {"DATA_QUERY": search_data, "ERROR": display_result["errors"]}
+                {"DATA_QUERY": search_data, "ERROR": display_result["errors"]},
             )
 
         # If no results but no explicit error, render the search form again
-        return render(
-            request,
-            "core/searchSample.html",
-            {"DATA_QUERY": search_data}
-        )
+        return render(request, "core/searchSample.html", {"DATA_QUERY": search_data})
 
     # GET request or first access
     if "ERROR" in search_data:
-        return render(request, "core/searchSample.html", {"ERROR": search_data["ERROR"]})
+        return render(
+            request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
+        )
     return render(request, "core/searchSample.html", {"DATA_DISPLAY": search_data})
 
-# TODO: this needs serialized-based refactor
-# FIXME: This needs a template or error message when user != admin tryies to access.
+
 @login_required
 def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
-    if request.method == "POST" and request.POST["action"] == "selectFields":
-        selected_fields = core.utils.schema.store_fields_metadata_visualization(
-            request.POST
-        )
-        if "ERROR" in selected_fields:
-            m_visualization = core.utils.schema.get_fields_from_schema(
-                core.utils.schema.get_schema_obj_from_id(request.POST["schemaID"])
-            )
-            return render(
-                request,
-                "core/metadataVisualization.html",
-                {"ERROR": selected_fields, "m_visualization": m_visualization},
-            )
-        return render(
-            request,
-            "core/metadataVisualization.html",
-            {"SUCCESS": selected_fields},
-        )
-    if request.method == "POST" and request.POST["action"] == "deleteFields":
-        core.utils.schema.del_metadata_visualization()
-        return render(request, "core/metadataVisualization.html", {"DELETE": "DELETE"})
-    metadata_obj = core.utils.schema.get_latest_schema("Relecov", __package__)
-    if isinstance(metadata_obj, dict):
-        return render(
-            request,
-            "core/metadataVisualization.html",
-            {"ERROR": metadata_obj["ERROR"]},
-        )
-    data_visualization = core.utils.schema.fetch_info_meta_visualization(metadata_obj)
-    if isinstance(data_visualization, dict):
-        return render(
-            request,
-            "core/metadataVisualization.html",
-            {"data_visualization": data_visualization},
-        )
-    m_visualization = core.utils.schema.get_fields_from_schema(metadata_obj)
+    result = core.services.handle_metadata_visualization(request)
     return render(
         request,
         "core/metadataVisualization.html",
-        {"m_visualization": m_visualization},
+        {
+            "DATA": result["data"],
+            "SUCCESS": result["success"],
+            "ERROR": result["errors"],
+        },
     )
+
 
 @login_required
 def intranet(request):
-    is_manager = Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()
+    is_manager = (
+        Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()
+    )
 
     # Generate data for manager access
     if is_manager:
         manager_intra_data = core.services.get_intranet_data_for_manager()
-        return render(request, "core/intranet.html", {"manager_intra_data": manager_intra_data})
+        return render(
+            request, "core/intranet.html", {"manager_intra_data": manager_intra_data}
+        )
 
     # TODO: Didn't tested due to lack of bioinfodata (api related issues)
     intra_data = core.services.get_intranet_data_for_user(request.user)
@@ -228,6 +196,7 @@ def intranet(request):
 
 def variants(request):
     return render(request, "core/variants.html", {})
+
 
 # TODO: this needs serialized-based refactor
 @login_required()
@@ -317,6 +286,7 @@ def metadata_form(request):
             )
         return render(request, "core/metadataForm.html", {"m_form": m_form})
 
+
 # TODO: this needs serialized-based refactor
 @login_required()
 def annotation_display(request, annot_id):
@@ -331,6 +301,7 @@ def annotation_display(request, annot_id):
     return render(
         request, "core/annotationDisplay.html", {"annotation_data": annot_data}
     )
+
 
 # TODO: this needs serialized-based refactor
 @login_required()
@@ -356,6 +327,7 @@ def organism_annotation(request):
         )
     return render(request, "core/organismAnnotation.html", {"annotations": annotations})
 
+
 # TODO: this needs serialized-based refactor
 @login_required()
 def laboratory_contact(request):
@@ -374,6 +346,7 @@ def laboratory_contact(request):
             )
         return render(request, "core/laboratoryContact.html", {"Success": "Success"})
     return render(request, "core/laboratoryContact.html", {"lab_data": lab_data})
+
 
 # TODO: this needs serialized-based refactor
 @login_required

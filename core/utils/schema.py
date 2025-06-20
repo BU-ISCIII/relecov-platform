@@ -7,31 +7,9 @@ from django.conf import settings
 
 # Local imports
 import core.models
+import core.serializers
 import core.utils.generic_functions
 import core.config
-
-
-def fetch_info_meta_visualization(schema_obj):
-    """Check if metadata visualization is already defined. If exists collect
-    the fields selected and split in 2 the ones for samples and the one for
-    batch
-    """
-    if not core.models.MetadataVisualization.objects.all().exists():
-        return None
-    m_fields = {"sample": [], "batch": []}
-    m_v_sample_objs = core.models.MetadataVisualization.objects.filter(
-        fill_mode__exact="sample"
-    ).order_by("order")
-    for m_v_sample_obj in m_v_sample_objs:
-        m_fields["sample"].append(
-            [m_v_sample_obj.get_label(), m_v_sample_obj.get_order()]
-        )
-    m_v_batch_objs = core.models.MetadataVisualization.objects.filter(
-        fill_mode__exact="batch"
-    ).order_by("order")
-    for m_v_batch_obj in m_v_batch_objs:
-        m_fields["batch"].append([m_v_batch_obj.get_label(), m_v_batch_obj.get_order()])
-    return m_fields
 
 
 def get_fields_if_template():
@@ -168,15 +146,6 @@ def get_default_schema():
     return None
 
 
-def del_metadata_visualization():
-    """Delete previous metadata visualization if already exists"""
-    if core.models.MetadataVisualization.objects.all().exists():
-        m_vis_objs = core.models.MetadataVisualization.objects.all()
-        for m_vis_obj in m_vis_objs:
-            m_vis_obj.delete()
-    return None
-
-
 def get_schema_properties(schema):
     """Fetch the list of the properties"""
     s_prop_dict = {}
@@ -188,27 +157,6 @@ def get_schema_properties(schema):
             s_prop_dict[p_name]["classification"] = s_prop_obj.get_classification()
             s_prop_dict[p_name]["ontology"] = s_prop_obj.get_ontology()
     return s_prop_dict
-
-
-def store_fields_metadata_visualization(data):
-    """Store the selected fields to display in metadata form"""
-    # Delete existing visualization before loading new one
-    del_metadata_visualization()
-    schema_obj = get_schema_obj_from_id(data["schemaID"])
-    fields = ["property_name", "label_name", "order", "in_use", "fill_mode"]
-    entry_num = 0
-    rows = json.loads(data["table_data"])
-    for row in rows:
-        if row[2] == "":
-            continue
-        m_data = {"schema_id": schema_obj}
-        for idx in range(len(fields)):
-            m_data[fields[idx]] = row[idx]
-        core.models.MetadataVisualization.objects.create_metadata_visualization(m_data)
-        entry_num += 1
-    if entry_num == 0:
-        return {"ERROR": core.config.NO_SELECTED_LABEL_WAS_DONE}
-    return {"SUCCESS": entry_num}
 
 
 def store_schema_properties(schema_obj, s_properties, required):
