@@ -697,10 +697,10 @@ def get_schema_fields_for_jexcel(schema, template_labels=None):
     }
 
 
-def handle_metadata_visualization(request):
+def handle_metadata_visualization(action=None, table_data_json=None):
     result = {"data": None, "success": None, "errors": []}
+    # Get the latest schema in use
     try:
-        # Get the latest schema IN USE
         schema = (
             core.models.Schema.objects.filter(schema_in_use=True)
             .order_by("-generated_at")
@@ -711,9 +711,7 @@ def handle_metadata_visualization(request):
             result["errors"].append(core.config.ERROR_SCHEMA_NOT_DEFINED)
             return result
 
-        # POST: select fields
-        if request.method == "POST" and request.POST.get("action") == "selectFields":
-            table_data_json = request.POST.get("table_data")
+        if action == "selectFields":
             if not table_data_json:
                 result["success"] = False
                 result["errors"].append("No table_data provided in POST.")
@@ -725,18 +723,13 @@ def handle_metadata_visualization(request):
                 result["errors"].append(f"Error parsing table_data: {str(e)}")
                 return result
 
-            # Delete previous metadatavisualization fields
             core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
-            # Create new metadatavisualization fields
             for row in rows:
-                # row: [property_name, label_name, order, used, fill_mode]
                 core.models.MetadataVisualization.objects.create(
                     schemaID=schema,
                     property_name=row[0],
                     label_name=row[1],
-                    order=(
-                        row[2] if row[2] != "" else 0
-                    ),  # FIXME: not sure what to use here
+                    order=(row[2] if row[2] != "" else 0),  # Not sure what to use here
                     in_use=row[3],
                     fill_mode=row[4] if len(row) > 4 else "sample",
                 )
@@ -744,10 +737,10 @@ def handle_metadata_visualization(request):
             result["success"] = True
             return result
 
-        # POST: delete fields
-        if request.method == "POST" and request.POST.get("action") == "deleteFields":
+        if action == "deleteFields":
             core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
             result["data"] = {"deleted": True}
+            result["success"] = True
             return result
 
         # GET o fallback: get data for visualization
@@ -759,6 +752,7 @@ def handle_metadata_visualization(request):
             result["data"] = {
                 "schema_fields": get_schema_fields_for_jexcel(schema, template_labels)
             }
+        result["success"] = True
     except Exception as e:
         result["success"] = False
         result["errors"].append(str(e))
