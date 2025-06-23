@@ -318,54 +318,61 @@ def get_sample_per_date_per_all_lab(detailed=False):
 
 # FIXME: refactor its output
 def get_intranet_data_for_manager():
-    all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
-    num_of_samples = core.utils.samples.count_handled_samples()
-    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
+    result = {"data": {}, "success": False, "errors": []}
+    try:
+        all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
+        num_of_samples = core.utils.samples.count_handled_samples()
+        analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
 
-    bar_config = {
-        "col_names": ["Sequencing Date", "Number of samples"],
-        "options": {
-            "title": "Samples Received for all laboratories",
-            "width": 590,
-        },
-    }
+        bar_config = {
+            "col_names": ["Sequencing Date", "Number of samples"],
+            "options": {
+                "title": "Samples Received for all laboratories",
+                "width": 590,
+            },
+        }
 
-    # dash graph for samples per lab
-    core.utils.samples.create_dash_bar_for_each_lab()
+        # dash graph for samples per lab
+        core.utils.samples.create_dash_bar_for_each_lab()
 
-    # Collect data that populate views
-    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab(
-        "gisaid_accession_id"
-    )
-    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab(
-        "ena_sample_accession"
-    )
-    actions_raw = core.utils.samples.get_lab_last_actions()
-    data = {
-        "sample_bar_graph": core.utils.samples.create_date_sample_bar(
-            all_sample_per_date, bar_config
-        ),
-        "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
-        "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
-    }
-
-    if gisaid_raw:
-        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
-            gisaid_raw
+        # Collect data that populate views
+        gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+            "gisaid_accession_id"
         )
-        data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
-            num_of_samples.get("Defined", 0), len(gisaid_raw), ""
+        ena_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+            "ena_sample_accession"
         )
+        actions_raw = core.utils.samples.get_lab_last_actions()
+        data = {
+            "sample_bar_graph": core.utils.samples.create_date_sample_bar(
+                all_sample_per_date, bar_config
+            ),
+            "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
+            "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
+        }
 
-    if ena_raw:
-        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
-            ena_raw
-        )
-        data["ena_graph"] = core.utils.public_db.percentage_graphic(
-            num_of_samples.get("Defined", 0), len(ena_raw), ""
-        )
+        if gisaid_raw:
+            data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
+                gisaid_raw
+            )
+            data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
+                num_of_samples.get("Defined", 0), len(gisaid_raw), ""
+            )
 
-    return data
+        if ena_raw:
+            data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
+                ena_raw
+            )
+            data["ena_graph"] = core.utils.public_db.percentage_graphic(
+                num_of_samples.get("Defined", 0), len(ena_raw), ""
+            )
+
+        result["data"] = data
+        result["success"] = True
+    except Exception as e:
+        result["errors"].append(str(e))
+        result["success"] = False
+    return result
 
 
 # FIXME: refactor its output

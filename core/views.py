@@ -191,16 +191,31 @@ def intranet(request):
         Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()
     )
 
-    # Generate data for manager access
     if is_manager:
-        manager_intra_data = core.services.get_intranet_data_for_manager()
+        import pdb; pdb.set_trace()
+        response = core.services.get_intranet_data_for_manager()
         return render(
-            request, "core/intranet.html", {"manager_intra_data": manager_intra_data}
+            request,
+            "core/intranet.html",
+            {
+                "DATA": response["data"],
+                "SUCCESS": response["success"],
+                "ERROR": response["errors"],
+            },
         )
 
     # TODO: Didn't tested due to lack of bioinfodata (api related issues)
-    intra_data = core.services.get_intranet_data_for_user(request.user)
-    return render(request, "core/intranet.html", {"intra_data": intra_data})
+    response = core.services.get_intranet_data_for_user(request.user)
+    import pdb; pdb.set_trace()
+    return render(
+        request,
+        "core/intranet.html",
+        {
+            "DATA": response["data"],
+            "SUCCESS": response["success"],
+            "ERROR": response["errors"],
+        },
+    )
 
 
 def variants(request):
