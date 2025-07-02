@@ -152,7 +152,7 @@ def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
 def bar_graphic(data, col_names, legend, yaxis, options):
     """Options fields are: title, height"""
 
-    colors = options.get("colors", COLOR_PALETTE)
+    colors = options.get("colors") or COLOR_PALETTE
     labels = data[col_names[0]]
     wrap_length = options.get("wrap_labels")
     truncate_length = options.get("truncate_labels")
