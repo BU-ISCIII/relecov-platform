@@ -1,12 +1,15 @@
 # Generic imports
 from statistics import mean
 import pandas as pd
+import logging
 
 # Local imports
 import core.utils.rest_api
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.plotly
 import dashboard.utils.generic_process_data
+
+logger = logging.getLogger(__name__)
 
 
 def sequencing_graphics():
@@ -44,16 +47,40 @@ def sequencing_graphics():
                     try:
                         float_val = float(str_val)
                     except ValueError:
+                        logger.warning(
+                            f"Non-numeric CT value '{str_val}' found in bin '{key}' – skipping."
+                        )
                         continue
                     if float_val > 40:
+                        logger.info(
+                            f"Discarded CT value > 40: {float_val} in bin '{key}'"
+                        )
                         continue
                     tmp_data += [float_val] * numbers
                 data.append({key: tmp_data})
         else:
             data = {"based": [], "cts": []}
             for key, values in json_data.items():
-                data["based"].append(int(key))
-                data["cts"].append(mean(values))
+                try:
+                    int_key = int(key)
+                except ValueError:
+                    logger.warning(f"Invalid bin key '{key}' – skipping.")
+                    continue
+
+                filtered_vals = [
+                    v for v in values if isinstance(v, (int, float)) and v <= 40
+                ]
+                discarded = len(values) - len(filtered_vals)
+
+                if discarded > 0:
+                    logger.info(f"{discarded} CT values > 40 discarded in bin {key}")
+
+                if not filtered_vals:
+                    logger.debug(f"All values discarded for bin {key} – skipping.")
+                    continue
+
+                data["based"].append(int_key)
+                data["cts"].append(mean(filtered_vals))
         return data
 
     def fetch_sequencing_data(project_field, columns):
