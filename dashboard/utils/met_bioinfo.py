@@ -3,11 +3,14 @@ from collections import OrderedDict
 from statistics import mean
 
 # Local imports
+import logging
 import core.models
 import dashboard.dashboard_config
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.plotly
 import dashboard.utils.generic_process_data
+
+logger = logging.getLogger(__name__)
 
 
 def bioinfo_graphics():
@@ -31,20 +34,19 @@ def bioinfo_graphics():
                 graphic_name
             )
 
-        if not isinstance(json_data, dict):
-            return {"ERROR": "Invalid data format"}
-
         tmp_json_float = {}
         for key, values in json_data.items():
             try:
                 float_key = float(key)
                 if not isinstance(values, (list, tuple)):
+                    logger.warning(
+                        f"Skipping key '{key}' because values are not a list or tuple: type={type(values).__name__}"
+                    )
                     continue
-                values_clean = [
-                    float(v) for v in values if isinstance(v, (int, float, float))
-                ]
+                values_clean = [float(v) for v in values if isinstance(v, (int, float))]
                 tmp_json_float[float_key] = values_clean
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Skipping key '{key}' due to conversion error: {e}")
                 continue
 
         json_data_sorted = OrderedDict(sorted(tmp_json_float.items()))
@@ -54,7 +56,11 @@ def bioinfo_graphics():
                 try:
                     data["depth"].append(float(key))
                     data["variant"].append(mean(values))
-                except Exception:
+                except Exception as e:
+                    logger.error(
+                        f"Error processing key '{key}' with values '{values}': {e}"
+                    )
+                    print(f"[ERROR] Could not process key '{key}' due to: {e}")
                     continue
         return data
 
@@ -86,6 +92,9 @@ def bioinfo_graphics():
                         if v <= 100:
                             clean_values.append(v)
                     except ValueError:
+                        logger.warning(
+                            f"Invalid value encountered in '{graph}': '{value}' could not be converted to float"
+                        )
                         continue
 
                 per_data.append({labels_map.get(graph, graph): clean_values})
