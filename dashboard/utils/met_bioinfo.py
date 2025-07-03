@@ -30,15 +30,32 @@ def bioinfo_graphics():
             json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
                 graphic_name
             )
+
+        if not isinstance(json_data, dict):
+            return {"ERROR": "Invalid data format"}
+
         tmp_json_float = {}
         for key, values in json_data.items():
-            tmp_json_float[float(key)] = values
+            try:
+                float_key = float(key)
+                if not isinstance(values, (list, tuple)):
+                    continue
+                values_clean = [
+                    float(v) for v in values if isinstance(v, (int, float, float))
+                ]
+                tmp_json_float[float_key] = values_clean
+            except (ValueError, TypeError):
+                continue
+
         json_data_sorted = OrderedDict(sorted(tmp_json_float.items()))
-        data = {}
         data = {"depth": [], "variant": []}
         for key, values in json_data_sorted.items():
-            data["depth"].append(float(key))
-            data["variant"].append(mean(values))
+            if values:
+                try:
+                    data["depth"].append(float(key))
+                    data["variant"].append(mean(values))
+                except Exception:
+                    continue
         return data
 
     def get_percentage_data():
@@ -59,18 +76,19 @@ def bioinfo_graphics():
                         bioinfo_analysis_fieldID__property_name__exact=graph
                     ).values_list("value", flat=True)
                 )
-                try:
-                    per_data.append(
-                        {labels_map.get(graph, graph): list(map(float, str_data))}
-                    )
-                except ValueError:
-                    filter_list = []
-                    for value in str_data:
-                        try:
-                            filter_list.append(float(value))
-                        except ValueError:
-                            continue
-                    per_data.append({labels_map.get(graph, graph): filter_list})
+
+                clean_values = []
+                for value in str_data:
+                    try:
+                        v = float(value)
+                        if v < 0:
+                            v = 0.0  # negative values
+                        if v <= 100:
+                            clean_values.append(v)
+                    except ValueError:
+                        continue
+
+                per_data.append({labels_map.get(graph, graph): clean_values})
 
         return per_data
 
