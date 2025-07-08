@@ -1,100 +1,79 @@
 # Relecov Installation
 
-Relecov application uses Django as the main framework to build the application.
+The Relecov application uses Django as the main framework.
 
+The installation procedure assumes that the following requirements are fulfilled:
 
-The installation procedure assume that the following requirements are fulfilled:
+-  The Relecov application must be installed on a Linux server. Tested on Ubuntu 22.04, CentOS 7, and Red Hat 8.  
+-  Python 3.8.10 or higher must be already installed.  
+-  A MySQL server must be installed on the server or accessible remotely.  
+-  A database named **"relecov_platform"** must be created.  
+-  A user must be configured to access this database with the appropriate permissions to create, delete, and modify tables and indexes.  
+-  An Apache server must be running on the server.  
+-  iSkyLIMS must be installed. Follow the installation guide on GitHub: [iSkyLIMS](https://github.com/BU-ISCIII/iSkyLIMS#readme).  
+-  The Nextstrain application must be available.
 
--  Relecov application has to be installed in a linux server. Tested on Ubuntu 22.04, CentOS 7 and Red Hat 8.
--  Python3.8.10 or higher already installed.
--  Mysql server is eihter installed in the server or remote.
--  Database called **"relecov_platform"** is defined.
--  User is configured to access this database with the right permisions to create/delete/modify tables, index.
--  Apache server must be running in the server
--  iSkyLIMS must be installed. Follow the installation guide defined in github [iSkyLIMS](https://github.com/BU-ISCIII/iSkyLIMS#readme).
--  Nextstrain application.
+For your convenience, an installation script has been created to perform the software installation and initial configuration.
 
-For your convinence a installation script was created to perform the software installation 
-and the first configuration.
-
-The installation procedue as well as the script are available at github [Relecov-platform](https://github.com/BU-ISCIII/relecov-platform#readme)
+The installation procedure, as well as the script, is available on GitHub: [Relecov-platform](https://github.com/BU-ISCIII/relecov-platform#readme)
 
 ## Settings
-There are some settings that could be changed on different instances of the platform.
-For example, when you are installing the application in the testing environment
-you could have different settings than in production.
 
-We have also defined some settings that could change, like moving some servers
-to a different url, they can changed any time without impacting the installation.
+There are some settings that may vary across different instances of the platform.  
+For example, when installing the application in a testing environment, the configuration may differ from that of the production environment.
 
-For them, they will store on database where only admin user will have access to 
-view/modify these settings.
+We have also defined some settings that can change, such as server URLs, without impacting the installation process.
 
-During the installation the script requests to define the credentials used for
-admin user.
+These settings are stored in the database and can be viewed or modified only by the admin user.
 
-Open your favorite navigator and type the "localhost/admin" or the "server_domain/admin/ 
-to connect with django admin application.
+During the installation, the script will prompt you to define the credentials for the admin user.
+
+Open your preferred browser and navigate to `localhost/admin` or `server_domain/admin` to access the Django admin interface.
 
 ![admin-login](img/admin_login.png)
 
-After login, scroll down on the left side and click on **"Config settings"** to see 
-the parameters that you could change their value to fix your installation.
+After logging in, scroll down on the left side and click on **"Config settings"** to view the parameters whose values you may need to adjust for your installation.
 
-**WARNING**
+> **WARNING**  
+>  
+> **DO NOT CHANGE** the CONFIGURATION NAME.
+> Changing these names will cause the application to malfunction.
 
------
+Some default settings are populated with dummy values during installation.
 
-**DO NOT CHANGE** the CONFIGURATION NAME.
-
-By changing them the application will not work properly
-
------
-
-As you see that some defaults are set during the installation with dummy values. 
-
-Through the following chapters we provide you some explanation to set the values 
-that you need for your installation. 
-
+In the following chapters, we provide guidance on how to set the correct values for your installation.
 
 ### iSkyLIMS settings
 
-As mention above, in requirements, an iSkyLIMS instance must be installed.
+As mentioned in the requirements, an iSkyLIMS instance must be installed.
 
-There are 3 parameters that you must set:
+There are three parameters that must be set:
 
-- ISKYLIMS_SERVER.
-- ISKYLIMS_USER.
-- ISKYLIMS_PASSWORD
+- `ISKYLIMS_SERVER`  
+- `ISKYLIMS_USER`  
+- `ISKYLIMS_PASSWORD`
 
-**ISKYLIMS_SERVER**. Contains the url where the iSkyLIMS is located. For example: www.iskylims.org
+**ISKYLIMS_SERVER**: Contains the URL where the iSkyLIMS instance is located. Example: `www.iskylims.org`
 
-**ISKYLIMS_USER** / **ISKYLIMS_PASSWORD**. Contains the login credentials (userid and
-password) that were defined previously on iSkyLIMS.
+**ISKYLIMS_USER** / **ISKYLIMS_PASSWORD**: Contain the login credentials (username and password) defined previously in iSkyLIMS.
 
 ### Nextstrain
 
-Click on **NEXTSTRAIN_URL** and change the configuration value with url and port of your application
+Click on **NEXTSTRAIN_URL** and update the configuration value with the URL and port of your Nextstrain application.
 
 ### Samba folder
 
-Define the folder where metadata files are stored when using the metadata form page.
+Define the folder where metadata files will be stored when using the metadata form page.
 
 ### Your institution
 
-Click on **SUBMITTING_INSTITUTION** and change the dummy value with the name of your institution.
+Click on **SUBMITTING_INSTITUTION** and replace the dummy value with the name of your institution.
 
+### Remaining values
 
-### Remain values.
+There are additional parameters not described above.  
+We recommend keeping their default values as they are already properly configured.
 
-There are some other parameters that you could change. which are not described above
-but we recommend you to keep these values as they are already set.
-
-
-
-
-
-
-```
+```bash
 python manage.py loaddata conf/upload_tables.json
 ```
