@@ -133,8 +133,8 @@ def sample_processing_graphics():
             "title": "PCR Ct Values by Specimen Source",
             "height": 400,
             "width": 600,
-            "truncate_labels": 30,
-            "wrap_labels": 30,
+            "truncate_labels": 25,
+            "wrap_labels": 25,
         },
     )
     # calculate the number of days spent in each state before moved on to the next step
@@ -145,8 +145,8 @@ def sample_processing_graphics():
             "title": "Processing Time Between Sample Steps",
             "height": 400,
             "width": 420,
-            "truncate_labels": 30,
-            "wrap_labels": 30,
+            "truncate_labels": 25,
+            "wrap_labels": 25,
         },
     )
     return sample_processing
