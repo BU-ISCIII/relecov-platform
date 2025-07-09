@@ -1,166 +1,128 @@
 # Configuration
 
-After running the installation script and settings, Relecov server is up, so
-anyone that access the relecov url can see about it. However at this very moment
-there is nor information neither options to start uploading data.
+After running the installation script and applying the settings, the Relecov server is up and running, so anyone who accesses the Relecov URL can see its homepage. However, at this point there is no information or options to start uploading data.
 
-Admin user must perform more steps to create a the basic environment for users
-can use the application.
+The admin user must perform a few more steps to create the basic environment before other users can use the application.
 
-Login as **"admin"** user to see the configuration Menu.
+Log in as **admin** to see the **Configuration** menu.
 
 ![configuration_menu](./img/configuration_menu.png)
 
-Note. That this menu is only available when login with user name as admin.
+> **Note:** This menu is only available when logged in as **admin**.
 
-When click on the configuration tab, you can see that serveral options that we
-are going to describe below.
+When you click on the **Configuration** tab, you will see several options that we describe below.
 
 ## Table of Contents
 
-1. [Schema](#schema)
-2. [Metadata](#metadata)
-3. [Annotation](#annotation)
-4. [User creation](#user-creation)
+- [Configuration](#configuration)
+  - [Table of Contents](#table-of-contents)
+  - [Schema Management](#schema-management)
+    - [Upload new Schema](#upload-new-schema)
+    - [Show schemas](#show-schemas)
+  - [Metadata Visualization](#metadata-visualization)
+  - [Annotation](#annotation)
+  - [Assign Institution to User](#assign-institution-to-user)
+    - [Usage Notes](#usage-notes)
 
+---
 
+## Schema Management
 
-## Schema
-The first step is to load the relecov schema into database.
+### Upload new Schema
 
-For your convenience we have kept the latest schema for relecov in conf folder. Of course you can upload your own schema, but be aware that it could run into issues, because as we design "relecov platform" to be flexible, we have not tested any single scenario.
+The first step is to upload the Relecov schema into the database.
+
+For your convenience, we have kept the latest schema file in the `conf/` folder. Of course you can upload your own schema, but be aware that this may cause issues because, although the Relecov platform is designed to be flexible, we have not tested every scenario.
 
 ![upload_schema](img/upload_schema.png)
 
-In the form select the **relecov schema file** and click on the **Default schema** button to define that this schema will be used as default settings.
+In the form, select the **Relecov schema file** and click **Default schema** to mark it as the default settings.
 
-Keep in mind that it is allowed to define as many schemas as you wish but only one must be the default one from where information must be filled.
+You can define as many schemas as you wish, but **only one can be the default** from which information is filled.
 
-Please be patient, as the upload process takes some time.
-
+Please, be patient, the upload process may take some time.
 
 ### Show schemas
-Once the schema is loaded you can see the schemas defined in your system when clicking on "Show Schemas " tab.
 
-![show_schema](img/show_schemas.png)
+Once a schema is loaded, click the **Show Schemas** tab to view all schemas defined in your system.
 
-Any schema is available for download, in json format, by click on the download button.
+![show_schemas](img/show_schemas.png)
 
-If you want to see more detail information about any schema, click on the desired schema name to get a table with all properties defined for this schema.
+Each schema can be downloaded in JSON format by clicking its download button.
+
+To see detailed information about a particular schema, click its name to open a table of all properties defined for that schema.
 
 ![show_detail_schema](img/show_detail_schema.png)
 
-Use the search field, to look for a specific string or you can sort any column selecting the small arrows in each column.
+Use the search field to find a specific property, or sort any column by clicking the small arrows in the header.
 
-If you wish you can download the table in excel or in csv format using the buttons located at the bottom of the table.
-
+To export the table, use the **Excel** or **CSV** buttons at the bottom.
 
 ![show_export_schema](img/show_export_schema.png)
 
-After you have define the schema go to next chapter **Metadata**.
+## Metadata Visualization
 
-## Metadata
+Next, define the metadata fields. The purpose of this tab is to give the user a clear and visual way to tailor the metadata form to the workflow by choosing only the fields needed and arranging them in the most logical order.
 
-Next steps is to define the Metadata fields, select from the top menu
+From the top menu, navigate to **Configuration → Metadata Visualization**. Here you can choose which fields from your JSON schema will appear in the metadata upload form and in which order. When you open this tab you'll see:
 
-Configuration --> Metadata Visualization.
+1. An **interactive spreadsheet**:
+   - **Label**: the field name as defined in the schema.  
+   - **Order**: the position it will occupy in the form.  
+   - **Used**: a checkbox to include or exclude the field.  
+   - **Select**: a dropdown to classify each field as "sample" (per-sample value) or "batch" (common to the entire batch).
 
-You will get a form to define the fields that will show later on when uploading samples metadata.
+2. **Controls**:
+   - **Reset Fields**: revert to the default configuration (before any changes).  
+   - **Submit**: save your settings.
 
-You can see that there is already fill with information.
+![metadata_selection](img/metadata_selection.png)
 
-![form_select_metadata_fields](img/form_select_metadata_fields.png)
+**After saving the selection** three different tabs appear under Metadata Visualzation:
 
-This settings are collected from 2 different sources:
+- **Fields for Sample**: Shows which fields will be shown for individual samples
+- **Fields for Batch**: Shows which fields will be shown for the batch as a whole
+- **Delete Fields**: `DELETE` button lets you completely clear the current configuration and start over.
 
-* relecov schema loaded in the previous chapter. When all fields that has the fill mode property to "sample" are showed.
-* template_for_metadata_form.txt, which is located in conf folder. From this file the "Position in the form" is collected and presented in the table.
-
-We have created this division, in order to reduce the time when user is typing information to upload Metadata information. Then for those fields that are
-related to all samples, only once is typing.
-
-The fields that we have considered that apllies for all samples in Metadata we
-named them as "batch" and for those that each sample has a different value we have
-named as "sample".
-
-This is the reason that in the Select columns each field can be selected as:
-
-* sample
-* batch
-
-We recommend to keep the settings as they are, but of course you can change the order of visualization, if a field is showed, or it the field apply to all samples or it must be set for each one.
-
-Apply the selected fields by clicking on the submit button. As result you will get the confirmation window.
-
-![sucessful_metadata_selection](img/sucessful_metadata_selection.png)
-
-At this point you have defined the fields that are required to upload your sample metadata to the platform.
-
-**Note that only one metadata form allowed to be defined.**
-
-For that reason the next time that you select in the menu
-
-Configuration --> Metadata Visualization
-
-You not longer see the previous form for selecting the fields but a new window where you can see the selected fields.
-
-By default the "Fields for sample" tab is open. From here you can see the metadata fields that have to be filled each time for each sample.
-
-![show_metadata_sample](img/show_metadata_sample.png)
-
-To select the fields that you have to write once for all sample, click on the "Fields for batch" tab.
-
-As before you can sort the information by clicking on the small arrows in the column names.
-
-![show_metadata_batch](img/show_metadata_batch.png)
-
-As mention, only one metadata form can be defined in the system, so in case you need to set different fields, you need first to delete the existing one.
-
-For doing it, click on the Delete Fields tab.
-
-![show_metadata_delete](img/show_metadata_delete.png)
-
-As you see there is a Warning message indicating that this action cannot be reverted. Once it is deleted it cannot be recover.
-
-To define new fields, repeat the definition process again.
+![metadata_selected_fields](img/metadata_selected_fields.png)
 
 ## Annotation
 
-The last step for configuration is to upload a file which contains the virus
-annotation.
+This section of the configuration lets the user upload and browse General Feature Format (GFF) annotation files.
 
-This file must be in a **gff** format, that you can upload your own or use the
-virus annotation that is stored in the "conf" folder named "NC_045512.2.gff".
+1. **Upload New Annotation File**  
+   - Presents a simple file‐picker form that accepts `.gff` or `.gf3` files.  
+   - When clicking in **Submit**, the chosen file is sent to the server and parsed into the annotation database.  
+   - On success or error, a notification card appears at the top of the page.
 
-For uploading the file, select **Virues Annotation** from the Configuation menu.
-![show_form_annotations](img/form_annotations.png)
+![upload_annotation](img/upload_annotation.png)
 
-Select the file and submit your request.
+2. **Show Annotations**  
+   - Displays a table of all annotation files already loaded into the system.  
+   - Columns include:  
+     - **Organism name**: With clickable link to view anhnotation details (with export possibilities)
+     - **Annotation version**
+     - **Spec version**
+     - **Sequence region**: start-nucleotide_end-nucleotide
 
-To see the already loaded files click on the Show Annotations tab.
-![show_form_annotations](img/list_annotations.png)
+![show_annotations](img/show_annotations.png)
 
-If you want to known the gene annotation for a specific organism click on the
-organism name to open a new window which has these information.
+This is how the annotation information displays:
 
-## User creation
+![annotation_information](img/annotation_information.png)
 
-This step does not belong to relecov application configuration but the normal
-maintenace of user creation to provide them to access the application.
+## Assign Institution to User
 
-There are 2 types of users:
+This section provides a simple interface for administrators to assign one or more institutions (laboratories, hospitals...) to a specific user.
 
-1. Users that can see information from other laboratory.
-2. Users that only can see and upload metadata information.
+**Assignment Form**: You’ll see a form with two dropdowns:
 
-For the first ones, they belongs to so colled **RelecovManager** group. They
-are the users which have more priveleges, from they can see sample information
-for any laboratory.
+- **Laboratory**: Select from the list of available institutions.
+- **User**: Choose the user ID to whom the selected institution's samples should be assigned.
 
-Normal users, they belongs to a laboratory, and they has the role to upload
-metadata information. They can see information about samples, but searching and
-displaying is limited to the samples that the laboratory that user belongs to.
+### Usage Notes
 
-As the process of user creation is part of the maintenance activity we have
-create a separate chapter inside FAQ. To check the documentation for user creation
-click on  a new user now [How to create new user](../create_new_user.md)
+- Only users with administrative privileges can access this page.
+- The form validates that both a lab and a user have been selected before submission.
+
+![assign_inst_user](img/assign_inst_user.png)
