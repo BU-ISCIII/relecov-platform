@@ -1,6 +1,7 @@
 # Generic imports
 import os
 import json
+import logging
 from datetime import datetime
 from collections import OrderedDict, Counter, defaultdict
 from django.db.models import (
@@ -28,6 +29,30 @@ import core.config
 from relecov_platform import settings as relecov_platform_settings
 
 import time
+
+logger = logging.getLogger(__name__)
+
+
+def normalize_empty_keys(data_dict, empty_label="Not Provided"):
+    """
+    Replace empty keys or None with `empty_label` and group the values.
+    Specifically for dicts with structure: {str -> {str -> int}}
+    """
+    cleaned = defaultdict(dict)
+    for key, inner_dict in data_dict.items():
+        original_key = key
+        new_key = empty_label if not key or str(key).strip() == "" else key
+
+        if new_key != original_key:
+            logger.warning(
+                f"[normalize_empty_keys] Key {repr(original_key)} "
+                f"converted to '{new_key}'"
+            )
+
+        for inner_k, inner_v in inner_dict.items():
+            cleaned[new_key][inner_k] = cleaned[new_key].get(inner_k, 0) + inner_v
+
+    return dict(cleaned)
 
 
 def pre_proc_calculation_date():
@@ -347,8 +372,10 @@ def pre_proc_specimen_source_pcr_1():
     if "ERROR" in lims_data:
         return lims_data
 
+    cleaned_data = normalize_empty_keys(lims_data)
+
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
-        {"graphic_name": "specimen_source_pcr_1", "graphic_data": lims_data}
+        {"graphic_name": "specimen_source_pcr_1", "graphic_data": cleaned_data}
     )
 
     return {"SUCCESS": "Success"}
@@ -364,9 +391,10 @@ def pre_proc_extraction_protocol_pcr_1():
     )
     if "ERROR" in lims_data:
         return lims_data
+    cleaned_data = normalize_empty_keys(lims_data)
 
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
-        {"graphic_name": "extraction_protocol_pcr_1", "graphic_data": lims_data}
+        {"graphic_name": "extraction_protocol_pcr_1", "graphic_data": cleaned_data}
     )
 
     return {"SUCCESS": "Success"}
