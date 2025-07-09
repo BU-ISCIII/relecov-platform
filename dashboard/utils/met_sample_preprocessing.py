@@ -129,12 +129,24 @@ def sample_processing_graphics():
 
     sample_processing["cts_specimen"] = dashboard.utils.plotly.box_plot_graphic(
         cts_specimen_data,
-        {"title": "PCR Ct Values by Specimen Source", "height": 400, "width": 600},
+        {
+            "title": "PCR Ct Values by Specimen Source",
+            "height": 400,
+            "width": 600,
+            "truncate_labels": 30,
+            "wrap_labels": 30,
+        },
     )
     # calculate the number of days spent in each state before moved on to the next step
     calculation_date_data = get_pre_proc_data("calculation_date")
     sample_processing["calculation_date"] = dashboard.utils.plotly.box_plot_graphic(
         calculation_date_data,
-        {"title": "Processing Time Between Sample Steps", "height": 400, "width": 420},
+        {
+            "title": "Processing Time Between Sample Steps",
+            "height": 400,
+            "width": 420,
+            "truncate_labels": 30,
+            "wrap_labels": 30,
+        },
     )
     return sample_processing
