@@ -164,7 +164,7 @@ def sequencing_graphics():
         {
             "title": "PCR Ct Values by Library Preparation Kit",
             "height": 400,
-            "width": 400,
+            "width": 350,
             "y_title": "PCR Ct Value",
             "truncate_labels": 20,
         },
