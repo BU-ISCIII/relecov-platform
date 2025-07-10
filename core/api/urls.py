@@ -24,4 +24,9 @@ urlpatterns = [
         name="create_variant_data",
     ),
     path("updateState", core.api.views.update_state, name="update_state"),
+    path(
+        "getSampleData",
+        core.api.views.get_sample_data,
+        name="get_sample_data",
+    ),
 ]

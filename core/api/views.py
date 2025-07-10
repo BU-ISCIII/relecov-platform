@@ -693,3 +693,37 @@ def update_state(request):
             "Successful. sample state updated", status=status.HTTP_201_CREATED
         )
     return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(["GET"])
+def get_sample_data(request):
+    if request.method != "GET":
+        return Response(
+            {"ERROR": "WRONG REQUEST METHOD TO GET SAMPLE DATA, USE GET"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    data = request.query_params
+    required_dict = {
+        "sequencing_sample_id": data.get("sequencing_sample_id"),
+        "collecting_lab_sample_id": data.get("collecting_lab_sample_id"),
+        "submitting_institution": data.get("submitting_institution"),
+        "collecting_institution": data.get("collecting_institution"),
+    }
+    if not all(required_dict.values()):
+        missing_fields = [x for x, v in required_dict.items() if not v]
+        return Response(
+            {"ERROR": f"Missing required fields in data: {missing_fields}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    temp_fingerprint = core.utils.samples.build_sample_fingerprint(
+        *[value for value in required_dict.values()]
+    )
+    found_sample = core.utils.samples.get_sample_obj_from_fingerprint(temp_fingerprint)
+    if found_sample:
+        return Response({"detail": found_sample}, status=status.HTTP_200_OK)
+    else:
+        return Response(
+            {"detail": "Sample not found."}, status=status.HTTP_404_NOT_FOUND
+        )
