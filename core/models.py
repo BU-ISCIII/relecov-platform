@@ -1,5 +1,6 @@
 # Generic imports
-from django.db import models
+import hashlib
+from django.db import models, IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -712,7 +713,9 @@ class Sample(models.Model):
     sequence_file_path_R1 = models.CharField(max_length=120, null=True, blank=True)
     sequence_file_path_R2 = models.CharField(max_length=120, null=True, blank=True)
     sequencing_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-
+    sample_fingerprint = models.CharField(
+        max_length=24, unique=True, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -745,6 +748,9 @@ class Sample(models.Model):
     def get_unique_id(self):
         return "%s" % (self.sample_unique_id)
 
+    def get_sample_fingerprint(self):
+        return "%s" % (self.sample_fingerprint)
+
     def get_schema_obj(self):
         if self.schema_obj:
             return self.schema_obj
@@ -762,6 +768,23 @@ class Sample(models.Model):
 
     def get_user(self):
         return "%s" % (self.user)
+
+    def generate_fingerprint(self):
+        combined = f"{self.sequencing_sample_id}|{self.collecting_lab_sample_id}|{self.submitting_institution}|{self.collecting_institution}".lower()
+        return hashlib.sha256(combined.encode()).hexdigest()[:24]
+
+    def save(self, *args, **kwargs):
+        # Overwrite save function to also generate unique sample identificator
+        self.sample_fingerprint = self.generate_fingerprint()
+        try:
+            with transaction.atomic():
+                # Atomic operation to avoid inconsistent data in the db
+                super().save(*args, **kwargs)
+        except IntegrityError:
+            print(
+                f"Duplicate sample with seqID {self.sequencing_sample_id} detected for submitter: {self.submitting_institution}"
+            )
+            raise
 
     def get_info_for_searching(self):
         recorded_date = self.created_at.strftime("%d-%B-%Y")
