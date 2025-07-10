@@ -68,11 +68,9 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
         return {}
 
     # ── 1. Scheme bioinfo fields ────────────────────────────────────────
-    field_qs = (
-        core.models.BioinfoAnalysisField.objects
-        .filter(schemaID=schema_obj)
-        .only("id", "label_name")
-    )
+    field_qs = core.models.BioinfoAnalysisField.objects.filter(
+        schemaID=schema_obj
+    ).only("id", "label_name")
     if not field_qs.exists():
         return {}
 
@@ -84,8 +82,7 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
     # ── 3. ONE query: how many samples have value per field ─────────────
     FIELD_EMPTY = core.config.FIELD_EMPTY_VALUES
     rows = (
-        core.models.BioinfoAnalysisValue.objects
-        .filter(
+        core.models.BioinfoAnalysisValue.objects.filter(
             bioinfo_analysis_fieldID__in=field_qs,
             value__isnull=False,
         )
@@ -116,4 +113,3 @@ def get_bioinfo_analyis_fields_utilization(schema_obj=None):
             data["fields_norm"][label] = filled / num_samples
 
     return data
-
