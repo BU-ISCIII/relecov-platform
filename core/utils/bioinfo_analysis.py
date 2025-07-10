@@ -1,4 +1,4 @@
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 
 import core.config
 import core.models
@@ -57,60 +57,63 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
 
 
 def get_bioinfo_analyis_fields_utilization(schema_obj=None):
-    """Get the level of utilization for the bioinfo analysis fields.
-    If schema is not given, the function get the latest default schema
     """
-    b_data = {}
+    Return utilisation stats for Bioinfo-analysis fields of the given schema,
+    using ONE grouped query (no N+1) so the call is fast even with many samples.
+    """
+    # ── 0. Default scheme ────────────────────────────────────────────────
     if schema_obj is None:
         schema_obj = core.utils.schema.get_default_schema()
+    if not schema_obj:
+        return {}
 
-    # get field names
-    b_field_objs = core.models.BioinfoAnalysisField.objects.filter(schemaID=schema_obj)
-    if not b_field_objs.exists():
-        return b_data
+    # ── 1. Scheme bioinfo fields ────────────────────────────────────────
+    field_qs = (
+        core.models.BioinfoAnalysisField.objects
+        .filter(schemaID=schema_obj)
+        .only("id", "label_name")
+    )
+    if not field_qs.exists():
+        return {}
 
-    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj)
-    if num_samples_in_sch == 0:
-        return b_data
-    b_data = {
+    # ── 2. Total number of samples of the scheme ──────────────────────────────────
+    num_samples = core.utils.samples.get_samples_count_per_schema(schema_obj)
+    if num_samples == 0:
+        return {}
+
+    # ── 3. ONE query: how many samples have value per field ─────────────
+    FIELD_EMPTY = core.config.FIELD_EMPTY_VALUES
+    rows = (
+        core.models.BioinfoAnalysisValue.objects
+        .filter(
+            bioinfo_analysis_fieldID__in=field_qs,
+            value__isnull=False,
+        )
+        .exclude(value__in=FIELD_EMPTY)
+        .values("bioinfo_analysis_fieldID")
+        .annotate(filled=Count("sample", distinct=True))
+    )
+    filled_map = {r["bioinfo_analysis_fieldID"]: r["filled"] for r in rows}
+
+    # ── 4. In-memory metrics ───────────────────────────────────────────────
+    data = {
         "never_used": [],
         "always_none": [],
         "fields_norm": {},
         "fields_value": {},
+        "num_fields": field_qs.count(),
     }
-    for b_field_obj in b_field_objs:
-        f_name = b_field_obj.get_label()
 
-        b_field_obj_info = core.models.BioinfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID=b_field_obj, value__isnull=False
-        ).exclude(value__in=core.config.FIELD_EMPTY_VALUES)
+    for field in field_qs:
+        label = field.get_label()
+        filled = filled_map.get(field.id, 0)
+        data["fields_value"][label] = filled
 
-        # Prefetch with filtered queryset to avoid multiple queries
-        samples = core.models.Sample.objects.prefetch_related(
-            Prefetch(
-                "bio_analysis_values",
-                queryset=b_field_obj_info,
-                to_attr="filtered_bio_values",
-            )
-        )
+        if filled == 0:
+            data["never_used"].append(label)
+            data["always_none"].append(label)
+        else:
+            data["fields_norm"][label] = filled / num_samples
 
-        # Count the number of samples with non-empty values
-        count_not_empty = sum(1 for sample in samples if sample.filtered_bio_values)
+    return data
 
-        if not b_field_obj_info.exists():
-            b_data["never_used"].append(f_name)
-            b_data["fields_value"][f_name] = 0
-            continue
-
-        b_data["fields_value"][f_name] = count_not_empty
-        if count_not_empty == 0:
-            b_data["always_none"].append(f_name)
-            continue
-
-        try:
-            b_data["fields_norm"][f_name] = count_not_empty / num_samples_in_sch
-        except ZeroDivisionError:
-            b_data["fields_norm"][f_name] = 0
-    b_data["num_fields"] = len(b_field_objs)
-
-    return b_data
