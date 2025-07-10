@@ -111,17 +111,24 @@ def create_sample_data(request):
         # check if sample id field and collecting_institution are in the request
         required_db_fields = [
             "sequencing_sample_id",
+            "collecting_lab_sample_id",
             "collecting_institution",
             "submitting_institution",
         ]
         if any(field not in data for field in required_db_fields):
-            print(f"ERROR. Missing: {[f for f in required_db_fields if f not in data]}")
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            missing_fields = [f for f in required_db_fields if f not in data]
+            print(f"ERROR. Missing: {missing_fields}")
+            return Response(
+                {"ERROR": f"Missing: {missing_fields}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         # check if sample is already defined
-        if core.utils.samples.get_sample_obj_from_sample_name(
-            data["sequencing_sample_id"]
-        ):
-            error = {"ERROR": "sample already defined"}
+        temp_fingerprint = core.utils.samples.build_sample_fingerprint(
+            *[data[field] for field in required_db_fields]
+        )
+        if core.utils.samples.get_sample_obj_from_fingerprint(temp_fingerprint):
+            req_data = {f: data[f] for f in required_db_fields}
+            error = {"ERROR": f"sample already defined with data {req_data}"}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         # get the user to assign the sample based on the collecting_institution
         # value. If lab is not define user field is set t
