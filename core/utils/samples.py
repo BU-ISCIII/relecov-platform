@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+import hashlib
 from collections import OrderedDict, defaultdict
 from datetime import datetime
 import pandas as pd
@@ -488,6 +489,17 @@ def get_sample_obj_from_sample_name(sample_name):
     return None
 
 
+def get_sample_obj_from_fingerprint(sample_fingerprint):
+    """Return the sample instance from its unique fingerprint"""
+    if core.models.Sample.objects.filter(
+        sample_fingerprint__iexact=sample_fingerprint
+    ).exists():
+        return core.models.Sample.objects.filter(
+            sample_fingerprint__iexact=sample_fingerprint
+        ).last()
+    return None
+
+
 def get_sample_obj_from_id(sample_id):
     """Return the sample instance from its id"""
     if core.models.Sample.objects.filter(pk__exact=sample_id).exists():
@@ -829,3 +841,9 @@ def write_form_data_to_excel(data, user_obj):
     f_name = os.path.join(samba_folder, "Metadata_lab_" + user_obj.username + ".xlsx")
     relecov_tools.utils.write_to_excel_file(data, f_name, "METADATA_LAB", {})
     return
+
+
+def build_sample_fingerprint(seq_id, colect_id, submit_inst, colect_inst):
+    """Return the expected sample fingerprint given its 4 components"""
+    combined = f"{seq_id}|{colect_id}|{submit_inst}|{colect_inst}".lower()
+    return hashlib.sha256(combined.encode()).hexdigest()[:24]
