@@ -12,7 +12,7 @@ import core.config
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    laboratory = models.CharField(max_length=60, null=True, blank=True)
+    laboratory = models.CharField(max_length=120, null=True, blank=True)
     code_id = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
