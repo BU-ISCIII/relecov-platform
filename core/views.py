@@ -240,7 +240,7 @@ def intranet(request):
         user_group = request.user.groups.first()
         inst_map_fieldict = {
             "Submitter": "submitting_institution",
-            "Collector": "collecting_institution"
+            "Collector": "collecting_institution",
         }
         counted_dates = defaultdict(int)
         lab_field = inst_map_fieldict.get(user_group.name)
