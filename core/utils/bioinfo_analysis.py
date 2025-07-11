@@ -7,9 +7,8 @@ import core.utils.schema
 
 
 def get_bio_analysis_stats_from_lab(
-        lab_name=None,
-        institution_type="submitting_institution"
-    ):
+    lab_name=None, institution_type="submitting_institution"
+):
     """Get the number of samples that are analized and compare with the number
     of recieved samples. If no lab name is given it matches all labs
     """
