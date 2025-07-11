@@ -237,10 +237,15 @@ def intranet(request):
         start = time.time()
         intra_data = {}
         lab_name = core.utils.labs.get_lab_name_from_user(request.user)
-
+        user_group = request.user.groups.first()
+        inst_map_fieldict = {
+            "Submitter": "submitting_institution",
+            "Collector": "collecting_institution"
+        }
         counted_dates = defaultdict(int)
+        lab_field = inst_map_fieldict.get(user_group.name)
         for d in all_sample_per_date_detailed:
-            if d["submitting_institution"] != lab_name:
+            if d[lab_field] != lab_name:
                 continue
             # Adapt YYYY-WNN to datetime format so it can be converted to date object
             converted_date = datetime.strptime(d["iso_yearweek"] + "-1", "%G-W%V-%u")
@@ -263,7 +268,9 @@ def intranet(request):
             sample_lab_objs = core.utils.samples.get_sample_objs_per_lab(lab_name)
             print(f"Took {start - time.time()} seconds for sample_lab_objs")
             analysis_percent = (
-                core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(lab_name)
+                core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(
+                    lab_name=lab_name, institution_type=lab_field
+                )
             )
             print(f"Took {start - time.time()} seconds for analysis_percent")
             cust_data = {
