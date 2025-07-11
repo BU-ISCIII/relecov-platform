@@ -6,11 +6,15 @@ import core.utils.samples
 import core.utils.schema
 
 
-def get_bio_analysis_stats_from_lab(lab_name=None):
+def get_bio_analysis_stats_from_lab(
+        lab_name=None,
+        institution_type="submitting_institution"
+    ):
     """Get the number of samples that are analized and compare with the number
     of recieved samples. If no lab name is given it matches all labs
     """
     bio_stats = {}
+    lab_query = {f"{institution_type}__iexact": lab_name}
     if lab_name is None:
         # get stats from all lab
         bioqry = core.models.DateUpdateState.objects.filter(
@@ -19,9 +23,7 @@ def get_bio_analysis_stats_from_lab(lab_name=None):
         bio_stats["analized"] = bioqry.values("sampleID").distinct().count()
         bio_stats["received"] = core.models.Sample.objects.count()
     else:
-        lab_samples = core.models.Sample.objects.filter(
-            submitting_institution__iexact=lab_name
-        )
+        lab_samples = core.models.Sample.objects.filter(**lab_query)
         bio_stats["analized"] = (
             core.models.DateUpdateState.objects.select_related("sampleID")
             .filter(sampleID__pk__in=lab_samples, stateID__state__iexact="Bioinfo")
