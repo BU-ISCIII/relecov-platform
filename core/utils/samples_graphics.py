@@ -45,7 +45,7 @@ def received_per_lab():
         samples_per_lab = dashboard.utils.generic_graphic_data.get_graphic_json_data(
             "samples_received_per_lab"
         )
-    return dashboard.utils.plotly.bar_graphic(
+    return core.utils.plotly_graphics.bar_graphic(
         data=samples_per_lab,
         col_names=["x", "y"],
         legend=[""],
