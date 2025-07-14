@@ -8,6 +8,7 @@ import core.utils.samples
 
 SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
 
+
 def get_bio_analysis_stats_from_lab(
     lab_name=None, institution_type="submitting_institution"
 ):
