@@ -512,6 +512,13 @@ def get_samples_count_per_schema(schema_obj):
     return core.models.Sample.objects.filter(schema_obj=schema_obj).count()
 
 
+def get_samples_count():
+    """
+    Total number of samples in the Sample table (all schemas).
+    """
+    return core.models.Sample.objects.count()
+
+
 def get_sample_per_date_per_all_lab(detailed=None):
     """Get the historic of submitted sample for all labs. Merging the number
     of samples if they are in the same date. Function creates a dictionary
