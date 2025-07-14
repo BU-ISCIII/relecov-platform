@@ -82,6 +82,7 @@ def get_bioinfo_analyis_fields_utilization(
     # -- 1. Check cache ---------------------------------------------------
     if use_cache:
         from django.core.cache import cache
+
         cache_key = f"bioinfo_util_{hash(tuple(x.pk for x in schema_qs))}"
         cached = cache.get(cache_key)
         if cached:
@@ -89,9 +90,8 @@ def get_bioinfo_analyis_fields_utilization(
 
     # -- 2. Total samples -------------------------------------------------
     num_samples = (
-        core.models.Sample.objects
-        .filter(schema_obj__in=schema_qs)
-        .only("id")                # lighter count(*)
+        core.models.Sample.objects.filter(schema_obj__in=schema_qs)
+        .only("id")  # lighter count(*)
         .count()
     )
     if num_samples == 0:
@@ -100,8 +100,7 @@ def get_bioinfo_analyis_fields_utilization(
     # -- 3. One grouped query: filled counts ------------------------------
     FIELD_EMPTY = core.config.FIELD_EMPTY_VALUES
     rows = (
-        core.models.BioinfoAnalysisValue.objects
-        .filter(
+        core.models.BioinfoAnalysisValue.objects.filter(
             bioinfo_analysis_fieldID__schemaID__in=schema_qs,
             value__isnull=False,
         )
@@ -111,28 +110,25 @@ def get_bioinfo_analyis_fields_utilization(
     )
 
     fields_value = {
-        r["bioinfo_analysis_fieldID__label_name"]: r["filled"]
-        for r in rows
+        r["bioinfo_analysis_fieldID__label_name"]: r["filled"] for r in rows
     }
-    fields_norm = {
-        k: v / num_samples for k, v in fields_value.items()
-    }
+    fields_norm = {k: v / num_samples for k, v in fields_value.items()}
     labels_with_value = set(fields_value)
 
     # -- 4. Single light query to fetch ALL labels ------------------------
     defined_labels = set(
-        core.models.BioinfoAnalysisField.objects
-        .filter(schemaID__in=schema_qs)
-        .values_list("label_name", flat=True)
+        core.models.BioinfoAnalysisField.objects.filter(
+            schemaID__in=schema_qs
+        ).values_list("label_name", flat=True)
     )
     never_used = defined_labels - labels_with_value
 
     result = {
         "fields_value": fields_value,
-        "fields_norm":  fields_norm,
-        "never_used":   list(never_used),
-        "always_none":  list(never_used),  # backward-compat
-        "num_samples":  num_samples,
+        "fields_norm": fields_norm,
+        "never_used": list(never_used),
+        "always_none": list(never_used),  # backward-compat
+        "num_samples": num_samples,
     }
 
     # -- 5. Cache for N seconds ------------------------------------------
