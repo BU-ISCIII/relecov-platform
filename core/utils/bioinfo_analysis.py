@@ -5,7 +5,6 @@ from typing import Iterable, Union
 import core.config
 import core.models
 import core.utils.samples
-import core.utils.schema
 
 SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
 
