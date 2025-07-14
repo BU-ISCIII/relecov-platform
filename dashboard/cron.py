@@ -91,6 +91,8 @@ def update_graphic_json_data():
     dashboard.utils.generic_process_data.pre_proc_intranet_gisaid_data()
     print("Running pre_proc_intranet_ena_data()")
     dashboard.utils.generic_process_data.pre_proc_intranet_ena_data()
+    print("Running pre_proc_bioinfo_fields_util()")
+    dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util()
     uniq_chrom_id_list = [
         x["chromosomeID"]
         for x in core.models.Gene.objects.values("chromosomeID").distinct()
