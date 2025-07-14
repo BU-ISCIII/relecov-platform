@@ -52,16 +52,14 @@ def schema_fields_utilization():
         util_data["num_lab_fields"] = len(lims_fields["fields_value"])
 
     # get fields utilization from bioinfo analysis
-    bio_fields = core.utils.bioinfo_analysis.get_bioinfo_analyis_fields_utilization(
-        schema_obj
-    )
+    bio_fields = core.utils.bioinfo_analysis.get_bioinfo_analyis_fields_utilization()
     # if return an empty value skip looking for data
     if not bool(bio_fields):
         util_data["ERROR_ANALYSIS"] = "Not Data to process"
         return util_data
 
     # Calculate bio_f_values
-    num_samples_in_sch = core.utils.samples.get_samples_count_per_schema(schema_obj.id)
+    num_samples_in_sch = core.utils.samples.get_samples_count()
     num_fields = len(bio_fields["fields_value"])
     total_filled_values = sum(bio_fields["fields_value"].values())
     total_possible_values = num_fields * num_samples_in_sch
