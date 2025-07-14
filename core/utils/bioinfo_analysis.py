@@ -1,4 +1,7 @@
-from django.db.models import Count
+from django.db.models import Count, QuerySet
+from typing import Iterable, Union
+
+SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
 
 import core.config
 import core.models
@@ -57,60 +60,83 @@ def get_bioinfo_analysis_data_from_sample(sample_id):
     return bio_anlys_data
 
 
-def get_bioinfo_analyis_fields_utilization(schema_obj=None):
+def get_bioinfo_analyis_fields_utilization(
+    schema_qs: SchemaLike | None = None,
+    *,
+    use_cache: bool = True,
+    cache_seconds: int = 300,
+):
     """
-    Return utilisation stats for Bioinfo-analysis fields of the given schema,
-    using ONE grouped query (no N+1) so the call is fast even with many samples.
+    Return utilisation stats for Bioinfo-analysis fields across the selected
+    schemas (all by default). Executes **one** heavy query + one light query.
+    Results can be cached for `cache_seconds`.
     """
-    # ── 0. Default scheme ────────────────────────────────────────────────
-    if schema_obj is None:
-        schema_obj = core.utils.schema.get_default_schema()
-    if not schema_obj:
-        return {}
+    # -- 0. Pick or normalise schemas ------------------------------------
+    if schema_qs is None:
+        schema_qs = core.models.Schema.objects.all()
+    elif isinstance(schema_qs, QuerySet):
+        pass
+    else:
+        schema_qs = schema_qs if isinstance(schema_qs, (list, tuple)) else [schema_qs]
 
-    # ── 1. Scheme bioinfo fields ────────────────────────────────────────
-    field_qs = core.models.BioinfoAnalysisField.objects.filter(
-        schemaID=schema_obj
-    ).only("id", "label_name")
-    if not field_qs.exists():
-        return {}
+    # -- 1. Check cache ---------------------------------------------------
+    if use_cache:
+        from django.core.cache import cache
+        cache_key = f"bioinfo_util_{hash(tuple(x.pk for x in schema_qs))}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
 
-    # ── 2. Total number of samples of the scheme ──────────────────────────────────
-    num_samples = core.utils.samples.get_samples_count_per_schema(schema_obj)
+    # -- 2. Total samples -------------------------------------------------
+    num_samples = (
+        core.models.Sample.objects
+        .filter(schema_obj__in=schema_qs)
+        .only("id")                # lighter count(*)
+        .count()
+    )
     if num_samples == 0:
         return {}
 
-    # ── 3. ONE query: how many samples have value per field ─────────────
+    # -- 3. One grouped query: filled counts ------------------------------
     FIELD_EMPTY = core.config.FIELD_EMPTY_VALUES
     rows = (
-        core.models.BioinfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID__in=field_qs,
+        core.models.BioinfoAnalysisValue.objects
+        .filter(
+            bioinfo_analysis_fieldID__schemaID__in=schema_qs,
             value__isnull=False,
         )
         .exclude(value__in=FIELD_EMPTY)
-        .values("bioinfo_analysis_fieldID")
+        .values("bioinfo_analysis_fieldID__label_name")
         .annotate(filled=Count("sample", distinct=True))
     )
-    filled_map = {r["bioinfo_analysis_fieldID"]: r["filled"] for r in rows}
 
-    # ── 4. In-memory metrics ───────────────────────────────────────────────
-    data = {
-        "never_used": [],
-        "always_none": [],
-        "fields_norm": {},
-        "fields_value": {},
-        "num_fields": field_qs.count(),
+    fields_value = {
+        r["bioinfo_analysis_fieldID__label_name"]: r["filled"]
+        for r in rows
+    }
+    fields_norm = {
+        k: v / num_samples for k, v in fields_value.items()
+    }
+    labels_with_value = set(fields_value)
+
+    # -- 4. Single light query to fetch ALL labels ------------------------
+    defined_labels = set(
+        core.models.BioinfoAnalysisField.objects
+        .filter(schemaID__in=schema_qs)
+        .values_list("label_name", flat=True)
+    )
+    never_used = defined_labels - labels_with_value
+
+    result = {
+        "fields_value": fields_value,
+        "fields_norm":  fields_norm,
+        "never_used":   list(never_used),
+        "always_none":  list(never_used),  # backward-compat
+        "num_samples":  num_samples,
     }
 
-    for field in field_qs:
-        label = field.get_label()
-        filled = filled_map.get(field.id, 0)
-        data["fields_value"][label] = filled
+    # -- 5. Cache for N seconds ------------------------------------------
+    if use_cache:
+        cache.set(cache_key, result, cache_seconds)
 
-        if filled == 0:
-            data["never_used"].append(label)
-            data["always_none"].append(label)
-        else:
-            data["fields_norm"][label] = filled / num_samples
-
-    return data
+    return result
