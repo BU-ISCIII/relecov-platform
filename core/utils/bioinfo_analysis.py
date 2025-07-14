@@ -2,13 +2,12 @@ from django.db.models import Count, QuerySet
 from django.core.cache import cache
 from typing import Iterable, Union
 
-SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
-
 import core.config
 import core.models
 import core.utils.samples
 import core.utils.schema
 
+SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
 
 def get_bio_analysis_stats_from_lab(
     lab_name=None, institution_type="submitting_institution"
