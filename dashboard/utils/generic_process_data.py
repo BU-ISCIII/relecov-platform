@@ -4,7 +4,6 @@ import json
 import logging
 from datetime import datetime
 from collections import OrderedDict, Counter, defaultdict
-from core.utils.bioinfo_analysis import get_bioinfo_analyis_fields_utilization
 from django.db.models import (
     F,
     Count,
@@ -24,6 +23,7 @@ import core.utils.variants
 import core.utils.rest_api
 import core.utils.generic_functions
 import core.utils.public_db
+import core.utils.bioinfo_analysis
 import dashboard.models
 import dashboard.dashboard_config
 import core.config
@@ -992,7 +992,9 @@ def pre_proc_bioinfo_fields_util():
     It calculates the utilization of bioinfo fields (Methodology)
     and saves it in GraphicJsonFile, just like the rest of the pre-processes.
     """
-    util_data = get_bioinfo_analyis_fields_utilization(use_cache=False)
+    util_data = core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization(
+        use_cache=False
+    )
 
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
         {
