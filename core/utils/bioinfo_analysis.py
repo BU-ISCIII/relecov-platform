@@ -1,4 +1,5 @@
 from django.db.models import Count, QuerySet
+from django.core.cache import cache
 from typing import Iterable, Union
 
 SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
@@ -81,8 +82,6 @@ def get_bioinfo_analyis_fields_utilization(
 
     # -- 1. Check cache ---------------------------------------------------
     if use_cache:
-        from django.core.cache import cache
-
         cache_key = f"bioinfo_util_{hash(tuple(x.pk for x in schema_qs))}"
         cached = cache.get(cache_key)
         if cached:
