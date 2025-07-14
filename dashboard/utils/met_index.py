@@ -1,4 +1,5 @@
 # Generic imports
+import json
 from statistics import mean
 
 # Local imports
@@ -8,6 +9,26 @@ import core.utils.samples
 import core.utils.schema
 import dashboard.dashboard_config
 import dashboard.utils.plotly
+from dashboard.models import GraphicJsonFile
+
+
+def _read_cached_bioinfo_util():
+    """
+    Returns the pre-baked JSON of bioinfo field usage,
+    or None if it does not yet exist.
+    """
+    try:
+        obj = GraphicJsonFile.objects.filter(
+            graphic_name="methodology_bioinfo_fields"
+        ).latest("creation_date")
+
+        data = obj.graphic_data
+        if isinstance(data, str):
+            data = json.loads(data)
+        return data
+
+    except GraphicJsonFile.DoesNotExist:
+        return None
 
 
 def schema_fields_utilization():
@@ -52,7 +73,10 @@ def schema_fields_utilization():
         util_data["num_lab_fields"] = len(lims_fields["fields_value"])
 
     # get fields utilization from bioinfo analysis
-    bio_fields = core.utils.bioinfo_analysis.get_bioinfo_analyis_fields_utilization()
+    bio_fields = (
+        _read_cached_bioinfo_util()
+        or core.utils.bioinfo_analysis.get_bioinfo_analyis_fields_utilization()
+    )
     # if return an empty value skip looking for data
     if not bool(bio_fields):
         util_data["ERROR_ANALYSIS"] = "Not Data to process"
