@@ -21,7 +21,7 @@
                     <div class="container-fluid">
                         <!-- Page Heading -->
                         <div class="row pt-4"  style="text-align: center">
-                            <h1>Variant distribution in lineages dashboard</h1>
+                            <h1>Variant Distribution by Lineage</h1>
                         </div> <!-- end row -->
                         <hr>
                         <!-- Content Row -->
@@ -38,7 +38,7 @@
                             {% else %}
                                 <div class="col-md-12 p-4 border">
                                     <h4>Search by lineage</h4>
-                                    <h6>Choose a lineage and the needle plot will display the positions in all the samples that contain the selected lineage.<br>Click on the Tutorial button to know more about each of the parts that are part of this graph</h6>
+                                    <h6>Choose a lineage and the needle plot will display the positions in all the samples that contain the selected lineage.<br>Click on the Tutorial button to know more about each of the elements that are part of this graph.</h6>
                                     <div class="btn-group">
                                         <div class="btn btn-info">Tutorial</div>
                                         <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
@@ -52,18 +52,18 @@
                                                     <h5 class="card-title">Info about graph elements</h5>
                                                     <ol>
                                                         <li class="card-text"><b>Select a lineage - </b>Select the lineage that you want to display. You can write to search more efficiently.</li>
-                                                        <li class="card-text"><b>Range slider(Show or Hide) - </b>This element allows us to make the rangeslider visible or not</li>
-                                                        <li class="card-text"><b>Lineage population - </b>This element shows how many samples are being represented for that lineage</li>
-                                                        <li class="card-text"><b>Gene Domains - </b>This element allows us to zoom in the domain of a certain gene that we want to explore.</li>
-                                                        <li class="card-text"><b>Mutations - </b>We can filter the graph by each type of mutation.</li>
+                                                        <li class="card-text"><b>Range slider (Show or Hide) - </b>This element allows you to make the range slider visible or not.</li>
+                                                        <li class="card-text"><b>Lineage population - </b>This element shows how many samples are being represented for that lineage.</li>
+                                                        <li class="card-text"><b>Gene Domains - </b>This element allows you to zoom in the domain of a certain gene that you might want to explore.</li>
+                                                        <li class="card-text"><b>Mutations - </b>You can filter the graph by each type of mutation.</li>
                                                         <li class="card-text"><b>Needle Plot - </b>
-                                                            This graph displays variant mutations in a certain Lineage according to our database population, using the following data:<br>
+                                                            This graph displays variant mutations in a certain lineage according to our database population, using the following data:<br>
                                                             <ul>
-                                                                <li>x-axis - Genome position</li>
-                                                                <li>y-axis - Allele Frequency (AF)</li>
+                                                                <li>X-axis - Genome Position</li>
+                                                                <li>Y-axis - Allele Frequency (AF)</li>
                                                             </ul>
                                                         </li>
-                                                        <li class="card-text"><b>Range slider - </b>This element allows us to select a specific area of the needle plot, in a more comfortable way</li>
+                                                        <li class="card-text"><b>Range slider - </b>This element allows you to select a specific area of the needle plot, in a more comfortable way.</li>
                                                     </ol>
                                                     </div>
                                                 </div>
@@ -84,7 +84,7 @@
                             <div class="card d-inline-flex  p-2 m-1" style="width: 41%">
                                 <div class="card-body border" style="text-align: left;">
                                 <div class="card-header" ><h2>Heatmap</h2>
-                                    <div class="card-subtitle">This needle plot allows you to display variant mutations in Lineages of each sample we select. Click on the Tutorial button to know more about each of the parts that are part of this graph</div>
+                                    <div class="card-subtitle">This needle plot allows you to display variant mutations in lineages of each sample you select. Click on the Tutorial button to know more about each of the elements that are part of this graph.</div>
 
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-info">Tutorial</button>
@@ -98,19 +98,19 @@
                                                     <div class="card-body">
                                                     <h5 class="card-title">Info about graph elements</h5>
                                                     <ol>
-                                                        <li class="card-text"><b>Select samples - </b>This element allows us to select the sample or samples we want to display to compare.</li>
-                                                        <li class="card-text"><b>Select genes - </b>This element allows us to choose the genes affected in each of the samples to be able to visualize them.</li>
-                                                        <li class="card-text"><b>AF - </b>This element shows us the Allele Frequency values ​​related to a certain color.</li>
-                                                        <li class="card-text"><b>Samples - </b>In this element all the samples that we choose will be arranged.</li>
-                                                        <li class="card-text"><b>Mutations - </b>This element shows us a combination of the name of the gene - name of the mutation.</li>
+                                                        <li class="card-text"><b>Select samples - </b>This element allows you to select the sample or samples you might want to display to compare.</li>
+                                                        <li class="card-text"><b>Select genes - </b>This element allows you to choose the genes affected in each of the samples to be able to visualize them.</li>
+                                                        <li class="card-text"><b>AF - </b>This element shows you the Allele Frequency values ​​related to a certain color.</li>
+                                                        <li class="card-text"><b>Samples - </b>In this element, all the samples that you choose will be arranged.</li>
+                                                        <li class="card-text"><b>Mutations - </b>This element shows you a combination of the name of the gene - name of the mutation.</li>
                                                     </ol>
                                                     <ul>
                                                         <li class="card-text"><b>Heatmap graph - </b>
-                                                        This graph displays variant mutations in Lineages of each sample, using the following data:<br>
+                                                        This graph displays variant mutations in lineages of each sample, using the following data:<br>
                                                         <ul>
-                                                            <li>x-axis - Mutations</li>
-                                                            <li>y-axis - Samples selected</li>
-                                                            <li>Color - Express the value of AF relating it to a certain color</li>
+                                                            <li>X-axis - Mutations</li>
+                                                            <li>Y-axis - Samples selected</li>
+                                                            <li>Color - Express the value of the AF associating it to a certain color</li>
                                                         </ul>
                                                     </li>
                                                     </ul>
@@ -129,7 +129,7 @@
                             <div class="card d-inline-flex  p-2 m-1" style="width: 41%">
                                 <div class="card-body border" style="text-align: left;">
                                 <div class="card-header" ><h2>Table filtered by mutation effect</h2>
-                                    <div class="card-subtitle">The following table shows us the data related to the mutations present in each sample. We can filter the results by adding or removing mutation effects from the select widget</div>
+                                    <div class="card-subtitle">The following table shows you the data related to the mutations present in each sample. You can filter the results by adding or removing mutation effects from the select widget.</div>
 
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-info">Tutorial</button>
@@ -147,8 +147,8 @@
                                                     </ul>
                                                     <hr>
                                                     <ul>
-                                                        <span class="fs-5"><b><u>Fields available in the table</u></b></span>
-                                                        <li class="card-text"><b>SAMPLE - </b>Number of sample.</li>
+                                                        <span class="fs-5"><b><u>Fields available in the table:</u></b></span>
+                                                        <li class="card-text"><b>SAMPLE - </b>Number of the sample.</li>
                                                         <li class="card-text"><b>POS - </b>Position in the genome.</li>
                                                         <li class="card-text"><b>MUTATION - </b>Mutation name.</li>
                                                         <li class="card-text"><b>AF - </b>Allele Frequency.</li>
