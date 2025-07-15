@@ -138,7 +138,7 @@ def make_lineage_variaton_plot(data, start_date, end_date, select_range, windowS
 
     # Set y-axes titles
     fig.update_yaxes(
-        range=[0, 100], title_text="<b>Lineage % relative", secondary_y=False
+        range=[0, 100], title_text="<b>Lineage proportion (%)", secondary_y=False
     )
     fig.update_yaxes(title_text="<b>Number of samples processed</b>", secondary_y=True)
 
