@@ -49,7 +49,7 @@
                     <div class="col-md-10">
                         <div class="card border border-success">
                             <div class="card-body">
-                                <h2 class="card-title" style="text-align:center">Assign Sample to User</h2>
+                                <h2 class="card-title" style="text-align:center">Assign Laboratory to User</h2>
                                 <form method="post" enctype="multipart/form-data" name="assignSamples"  id="assignSamples" class="form-horizontal well" style="min-height: 100px;">
                                     <div class="card-body">
                                         {% csrf_token %}
@@ -66,10 +66,10 @@
                                             </div>
                                         </div>  <!-- end from-group   -->
                                         <div class="row mb-3">
-                                            <label for="userName" class="col-sm-4 col-form-label" >Assign samples to new user</label>
+                                            <label for="userName" class="col-sm-4 col-form-label" >Select the user to assign the Laboratory to</label>
                                             <div class="col-sm-7">
                                                 <select name="userName" id="userName" class="form-select">
-                                                    <option value="">Choose the user ID</option>
+                                                    <option value="">Choose a user ID</option>
                                                     {% for id, name in lab_data.users %}
                                                         <option value="{{id}}">{{name}}</option>
                                                     {% endfor %}
