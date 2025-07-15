@@ -134,7 +134,7 @@
             "type": "string",
             "description": "GISAID sequence ID.",
             "classification": "Public databases",
-            "label": "GISAID id",
+            "label": "GISAID ID",
             "fill_mode": "sample",
             "header": "Y"
         },
@@ -4775,7 +4775,7 @@
             "type": "string",
             "description": "The variant classification of the lineage/clade i.e. variant, variant of concern.",
             "classification": "Lineage fields",
-            "label": "Variant designation",
+            "label": "Variant Designation",
             "fill_mode": "batch",
             "header": "N"
         },
@@ -4787,7 +4787,7 @@
             "type": "string",
             "description": "GISAID sequence ID.",
             "classification": "Public databases",
-            "label": "GISAID submitter id",
+            "label": "GISAID Submitter ID",
             "fill_mode": "sample",
             "header": "N"
         },
@@ -4799,7 +4799,7 @@
             "type": "string",
             "description": "default must remain 'betacoronavirus'",
             "classification": "",
-            "label": "GISAID covv type",
+            "label": "GISAID CoV Type",
             "fill_mode": "sample",
             "header": "N"
         },
@@ -4883,7 +4883,7 @@
             "type": "string",
             "description": "Title of study",
             "classification": "Public databases",
-            "label": "Study title",
+            "label": "Study Title",
             "fill_mode": "batch",
             "header": "N"
         },
@@ -4931,7 +4931,7 @@
             "type": "string",
             "description": "Status of the host",
             "classification": "",
-            "label": "Host health state",
+            "label": "Host Health State",
             "fill_mode": "",
             "header": "N"
         },
