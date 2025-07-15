@@ -55,9 +55,23 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="action" value="uploadSchema">
                                                     <div class="col-md-12">
-                                                        <label for="schemaFile" class="form-label">Select json Schema file</label>
-                                                        <input class="form-control" type="file" required accept=".json" id="schemaFile", name="schemaFile">
+                                                        <label for="schemaFile" class="form-label">Select JSON Schema File</label>
+                                                        <div class="input-group">
+                                                            <input type="file" class="form-control" id="schemaFile" name="schemaFile" required hidden onchange="updateFileName(this)">
+                                                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schemaFile').click();">Choose File</button>
+                                                            <span id="fileName" class="form-control bg-white">No File Selected</span>
+                                                        </div>
                                                     </div>
+						                            <script>
+                                                    function updateFileName(input) {
+                                                        const fileNameDisplay = document.getElementById('fileName');
+                                                        if (input.files.length > 0) {
+                                                            fileNameDisplay.textContent = input.files[0].name;
+                                                        } else {
+                                                            fileNameDisplay.textContent = 'No File Selected';
+                                                        }
+                                                    }
+                                                    </script>
                                                     <br>
                                                     <div class="col-md-12 form-check form-switch">
                                                         <label class="form-check-label" for="schemaDefault">Default schema</label>
@@ -93,10 +107,10 @@
                                                     <table class="table table-hover">
                                                         <thead>
                                                             <tr>
-                                                                <th scope="col">Schema name</th>
-                                                                <th scope="col">Schema version</th>
-                                                                <th scope="col">Schema default</th>
-                                                                <th scope="col">Schema used</th>
+                                                                <th scope="col">Schema Name</th>
+                                                                <th scope="col">Schema Version</th>
+                                                                <th scope="col">Default Schema</th>
+                                                                <th scope="col">Schema Used</th>
                                                                 <th scope="col">Download File</th>
                                                             </tr>
                                                         </thead>
