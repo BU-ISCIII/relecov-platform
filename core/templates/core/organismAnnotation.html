@@ -48,23 +48,37 @@
                                     <div class="row justify-content-center p-4">
                                         <div class="col-md-9">
                                             <div class="card ">
-                                                <div class="card-header text-center"><h2 style="text-align:center">Load gff anotation file</h2> </div>
+                                                <div class="card-header text-center"><h2 style="text-align:center">Load GFF anotation file</h2> </div>
                                                 <form method="post" enctype="multipart/form-data" name="uploadAnnotation"  id="uploadAnnotation" class="form-horizontal well" style="min-height: 100px;">
                                                     <div class="card-body">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="action" value="uploadAnnotation">
-                                                        <div class="col-md-9">
-                                                            <label for="schemafile" class="form-label">Select gff file</label>
-                                                            <input class="form-control" type="file" required accept=".gff, .gf3" id="gffFile", name="gffFile">
+                                                        <div class="col-md-12">
+                                                        <label for="schemaFile" class="form-label">Select GFF File</label>
+                                                        <div class="input-group">
+                                                            <input type="file" class="form-control" id="schemaFile" name="schemaFile" required hidden onchange="updateFileName(this)">
+                                                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schemaFile').click();">Choose File</button>
+                                                            <span id="fileName" class="form-control bg-white">No File Selected</span>
                                                         </div>
+                                                    </div>
+						                            <script>
+                                                    function updateFileName(input) {
+                                                        const fileNameDisplay = document.getElementById('fileName');
+                                                        if (input.files.length > 0) {
+                                                            fileNameDisplay.textContent = input.files[0].name;
+                                                        } else {
+                                                            fileNameDisplay.textContent = 'No File Selected';
+                                                        }
+                                                    }
+                                                    </script>
                                                         <div hidden class="spinner-border text-success" role="status" id="spinner">
-                                                            <span class="visually-hidden">loading...</span>
+                                                            <span class="visually-hidden">Loading...</span>
                                                         </div>
                                                     </div> <!-- end card body-->
                                                     <div class="card-body">
                                                         <div class="text-left">
-                                                            <input class="btn  btn-submit" type="reset" value="reset fields">
-                                                            <input class="btn float-end btn-submit" type="submit" id="btnsubmit" value="submit">
+                                                            <input class="btn  btn-submit" type="reset" value="Reset Fields">
+                                                            <input class="btn float-end btn-submit" type="submit" id="btnsubmit" value="Submit">
                                                         </div>
                                                     </div>     <!-- end card body  -->
                                                 </form>
@@ -83,10 +97,10 @@
                                                     <table class="table table-hover">
                                                         <thead>
                                                             <tr>
-                                                                <th scope="col">organism name</th>
-                                                                <th scope="col">organism annotation version</th>
-                                                                <th scope="col">spec version</th>
-                                                                <th scope="col">sequence region</th>
+                                                                <th scope="col">Organism Name</th>
+                                                                <th scope="col">Organism Annotation Version</th>
+                                                                <th scope="col">Spec Version</th>
+                                                                <th scope="col">Sequence Region</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -100,7 +114,7 @@
                                                         </tbody>
                                                     </table>
                                                 {% else %}
-                                                    <h4 style="text-align:center"> no annotations files are loaded yet</h4>
+                                                    <h4 style="text-align:center"> No annotation files are loaded yet</h4>
                                                 {% endif %}
                                             </div> <!-- end card body-->
                                         </div> <!-- end card  -->
