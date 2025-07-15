@@ -23,7 +23,7 @@
                     <div class="container-fluid">
                         <!-- Page Heading -->
                         <div class="row"  style="text-align: center">
-                            <h1>INTRANET</h1>
+                            <h1>Overview</h1>
                         </div>
                         <hr>
                         <!-- Content Row -->
@@ -135,14 +135,14 @@
                                                         <div class="row mt-5">
                                                             <div class="col-md-10">
                                                                 <div class="card">
-                                                                    <div class="card-header"><h2 style="text-align:center">ENA Samples accession</h2> </div>
+                                                                    <div class="card-header"><h2 style="text-align:center">ENA Sample Accessions</h2> </div>
                                                                     <div class="card-body">
                                                                         {% if manager_intra_data.ena_accession %}
                                                                             <table id="enaTable" class="table table-striped table-bordered">
                                                                                 <thead>
                                                                                     <tr scope="row">
                                                                                         <th>Sample Name ID</th>
-                                                                                        <th>ENA sample accession </th>
+                                                                                        <th>ENA Sample Accession </th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -181,7 +181,7 @@
                                                                     <div class="card">
                                                                         <div class="card-header"><h4 style="text-align:center">ENA Upload </h4> </div>
                                                                         <div class="card-body">
-                                                                            <h5>Percentage of ENA upload samples</h5>
+                                                                            <h5>Percentage of samples uploaded to ENA</h5>
                                                                             {{manager_intra_data.ena_graph | safe}}
                                                                         </div> <!-- end card body-->
                                                                     </div> <!-- end card  -->
@@ -244,7 +244,7 @@
                                                                         <div class="card">
                                                                             <div class="card-header"><h4 style="text-align:center">GISAID Upload </h4> </div>
                                                                             <div class="card-body">
-                                                                                <h5>Percentage of GISAID upload samples</h5>
+                                                                                <h5>Percentage of samples uploaded to GISAID</h5>
                                                                                 {{manager_intra_data.gisaid_graph | safe}}
                                                                             </div> <!-- end card body-->
                                                                         </div> <!-- end card  -->
@@ -318,10 +318,10 @@
                                                                     <table class="table table-hover">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th>Recorded date</th>
-                                                                                <th>Analysis date</th>
-                                                                                <th>GISAID upload date</th>
-                                                                                <th>ENA Upload date</th>
+                                                                                <th>Recorded Date</th>
+                                                                                <th>Analysis Date</th>
+                                                                                <th>GISAID Upload Date</th>
+                                                                                <th>ENA Upload Date</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -346,14 +346,14 @@
                                                     <div class="row mt-5">
                                                         <div class="col-md-10">
                                                             <div class="card">
-                                                                <div class="card-header"><h2 style="text-align:center">ENA Samples accession</h2> </div>
+                                                                <div class="card-header"><h2 style="text-align:center">ENA Sample Accessions</h2> </div>
                                                                 <div class="card-body">
                                                                     {% if intra_data.ena_accession %}
                                                                         <table id="enaTable" class="table table-striped table-bordered">
                                                                             <thead>
                                                                                 <tr scope="row">
                                                                                     <th>Sample Name ID</th>
-                                                                                    <th>ENA sample accession </th>
+                                                                                    <th>ENA Sample Accession </th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
@@ -392,7 +392,7 @@
                                                                 <div class="card">
                                                                     <div class="card-header"><h4 style="text-align:center">ENA Upload </h4> </div>
                                                                     <div class="card-body">
-                                                                        <h5>Percentage of ENA upload samples</h5>
+                                                                        <h5>Percentage of samples uploaded to ENA</h5>
                                                                         {{intra_data.ena_graph | safe}}
                                                                     </div> <!-- end card body-->
                                                                 </div> <!-- end card  -->
@@ -454,7 +454,7 @@
                                                                 <div class="card">
                                                                     <div class="card-header"><h4 style="text-align:center">GISAID Upload </h4> </div>
                                                                     <div class="card-body">
-                                                                        <h5>Percentage of GISAID upload samples</h5>
+                                                                        <h5>Percentage of samples uploaded to GISAID</h5>
                                                                         {{intra_data.gisaid_graph | safe}}
                                                                     </div> <!-- end card body-->
                                                                 </div> <!-- end card  -->
