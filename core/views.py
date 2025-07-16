@@ -222,7 +222,7 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    relecov_group = Group.objects.filter(name="RelecovManager").last()
+    manager_group = Group.objects.filter(name="RelecovManager").last()
     all_sample_per_date_detailed = core.utils.samples.get_sample_per_date_per_all_lab(
         detailed=True
     )
@@ -233,17 +233,15 @@ def intranet(request):
             {"ERROR": all_sample_per_date_detailed["ERROR"]},
         )
     clean_samples_per_date_detailed = []
-    if relecov_group not in request.user.groups.all():
+    if manager_group not in request.user.groups.all():
         start = time.time()
         intra_data = {}
         lab_name = core.utils.labs.get_lab_name_from_user(request.user)
-        user_group = request.user.groups.first()
-        inst_map_fieldict = {
-            "Submitter": "submitting_institution",
-            "Collector": "collecting_institution",
-        }
+        lab_field = core.utils.generic_functions.get_user_lab_field(request.user)
+        if not lab_field:
+            print(f"No institution field - group found for user: {str(request.user)}")
+            return render(request, "core/intranet.html", {"intra_data": {}})
         counted_dates = defaultdict(int)
-        lab_field = inst_map_fieldict.get(user_group.name)
         for d in all_sample_per_date_detailed:
             if d[lab_field] != lab_name:
                 continue
@@ -356,7 +354,9 @@ def intranet(request):
                 "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
             }
-            cust_data["options"]["title"] = "Samples Received for all laboratories"
+            cust_data["options"]["title"] = cust_data["options"][
+                "title"
+            ] = f"Samples Received for all laboratories: {sum(date_samples_all.values())}"
             cust_data["options"]["width"] = 590
             manager_intra_data["sample_bar_graph"] = (
                 core.utils.samples.create_date_sample_bar(date_samples_all, cust_data)
