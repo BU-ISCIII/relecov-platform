@@ -354,9 +354,9 @@ def intranet(request):
                 "col_names": ["Collecting Date", "Number of samples"],
                 "options": {},
             }
-            cust_data["options"]["title"] = cust_data["options"][
-                "title"
-            ] = f"Samples Received for all laboratories: {sum(date_samples_all.values())}"
+            cust_data["options"]["title"] = cust_data["options"]["title"] = (
+                f"Samples Received for all laboratories: {sum(date_samples_all.values())}"
+            )
             cust_data["options"]["width"] = 590
             manager_intra_data["sample_bar_graph"] = (
                 core.utils.samples.create_date_sample_bar(date_samples_all, cust_data)
