@@ -57,7 +57,7 @@
                                                     <div class="col-md-12">
                                                         <label for="schemaFile" class="form-label">Select JSON Schema File</label>
                                                         <div class="input-group">
-                                                            <input type="file" class="form-control" id="schemaFile" name="schemaFile" required hidden onchange="updateFileName(this)">
+                                                            <input type="file" class="form-control" id="schemaFile" name="schemaFile" accept=".json" required hidden onchange="updateFileName(this)">
                                                             <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schemaFile').click();">Choose File</button>
                                                             <span id="fileName" class="form-control bg-white">No File Selected</span>
                                                         </div>
