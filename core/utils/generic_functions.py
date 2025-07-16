@@ -98,7 +98,7 @@ def list_all_possible_weeks(min_date, max_date, output_format=""):
 
 def get_user_role(user):
     """Return the highest hierarchical group for the user"""
-    user_groups = user.groups.values_list('name', flat=True)
+    user_groups = user.groups.values_list("name", flat=True)
     hierarchy = core.config.GROUPS_HIERARCHY_ORDERLIST
     for group in hierarchy:
         if group in user_groups:
