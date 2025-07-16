@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 
 # local imports
 import core.models
+import core.config
 
 
 def get_configuration_value(parameter_name):
@@ -93,3 +94,19 @@ def list_all_possible_weeks(min_date, max_date, output_format=""):
             all_dates.append(current_date)
             current_date += timedelta(weeks=1)
     return all_dates
+
+
+def get_user_role(user):
+    """Return the highest hierarchical group for the user"""
+    user_groups = user.groups.values_list('name', flat=True)
+    hierarchy = core.config.GROUPS_HIERARCHY_ORDERLIST
+    for group in hierarchy:
+        if group in user_groups:
+            return group
+    else:
+        return None
+
+
+def get_user_lab_field(user):
+    user_group = get_user_role(user)
+    return core.config.INSTITUTION_FIELD_MAPDICT.get(user_group)
