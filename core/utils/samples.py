@@ -426,11 +426,12 @@ def get_sample_display_data(sample_id, user):
     if sample_obj is None:
         return {"ERROR": core.config.ERROR_SAMPLE_DOES_NOT_EXIST}
     # Allow to see information obut sample to relecovManager
-    group = Group.objects.get(name="RelecovManager")
-    if group not in user.groups.all():
-        lab_name = sample_obj.get_submitting_institution()
+    manager_group = Group.objects.get(name="RelecovManager")
+    if manager_group not in user.groups.all():
+        user_inst_field = core.utils.generic_functions.get_user_lab_field(user)
+        sample_lab = sample_obj.__dict__.get(user_inst_field)
         if not core.models.Profile.objects.filter(
-            user=user, laboratory__iexact=lab_name
+            user=user, laboratory__iexact=sample_lab
         ).exists():
             return {"ERROR": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
 
