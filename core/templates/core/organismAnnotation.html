@@ -48,16 +48,16 @@
                                     <div class="row justify-content-center p-4">
                                         <div class="col-md-9">
                                             <div class="card ">
-                                                <div class="card-header text-center"><h2 style="text-align:center">Load GFF anotation file</h2> </div>
+                                                <div class="card-header text-center"><h2 style="text-align:center">Load GFF annotation file</h2> </div>
                                                 <form method="post" enctype="multipart/form-data" name="uploadAnnotation"  id="uploadAnnotation" class="form-horizontal well" style="min-height: 100px;">
                                                     <div class="card-body">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="action" value="uploadAnnotation">
                                                         <div class="col-md-12">
-                                                        <label for="schemaFile" class="form-label">Select GFF File</label>
+                                                        <label for="gffFile" class="form-label">Select GFF File</label>
                                                         <div class="input-group">
-                                                            <input type="file" class="form-control" id="schemaFile" name="schemaFile" required hidden onchange="updateFileName(this)">
-                                                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schemaFile').click();">Choose File</button>
+                                                            <input type="file" class="form-control" id="gffFile" name="gffFile" accept=".gff, .gff3" required hidden onchange="updateFileName(this)">
+                                                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('gffFile').click();">Choose File</button>
                                                             <span id="fileName" class="form-control bg-white">No File Selected</span>
                                                         </div>
                                                     </div>
