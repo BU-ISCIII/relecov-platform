@@ -460,10 +460,10 @@ def get_sample_display_data(sample_id, user):
             )
         s_data["actions"] = actions
 
-    lab_sample = sample_obj.get_collecting_lab_sample_id()
+    sample_id = sample_obj.get_sequencing_sample_id()
     # Fetch information from iSkyLIMS
-    if lab_sample != "":
-        iskylims_data = core.utils.rest_api.get_sample_information(lab_sample)
+    if sample_id != "":
+        iskylims_data = core.utils.rest_api.get_sample_information(sample_id)
         if "ERROR" not in iskylims_data:
             s_data["iskylims_basic"] = []
             s_data["iskylims_p_data"] = []
