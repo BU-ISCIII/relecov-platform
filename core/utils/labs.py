@@ -47,25 +47,16 @@ def get_collecting_insts_from_lab(lab_name):
     )
 
 
-def update_contact_lab(old_data, new_data):
+def update_contact_lab(data):
     """Update the contact information. If any field is empty it will set the
     old value. In case that all new_data are empty returns than no changes
+
+    Expected fields:
+        - lab_name
+        - lab_contact_name
+        - lab_phone
+        - lab_email
     """
-    # TODO: Improve this. There is an inconsistency between GET and POST data when APIs communicate.
-    key_mapping = {
-        "Lab email": "lab_contact_email",
-        "Lab phone": "lab_contact_telephone",
-        "Lab contact name": "lab_contact_name",
-        "Lab name": "lab_name",
-    }
-
-    data = {}
-
-    for old_key, new_key in key_mapping.items():
-        # Obtiene el nuevo valor, si está vacío usa el valor viejo
-        new_value = new_data.get(new_key, "").strip()
-        data[new_key] = old_data.get(old_key, "") if new_value == "" else new_value
-
     result = core.utils.rest_api.set_laboratory_data(data)
     if "ERROR" in result:
         return result
