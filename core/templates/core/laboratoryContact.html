@@ -45,78 +45,77 @@
                                             </div> <!-- end card body  -->
                                         </div> <!-- end card  -->
                                     </div> <!--// end col-sm-9 -->
-                            {% else %}
-                                <div class="row m-5">
-                                    <div class="col-sm-12" >
-                                        <div class="card  border-default mb-3">
-                                            <div class="card-header text-center">
-                                                <h3 style="text-align:center">You are logged in as staff of :</h3>
-                                                <h5 style="text-align:center">{{lab_data.lab_name}}</h5>
-                                            </div>
-                                            <div class="card-body  text-center">
-                                                <p>The recorded contact information is:</p>
-                                                <table class="table table-hover">
-                                                    <tr>
-                                                        <td>Contact Name</td>
-                                                        {% if lab_data.contact_name != "" %}
-                                                            <td>{{lab_data.lab_contact_name}}</td>
-                                                        {% else %}
-                                                            <td>Not Provided</td>
-                                                        {% endif %}
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Contact Telephone</td>
-                                                        {% if lab_data.contact_telephone != "" %}
-                                                            <td>{{lab_data.lab_contact_telephone}}</td>
-                                                        {% else %}
-                                                            <td>Not Provided</td>
-                                                        {% endif %}
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Contact email</td>
-                                                        {% if lab_data.contact_email != "" %}
-                                                            <td>{{lab_data.lab_contact_email}}</td>
-                                                        {% else %}
-                                                            <td>Not Provided</td>
-                                                        {% endif %}
-                                                    </tr>
-                                                </table>
-                                            </div> <!-- end card body  -->
-                                        </div> <!-- end card  -->
-                                    </div> <!--// end col-sm-12 -->
-                                </div> <!--// end row -->
-                                <div class="row m-5">
-                                    <div class="col-sm-12">
-                                        <div class="card  border-default mb-3">
-                                            <div class="card-header text-center">
-                                                <h3 style="text-align:center">Use the form below to update your contact details</h3>
-                                            </div>
-                                            <div class="card-body  text-center">
-                                                <form class="row g-3"  method="post"  enctype="multipart/form-data" name="updateLabData"  id="updateLabData" class="form-horizontal well" style="min-height: 100px;">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="action" value="updateLabData">
-                                                    <input type="hidden" name="lab_name" value="{{lab_data.lab_name}}">
-                                                    <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="floatingInput" name="lab_contact_name" placeholder="lab_contact_name">
-                                                        <label for="floatingInput">Update contact name</label>
-                                                    </div>
-                                                    <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="floatingInput" name="lab_contact_telephone" placeholder="lab_contact_telephone">
-                                                        <label for="floatingInput">Update phone number contact</label>
-                                                    </div>
-                                                    <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="floatingInput" name="lab_contact_email" placeholder="lab_contact_email">
-                                                        <label for="floatingInput">Update email contact</label>
-                                                    </div>
-                                                    <div class="col-auto">
-                                                        <button type="submit" class="btn btn-primary mb-3">Submit Info</button>
-                                                    </div>
-                                                </form>
-                                            </div> <!-- end card body  -->
-                                        </div> <!-- end card  -->
-                                    </div> <!--// end col-sm-12 -->
-                                </div> <!--// end row -->
                             {% endif %}
+                            <div class="row m-5">
+                                <div class="col-sm-12" >
+                                    <div class="card  border-default mb-3">
+                                        <div class="card-header text-center">
+                                            <h3 style="text-align:center">You are logged in as staff of :</h3>
+                                            <h5 style="text-align:center">{{lab_data.lab_name}}</h5>
+                                        </div>
+                                        <div class="card-body  text-center">
+                                            <p>The recorded contact information is:</p>
+                                            <table class="table table-hover">
+                                                <tr>
+                                                    <td>Contact Name</td>
+                                                    {% if lab_data.lab_contact_name != "" %}
+                                                        <td>{{lab_data.lab_contact_name}}</td>
+                                                    {% else %}
+                                                        <td>Not Provided</td>
+                                                    {% endif %}
+                                                </tr>
+                                                <tr>
+                                                    <td>Contact Telephone</td>
+                                                    {% if lab_data.lab_phone != "" %}
+                                                        <td>{{lab_data.lab_phone}}</td>
+                                                    {% else %}
+                                                        <td>Not Provided</td>
+                                                    {% endif %}
+                                                </tr>
+                                                <tr>
+                                                    <td>Contact email</td>
+                                                    {% if lab_data.lab_email != "" %}
+                                                        <td>{{lab_data.lab_email}}</td>
+                                                    {% else %}
+                                                        <td>Not Provided</td>
+                                                    {% endif %}
+                                                </tr>
+                                            </table>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-12 -->
+                            </div> <!--// end row -->
+                            <div class="row m-5">
+                                <div class="col-sm-12">
+                                    <div class="card  border-default mb-3">
+                                        <div class="card-header text-center">
+                                            <h3 style="text-align:center">Use the form below to update your contact details</h3>
+                                        </div>
+                                        <div class="card-body  text-center">
+                                            <form class="row g-3"  method="post"  enctype="multipart/form-data" name="updateLabData"  id="updateLabData" class="form-horizontal well" style="min-height: 100px;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="updateLabData">
+                                                <input type="hidden" name="lab_name" value="{{lab_data.lab_name}}">
+                                                <div class="form-floating mb-3">
+                                                    <input type="text" class="form-control" id="floatingInput" name="lab_contact_name" placeholder="lab_contact_name">
+                                                    <label for="floatingInput">Update contact name</label>
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    <input type="text" class="form-control" id="floatingInput" name="lab_phone" placeholder="lab_phone">
+                                                    <label for="floatingInput">Update phone number contact</label>
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    <input type="text" class="form-control" id="floatingInput" name="lab_email" placeholder="lab_email">
+                                                    <label for="floatingInput">Update email contact</label>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <button type="submit" class="btn btn-primary mb-3">Submit Info</button>
+                                                </div>
+                                            </form>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-12 -->
+                            </div> <!--// end row -->
                         </div>   <!-- end row -->
                     </div> <!-- /.container-fluid -->
                 </div> <!-- End of Main Content -->
