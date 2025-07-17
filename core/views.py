@@ -571,7 +571,14 @@ def laboratory_contact(request):
                 "lab_data": proc_lab_data,
             }
             return render(request, "core/laboratoryContact.html", errdict)
-        return render(request, "core/laboratoryContact.html", {"Success": "Success"})
+        updated_data = {
+            k: (request.POST.get(k) if request.POST.get(k) else v)
+            for k, v in proc_lab_data.items()
+        }
+        return render(request, "core/laboratoryContact.html", {
+            "Success": "Success",
+            "lab_data": updated_data
+        })
     return render(request, "core/laboratoryContact.html", {"lab_data": proc_lab_data})
 
 
