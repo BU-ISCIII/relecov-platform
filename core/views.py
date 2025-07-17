@@ -559,7 +559,7 @@ def laboratory_contact(request):
             request,
             "core/laboratoryContact.html",
             {
-                "ERROR": f"{lab_data["ERROR"]} : No contact data found for your laboratory {user_lab}",
+                "ERROR": f"{lab_data['ERROR']} : No contact data found for your laboratory {user_lab}",
                 "lab_data": proc_lab_data,
             },
         )
