@@ -552,22 +552,27 @@ def organism_annotation(request):
 @login_required()
 def laboratory_contact(request):
     lab_data = core.utils.labs.get_lab_contact_details(request.user)
+    user_lab = core.utils.labs.get_lab_name_from_user(request.user)
+    proc_lab_data = {k.replace(" ", "_").lower(): v for k, v in lab_data.items()}
     if "ERROR" in lab_data:
         return render(
-            request, "core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]}
+            request,
+            "core/laboratoryContact.html",
+            {
+                "ERROR": f"{lab_data["ERROR"]} : No contact data found for your laboratory {user_lab}",
+                "lab_data": proc_lab_data,
+            },
         )
     if request.method == "POST" and request.POST["action"] == "updateLabData":
-        result = core.utils.labs.update_contact_lab(
-            old_data=lab_data, new_data=request.POST
-        )
+        result = core.utils.labs.update_contact_lab(request.POST)
         if isinstance(result, dict):
-            return render(
-                request,
-                "core/laboratoryContact.html",
-                {"ERROR": result["ERROR"]},
-            )
+            errdict = {
+                "ERROR": f"{result['ERROR']} - Could not update your contact details",
+                "lab_data": proc_lab_data,
+            }
+            return render(request, "core/laboratoryContact.html", errdict)
         return render(request, "core/laboratoryContact.html", {"Success": "Success"})
-    return render(request, "core/laboratoryContact.html", {"lab_data": lab_data})
+    return render(request, "core/laboratoryContact.html", {"lab_data": proc_lab_data})
 
 
 @login_required
