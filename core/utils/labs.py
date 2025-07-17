@@ -57,6 +57,7 @@ def update_contact_lab(data):
         - lab_phone
         - lab_email
     """
+    data = {k: v for k, v in data.items() if v}
     result = core.utils.rest_api.set_laboratory_data(data)
     if "ERROR" in result:
         return result
