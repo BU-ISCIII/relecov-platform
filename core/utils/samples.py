@@ -563,6 +563,41 @@ def get_sample_per_date_per_all_lab(detailed=None):
         return lab_date_count
 
 
+def get_search_table_for_user(user_obj):
+    """Extract the data to fill the table of available samples to search
+    for the given lab_name, based on collecting_institution"""
+    samples_to_search = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+            "search_samples_summary_table"
+        )
+    if samples_to_search is None:
+        # Execute the pre-processed task to get the data
+        result = (
+            dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
+        )
+        if "ERROR" in result:
+            return result
+        samples_to_search = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+            "search_samples_summary_table"
+        )
+    user_role = core.utils.generic_functions.get_user_role(user_obj)
+    if user_role == "Submitter":
+        user_lab = core.utils.labs.get_lab_name_from_user(user_obj)
+        table_data = samples_to_search.get(user_lab, [])
+    else:
+        table_data = []
+        lab_list = core.utils.labs.get_collecting_insts_from_user(user_obj)
+        for lab in lab_list:
+            found = False
+            for subinst_labs_dict in samples_to_search.values():
+                if lab in subinst_labs_dict.keys():
+                    found = True
+                    table_data.extend(samples_to_search[lab])
+            if not found:
+                print(f"Found no samples for lab {lab} in search_samples_summary")
+    if not table_data:
+        print(f"Found no sample for user {user_obj.username} in search_samples_summary")
+    return table_data
+
 # FIXME: If no lab name is assigned to the user, display a custom error screen.
 #        The error occurs when lab_name is 'None' after accessing to intranet.
 def get_sample_per_date_per_lab(lab_name):
