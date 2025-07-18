@@ -42,9 +42,7 @@ def get_collecting_insts_from_user(user_obj):
     laboratory (submitting_institution)
     """
     available_samples = core.utils.samples.get_available_samples_for_user(user_obj)
-    return (
-        available_samples.values_list("collecting_institution", flat=True).distinct()
-    )
+    return available_samples.values_list("collecting_institution", flat=True).distinct()
 
 
 def update_contact_lab(data):
