@@ -16,6 +16,7 @@ from django.db.models import (
     Prefetch,
 )
 from django.db.models.functions import ExtractWeek, ExtractIsoYear, Concat, Cast, LPad
+from django.core.paginator import Paginator
 
 # Local imports
 import core.models
@@ -27,6 +28,7 @@ import core.utils.bioinfo_analysis
 import dashboard.models
 import dashboard.dashboard_config
 import core.config
+
 from relecov_platform import settings as relecov_platform_settings
 
 import time
@@ -1000,6 +1002,75 @@ def pre_proc_bioinfo_fields_util():
         {
             "graphic_name": "methodology_bioinfo_fields",
             "graphic_data": util_data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_search_samples_summary():
+    """
+    Get a list of tuples to fill a table in search_samples that shows
+    all the available samples to the user, including important metadata
+    like sample_name, collecting_institution, collection_date, lineage_name
+    """
+    in_date_samples = core.utils.rest_api.fetch_samples_on_condition(
+        "collection_sample_date"
+    )
+    logger.info(f"Fetched {len(in_date_samples["DATA"])} samples with collection_date")
+    # Prefetch only lineage_values with the desired property
+    filtered_lineages = Prefetch(
+        "lineage_values",
+        queryset=core.models.LineageValues.objects.filter(
+            lineage_fieldID__property_name="lineage_assignment"
+        ).select_related("lineage_fieldID"),
+        to_attr="filt_lineages",
+    )
+    processed_samples_qs = (
+        core.models.Sample.objects.filter(
+            sequencing_sample_id__in=[x["Sample Name"] for x in in_date_samples["DATA"]]
+        )
+        .prefetch_related(filtered_lineages)
+        .order_by("id")
+    )
+
+    paginator = Paginator(
+        processed_samples_qs, 500
+    )  # Dont load the whole queryset at once
+    processed_sampdict = {}
+    for page_num in paginator.page_range:
+        chunk = paginator.page(page_num)
+        for sample in chunk:
+            # TODO: Prone to duplications. Use fingerprint along with iskylims
+            sample_id = sample.sequencing_sample_id
+            col_inst = sample.collecting_institution
+            sub_inst = sample.submitting_institution
+            sample_pk = sample.pk
+            if sample.filt_lineages:
+                lineage = sample.filt_lineages[0].value
+            else:
+                lineage = "Not Defined"
+            processed_sampdict[sample_id] = (sample_pk, lineage, col_inst, sub_inst)
+
+    final_data = defaultdict(lambda: defaultdict(list))
+    for s_data in in_date_samples["DATA"]:
+        sample_name = s_data["Sample Name"]
+        if sample_name not in processed_sampdict.keys():
+            errtxt = f"Could not find sample {sample_name} from iskylims. Skipped from search pre_proc_search_samples_summary()"
+            logger.error(errtxt)
+            continue
+        col_date = s_data["collection_sample_date"]
+        sample_pk = processed_sampdict[sample_name][0]
+        lineage_name = processed_sampdict[sample_name][1]
+        col_inst = processed_sampdict[sample_name][2]
+        sub_inst = processed_sampdict[sample_name][3]
+        final_data[sub_inst][col_inst].append(
+            (sample_pk, sample_name, col_date, lineage_name, col_inst)
+        )
+
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "search_samples_summary_table",
+            "graphic_data": final_data,
         }
     )
     return {"SUCCESS": "Success"}
