@@ -794,10 +794,8 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
             Q(sequencing_sample_id__in=dates_samples_dict.get(s_date, []))
             | Q(collecting_lab_sample_id__iexact=dates_samples_dict.get(s_date, []))
         )
-    else:
-        sample_objs = core.models.Sample.objects.all()
     if lab_name != "":
-        sample_objs = sample_objs.filter(submitting_institution__iexact=lab_name)
+        sample_objs = sample_objs.filter(collecting_institution__iexact=lab_name)
     if sample_name != "":
         if sample_objs.filter(
             Q(sequencing_sample_id__iexact=sample_name)
@@ -855,7 +853,7 @@ def get_available_samples_for_user(user_obj):
             collecting_institution__iexact=user_lab
         )
     else:
-        return core.models.Sample.objects.none()    
+        return core.models.Sample.objects.none()
 
 
 def save_temp_sample_data(samples, user_obj):
