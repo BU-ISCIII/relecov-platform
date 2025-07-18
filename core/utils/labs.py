@@ -1,6 +1,7 @@
 # Local imports
 import core.models
 import core.utils.rest_api
+import core.utils.samples
 
 
 def get_lab_contact_details(user_obj):
@@ -36,14 +37,13 @@ def get_lab_name_from_user(user_obj):
         return ""
 
 
-def get_collecting_insts_from_lab(lab_name):
+def get_collecting_insts_from_user(user_obj):
     """Get a list of collecting institutions associated to the given
     laboratory (submitting_institution)
     """
+    available_samples = core.utils.samples.get_available_samples_for_user(user_obj)
     return (
-        core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
-        .values_list("collecting_institution", flat=True)
-        .distinct()
+        available_samples.values_list("collecting_institution", flat=True).distinct()
     )
 
 
