@@ -578,18 +578,19 @@ def get_search_table_for_user(user_obj):
             "search_samples_summary_table"
         )
     user_role = core.utils.generic_functions.get_user_role(user_obj)
+    table_data = []
     if user_role == "Submitter":
         user_lab = core.utils.labs.get_lab_name_from_user(user_obj)
-        table_data = samples_to_search.get(user_lab, [])
+        for _, table_rows in samples_to_search.get(user_lab, {}).items():
+            table_data.extend(table_rows)
     else:
-        table_data = []
         lab_list = core.utils.labs.get_collecting_insts_from_user(user_obj)
         for lab in lab_list:
             found = False
             for subinst_labs_dict in samples_to_search.values():
                 if lab in subinst_labs_dict.keys():
                     found = True
-                    table_data.extend(samples_to_search[lab])
+                    table_data.extend(subinst_labs_dict[lab])
             if not found:
                 print(f"Found no samples for lab {lab} in search_samples_summary")
     if not table_data:
