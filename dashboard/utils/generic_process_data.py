@@ -1016,7 +1016,7 @@ def pre_proc_search_samples_summary():
     in_date_samples = core.utils.rest_api.fetch_samples_on_condition(
         "collection_sample_date"
     )
-    logger.info(f"Fetched {len(in_date_samples["DATA"])} samples with collection_date")
+    logger.info(f"Fetched {len(in_date_samples['DATA'])} samples with collection_date")
     # Prefetch only lineage_values with the desired property
     filtered_lineages = Prefetch(
         "lineage_values",
