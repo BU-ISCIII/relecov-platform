@@ -23,6 +23,7 @@ import core.utils.samples_map
 
 #  End of imports  received samples
 import time
+import dashboard.utils.generic_process_data
 
 
 def index(request):
@@ -123,54 +124,29 @@ def schema_display(request, schema_id):
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
-    search_data = core.utils.samples.get_search_data(request.user)
-    if request.method == "POST" and request.POST["action"] == "searchSample":
-        sample_name = request.POST["sampleName"]
-        s_date = request.POST["sDate"]
-        lab_name = request.POST["lab"]
-        sample_state = request.POST["sampleState"]
-        # check that some values are in the request if not return the form
-        if lab_name == "" and s_date == "" and sample_name == "" and sample_state == "":
-            return render(
-                request, "core/searchSample.html", {"search_data": search_data}
-            )
-        # check the right format of s_date
-        if s_date != "" and not core.utils.generic_functions.check_valid_date_format(
-            s_date
-        ):
-            return render(
-                request,
-                "core/searchSample.html",
-                {
-                    "search_data": search_data,
-                    "warning": core.config.ERROR_INVALID_DEFINED_SAMPLE_FORMAT,
-                },
-            )
-        sample_list = core.utils.samples.search_samples(
-            sample_name, lab_name, sample_state, s_date, request.user
-        )
-        if len(sample_list) == 0:
-            return render(
-                request,
-                "core/searchSample.html",
-                {
-                    "search_data": search_data,
-                    "warning": core.config.ERROR_NOT_MATCHED_ITEMS_IN_SEARCH,
-                },
-            )
-        if len(sample_list) == 1:
-            return redirect("sample_display", sample_id=sample_list[0])
-        else:
-            sample = {
-                "s_data": sample_list,
-                "heading": core.config.HEADING_FOR_SAMPLE_LIST,
-            }
-            return render(request, "core/searchSample.html", {"list_display": sample})
-    if "ERROR" in search_data:
+    search_data = {}
+    if core.models.Sample.objects.count() == 0:
+        search_data["ERROR"] = core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED
         return render(
             request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
         )
-    return render(request, "core/searchSample.html", {"search_data": search_data})
+    all_samples_summary = core.utils.samples.get_search_table_for_user(request.user)
+    if not all_samples_summary:
+        user_lab = core.utils.labs.get_lab_name_from_user(request.user)
+        if not user_lab:
+            search_data["ERROR"] = "You don't have a laboratory assigned to you yet"
+        else:
+            search_data["ERROR"] = (
+                f"No samples found for your designated laboratory: {user_lab}"
+            )
+        return render(
+            request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
+        )
+    return render(
+        request,
+        "core/searchSample.html",
+        {"search_data": search_data, "sample_summary": all_samples_summary},
+    )
 
 
 @login_required
