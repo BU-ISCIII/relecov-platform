@@ -625,28 +625,6 @@ def get_sample_objs_per_lab(lab_name):
     return core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
 
 
-def get_search_data(user_obj):
-    """Fetch data to show in form"""
-    s_data = {}
-    if core.models.Sample.objects.count() == 0:
-        return {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
-    s_data["s_state"] = core.models.SampleState.objects.values_list(
-        "pk", "display_string"
-    )
-    # Allow to search information from any laboratoryr
-    group = Group.objects.get(name="RelecovManager")
-    if group in user_obj.groups.all():
-        def_labs = core.utils.labs.get_all_defined_labs()
-        if "ERROR" in def_labs:
-            s_data["labs"] = ["", ""]
-        else:
-            s_data["labs"] = def_labs
-    else:
-        s_data["labs"] = core.utils.labs.get_lab_name_from_user(user_obj)
-
-    return s_data
-
-
 def get_user_id_from_submitting_institution(lab):
     """Use the laboratory name defined in the Profile (submitting-institution)
     to find out the user. if no user is not defined with this lab it returns None
