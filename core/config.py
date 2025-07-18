@@ -81,12 +81,6 @@ HEADING_SCHEMA_DISPLAY = [
 
 HEADING_FOR_ANNOTATION_GENE = ["Gene name", "Position start", "Position end"]
 
-HEADING_FOR_SAMPLE_LIST = [
-    "Sequencing Sample ID",
-    "State",
-    "Sequenced date",
-    "Recorded date",
-]
 HEADING_FOR_VARIANT_TABLE_DISPLAY = [
     "Pos",
     "Ref",
