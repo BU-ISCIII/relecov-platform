@@ -567,13 +567,11 @@ def get_search_table_for_user(user_obj):
     """Extract the data to fill the table of available samples to search
     for the given lab_name, based on collecting_institution"""
     samples_to_search = dashboard.utils.generic_graphic_data.get_graphic_json_data(
-            "search_samples_summary_table"
-        )
+        "search_samples_summary_table"
+    )
     if samples_to_search is None:
         # Execute the pre-processed task to get the data
-        result = (
-            dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
-        )
+        result = dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
         if "ERROR" in result:
             return result
         samples_to_search = dashboard.utils.generic_graphic_data.get_graphic_json_data(
@@ -597,6 +595,7 @@ def get_search_table_for_user(user_obj):
     if not table_data:
         print(f"Found no sample for user {user_obj.username} in search_samples_summary")
     return table_data
+
 
 # FIXME: If no lab name is assigned to the user, display a custom error screen.
 #        The error occurs when lab_name is 'None' after accessing to intranet.
@@ -781,6 +780,7 @@ def save_excel_form_in_samba_folder(m_file, user_name):
 def search_samples(sample_name, lab_name, sample_state, s_date, user):
     """Search the samples that match with the query conditions"""
     sample_list = []
+    sample_objs = get_available_samples_for_user(user)
     if s_date != "":
         samples_with_coldate = core.utils.rest_api.fetch_samples_on_condition(
             "collection_sample_date"
@@ -837,6 +837,25 @@ def search_samples(sample_name, lab_name, sample_state, s_date, user):
     for sample_obj in sample_objs:
         sample_list.append(sample_obj.get_info_for_searching())
     return sample_list
+
+
+def get_available_samples_for_user(user_obj):
+    """Return the samples that the user should be able to see,
+    wether its a Manager, Submitter or Collector. Based on its laboratory"""
+    user_role = core.utils.generic_functions.get_user_role(user_obj)
+    user_lab = core.models.Profile.objects.filter(user=user_obj).last().get_lab_name()
+    if user_role == "RelecovManager":
+        return core.models.Sample.objects.all()
+    elif user_role == "Submitter":
+        return core.models.Sample.objects.filter(
+            submitting_institution__iexact=user_lab
+        )
+    elif user_role == "Collector":
+        return core.models.Sample.objects.filter(
+            collecting_institution__iexact=user_lab
+        )
+    else:
+        return core.models.Sample.objects.none()    
 
 
 def save_temp_sample_data(samples, user_obj):
