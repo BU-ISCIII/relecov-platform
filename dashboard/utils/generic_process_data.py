@@ -826,7 +826,7 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
             for x in in_date_samples["DATA"]
         }
         join_conditions = [
-            When(collecting_lab_sample_id=sample_id, then=Value(collect_date))
+            When(sequencing_sample_id=sample_id, then=Value(collect_date))
             for sample_id, collect_date in samples_dates_dict.items()
         ]
         all_sample_counts_by_lab = (
