@@ -23,7 +23,6 @@ import core.utils.samples_map
 
 #  End of imports  received samples
 import time
-import dashboard.utils.generic_process_data
 
 
 def index(request):
