@@ -268,9 +268,13 @@ def intranet(request):
             lablist = set(
                 [x["collecting_institution"] for x in clean_samples_per_date_detailed]
             )
-            core.utils.samples.create_dash_bar_for_each_lab(
-                clean_samples_per_date_detailed, lablist
-            )
+            if len(lablist) > 1:
+                core.utils.samples.create_dash_bar_for_each_lab(
+                    clean_samples_per_date_detailed, lablist
+                )
+                intra_data["show_per_lab_dash"] = True
+            else:
+                intra_data["show_per_lab_dash"] = False
             print(f"Took {start - time.time()} seconds for gauge_graph")
             intra_data["actions"] = core.utils.samples.get_lab_last_actions(lab_name)
             gisaid_acc = core.utils.public_db.get_preprocessed_gisaid_data()
