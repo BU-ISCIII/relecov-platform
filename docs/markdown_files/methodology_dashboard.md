@@ -1,106 +1,95 @@
-# Methodology dashboard.
+# Methodology Dashboard
 
-Methodology dashboard displays statistic information collected from laboratories 
-metadata, and data for all process done in the Bioinformatic analysis.
+The Methodology Dashboard displays statistical information gathered from laboratory metadata and the bioinformatic analysis process.
 
-When you open the Methodology dashboard you will see that some graphics are showed.
+When you open the dashboard, several visualizations will be presented.
 
-The first graphic row displays how the laboratories metadata and Bioinfo metadata are filled
+The **first row of graphics** provides insights into how laboratory and bioinformatics metadata fields are being completed:
 
 ![m_dashboard_index_1](img/m_dashboard_index_1.png)
 
-The first graphic on the left side shows the number of fields that for all samples 
-they are never filled with any value.
+- The **first graph on the left** shows the number of fields that are **never filled** across all samples.  
+  This can help identify fields that may be unnecessary in your lab’s or bioinformatics metadata.  
+  However, keep in mind that some fields are required only in specific cases, so this should be interpreted with caution.
 
-This information can help you to identify if there are some fields that could 
-be eliminated from the samples lab metadata or Biofinfo Metadata. 
-But handle this information keeping in mind that 
-there are parameters that are set because in some situation this field is required.
-
-If the first figure shows you the number of always empty fields, the second and the
-third graphic on this row shows the mean that each field, from all samples was 
-not empty. 
-
----
-To clarify these graphic let me give you an example.  We have 4 samples, which 
-have 5 fields each sample. There is 1 field that in all these samples is always not filled.
-
-Then the first graphic shows that empty fields is **1** and total number of 
-fields are **5**.
-
-If for the remaining 4 fields:
-- Field 1 , 2 and 4 always there is a value for each sample.
-- Field 3 not always have a value but only in 60% of samples have one.
-
-The percentage showed in the graphic will be, the mean of (100% , 100%, 60%, 100%) equal to 90%
+- The **second and third graphs** in this row show the **average percentage of filled values** for each field across all samples.
 
 ---
 
+**Example to clarify the graphs:**
 
-Second row display the number of samples that contains a value for each field.
+Imagine you have 4 samples, each with 5 fields.  
+If 1 of these fields is never filled in any sample, the **first graph** will show 1 always-empty field out of 5 total fields.
 
-The blue color are the fields related to lab's metadata and the green color belongs
-to Bioinfo Metadata.
+For the remaining 4 fields:
+- Fields 1, 2, and 4 are filled in 100% of the samples
+- Field 3 is filled in 60% of the samples
 
+The percentage displayed in the graph will be the average of these:  
+`(100% + 100% + 60% + 100%) / 4 = 90%`
+
+---
+
+The **second row of graphics** shows how many samples contain a value for each field.
+
+- **Blue bars** represent fields from **laboratory metadata**
+- **Green bars** represent fields from **bioinformatics metadata**
 
 ![m_dashboard_index_2](img/m_dashboard_index_2.png)
 
-The table at the bottom show the same information as the above graphic but in 
-numeric format.
-
+Below the charts, a table displays the same information in numeric format:
 
 ![m_dashboard_index_3](img/m_dashboard_index_3.png)
 
-## Host Info
+---
 
-This dashboard shows information related to the host. 
+## Host Demographics
 
-In the first row the bar graphic provide information about how the age of the host
-are distributed from the collected samples. The pie chart display the gender percentage 
-of these samples.
+This dashboard provides information about the host from which samples were collected.
+
+- The **first row** shows a bar chart of **host age distribution** and a pie chart representing the **gender breakdown**:
 
 ![m_dashboard_host_1](img/m_dashboard_host_1.png)
 
-The second graphic row split the host age information in gender distribution.
+- The **second row** breaks down host age distribution further by gender:
 
 ![m_dashboard_host_2](img/m_dashboard_host_2.png)
 
+---
 
+## Sequencing Overview
 
-## Sequencing
+The **Sequencing Dashboard** displays data related to the sequencing process.
 
-Sequencing dashboard displays information related to sequencing process.
-
-In the first graphic there is information about the different sequencer instrument 
-used for sequencing and the types of library preparation used.
+- The first chart shows the **sequencing instruments** and **library preparation types** used:
 
 ![m_dashboard_sequencing_1](img/m_dashboard_sequencing_1.png)
 
-The read length used, the CTs per library preparation kit and the CTs per based pairs.
+- Additional charts show:
+  - **Read length distribution**
+  - **CT values by library preparation kit**
+  - **CT values per base pairs**
 
-![m_dashboard_processing_2](img/m_dashboard_sequencing_2.png)
+![m_dashboard_sequencing_2](img/m_dashboard_sequencing_2.png)
 
+---
 
+## Sample Processing
 
-# Sample processing
-
-Sample processing dashboard shows the information related to the different extraction 
-protocols used for sample preparation library.
+This dashboard shows details about the **extraction protocols** used during library preparation.
 
 ![sample_processing_1](img/sample_processing_1.png)
 
-
-
 ![sample_processing_2](img/sample_processing_2.png)
 
+---
 
+## Sequencing Quality and Depth Analysis
 
-## Bioinfo
+This section of the dashboard displays statistics gathered from the bioinformatic analysis process.
 
 ![m_dashboard_bioinfo_1](img/m_dashboard_bioinfo_1.png)
 
-
 ![m_dashboard_bioinfo_2](img/m_dashboard_bioinfo_2.png)
-
 
 ![m_dashboard_bioinfo_3](img/m_dashboard_bioinfo_3.png)
