@@ -1,14 +1,27 @@
-# Upload samples to ENA
+# Upload Samples to ENA
 
-The European Nucleotide Archive (ENA) is a comprehensive repository that collects, archives,
-and disseminates nucleotide sequence data from a variety of organisms, such as influenza, 
-coronaviruses (including SARS-CoV-2) and respiratory syncytial virus (RSV).
-It is part of the European Bioinformatics Institute (EBI) and offers a platform for researchers
-worldwide to share genomic data, providing access to a wide range of data types, including raw
-sequencing reads, assembled genomes, and related metadata, supporting both short and long-reads.
+The **European Nucleotide Archive (ENA)** is a comprehensive public repository that collects, archives, and shares nucleotide sequence data from various organisms, including influenza, coronaviruses (such as SARS-CoV-2), and respiratory syncytial virus (RSV).
 
-Although its a public domain, prior to submitting any samples to ENA you will need to [register](https://www.ebi.ac.uk/ena/browser/submit).
-You may find several options to submit your data depending on your informatics skill level.
+It is maintained by the **European Bioinformatics Institute (EBI)** and provides a platform for researchers worldwide to share genomic data.
 
-Relecov-tools already implement a [module](https://github.com/BU-ISCIII/relecov-tools?tab=readme-ov-file#upload-to-ena) to upload samples automatically to ENA,
-you will only need to install the package, and follow the instructions found in the repository.
+ENA supports a wide range of data types, including:
+
+- Raw sequencing reads  
+- Assembled genomes  
+- Associated metadata  
+- Both short-read and long-read sequencing data
+
+Although ENA is a public resource, **you must first [register](https://www.ebi.ac.uk/ena/browser/submit)** before submitting any samples.
+
+There are multiple submission options available, depending on your technical experience.
+
+## Automated Submission with Relecov-tools
+
+The [**relecov-tools**](https://github.com/BU-ISCIII/relecov-tools?tab=readme-ov-file#upload-to-ena) package includes a module to automate the upload of samples to ENA.
+
+To use it:
+
+1. Install the `relecov-tools` package.
+2. Follow the instructions provided in the repository's documentation.
+
+This tool simplifies the submission process, making it easier to integrate ENA uploads into your workflow.
