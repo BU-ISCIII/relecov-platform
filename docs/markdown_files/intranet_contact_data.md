@@ -1,22 +1,18 @@
-# Laboratory Contact Data
+# Laboratory Contact Information
 
-When login to Relecov your user id is associate to a laboratory. 
+When you log in to Relecov, your user ID is associated with a laboratory.
 
----
-This link was done when admin create the user account.
+> **Note:** This link is created when the admin sets up your user account.
 
----
+You can view the contact information by selecting **Contact Data** from the left menu.
 
-You can check the contact information by selecting **Contact data** on the left menu.
+The contact name, telephone number, and email address will be displayed.
 
-Then contact name, telephone and email is showed.
-
-If this information is not updated you can modify the information filling the
-right one in the form that is bellow.
+If this information is not up to date, you can update it by filling out the form below with the correct details.
 
 ![form_update_contact_lab](img/form_update_contact_lab_info.png)
 
-Then submit the information and confirmation page is showed.
+After submitting the form, a confirmation page will be displayed.
 
-Note.- The Laboratory contact information is not stored in Relecov but iSkyLIMS.
+> **Note:** Laboratory contact information is not stored in Relecov, but in iSkyLIMS.
 
