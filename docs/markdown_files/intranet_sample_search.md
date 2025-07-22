@@ -1,132 +1,112 @@
-# Sample search
+# Sample Search
 
-To get information from the samples that are stored in Relecov we have created
-a form, from where you can search for the sample that you are looking for.
+To retrieve information about the samples stored in Relecov, a search form has been provided.
 
-Sample search option is available on intranet area when selecting **Samples search** 
-form the left side menu.
+The **Sample Search** option is available in the Intranet area by selecting **Samples Search** from the left-side menu.
 
-There are 2 different views according to the role of the user you are loged on.
+There are two different views depending on the role of the user currently logged in.
 
-If the role is **Relecov Manager** the following page is displayed.
+If the user has the **Relecov Manager** role, the following page is displayed:
 
 ![form_sample_search_manager](img/form_sample_search_manager.png)
 
-Where you can filter by:
-- State of the sample. Every time that there is an action on a sample a new state 
-is added to the sample. For example if sample is processing using bioinformatic
-analysis, the analysis state is added. 
-- Search by name. Use this option if you one to limit the search only to this sample.
-- Defined Date. It is the date that sample was stored in Relecov.
-- Search from laboratory. The manager role allows you to search information about
-the sample that was upload for any laboratory and also restrict the searching for
-a one specific laboratory.
+You can filter by:
+- **Sample State**: Every time an action is performed on a sample, a new state is added. For example, if a sample undergoes bioinformatic analysis, a corresponding analysis state is added.
+- **Search by Name**: Use this to limit your search to a specific sample.
+- **Sample defined date**: The date the sample was stored in Relecov.
+- **Search by Laboratory**: Managers can search across all laboratories or limit the search to a specific one.
 
-**Other role** we have a similar page, but the difference is that searching is 
-restricted to the samples that this laboratory upload previously. In other words
-this role does not allow you to see/search other samples data than your own.
+For users with **other roles**, a similar page is shown, but the search is restricted to samples uploaded by their own laboratory. These users cannot view or search for samples from other laboratories.
 
 ![form_sample_search](img/form_sample_search.png)
 
-As you can see on the heading shows that searching are for your laboratory.
+As shown in the heading, the search is limited to your laboratory.
 
-When filling in the form, this works as and **AND** condition. It means that if
-you select an state and select a date, the result you will get is the samples 
-that match both conditions.
+When filling in the form, all filters are combined using **AND** logic. This means the results will match **all** selected criteria (e.g., state **and** date).
 
-## Displaying your samples match
+## Displaying Sample Search Results
 
-There are 2 output when you submit your searching query:
-- Many samples match
-- Only one sample fullfil the imput parameters.
+There are two possible outcomes after submitting a search:
 
-### Displaying Many samples
+- Multiple samples match the criteria.
+- Only one sample matches the criteria.
+
+### Displaying Multiple Samples
 
 ![display_many_samples](img/display_many_samples.png)
 
-When many samples match with your query, you will get a table which contains a list 
-of samples. This table is paginated so click on the "Next" button, see more samples
-or using the "Search" field to reduce the number of samples.
+If multiple samples match your query, a paginated table will be shown.  
+You can click **Next** to view more results, or use the **Search** field to narrow them down.
 
-When you found the rigth one click on the sample link to get the collected information.   
+Once you've found the correct sample, click on the sample link to view its detailed information.
 
-### Display one sample
+### Displaying a Single Sample
 
-When sample information is displayed, (no matter if you reach it, because there was
-only 1 match or because you click  a sample from the sample list), on the top you 
-can see that there are some tabs, that you can select to see the information related
-to.
+If only one sample matches your query — or if you've clicked a sample link — the sample detail page is shown.
+
+At the top, you’ll see several tabs with categorized information.
 
 ![display_sample_basic_1](img/display_sample_basic_1.png)
 
-The number of visible tabs is accordig to the information existing for this sample.
-If you do not see any of these tabs is because there is no information for it.
+The number of tabs depends on the available data for the selected sample.  
+If a tab is not visible, that means there is no data for that section.
 
-The default open tab is **Basic Data**. Where you can see information about the 
-different names that this sample was given by the laboratory, in the microbiology 
-lab and when sequencing.
+The **Basic Data** tab opens by default. It includes:
+- The various names assigned to the sample (e.g., laboratory name, microbiology ID, sequencing name).
+- A history of actions performed on the sample, such as:
+  - When it was stored in Relecov
+  - Uploaded to GISAID
+  - Metadata entry for bioinformatics
+  - Variant analysis completion
 
-The actions that were done for this sample. In this example, you can see that 
-the dates when sample was stored in relecov, when it was upload to GISAID,
-when recording Bioinfo metadata and when the variant analysis was done.
+A table at the bottom displays information related to the FASTQ file:
 
 ![display_sample_basic_2](img/display_sample_basic_2.png)
 
-In the table below the information related to Fastq file is showed.
+### Public Databases Tab
 
+This tab contains information about the sample’s status in public databases such as GISAID and ENA.
 
-**Public Database** tab.
-
-Inside there is informacion related to GISAID and ENA databases.
+In the following example, the sample has been uploaded to GISAID, but no information has yet been retrieved from ENA.
 
 ![display_sample_public](img/display_sample_public.png)
 
-As you can see from this example, there is information that this sample was 
-upload to GISAID, but so far there is no information collected from the upload 
-to ENA.
+### Lab Data Tab
 
-**Lab data** tab.
+This section contains information provided in the lab metadata.
 
-Lab data contains information that was given in the Metadata Lab. 
+It is divided into two tables:
+- **Metadata Lab Information**: includes the date the sample was recorded and collected.
 
-This information is divided in 2 tables.
-- Metada LAB information.
+  ![display_sample_lab_1](img/display_sample_lab_1.png)
 
-With data like date when sample was recorded and collected.
+- **Relecov project data**: includes additional metadata from the lab file.
 
-![display_sample_lab_1](img/display_sample_lab_1.png)
+  ![display_sample_lab_2](img/display_sample_lab_2.png)
 
-- Relecov project data.
+You can browse additional pages using the **Next** button or search for specific parameters using the **Search** field.
 
-Will have the rest of the information that was collected in Metadata Lab file.
-
-![display_sample_lab_2](img/display_sample_lab_2.png)
-
-Move to another page clicking on the "Next" button, or use the search field to find 
-the parameter that you are looking for.
-
-**Analysis** tab.
+### Analysis Tab
 
 ![display_sample_bio](img/display_sample_bio.png)
 
-Display the information that was collecting during Bio informatic analysis. 
+This tab shows data collected during bioinformatic analysis.  
+You can browse or search within the table.
 
-As well you can move to next page, or search for a parameter.
+### Lineage Tab
 
-
-**Lineage** tab.
-
-This tab contains the lineage information of the sample
+Displays the lineage information of the sample.
 
 ![display_sample_analysis](img/display_sample_analysis.png)
 
+### Variant Tab
 
-**Variant** tab.
-Variant positions 
+Shows variant positions detected in the sample.
+
 ![display_sample_variant](img/display_sample_variant.png)
 
+### Graph Tab
 
-**Graphic** tab.
+Displays graphical representations of the sample’s data.
 
 ![display_sample_graphic](img/display_sample_graphic.png)
-
