@@ -1,89 +1,86 @@
 # Upload Metadata Lab
 
-There are 3 different ways from where you can upload metadata samples.
+There are three different methods you can use to upload sample metadata:
 
-1. Filling the information in metadata lab form
-2. Upload Metadata Excel file
-3. Using SFTP server.
+1. Filling out the Metadata Lab form
+2. Uploading a Metadata Excel file
+3. Using the SFTP server
 
-We are going to describe the different options and requirements that any alternative has, so you can use the method that you fit better for you. 
+Below we describe the different options and their requirements so you can choose the method that best suits your needs.
 
-The option 1 (Filling the information in metadata lab form) you do not need to prepare any file in advance, just only filling the information in the form that is guiding you.
+### 1. Filling out the Metadata Lab form
 
-Option 2 (Upload Metadata Excel file). You need to fill in advance the Metadata Lab excel file
+With this option, you don’t need to prepare any file in advance.  
+Simply fill in the form, which will guide you step by step.
 
-The last alternative (Using SFTP server) is not available from relecov. You need to upload the Excel metadata file to the sftp server. Detailed information how to do upload this file is described in [How to fill metadata lab excel](../metadata_lab_excel.md)
+### 2. Uploading a Metadata Excel file
 
+In this case, you need to fill in the Metadata Lab Excel file beforehand.
 
-If you decide to use the alternative 1 or 2, click on the left side menu the "Upload Metadata" link, to display the page to upload your metadata.
+### 3. Using the SFTP Server
 
-Because some data will be stored in iSkyLIMS, the system checks the connection
-towards iSkyLIMs to verify that it is running. If it is not reachable then a error message is presented. Under this scenario it is not allowed to progress, until the issue is solved.
+This option is not available directly through the Relecov interface.  
+You must upload the completed Metadata Excel file to the SFTP server.  
+Instructions for this process are provided in [How to fill metadata lab excel](../metadata_lab_excel.md).
+
+---
+
+**If you choose option 1 or 2**, click the **Upload Metadata** link from the left menu to open the upload page.
+
+Since some of the data is stored in iSkyLIMS, the system will check the connection to iSkyLIMS.  
+If it is not reachable, an error message will be displayed, and you won’t be able to continue until the issue is resolved.
 
 ![error_iskylims_not_available](img/error_iskylims_not_available.png)
 
-When you are in the Metadata Form page you can see that there is information about the userid who is logged and the Laboratory that this user belongs to. 
-
-Please check that this information is accurate, because the data that you are uploaded will contain this information.
+On the Metadata Form page, you will see the logged-in user ID and the laboratory they are associated with.  
+Please verify this information, as it will be attached to the uploaded metadata.
 
 ## Metadata Lab Form
 
-When the page is displayed this alternative is showed by default
+When the page loads, this method is shown by default:
 
 ![form_metadata_lab](img/form_metadata_lab.png)
 
-There are many fields that are requested to fill. In order to reduce the "duplicated" information, we have divided the metadata fields in 2 groups.
-- Fields that are different from one sample to another.
-- Fields that are common to all sample that you are going to upload.
+There are several required fields to complete.  
+To avoid duplicating information, metadata is split into two groups:
+- Fields that vary for each sample
+- Fields that are common to all samples being uploaded
 
-Following this premises, the have split the input of Metadata in 2 pages. 
+Based on this, the form is divided into two pages.
 
-The one you see now is excel type form, where you can type the information directed on  each cell or copy and paste the fields, if you already has stored in excel.
+The first page is a spreadsheet-style form where you can:
+- Type directly into each cell
+- Copy and paste data from an existing Excel file
 
-As you will see in this form there are 3 types of data:
-- Text. Typing the information.
-- Dates. Clicking on the cell to open a calendar to select the date.
-- Select. Press on the cell to display and choose the option that fit in your case.
+The form includes three types of inputs:
+- **Text**: Type the content directly.
+- **Date**: Click the cell to select from a calendar.
+- **Select**: Click to choose from a dropdown menu.
 
----
-If you have any doubt for any field you can have a look to [How to fill metadata lab excel](../metadata_lab_excel.md)
+> If you're unsure how to fill in a field, refer to [How to fill metadata lab excel](../metadata_lab_excel.md).
 
----
+After completing the form, click the **Submit** button.
 
-When all this information is filled click on **Sumbit** button.
+The second page will appear, showing fields that apply to **all** samples entered on the previous page.
 
-Then the second page is displayed, showing the information, that is applicable for all individual sample data that you enter in the previous form.
+Once this is filled, click **Submit** again to confirm.
 
-After filling all fields that are applicable for your metadata, click on the submit button. 
+A success page will appear, confirming that your metadata has been successfully stored for validation.
 
-Successful page to confirm that your data are sucessful stored for validation is showed.
+> **Note**: You are not required to complete the second page immediately.  
+You can return to it at any time — the page will be shown again the next time you access the Metadata Lab form.
 
----
-It is not mandatory that you fill the second page of metadata just now. You can continue at any time. This page will showed you again next time that you access to metadata lab form.
-
-IMPORTANT: 
-
-The information stored in the first page of metadata form is associated to the login user. Only this user can retrieve the previous stored information.
+> **Note**: Only the user who entered the data on the first page can retrieve and edit that information later.
 
 ---
 
-## Upload Metadata excel file
+## Upload Metadata Excel File
 
-Second option to upload Metadata lab to relecov is using the Metadata Excel file. 
-This required that you previously filled the excel and when completed select the 
-tab **Upload file** in Metadata form.
+The second option is to upload a filled-in Metadata Lab Excel file.  
+Once your file is ready, select the **Upload file** tab in the Metadata form.
 
 ![form_metadata_upload_file](img/form_metadata_upload_file.png)
 
-Attach the file and **Submit**.
+Attach the file and click **Submit**.
 
-Successful page to confirm that your data are sucessful stored for validation is showed.
-
-
-
-
-
-
-
-
-
+A confirmation page will be shown once your data has been successfully stored for validation.
