@@ -31,7 +31,7 @@ Please find more information about the tools in their [**GitHub page**](https://
       - [`wrapper`](#wrapper)
       - [`logs-to-excel`](#logs-to-excel)
       - [`add-extra-config`](#add-extra-config)
-    - [`build-schema`](#build-schema)
+      - [`build-schema`](#build-schema)
       - [Mandatory Fields](#mandatory-fields)
       - [Logging Functionality](#logging-functionality)
       - [Custom logs](#custom-logs)
@@ -488,7 +488,7 @@ Options:
   --help                  Show this message and exit.
 ```
 
-### `build-schema`
+#### `build-schema`
 
 The `build-schema` module provides functionality to generate and manage JSON Schema files based on database definitions from Excel spreadsheets. It automates the creation of JSON Schemas, including validation, drafting, and comparison with existing schemas. It also uses the generated JSON schema to create a structured Excel template.
 
