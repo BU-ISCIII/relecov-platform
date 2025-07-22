@@ -2,39 +2,39 @@
 
 ## Table of Contents
 
-- Overview
+- **Overview**
     - [Description](description.md)
 
-- Installation
+- **Installation**
     - [Relecov platform installation](relecov_install.md)
     - [Configuration](configuration.md)
 
-- Metadata
+- **Metadata**
     - [Overview](metadata.md)
     - [How to fill metadata lab excel](metadata_lab_excel.md)
     - [relecov-tools](relecov_tools.md)
 
-- Intranet
+- **Intranet**
     - [Overview](intranet_overview.md)
     - [Upload Metadata](intranet_upload_metadata.md)
     - [Contact data](intranet_contact_data.md)
     - [Sample Processing](intranet_received_samples.md)
 
-- Dashboards
+- **Dashboards**
     - [Variant dashboard](variant_dashboard.md)
     - [Methodology dashboard](methodology_dashboard.md)
 
-- Nextstrain
+- **Nextstrain**
     - [Installation](nextstrain_install.md)
     - [How to use RELECOV Nexstrain](howto_nextstrain.md)
 
-- Data sharing
+- **Data Sharing**
     - [Upload to ENA](upload_to_ena.md)
     - [Upload to GISAID](upload_to_gisaid.md)
 
-- API docs
+- **API Docs**
     - [API schema](api_schema.md)
     - [How to use RELECOV API](howto_api.md)
 
-- FAQs
+- **FAQs**
     - [Create new users](create_new_user.md)
