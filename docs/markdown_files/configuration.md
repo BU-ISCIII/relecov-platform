@@ -80,8 +80,8 @@ From the top menu, navigate to **Configuration → Metadata Visualization**. Her
 
 **After saving the selection** three different tabs appear under Metadata Visualzation:
 
-- **Fields for Sample**: Shows which fields will be shown for individual samples
-- **Fields for Batch**: Shows which fields will be shown for the batch as a whole
+- **Fields for Sample**: Shows which fields will be shown for individual samples.
+- **Fields for Batch**: Shows which fields will be shown for the batch as a whole.
 - **Delete Fields**: `DELETE` button lets you completely clear the current configuration and start over.
 
 ![metadata_selected_fields](img/metadata_selected_fields.png)
@@ -107,7 +107,7 @@ This section of the configuration lets the user upload and browse General Featur
 
 ![show_annotations](img/show_annotations.png)
 
-This is how the annotation information displays:
+This is how the annotation information is displayed:
 
 ![annotation_information](img/annotation_information.png)
 
