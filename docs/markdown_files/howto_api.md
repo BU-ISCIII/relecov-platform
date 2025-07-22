@@ -1,123 +1,85 @@
-# How to use plataform API
+# How to Use the Relecov Platform API
 
-There are 3 ways thah can be used to send a request using Relecov API.
+There are three ways to send a request using the Relecov API:
 
-- Graphic interface using swagger.
-- update-db module inside Relecov-tools.
-- Terminal console using "curl" or similar.
+- Graphical interface using Swagger  
+- update-db module from Relecov-tools  
+- Terminal console using curl or a similar tool
 
-For any of these methods user must send Authentication credentials to upload
-information to Relecov Platform.
+For any of these methods, the user must provide authentication credentials to upload information to the Relecov Platform.
 
-## Graphic interface using swagger
+## Graphical Interface Using Swagger
 
-Swagger application is already integrate with Relecov Platform and is 
- available typing in Navigator the url :
+The Swagger application is already integrated with the Relecov Platform.  
+You can access it by typing the following URL in your browser:
 
 http://your_relecov_server/swagger
 
-
-In the swagger page you can see on the rigth top a button for authentication.
-(Authorize)
+On the Swagger page, you'll see an Authorize button at the top right corner:
 
 ![swagger](img/swagger_main.png)
 
-Click on authorize button to add your user access credentials. Type your user 
-and password. and click on **Authorize** button.
+Click the Authorize button to enter your user credentials. Type your username and password, then click Authorize.
 
-At this very moment this data are saved in you local browser to be ready at 
- the time that you want to send a request. It means that so far no credential
-validation is done over relecov platform server.
+At this point, the credentials are stored in your local browser for use during the session. Note that no validation is performed on the server side until you send a request.
 
---- 
-
-Note.- apiKey is not implemented yet. This authentification method is planned 
-to be available later on.
-
----
-
+> **Note:** apiKey authentication is not implemented yet. This method is planned for a future release.
 
 ### Create Sample
 
-First POST request that you have to run is the **createSampleData**. Click on
-the arrow down to visualize the additional information for this request.
+The first POST request you should make is **createSampleData**. Click the down arrow to expand additional information for this request.
 
-There are 2 main parts:
+There are two main sections:
 
-- Request body
-- Responses.
+- Request body  
+- Responses
 
-Inside the "Request body" you can see an example, in json format, where for 
-each line the text berore ":" is the field name and on the right side is the
-value.
+In the Request body, you’ll see an example in JSON format. Each line shows a field name on the left and a value on the right.
 
-After the example box, the "Responses" area shows the possible returns of the 
-query.
+Below the example, the Responses section displays possible response codes.
 
+To send the createSampleData request, click the **Try it out** button.
 
-To send the CreateSample request using this graphical environment, click on the
-"Try it out" button.
+This action enables the input field with a white background where you can modify the example values. Once you've entered the appropriate data, click the **Execute** button.
 
-Then the box example has changed to white background and it is allowed now to 
-write in this box. 
+If the values are valid, you will receive a successful response.
 
-Change the example values to the ones that apply in your case and click on the
-"Execute" blue button.
+### Create Bioinfo Data
 
-If all values are valid you will get a successful response.
+After the sample is defined in the database, you can add more information using the **createBioinfoData** request.
 
-### Create Bioinfo data
+Click the down arrow to view the example request and possible responses.
 
-After the sample is defined in database you can add more information to the
- sample using the "createBioinfoData" request.
+Follow the same procedure: click **Try it out**, edit the example data, and click **Execute**.
 
-Same structure is showed when click on the "arrow down". Now you will see the 
-example for sending the request, and the possible responses.
+### Create Variant Data
 
-Follow the same procedure as before and after clicking on the "Try it out", 
-modify example values and click on "Execute button".
+To add variant information for a sample, use the **createVariantData** request.
 
+This request differs slightly from the previous ones because the `variants` field is a list of dictionaries.
 
-### Create Variant data
+The example shows two variants. Repeat the structure as many times as necessary to include all variants found in your sample.
 
-To add variant information for a sample you have to use "createVariantData". This
-request is a little bite different as the previous ones, because the "variants" field is al list of dictionary.
+### Update Sample State
 
-In the example is showed only 2 variants for the sample. Repeat this part as many
-variant that were found in your sample.
+This request is used to update the state of a sample. A state represents an action performed on the sample. For example, to indicate that a sample has been uploaded to ENA, use this PUT request with the state set to "Ena".
 
+## Using relecov-tools
 
-### Update Sample state
+The `relecov-tools` Python package is designed to simplify the process of collecting metadata from laboratories or hospitals and uploading it to the Relecov Platform.
 
-This last request is used to add a state to  the sample. State is the action done
-on a sample. For example if you want to indicate that sample is upload to ENA, 
-you can use this PUT request by setting on the state to "Ena".
+To upload data, use the `update-db` option when running the `relecov-tools` command.
 
+For more details, visit the GitHub repository: https://github.com/BU-ISCIII/relecov-tools.
 
-## Using Relecov-tools
+## Using Terminal (curl or similar)
 
-The python package for Relecov tools were designed to facilitate the flow proccess
-from collecting metadata information from the Laboratories/Hospitals to relecov
-platform. 
-
-
-To upload information to Relecov platform you must use the "update-db" option 
-when executing the relecov-tools command. 
-
-For more information for using relecov-tools have a look at github 
-[relecov-tools](https://github.com/BU-ISCIII/relecov-tools)
-
-## Terminal curl or similar.
-
-Open a console and write first the heading where is defined the url and content
-type application, and then include in the request body the fields and values 
-that are applicable for each request.
-
+Open a terminal and define the request by specifying the URL and headers such as content type. Include the appropriate fields and values in the request body.
 
 ### Example for sending the request using curl command
-Below shows the examples you can use to send the request to Relecov platform.
+Below are examples you can use to send requests to the Relecov platform:
 
-#### Example for Create sample
+#### Example for Create Sample
 
 ```
 curl -X 'POST' \
@@ -130,10 +92,9 @@ curl -X 'POST' \
    }'
 
 ```
-Inside the "-d" block include the sample data. Use as template the example that
-was showed before when explaining in the swagger chapter.
+Inside the `-d` block, include the sample data. Use as template the example that was shown before in the Swagger chapter.
 
-#### Example for Bioinfo data.
+#### Example for Bioinfo Data
 
 ```
 curl -X 'POST' \
@@ -147,11 +108,9 @@ curl -X 'POST' \
 
 ```
 
+#### Example for Variant Sample Data
 
-#### Example for Variant sample data.
-
-Use this information to build your request. Fill in "variants" field the same
-structure as described above.
+Use this information to build your request. Fill in the `variants` field using the same structure as described above.
 
 ```
 curl -X 'POST' \
@@ -168,8 +127,8 @@ curl -X 'POST' \
    
 ``` 
 
-#### Example for Update state sample
-Using this example replace the sample_name and state with your settings.
+#### Example for Update State Sample
+Using this example, replace the `sample_name` and `state` fields with your settings:
 
 ```
 curl -X 'PUT' \
