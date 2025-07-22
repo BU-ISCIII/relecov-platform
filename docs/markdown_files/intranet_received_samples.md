@@ -1,15 +1,14 @@
 # Received Samples
 
-This graophics will give you an overview about the samples that were received
-at relecov platform.
+These graphics provide an overview of the samples received on the Relecov platform.
 
-The first picture show in a graphic map the number of samples that were received.
-Use the mouse whell to zoom in/out the graphic.
-
+The first image displays a map showing the number of samples received.  
+You can use your mouse wheel to zoom in and out of the map.
 
 ![sample_processing_1](img/intranet_received_samples_map.png)
 
+The following charts show the number of samples received per date,  
+as well as the number of samples received by each Autonomous Community and each Laboratory Center.
 
-In the following graphics you can see the number of samples received per date and 
-also how many samples were received for each laboratory.
+![sample_charts](img/intranet_received_samples_charts.png)
  
