@@ -1,62 +1,51 @@
 # Intranet Overview
 
-Intranet is an Area where Laboratory staff can see information about the samples
-that they have preeviously uploaded.
+The Intranet is an area where laboratory staff can view information about the samples they have previously uploaded.
 
-It is important to mention that Laboratory can only get information from their
-own samples.
+It is important to note that each laboratory can only access information related to their own samples.
 
-For that reason you must login to access this area.
+For this reason, you must log in to access this area.
 
+## Accessing the Intranet
 
-## Accessing to Intranet
-To access Intranet click on the "Intranet" button.
+To access the Intranet, click on the **Intranet** button.
 
 ![relecov-platform navbar](img/relecov_platform_navbar.png)
 
 ---
 
-If you do not have login credential yet, contact with your manager to request
-them for you.
+If you do not have login credentials yet, contact your manager to request them.
 
-For **admin** user follow the instructions provide in [Create new user](../create_new_user.md) to add new user.
+For **admin** users, follow the instructions provided in [Create new user](../create_new_user.md) to add a new user.
 
 ---
 
-Enter username and password, and click on Submit credentials button.
+Enter your username and password, then click the **Submit credentials** button.
 
 ![relecov-platform login intranet](img/login_intranet.png)
 
-After login correctly, you have access to intranet functionality and the available options are showed on the left side.
+After a successful login, you will have access to the Intranet features, and the available options will be displayed on the left side.
 
-You can also check that your are login by checking on the top right side that
-shows your user name and a button to close session is visible.
+You can also confirm that you are logged in by checking the top right corner, where your username and a **Close session** button will be visible.
 
-Now that your are logged there are 2 possible:
+Once logged in, there are two possible user roles:
 
-1. User has Relecov Manager role
-2. User belongs to a laboratory.
+1. User with the **Relecov Manager** role  
+2. User belonging to a laboratory
 
+The main difference between these roles is that a Relecov Manager can search and view samples from any laboratory, whereas a regular user can only search and view samples belonging to their own laboratory.
 
-The main difference between both of them is that Relecov Manager can search/visualize
-samples for any laboratory, and normal user can only search/visualize samples
-that belongs to their laboratory.
+When navigating through different options in the top menu, the Intranet menu will be replaced by the menu relevant to the selected option. However, you can return to the Intranet at any time by clicking the **Intranet** button.
 
+## Inside the Relecov-platform Intranet
 
-When moving to different options in the top menu, intranet menu is replace by the
-one that is applicable for the relevant options for this menu. But you can return
-again to Intranet are by clicking at any time the Intranet button.
-
-## Inside relecov-platform Intranet
-
-The application will show us the home page of the intranet.
-On the left we will see a side panel with the available utilities
+The application will display the Intranet home page.  
+On the left, you will see a side panel with the available utilities.
 
 ![relecov-platform login intranet](img/intranet_side_bar.png)
 
-
 ## Logout
-Before exiting the application is recommended that you logout your session.
 
-Click on the "Close session" button located at the top right side.
+Before exiting the application, it is recommended that you log out of your session.
 
+Click the **Close session** button located at the top right corner.
