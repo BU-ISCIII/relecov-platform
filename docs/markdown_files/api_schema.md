@@ -1,67 +1,73 @@
 # API schema
 
-The Schema API provides mechanisms to define and enforce structure to the data 
-that is managed by Open Data for Industries.
+The Schema API defines and enforces the structure of data managed by Open Data for Industries.
 
+A **schema** is a structure written in JSON format. It provides data type information for the fields in a data record.
 
-A schema is a structure, which is defined in JSON format. It provides data 
-type information for the data record fields.
+At its core, a schema specifies whether a field is a string, integer, floating-point number, geopoint, or another supported data type.
 
-In a simple definition, the schema defines whether a field in the record is a 
-string, integer, floating point, geopoint, or other data types.
-
-Input request fields can be validated, against the schema, allowing only requests which contain the values that are allowed in the schema.
+By validating input request fields against the schema, the system ensures that only requests with allowed values and structures are accepted.
 
 ## Schema structure
 
-Schemas are defined in JSON format. These definitions follow a structure to standardize the identification of the schemas in the Open Data for Industries service.
+Schemas are defined in JSON format and follow a standardized structure to ensure consistent identification within the Open Data for Industries service.
 
-The API schema is based in a structure that is defined in the OpenAPI 
-Specification (OAS) standards.  Language-agnostic interface to HTTP APIs 
-which allows both humans and computers to discover and 
-understand the capabilities of the service without access to source code, 
-documentation, or through network traffic inspection. 
+This API schema is based on the **OpenAPI Specification (OAS)** — a language-agnostic standard for HTTP APIs. OpenAPI allows both humans and machines to easily understand and interact with the service—without needing access to source code, documentation, or inspecting network traffic.
 
-When properly defined, a consumer can understand and interact with the remote service with a minimal amount of implementation logic.  
+When correctly defined, the schema enables seamless integration with minimal implementation effort.
 
-Relecov uses is according to the [OpenAPI 3.0 specification](https://swagger.io/specification/).
+**Relecov follows the [OpenAPI 3.0 specification](https://swagger.io/specification/).**
 
 
 ## Schema operations
 
 For accessing Relecov 2 APIs request are implemented.
 
-| API endpoint  | Description |
-| ------------- | ----------- |
-| POST          | Create and object in relecov database |
-| PUT           | Update and object that is already defined in database |
+| API Endpoint | Description                                  |
+|--------------|----------------------------------------------|
+| `POST`       | Create a new object in the Relecov database  |
+| `PUT`        | Update an existing object in the database    |
 
+### `POST` Requests
 
-We are using POST request for:
+POST requests are used to:
 
-- Create Sample data using Metadata laboratory
-- Create Bioinfo data from Analysis Metadata
-- Create Variant data for those analysis that reached a consensus.
+- Create sample data using laboratory metadata. 
+- Create bioinformatics data from analysis metadata.  
+- Create variant data for analyses that have reached a consensus.  
 
-PUT request used for:
+### `PUT` Requests
 
-- Update state of sample. To track the actions that are done for a sample.
+PUT requests are used to:
 
+- Update the state of a sample, allowing the system to track its progress through various processing stages.
 
-POST and PUT requests contain a "request body" that is defined as **Info object**. This object is written in a JSON format where field names and values are defined.
-
+Both `POST` and `PUT` requests require a **request body** formatted as an **Info object**, which is a JSON object with field names and corresponding values:
 
 ```
 {
     "field_name" : value
 }
-
 ```
 
 ## Data types
 
-Different data types is allowed in API 3.0, like "integer", "date", "string", 
-etc. But when sending a request to relecov you must set them as "string" 
-format data. 
+The API supports various data types as defined in the OpenAPI 3.0 specification, including:
 
-In case of date fields they must be sent following this format "YYYY-MM-DD" per example **2020-12-20**.
+- `integer`
+- `date`
+- `string`
+- `geopoint`
+- and others
+
+> **Important:** When sending data to Relecov, all values must be provided as **strings**, regardless of their actual data type.
+
+### Date Format
+
+Date fields must follow the format:  
+**`YYYY-MM-DD`**
+
+#### Example:
+
+```json
+"sample_collection_date": "2020-12-20"
