@@ -1,34 +1,29 @@
 # Variants Dashboard
 
-Variants Dashboard gathers different kinds of interactive graphs, both
-related to the results of the variants detected in the samples through 
-bioinformatics analysis.
+The **Variants Dashboard** provides a collection of interactive visualizations related to the results of detected variants in the samples, as identified through bioinformatics analyses.
 
 ## Mutations in Lineages
 
-This interactive needle plot shows the different mutations that are found
-in the samples for each lineage registered in the database, where the height
-of the needle is related to the population allele frequency, and the color
-with the kind of mutation. The x axis represents the length of SARS-CoV-2
-genome, so each needle is shown under the corresponding genome location where
-it's found.
+This interactive **needle plot** displays the mutations found in samples for each lineage registered in the database.
 
-You can choose between all the lineages registered in the database, and
-zoom in any section of the genome of your interest.
+- The **height** of each needle represents the **population allele frequency**.
+- The **color** indicates the **type of mutation**.
+- The **x-axis** represents the length of the SARS-CoV-2 genome, with each needle placed at the corresponding genomic location of the mutation.
 
-![v_dashboard_var_in_lineage](img/v_dashboard_var_in_lineage.png)
+You can select any lineage from the database and **zoom** into specific regions of the genome for closer inspection.
 
-There's a tutorial in the upper part which shows information about each
-element of the graph.
+![Mutations in Lineages](img/v_dashboard_var_in_lineage.png)
+
+A tutorial is available at the top of the dashboard to help you understand each element of the graph.
 
 ## Lineages VOC
 
-Lineages VOC (Variants Of Concern) graph shows the evolution of the variants
-in the database over time. As there are a lot of lineages in the database, the
-data shown in this graph corresponds to variants, representing a higher level of
-classification. Multiple lineages may correspond to the same variant.
-Each color represents a different variant, and the occupied area shows the
-relative abundancy of each one. The dates shown by default are the first
-and last collection dates found in the database.
+The **Lineages VOC** (Variants of Concern) graph shows how variants have evolved over time in the database.
 
-![v_dashboard_voc](img/v_dashboard_voc.png)
+- Due to the large number of lineages, the graph summarizes them into **variants**, which are a higher-level classification.
+- **Multiple lineages** may be grouped under the same variant.
+- **Each color** represents a different variant.
+- The **area** occupied by a variant reflects its **relative abundance** over time.
+- The **default date range** corresponds to the earliest and latest sample collection dates found in the database.
+
+![Lineages VOC](img/v_dashboard_voc.png)
