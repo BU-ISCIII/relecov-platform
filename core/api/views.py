@@ -705,7 +705,7 @@ def update_state(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(["GET"])
-def get_sample_data(request):
+def check_sample_exists(request):
     if request.method != "GET":
         return Response(
             {"ERROR": "WRONG REQUEST METHOD TO GET SAMPLE DATA, USE GET"},

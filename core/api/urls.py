@@ -25,8 +25,8 @@ urlpatterns = [
     ),
     path("updateState", core.api.views.update_state, name="update_state"),
     path(
-        "getSampleData",
-        core.api.views.get_sample_data,
-        name="get_sample_data",
+        "checkSampleExists",
+        core.api.views.check_sample_exists,
+        name="check_sample_exists",
     ),
 ]
