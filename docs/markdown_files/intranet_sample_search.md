@@ -1,48 +1,24 @@
 # Sample Search
 
-To retrieve information about the samples stored in Relecov, a search form has been provided.
+To retrieve information about the samples stored in RELECOV, a search form has been provided.
 
-The **Sample Search** option is available in the Intranet area by selecting **Samples Search** from the left-side menu.
+The **Sample Browser** option is available in the Intranet area by selecting **Samples browser** from the left-side menu.
 
-There are two different views depending on the role of the user currently logged in.
+There are two different views depending on the role of the user currently logged in, but in both cases a table indicating the available samples to search is displayed. The following is an example of what would be shown:
 
-If the user has the **Relecov Manager** role, the following page is displayed:
+![table_search_manager](img/form_table.png)
 
-![form_sample_search_manager](img/form_sample_search_manager.png)
+If the user has the **Relecov Manager** role, all uploaded samples will be shown, and the user will be able to select any of them and check the information related to it.
 
-You can filter by:
-- **Sample State**: Every time an action is performed on a sample, a new state is added. For example, if a sample undergoes bioinformatic analysis, a corresponding analysis state is added.
-- **Search by Name**: Use this to limit your search to a specific sample.
-- **Sample defined date**: The date the sample was stored in Relecov.
-- **Search by Laboratory**: Managers can search across all laboratories or limit the search to a specific one.
+For users with **other roles**, a similar page is shown, but only those samples related to their own laboratory will appear. These users cannot view or search for samples from other laboratories.
 
-For users with **other roles**, a similar page is shown, but the search is restricted to samples uploaded by their own laboratory. These users cannot view or search for samples from other laboratories.
+As you can see, it is possible to either look for specific samples based on their sequencing ID or based on the collection date. It is also feasible to filter samples by lineage or by the collecting institution. You can also use the search box at the top right corner to directly look for those samples that meet what is being entered in such box. 
 
-![form_sample_search](img/form_sample_search.png)
-
-As shown in the heading, the search is limited to your laboratory.
-
-When filling in the form, all filters are combined using **AND** logic. This means the results will match **all** selected criteria (e.g., state **and** date).
+The resulting table can be downloaded in .csv or .xlsx formats as well. 
 
 ## Displaying Sample Search Results
 
-There are two possible outcomes after submitting a search:
-
-- Multiple samples match the criteria.
-- Only one sample matches the criteria.
-
-### Displaying Multiple Samples
-
-![display_many_samples](img/display_many_samples.png)
-
-If multiple samples match your query, a paginated table will be shown.  
-You can click **Next** to view more results, or use the **Search** field to narrow them down.
-
-Once you've found the correct sample, click on the sample link to view its detailed information.
-
-### Displaying a Single Sample
-
-If only one sample matches your query — or if you've clicked a sample link — the sample detail page is shown.
+Once you've found a sample that you're interested in, click on the sample link to view its detailed information.
 
 At the top, you’ll see several tabs with categorized information.
 
