@@ -124,6 +124,13 @@ def sequencing_graphics():
         project_field="library_preparation_kit",
         columns=["library_preparation", "number"],
     )
+    lib_preparation_df["library_preparation"] = (
+        lib_preparation_df["library_preparation"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+        .replace({"": "Not Applicable"})
+    )
     sequencing["library_preparation"] = dashboard.utils.plotly.bar_graphic(
         data=lib_preparation_df,
         col_names=["library_preparation", "number"],
