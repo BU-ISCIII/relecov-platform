@@ -20,7 +20,7 @@ def get_public_accession_from_sample_lab(p_field, sample_objs=None):
             )
             .values_list(
                 "sampleID__submitting_institution",
-                "sampleID__sequencing_sample_id",
+                "sampleID__sample_fingerprint",
                 "value",
             )
         )
@@ -33,7 +33,7 @@ def get_public_accession_from_sample_lab(p_field, sample_objs=None):
             .exclude(
                 Q(value__in=core.config.FIELD_EMPTY_VALUES) | Q(value__isnull=True)
             )
-            .values_list("sampleID__sequencing_sample_id", "value")
+            .values_list("sampleID__sample_fingerprint", "value")
         )
 
 
