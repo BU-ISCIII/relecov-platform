@@ -862,6 +862,7 @@ def save_temp_sample_data(samples, user_obj):
     sample_saved_list = []
     for sample in samples:
         for item, value in sample.items():
+            # TODO: This needs special handling to implement sample_fingerprint
             data = {"sample_name": sample[core.config.FIELD_FOR_GETTING_SAMPLE_ID]}
             data["field"] = item
             data["value"] = value

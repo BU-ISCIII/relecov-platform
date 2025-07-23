@@ -826,7 +826,7 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
             for x in in_date_samples["DATA"]
         }
         join_conditions = [
-            When(sequencing_sample_id=sample_id, then=Value(collect_date))
+            When(sample_unique_id=sample_id, then=Value(collect_date))
             for sample_id, collect_date in samples_dates_dict.items()
         ]
         all_sample_counts_by_lab = (
@@ -1027,7 +1027,7 @@ def pre_proc_search_samples_summary():
     )
     processed_samples_qs = (
         core.models.Sample.objects.filter(
-            sequencing_sample_id__in=[x["Sample Name"] for x in in_date_samples["DATA"]]
+            sample_unique_id__in=[x["Sample Name"] for x in in_date_samples["DATA"]]
         )
         .prefetch_related(filtered_lineages)
         .order_by("id")
@@ -1041,7 +1041,7 @@ def pre_proc_search_samples_summary():
         chunk = paginator.page(page_num)
         for sample in chunk:
             # TODO: Prone to duplications. Use fingerprint along with iskylims
-            sample_id = sample.sequencing_sample_id
+            sample_id = sample.sample_unique_id
             col_inst = sample.collecting_institution
             sub_inst = sample.submitting_institution
             sample_pk = sample.pk
