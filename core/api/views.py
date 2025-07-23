@@ -196,15 +196,18 @@ def create_sample_data(request):
             print(f"ERROR. Missing: {missing_fields}")
             return Response(
                 {"ERROR": f"Missing: {missing_fields}"},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_409_CONFLICT,
             )
         # check if sample is already defined
         temp_fingerprint = core.utils.samples.build_sample_fingerprint(
             *[data[field] for field in required_db_fields]
         )
-        if core.utils.samples.get_sample_obj_from_fingerprint(temp_fingerprint):
-            req_data = {f: data[f] for f in required_db_fields}
-            error = {"ERROR": "Sample already defined.", "data": req_data}
+        found_sample = core.utils.samples.get_sample_obj_from_fingerprint(
+            temp_fingerprint
+        )
+        if found_sample:
+            found_data = core.api.serializers.CreateSampleSerializer(found_sample).data
+            error = {"ERROR": "Sample already defined.", "data": found_data}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         # get the user to assign the sample based on the collecting_institution
         # value. If lab is not define user field is set t
@@ -291,10 +294,7 @@ def create_sample_data(request):
             )
             if "ERROR" in result:
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        sample_dict = {
-            field.name: str(getattr(sample_obj, field.name))
-            for field in sample_obj._meta.fields
-        }
+        sample_dict = core.api.serializers.CreateSampleSerializer(sample_obj).data
         return Response(
             {"message": "Successful upload information", "data": sample_dict},
             status=status.HTTP_201_CREATED,
