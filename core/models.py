@@ -1030,6 +1030,16 @@ class VariantInSample(models.Model):
             return self.sampleID_id.get_sample_name()
         return None
 
+    def get_sample_unique_id(self):
+        if self.sampleID_id is not None:
+            return self.sampleID_id.get_unique_id()
+        return None
+
+    def get_sample_fingerprint(self):
+        if self.sampleID_id is not None:
+            return self.sampleID_id.get_sample_fingerprint()
+        return None
+
     def get_variant_pos(self):
         return self.variantID_id.get_pos()
 
