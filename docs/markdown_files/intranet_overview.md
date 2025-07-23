@@ -28,12 +28,13 @@ After a successful login, you will have access to the Intranet features, and the
 
 You can also confirm that you are logged in by checking the top right corner, where your username and a **Close session** button will be visible.
 
-Once logged in, there are two possible user roles:
+Once logged in, there are **three** possible user roles:
 
 1. User with the **Relecov Manager** role  
-2. User belonging to a laboratory
+2. User belonging to the **submitting institution** ("Submitter")
+3. User belonging to the **collecting institution** ("Collector")
 
-The main difference between these roles is that a Relecov Manager can search and view samples from any laboratory, whereas a regular user can only search and view samples belonging to their own laboratory.
+The main difference between these roles is that a Relecov Manager can search and view samples from any laboratory, whereas a regular user (those belonging to a certain institution) can only search and view samples belonging to their own laboratory.
 
 When navigating through different options in the top menu, the Intranet menu will be replaced by the menu relevant to the selected option. However, you can return to the Intranet at any time by clicking the **Intranet** button.
 
