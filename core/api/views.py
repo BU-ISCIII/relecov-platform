@@ -128,10 +128,7 @@ def create_sample_data(request):
         )
         if core.utils.samples.get_sample_obj_from_fingerprint(temp_fingerprint):
             req_data = {f: data[f] for f in required_db_fields}
-            error = {
-                "ERROR": "Sample already defined.",
-                "data": req_data
-            }
+            error = {"ERROR": "Sample already defined.", "data": req_data}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         # get the user to assign the sample based on the collecting_institution
         # value. If lab is not define user field is set t
@@ -223,10 +220,8 @@ def create_sample_data(request):
             for field in sample_obj._meta.fields
         }
         return Response(
-            {
-                "message": "Successful upload information",
-                "data": sample_dict
-            }, status=status.HTTP_201_CREATED
+            {"message": "Successful upload information", "data": sample_dict},
+            status=status.HTTP_201_CREATED,
         )
 
 
