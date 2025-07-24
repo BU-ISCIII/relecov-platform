@@ -1,3 +1,5 @@
+SAMPLE_ID_PREFIX = "RL-"
+
 ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM = [
     "Public Health sample id (SIVIES)",
     "GISAID id",
