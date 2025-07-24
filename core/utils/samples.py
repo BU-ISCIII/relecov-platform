@@ -732,12 +732,12 @@ def increase_unique_value(old_unique_number):
     If number reaches the 9999 then the letter is stepped
     """
     split_value = old_unique_number.split("-")
-    number = int(split_value[1]) + 1
-    letter = split_value[0]
+    number = int(split_value[2]) + 1
+    letter = split_value[1]
 
     if number > 9999:
         number = 1
-        index_letter = list(split_value[0])
+        index_letter = list(split_value[1])
         if index_letter[2] == "Z":
             if index_letter[1] == "Z":
                 index_letter[0] = chr(ord(index_letter[0]) + 1)
@@ -755,7 +755,7 @@ def increase_unique_value(old_unique_number):
 
     number_str = str(number)
     number_str = number_str.zfill(4)
-    return str(letter + "-" + number_str)
+    return str(core.config.SAMPLE_ID_PREFIX + letter + "-" + number_str)
 
 
 def pending_samples_in_metadata_form(user_obj):

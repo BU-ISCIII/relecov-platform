@@ -70,5 +70,5 @@ def split_sample_data(data):
             core.utils.samples.increase_unique_value(last_unique_value)
         )
     else:
-        split_data["sample"]["sample_unique_id"] = "AAA-0001"
+        split_data["sample"]["sample_unique_id"] = core.config.SAMPLE_ID_PREFIX + "AAA-0001"
     return split_data
