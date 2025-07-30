@@ -1053,10 +1053,8 @@ def check_sample_exists(request):
     )
     found_sample = core.utils.samples.get_sample_obj_from_fingerprint(temp_fingerprint)
     if found_sample:
-        return Response(
-            {"message": "sample correctly found", "data": found_sample},
-            status=status.HTTP_200_OK,
-        )
+        sample_serialized = core.api.serializers.CreateSampleSerializer(found_sample)
+        return Response({"detail": sample_serialized.data}, status=status.HTTP_200_OK)
     else:
         return Response(
             {"message": "Sample not found.", "data": {}}, status=status.HTTP_200_OK
