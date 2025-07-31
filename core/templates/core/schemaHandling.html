@@ -7,27 +7,31 @@
 <section id="relecov-platform" class="hero-animated d-flex align-items-center">
     <div class="container d-flex flex-column justify-content-center align-items-center  position-relative" data-aos="zoom-out">
         <div class="container position-relative">
-            {% if ERROR %}
+            {% if errors %}
                 <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card  border-danger mb-3">
                             <div class="card-header text-center text-danger"><h3 style="text-align:center">Error when loading Schema</h3> </div>
                             <div class="card-body  text-center">
                                 <br>
-                                <p><strong>{{ERROR}}</strong></p>
+                                <p>
+                                {% for err in errors %}
+                                    <strong>{{err.message}}</strong>{% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             {% endif %}
-            {% if SUCCESS %}
+            {% if success %}
                 <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card">
                             <div class="card-header text-center"><h3 style="text-align:center">Successful schema loaded</h3> </div>
                             <div class="card-body  text-center">
                                 <br>
-                                <p><strong>{{SUCCESS}}</strong></p>
+                                <p><strong>{{message}}</strong></p>
                             </div>
                         </div>
                     </div>
@@ -86,7 +90,7 @@
                                         <div class="card">
                                             <div class="card-header"><h2 style="text-align:center">Schemas loaded </h2> </div>
                                             <div class="card-body">
-                                                {% if DATA.schemas %}
+                                                {% if schemas %}
                                                     <table class="table table-hover">
                                                         <thead>
                                                             <tr>
@@ -98,16 +102,16 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {% for id, name, version, default, used, file in DATA.schemas %}
+                                                            {% for id, name, version, default, used, file in schemas %}
                                                                 <tr>
                                                                     <td><a href="/schemaDisplay={{id}}">{{name}}</a></td>
                                                                     <td>{{version}}</td>
-                                                                    {% if default == True %}
+                                                                    {% if default %}
                                                                         <td class="text-center"><i class="bi bi-check-circle"  style="color:green"></i></td>
                                                                     {% else %}
                                                                         <td class="text-center"><i class="bi bi-x-circle"  style="color:red"></i></td>
                                                                     {% endif %}
-                                                                    {% if used == "True" %}
+                                                                    {% if used %}
                                                                         <td class="text-center"><i class="bi bi-check-circle"  style="color:green"></i></td>
                                                                     {% else %}
                                                                         <td class="text-center"><i class="bi bi-x-circle"  style="color:red"></i></td>

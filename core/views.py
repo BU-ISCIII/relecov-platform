@@ -16,6 +16,7 @@ import core.utils.annotation
 import core.utils.lineage
 import core.config
 import core.services
+from core.services import schema_services
 
 
 # Imports for received samples graphic at intranet
@@ -60,17 +61,21 @@ def assign_samples_to_user(request):
 def schema_handling(request):
     if request.user.username != "admin":
         return redirect("/")
-    result = core.services.get_schema_handling_data(request)
-    show_success = request.method == "POST" and result.get("success")
-    return render(
-        request,
-        "core/schemaHandling.html",
-        {
-            "DATA": result["data"],
-            "SUCCESS": result["success"] if show_success else None,
-            "ERROR": result["errors"],
-        },
+
+    action = request.POST.get("action") if request.method == "POST" else None
+    schema_file = request.FILES.get("schemaFile") if request.method == "POST" else None
+    default_flag = "on" if request.POST.get("schemaDefault") else "off"
+
+    response = schema_services.handle_schema_upload(
+        action=action,
+        schema_file=schema_file,
+        default_flag=default_flag,
+        user=request.user,
+        app_name=__package__,
     )
+
+    context = {**response.get("data", {}), "success": response.get("success"), "errors": response.get("errors")}
+    return render(request, "core/schemaHandling.html", context)
 
 
 @login_required
@@ -127,9 +132,9 @@ def search_sample(request):
 
         # If more than one sample is found, render the list of records
         if (
-            display_result["success"]
-            and display_data.get("samples")
-            and len(display_data["samples"]) > 1
+            display_result["success"] and
+            display_data.get("samples") and
+            len(display_data["samples"]) > 1
         ):
             return render(
                 request,

@@ -247,3 +247,27 @@ class LabLastActionDictSerializer(serializers.Serializer):
     @classmethod
     def from_raw(cls, raw_dict):
         return cls(raw_dict).data
+
+
+class SchemaListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="pk")
+    name = serializers.CharField(source="schema_name")
+    version = serializers.CharField(source="schema_version")
+    is_default = serializers.BooleanField(source="schema_default")
+    in_use = serializers.BooleanField(source="schema_in_use")
+    file = serializers.FileField(source="file_name")
+
+    class Meta:
+        model = core.models.Schema
+        fields = ["id", "name", "version", "is_default", "in_use", "file"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return [
+            data["id"],
+            data["name"],
+            data["version"],
+            data["is_default"],
+            data["in_use"],
+            data["file"],
+        ]
