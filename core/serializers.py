@@ -271,3 +271,36 @@ class SchemaListSerializer(serializers.ModelSerializer):
             data["in_use"],
             data["file"],
         ]
+
+
+class SchemaPropertyDisplaySerializer(serializers.ModelSerializer):
+    property = serializers.CharField(source="property")
+    label = serializers.CharField()
+    required = serializers.BooleanField()
+    classification = serializers.SerializerMethodField()
+    description = serializers.CharField()
+
+    class Meta:
+        model = core.models.SchemaProperties
+        fields = [
+            "property",
+            "label",
+            "required",
+            "classification",
+            "description",
+        ]
+
+    def get_classification(self, obj):
+        if obj.classificationID:
+            return obj.classificationID.get_classification_name()
+        return ""
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return [
+            data["property"],
+            data["label"],
+            data["required"],
+            data["classification"],
+            data["description"],
+        ]

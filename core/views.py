@@ -17,6 +17,7 @@ import core.utils.lineage
 import core.config
 import core.services
 from core.services import schema_services
+from core.services import sample_services
 
 
 # Imports for received samples graphic at intranet
@@ -82,87 +83,54 @@ def schema_handling(request):
 def schema_display(request, schema_id):
     if request.user.username != "admin":
         return redirect("/")
-    schema_data = core.utils.schema.get_schema_display_data(schema_id)
-    return render(request, "core/schemaDisplay.html", {"schema_data": schema_data})
+    response = schema_services.get_schema_display(schema_id)
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/schemaDisplay.html", context)
 
 
 @login_required
 def sample_display(request, sample_id):
-    result = core.services.get_sample_display_data(sample_id, request.user)
-    if not result["success"]:
-        return render(request, "core/sampleDisplay.html", {"errors": result["errors"]})
-
-    return render(request, "core/sampleDisplay.html", {"data": result["data"]})
+    response = core.services.get_sample_display_data(sample_id, request.user)
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/sampleDisplay.html", context)
 
 
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
-    search_data = core.services.get_search_data(user_obj=request.user)
-    if request.method == "POST" and request.POST.get("action") == "searchSample":
-        sample_name = request.POST.get("sampleName", "")
-        s_date = request.POST.get("sDate", "")
-        lab_name = request.POST.get("lab", "")
-        sample_state = request.POST.get("sampleState", "")
+    action = request.POST.get("action") if request.method == "POST" else None
+    sample_name = request.POST.get("sampleName", "")
+    s_date = request.POST.get("sDate", "")
+    lab_name = request.POST.get("lab", "")
+    sample_state = request.POST.get("sampleState", "")
 
-        # Validate search parameters
-        validation = core.services.validate_search_params(
-            sample_name, lab_name, sample_state, s_date
-        )
-        if "warning" in validation:
-            return render(
-                request,
-                "core/searchSample.html",
-                {"DATA_QUERY": search_data, "ERROR": validation["warning"]},
-            )
+    response = sample_services.handle_sample_search(
+        action=action,
+        sample_name=sample_name,
+        s_date=s_date,
+        lab_name=lab_name,
+        sample_state=sample_state,
+        user=request.user,
+    )
 
-        # Get the search results
-        display_result = core.services.display_samples(
-            sample_name=sample_name,
-            lab_name=lab_name,
-            sample_state=sample_state,
-            s_date=s_date,
-            user=request.user,
-        )
-        display_data = display_result["data"]
+    redirect_id = response.get("data", {}).get("redirect")
+    if redirect_id:
+        return redirect("sample_display", sample_id=redirect_id)
 
-        # If only one sample is found, redirect to sample display page
-        if display_data.get("redirect"):
-            return redirect("sample_display", sample_id=display_data["redirect"])
-
-        # If more than one sample is found, render the list of records
-        if (
-            display_result["success"] and
-            display_data.get("samples") and
-            len(display_data["samples"]) > 1
-        ):
-            return render(
-                request,
-                "core/searchSample.html",
-                {
-                    "DATA_QUERY": display_data,
-                    "SUCCESS": display_result["success"],
-                    "ERROR": display_result["errors"],
-                },
-            )
-
-        # If there are errors, render the error message
-        if display_result["errors"]:
-            return render(
-                request,
-                "core/searchSample.html",
-                {"DATA_QUERY": search_data, "ERROR": display_result["errors"]},
-            )
-
-        # If no results but no explicit error, render the search form again
-        return render(request, "core/searchSample.html", {"DATA_QUERY": search_data})
-
-    # GET request or first access
-    if "ERROR" in search_data:
-        return render(
-            request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
-        )
-    return render(request, "core/searchSample.html", {"DATA_DISPLAY": search_data})
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/searchSample.html", context)
 
 
 @login_required

@@ -1,6 +1,7 @@
 import core.models
 import core.serializers as serializers_module
 import core.utils.schema as schema_utils
+import core.config
 
 
 class SchemaError(Exception):
@@ -56,6 +57,32 @@ def get_loaded_schemas(app_name):
         result["success"] = True
     except SchemaError as exc:
         result["errors"].append({"code": 500, "message": str(exc)})
+    except Exception as exc:
+        result["errors"].append({"code": 500, "message": str(exc)})
+    return result
+
+
+def get_schema_display(schema_id):
+    """Return schema properties data for display"""
+    result = {"data": {}, "success": False, "errors": []}
+    try:
+        schema = schema_utils.get_schema_obj_from_id(schema_id)
+        if not schema:
+            result["errors"].append(
+                {"code": 404, "message": core.config.ERROR_SCHEMA_ID_NOT_DEFINED}
+            )
+            return result
+
+        props_qs = core.models.SchemaProperties.objects.filter(
+            schemaID=schema
+        ).order_by("property")
+        result["data"] = {
+            "heading": core.config.HEADING_SCHEMA_DISPLAY,
+            "schema": serializers_module.SchemaPropertyDisplaySerializer(
+                props_qs, many=True
+            ).data,
+        }
+        result["success"] = True
     except Exception as exc:
         result["errors"].append({"code": 500, "message": str(exc)})
     return result
