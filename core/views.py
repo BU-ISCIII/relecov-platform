@@ -192,7 +192,6 @@ def intranet(request):
     )
 
     if is_manager:
-        import pdb; pdb.set_trace()
         response = core.services.get_intranet_data_for_manager()
         return render(
             request,
@@ -206,7 +205,6 @@ def intranet(request):
 
     # TODO: Didn't tested due to lack of bioinfodata (api related issues)
     response = core.services.get_intranet_data_for_user(request.user)
-    import pdb; pdb.set_trace()
     return render(
         request,
         "core/intranet.html",
@@ -221,94 +219,118 @@ def intranet(request):
 def variants(request):
     return render(request, "core/variants.html", {})
 
-
-# TODO: this needs serialized-based refactor
+# TODO: too many utils to apply serializer refactor
 @login_required()
 def metadata_form(request):
     schema_obj = core.utils.schema.get_latest_schema("relecov", __package__)
-    if request.method == "POST" and request.POST["action"] == "uploadMetadataFile":
-        if "metadataFile" in request.FILES:
-            core.utils.samples.save_excel_form_in_samba_folder(
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "uploadMetadataFile" and "metadataFile" in request.FILES:
+            response = core.services.handle_metadata_upload(
                 request.FILES["metadataFile"], request.user.username
             )
             return render(
-                request,
-                "core/metadataForm.html",
-                {"sample_recorded": {"ok": "OK"}},
+                request, "core/metadataForm.html",
+                {
+                    "DATA_SAMPLERECORDED": response["data"].get("sample_recorded"),
+                    "SUCCESS": response["success"],
+                    "ERROR": response["errors"]
+                }
             )
-    if request.method == "POST" and request.POST["action"] == "defineSamples":
-        res_analyze = core.utils.samples.analyze_input_samples(request)
-        # empty form
-        if len(res_analyze) == 0:
-            m_form = core.utils.samples.create_metadata_form(schema_obj, request.user)
-            return render(request, "core/metadataForm.html", {"m_form": m_form})
-        if "save_samples" in res_analyze:
-            s_saved = core.utils.samples.save_temp_sample_data(
-                res_analyze["save_samples"], request.user
+        #TODO: fix in progress
+        if action == "defineSamples":
+            response = core.services.handle_define_samples(
+                request.POST, request.user, schema_obj
             )
-        if "s_incomplete" in res_analyze or "s_already_record" in res_analyze:
-            if "s_incomplete" not in res_analyze:
-                m_form = None
-            else:
-                m_form = core.utils.samples.create_metadata_form(
-                    schema_obj, request.user
+            if "sample_issues" in response["data"]:
+                return render(
+                    request, "core/metadataForm.html",
+                    {
+                        "DATA_SAMPLEISSUES": response["data"]["sample_issues"],
+                        "DATA_FORM": response["data"]["m_form"],
+                        "SUCCESS": response["success"],
+                        "ERROR": response["errors"]
+                    }
                 )
-            return render(
-                request,
-                "core/metadataForm.html",
-                {"sample_issues": res_analyze, "m_form": m_form},
+            if "m_form" in response["data"]:
+                return render(
+                    request, "core/metadataForm.html",
+                    {
+                        "DATA_FORM": response["data"]["m_form"],
+                        "SUCCESS": response["success"],
+                        "ERROR": response["errors"]
+                    }
+                )
+            if "m_batch_form" in response["data"]:
+                return render(
+                    request, "core/metadataForm.html",
+                    {
+                        "DATA_BATCHFORM": response["data"]["m_batch_form"],
+                        "DATA_SAMPLESAVED": response["data"]["sample_saved"],
+                        "SUCCESS": response["success"],
+                        "ERROR": response["errors"]
+                    }
+                )
+            if "sample_saved" in response["data"]:
+                return render(
+                    request, "core/metadataForm.html",
+                    {
+                        "DATA_SAMPLESAVED": response["data"]["sample_saved"],
+                        "SUCCESS": response["success"],
+                        "ERROR": response["errors"]
+                    }
+                )
+
+        if action == "defineBatch":
+            response = core.services.handle_define_batch(
+                request.POST, request.user, schema_obj
             )
-        m_batch_form = core.utils.samples.create_form_for_batch(
-            schema_obj, request.user
-        )
-        sample_saved = core.utils.samples.get_sample_pre_recorded(request.user)
+            if "m_batch_form" in response["data"]:
+                return render(
+                    request, "core/metadataForm.html",
+                    {
+                        "DATA_BATCHFORM": response["data"]["m_batch_form"],
+                        "DATA_SAMPLESAVED": response["data"]["sample_saved"],
+                        "SUCCESS": response["success"],
+                        "ERROR": response["errors"]
+                    }
+                )
+            if "sample_recorded" in response["data"]:
+                return render(
+                    request, "core/metadataForm.html",
+                    {
+                        "DATA_SAMPLERECORDED": response["data"]["sample_recorded"],
+                        "SUCCESS": response["success"],
+                        "ERROR": response["errors"]
+                    }
+                )
+
+    # GET request or fallback
+    response = core.services.get_metadata_form_initial(request.user, schema_obj)
+    if "m_batch_form" in response["data"]:
         return render(
-            request,
-            "core/metadataForm.html",
-            {"m_batch_form": m_batch_form, "sample_saved": s_saved},
+            request, "core/metadataForm.html",
+            {
+                "DATA_BATCHFORM": response["data"]["m_batch_form"],
+                "DATA_SAMPLESAVED": response["data"]["sample_saved"],
+                "SUCCESS": response["success"],
+                "ERROR": response["errors"]
+            }
         )
-    if request.method == "POST" and request.POST["action"] == "defineBatch":
-        if not core.utils.samples.check_if_empty_data(request.POST):
-            sample_saved = core.utils.samples.get_sample_pre_recorded(request.user)
-            m_batch_form = core.utils.samples.create_form_for_batch(
-                schema_obj, request.user
-            )
-            return render(
-                request,
-                "core/metadataForm.html",
-                {"m_batch_form": m_batch_form, "sample_saved": sample_saved},
-            )
-        meta_data = core.utils.samples.join_sample_and_batch(
-            request.POST, request.user, schema_obj
-        )
-        # write date to excel using relecov tools
-        core.utils.samples.write_form_data_to_excel(meta_data, request.user)
-        core.utils.samples.delete_temporary_sample_table(request.user)
-        # Display page to indicate that process is starting
+    if not response["success"]:
         return render(
-            request, "core/metadataForm.html", {"sample_recorded": {"ok": "OK"}}
+            request, "core/metadataForm.html",
+            {"ERROR": response["errors"]}
         )
-    else:
-        if core.utils.samples.pending_samples_in_metadata_form(request.user):
-            sample_saved = core.utils.samples.get_sample_pre_recorded(request.user)
-            m_batch_form = core.utils.samples.create_form_for_batch(
-                schema_obj, request.user
-            )
-            return render(
-                request,
-                "core/metadataForm.html",
-                {"m_batch_form": m_batch_form, "sample_saved": sample_saved},
-            )
-        m_form = core.utils.samples.create_metadata_form(schema_obj, request.user)
-        if "ERROR" in m_form:
-            return render(request, "core/metadataForm.html", {"ERROR": m_form["ERROR"]})
-        if m_form["lab_name"] == "":
-            return render(
-                request,
-                "core/metadataForm.html",
-                {"ERROR": core.config.ERROR_USER_IS_NOT_ASSIGNED_TO_LAB},
-            )
-        return render(request, "core/metadataForm.html", {"m_form": m_form})
+    return render(
+        request, "core/metadataForm.html",
+        {
+            "DATA_FORM": response["data"]["m_form"],
+            "SUCCESS": response["success"],
+            "ERROR": response["errors"]
+        }
+    )
 
 
 # TODO: this needs serialized-based refactor
