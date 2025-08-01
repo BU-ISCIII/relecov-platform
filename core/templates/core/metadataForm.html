@@ -47,7 +47,7 @@
                                         </div> <!-- end card  -->
                                     </div> <!--// end col-sm-9 -->
                                 </div> <!--// end row -->
-                            {% elif sample_recorded %}
+                            {% elif DATA_SAMPLERECORDED %}
                                 <div class="col-sm-12" >
                                     <div class="card  mb-3">
                                         <div class="card-header text-center "><h3 style="text-align:center">SUCCESSFUL</h3> </div>
@@ -60,15 +60,15 @@
                                 </div> <!--// end col-sm-9 -->
                             </div> <!--// end row -->
                             <!-- sample contains either incompleted or already defined samples-->
-                            {% elif sample_issues %}
-                                {% if sample_issues.s_already_record %}
+                            {% elif DATA_SAMPLEISSUES %}
+                                {% if DATA_SAMPLEISSUES.s_already_record %}
                                     <div class="row m-5">
                                         <div class="col-sm-12" >
                                             <div class="card  border-danger mb-3">
                                                 <div class="card-header text-center text-danger"><h3 style="text-align:center">Samples already defined</h3> </div>
                                                 <div class="card-body  text-center">
                                                 <p> The following samples are already loaded : <br>
-                                                    {% for sample in sample_issues.s_already_record  %}
+                                                    {% for sample in DATA_SAMPLEISSUES.s_already_record  %}
                                                         {{sample}},
                                                     {% endfor %}
                                                 </p>
@@ -79,26 +79,26 @@
                                     </div> <!--// end row -->
                                 {% endif %}
                             {% endif %}
-                            {% if m_form %}
-                                {% if not sample_issues.s_incomplete %}
+                            {% if DATA_FORM %}
+                                {% if not DATA_SAMPLEISSUES.s_incomplete %}
                                     <div class="row m-5">
                                         <div class="col-sm-10">
                                             <div class="card  border-default mb-3">
-                                                <div class="card-header text-center"><h3 style="text-align:center">You are loging as userid {{m_form.username}}</h3> </div>
+                                                <div class="card-header text-center"><h3 style="text-align:center">You are loging as userid {{DATA_FORM.username}}</h3> </div>
                                                 <div class="card-body  text-center">
-                                                    <p>Your input data will be associated to<strong> {{m_form.lab_name}}</strong></p>
+                                                    <p>Your input data will be associated to<strong> {{DATA_FORM.lab_name}}</strong></p>
                                                 </div> <!-- end card body  -->
                                             </div> <!-- end card  -->
                                         </div> <!--// end col-sm-9 -->
                                     </div> <!--// end row -->
                                 {% endif %}
-                                {% if m_form.sample %}
+                                {% if DATA_FORM.sample %}
                                     {% include "core/JExcelFunctionality.html" %}
                                     <ul class="nav nav-tabs" id="myTab" role="tablist">
                                         <li class="nav-item" role="presentation">
                                         <button class="nav-link active" id="sample-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="samples" aria-selected="true">Record Samples</button>
                                         </li>
-                                        {% if  not sample_issues.s_incomplete %}
+                                        {% if  not DATA_SAMPLEISSUES.s_incomplete %}
                                             <li class="nav-item" role="presentation">
                                             <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadFile" type="button" role="tab" aria-controls="uploadFile" aria-selected="false">Upload file</button>
                                             </li>
@@ -109,7 +109,7 @@
                                             <div class="container-md">
                                                 <div class="row mt-4">
                                                     <div class="col-md-12">
-                                                        {% if sample_issues.s_incomplete %}
+                                                        {% if DATA_SAMPLEISSUES.s_incomplete %}
                                                             <div class="card  border-danger mb-3">
                                                                 <div class="card-header text-center text-danger"><h2 style="text-align:center">Incomplete samples</h2> </div>
                                                                 <div class="card-body  text-center">
@@ -126,14 +126,14 @@
                                                                     {% csrf_token %}
                                                                     <div class="scrolling-wrapper">
                                                                         <input type="hidden" name="action" value="defineSamples">
-                                                                        <input type="hidden" name="heading" value="{{m_form.sample.heading}}">
-                                                                        <input type="hidden" name="l_iskylims" value="{{m_form.sample.l_iskylims}}">
-                                                                        <input type="hidden" name="l_metadata" value="{{m_form.sample.l_metadata}}">
+                                                                        <input type="hidden" name="heading" value="{{DATA_FORM.sample.heading}}">
+                                                                        <input type="hidden" name="l_iskylims" value="{{DATA_FORM.sample.l_iskylims}}">
+                                                                        <input type="hidden" name="l_metadata" value="{{DATA_FORM.sample.l_metadata}}">
                                                                         <div id="spreadsheet"></div>
                                                                     </div> <!--  end of scrolling  -->
                                                                     <script>
-                                                                        {% if sample_issues.s_incomplete %}
-                                                                            var data = [{% for values in sample_issues.s_incomplete %}
+                                                                        {% if DATA_SAMPLEISSUES.s_incomplete %}
+                                                                            var data = [{% for values in DATA_SAMPLEISSUES.s_incomplete %}
                                                                                 [{% for value in values %}'{{value}}',{% endfor %}],{% endfor %}
                                                                                 ];
                                                                         {% else %}
@@ -142,7 +142,7 @@
                                                                         var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
                                                                             data:data,
                                                                             columns: [
-                                                                            {% for item, values  in m_form.sample.data.items %}
+                                                                            {% for item, values  in DATA_FORM.sample.data.items %}
 
                                                                                 {% if values.format == "date" %}
                                                                                     { type: 'calendar', title: "{{item}}", width:180 },
@@ -156,7 +156,7 @@
                                                                         allowInsertColumn:false,
                                                                         allowDeleteColumn:false,
                                                                         allowRenameColumn:false,
-                                                                        minDimensions:[{{m_form.samples.heading|length}},10],
+                                                                        minDimensions:[{{DATA_FORM.samples.heading|length}},10],
                                                                     });
                                                                 </script>
                                                                 <div class="col-md-9">
@@ -233,17 +233,17 @@
                                     </div>  <!-- end myTabContent -->
                                 {% endif %}
 
-                            {% elif m_batch_form %}
+                            {% elif DATA_BATCHFORM %}
                                 <div class="row m-5">
                                     <div class="col-sm-10">
                                         <div class="card  border-default mb-3">
                                             <div class="card-header text-center">
-                                                <h3 style="text-align:center">You are loging as userid {{m_batch_form.username}}</h3>
-                                                <p style="text-align:center">Belongs to <strong> {{m_batch_form.lab_name}}</strong></p>
+                                                <h3 style="text-align:center">You are loging as userid {{DATA_BATCHFORM.username}}</h3>
+                                                <p style="text-align:center">Belongs to <strong> {{DATA_BATCHFORM.lab_name}}</strong></p>
                                             </div>
                                             <div class="card-body  text-center">
                                                 <p>The values defined in this form will be set to the following sample names <br>
-                                                    {% for sample in sample_saved %}{{sample}}, {% endfor %}</p>
+                                                    {% for sample in DATA_SAMPLESAVED %}{{sample}}, {% endfor %}</p>
                                             </div> <!-- end card body  -->
                                         </div> <!-- end card  -->
                                     </div> <!--// end col-sm-9 -->
@@ -256,8 +256,8 @@
                                             {% csrf_token %}
                                             <div class="container">
                                                 <input type="hidden" name="action" value="defineBatch">
-                                                {% if m_batch_form.fields %}
-                                                    {% for key, values in m_batch_form.fields.items %}
+                                                {% if DATA_BATCHFORM.fields %}
+                                                    {% for key, values in DATA_BATCHFORM.fields.items %}
                                                         {% if values.options %}
                                                             <div class="row mb-3">
                                                                 <label for="{{key}}"  class="col-sm-4 col-form-label input-group-text">{{key}}</label>

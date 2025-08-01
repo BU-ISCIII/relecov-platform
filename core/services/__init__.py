@@ -316,56 +316,62 @@ def get_sample_per_date_per_all_lab(detailed=False):
         return result
 
 
-# FIXME: refactor its output
 def get_intranet_data_for_manager():
-    all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
-    num_of_samples = core.utils.samples.count_handled_samples()
-    analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
+    result = {"data": {}, "success": False, "errors": []}
+    try:
+        all_sample_per_date = core.utils.samples.get_sample_per_date_per_all_lab()
+        num_of_samples = core.utils.samples.count_handled_samples()
+        analysis_percent = core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab()
 
-    bar_config = {
-        "col_names": ["Sequencing Date", "Number of samples"],
-        "options": {
-            "title": "Samples Received for all laboratories",
-            "width": 590,
-        },
-    }
+        bar_config = {
+            "col_names": ["Sequencing Date", "Number of samples"],
+            "options": {
+                "title": "Samples Received for all laboratories",
+                "width": 590,
+            },
+        }
 
-    # dash graph for samples per lab
-    core.utils.samples.create_dash_bar_for_each_lab()
+        # dash graph for samples per lab
+        core.utils.samples.create_dash_bar_for_each_lab()
 
-    # Collect data that populate views
-    gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab(
-        "gisaid_accession_id"
-    )
-    ena_raw = core.utils.public_db.get_public_accession_from_sample_lab(
-        "ena_sample_accession"
-    )
-    actions_raw = core.utils.samples.get_lab_last_actions()
-    data = {
-        "sample_bar_graph": core.utils.samples.create_date_sample_bar(
-            all_sample_per_date, bar_config
-        ),
-        "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
-        "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
-    }
-
-    if gisaid_raw:
-        data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
-            gisaid_raw
+        # Collect data that populate views
+        gisaid_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+            "gisaid_accession_id"
         )
-        data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
-            num_of_samples.get("Defined", 0), len(gisaid_raw), ""
+        ena_raw = core.utils.public_db.get_public_accession_from_sample_lab(
+            "ena_sample_accession"
         )
+        actions_raw = core.utils.samples.get_lab_last_actions()
+        data = {
+            "sample_bar_graph": core.utils.samples.create_date_sample_bar(
+                all_sample_per_date, bar_config
+            ),
+            "sample_gauge_graph": core.utils.utils.perc_gauge_graphic(analysis_percent),
+            "actions": core.serializers.LabLastActionSerializer.from_raw(actions_raw),
+        }
 
-    if ena_raw:
-        data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
-            ena_raw
-        )
-        data["ena_graph"] = core.utils.public_db.percentage_graphic(
-            num_of_samples.get("Defined", 0), len(ena_raw), ""
-        )
+        if gisaid_raw:
+            data["gisaid_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
+                gisaid_raw
+            )
+            data["gisaid_graph"] = core.utils.public_db.percentage_graphic(
+                num_of_samples.get("Defined", 0), len(gisaid_raw), ""
+            )
 
-    return data
+        if ena_raw:
+            data["ena_accession"] = core.serializers.PublicAccessionSerializer.from_raw(
+                ena_raw
+            )
+            data["ena_graph"] = core.utils.public_db.percentage_graphic(
+                num_of_samples.get("Defined", 0), len(ena_raw), ""
+            )
+
+        result["data"] = data
+        result["success"] = True
+    except Exception as e:
+        result["errors"].append(str(e))
+        result["success"] = False
+    return result
 
 
 # FIXME: refactor its output
@@ -621,7 +627,7 @@ def get_schema_handling_data(request):
                 result["errors"].append(schema_data["ERROR"])
             else:
                 result["data"]["SUCCESS"] = schema_data.get("SUCCESS")
-        # Siempre devolver los schemas cargados
+        #
         result["data"]["schemas"] = core.utils.schema.get_schemas_loaded(__package__)
     except Exception as e:
         result["success"] = False
@@ -697,10 +703,10 @@ def get_schema_fields_for_jexcel(schema, template_labels=None):
     }
 
 
-def handle_metadata_visualization(request):
+def handle_metadata_visualization(action=None, table_data_json=None):
     result = {"data": None, "success": None, "errors": []}
+    # Get the latest schema in use
     try:
-        # Get the latest schema IN USE
         schema = (
             core.models.Schema.objects.filter(schema_in_use=True)
             .order_by("-generated_at")
@@ -711,9 +717,7 @@ def handle_metadata_visualization(request):
             result["errors"].append(core.config.ERROR_SCHEMA_NOT_DEFINED)
             return result
 
-        # POST: select fields
-        if request.method == "POST" and request.POST.get("action") == "selectFields":
-            table_data_json = request.POST.get("table_data")
+        if action == "selectFields":
             if not table_data_json:
                 result["success"] = False
                 result["errors"].append("No table_data provided in POST.")
@@ -725,18 +729,13 @@ def handle_metadata_visualization(request):
                 result["errors"].append(f"Error parsing table_data: {str(e)}")
                 return result
 
-            # Delete previous metadatavisualization fields
             core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
-            # Create new metadatavisualization fields
             for row in rows:
-                # row: [property_name, label_name, order, used, fill_mode]
                 core.models.MetadataVisualization.objects.create(
                     schemaID=schema,
                     property_name=row[0],
                     label_name=row[1],
-                    order=(
-                        row[2] if row[2] != "" else 0
-                    ),  # FIXME: not sure what to use here
+                    order=(row[2] if row[2] != "" else 0),  # Not sure what to use here
                     in_use=row[3],
                     fill_mode=row[4] if len(row) > 4 else "sample",
                 )
@@ -744,10 +743,10 @@ def handle_metadata_visualization(request):
             result["success"] = True
             return result
 
-        # POST: delete fields
-        if request.method == "POST" and request.POST.get("action") == "deleteFields":
+        if action == "deleteFields":
             core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
             result["data"] = {"deleted": True}
+            result["success"] = True
             return result
 
         # GET o fallback: get data for visualization
@@ -759,6 +758,89 @@ def handle_metadata_visualization(request):
             result["data"] = {
                 "schema_fields": get_schema_fields_for_jexcel(schema, template_labels)
             }
+        result["success"] = True
+    except Exception as e:
+        result["success"] = False
+        result["errors"].append(str(e))
+    return result
+
+
+def handle_metadata_upload(metadata_file, username):
+    result = {"data": {}, "success": False, "errors": []}
+    try:
+        core.utils.samples.save_excel_form_in_samba_folder(metadata_file, username)
+        result["data"] = {"sample_recorded": {"ok": "OK"}}
+        result["success"] = True
+    except Exception as e:
+        result["errors"].append(str(e))
+    return result
+
+
+def handle_define_samples(post_data, user, schema_obj):
+    result = {"data": {}, "success": False, "errors": []}
+    try:
+        res_analyze = core.utils.samples.analyze_input_samples(post_data, user)
+        if len(res_analyze) == 0:
+            m_form = core.utils.samples.create_metadata_form(schema_obj, user)
+            result["data"] = {"m_form": m_form}
+            result["success"] = True
+            return result
+        if "save_samples" in res_analyze:
+            s_saved = core.utils.samples.save_temp_sample_data(res_analyze["save_samples"], user)
+            result["data"]["sample_saved"] = s_saved
+        if "s_incomplete" in res_analyze or "s_already_record" in res_analyze:
+            m_form = None
+            if "s_incomplete" in res_analyze:
+                m_form = core.utils.samples.create_metadata_form(schema_obj, user)
+            result["data"] = {"sample_issues": res_analyze, "m_form": m_form}
+            result["success"] = True
+            return result
+        m_batch_form = core.utils.samples.create_form_for_batch(schema_obj, user)
+        sample_saved = core.utils.samples.get_sample_pre_recorded(user)
+        result["data"] = {"m_batch_form": m_batch_form, "sample_saved": sample_saved}
+        result["success"] = True
+    except Exception as e:
+        result["errors"].append(str(e))
+    return result
+
+
+def handle_define_batch(post_data, user, schema_obj):
+    result = {"data": {}, "success": False, "errors": []}
+    try:
+        if not core.utils.samples.check_if_empty_data(post_data):
+            sample_saved = core.utils.samples.get_sample_pre_recorded(user)
+            m_batch_form = core.utils.samples.create_form_for_batch(schema_obj, user)
+            result["data"] = {"m_batch_form": m_batch_form, "sample_saved": sample_saved}
+            result["success"] = True
+            return result
+        meta_data = core.utils.samples.join_sample_and_batch(post_data, user, schema_obj)
+        core.utils.samples.write_form_data_to_excel(meta_data, user)
+        core.utils.samples.delete_temporary_sample_table(user)
+        result["data"] = {"sample_recorded": {"ok": "OK"}}
+        result["success"] = True
+    except Exception as e:
+        result["errors"].append(str(e))
+    return result
+
+
+def get_metadata_form_initial(user, schema_obj):
+    result = {"data": {}, "success": True, "errors": []}
+    try:
+        if core.utils.samples.pending_samples_in_metadata_form(user):
+            sample_saved = core.utils.samples.get_sample_pre_recorded(user)
+            m_batch_form = core.utils.samples.create_form_for_batch(schema_obj, user)
+            result["data"] = {"m_batch_form": m_batch_form, "sample_saved": sample_saved}
+            return result
+        m_form = core.utils.samples.create_metadata_form(schema_obj, user)
+        if "ERROR" in m_form:
+            result["success"] = False
+            result["errors"].append(m_form["ERROR"])
+            return result
+        if 'None' in m_form["lab_name"] or m_form["lab_name"] == "":
+            result["success"] = False
+            result["errors"].append(core.config.ERROR_USER_IS_NOT_ASSIGNED_TO_LAB)
+            return result
+        result["data"] = {"m_form": m_form}
     except Exception as e:
         result["success"] = False
         result["errors"].append(str(e))

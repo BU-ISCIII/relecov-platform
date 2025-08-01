@@ -23,15 +23,16 @@ import core.utils.generic_functions
 import core.models
 
 
-def analyze_input_samples(request):
+def analyze_input_samples(data, user):
     result = {}
     save_samples = []
     s_already_record = []
     s_incomplete = []
-    s_json_data = json.loads(request.POST["table_data"])
-    heading_in_form = request.POST["heading"].split(",")
+    s_json_data = json.loads(data["table_data"])
+    heading_in_form = data["heading"].split(",")
+
     user_lab = (
-        core.models.Profile.objects.filter(user=request.user).last().get_lab_name()
+        core.models.Profile.objects.filter(user=user).last().get_lab_name()
     )
     submmit_institution = core.utils.generic_functions.get_configuration_value(
         "SUBMITTING_INSTITUTION"
