@@ -230,20 +230,6 @@ def store_public_data_fields(schema_obj, s_properties):
             p_field.schemaID.add(schema_obj)
 
 
-def remove_existing_default_schema(schema_name, apps_name):
-    """Remove the tag for default schema for the given schema name"""
-    if core.models.Schema.objects.filter(
-        schema_name__iexact=schema_name, schema_apps_name=apps_name, schema_default=True
-    ).exists():
-        schema_obj = core.models.Schema.objects.filter(
-            schema_name__iexact=schema_name,
-            schema_apps_name=apps_name,
-            schema_default=True,
-        ).last()
-        schema_obj.update_default(False)
-    return
-
-
 def process_schema_file(json_file, default, user, apps_name):
     """Check JSON file and store it in the database, handling default schemas correctly."""
     schema_data = load_schema(json_file)
@@ -280,8 +266,6 @@ def process_schema_file(json_file, default, user, apps_name):
 
     # Create the new schema
     new_schema = core.models.Schema.objects.create_new_schema(data)
-    if default:
-        remove_existing_default_schema(schema_name, apps_name)
 
     result = store_schema_properties(
         new_schema,

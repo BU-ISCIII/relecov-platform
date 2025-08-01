@@ -57,16 +57,27 @@ class BioinfoMetadataFile(models.Model):
 
 
 class SchemaManager(models.Manager):
-    def create_new_schema(self, data):
+    def create_new_schema(self, data: dict["str", "any"]):
         new_schema = self.create(
             file_name=data["file_name"],
             user_name=data["user_name"],
             schema_name=data["schema_name"],
             schema_version=data["schema_version"],
-            schema_default=data["schema_default"],
+            schema_default=data.get("schema_default", False),
             schema_in_use=True,
             schema_apps_name=data["schema_app_name"],
         )
+
+        qs = self.select_for_update().filter(
+            schema_apps_name=new_schema.schema_apps_name
+        )
+
+        if new_schema.schema_default:
+            qs.exclude(pk=new_schema.pk).update(schema_default=False)
+        elif not qs.filter(schema_default=True).exists():
+            new_schema.schema_default = True
+            new_schema.save(update_fields=["schema_default"])
+
         return new_schema
 
 
