@@ -38,14 +38,12 @@ def handle_schema_upload(action, schema_file, default_flag, user, app_name):
         result["data"]["schemas"] = serializers_module.SchemaListSerializer(
             schemas_qs, many=True
         ).data
-        import pdb; pdb.set_trace()
         result["success"] = True
     except SchemaError as exc:
         result["errors"].append({"code": 500, "message": str(exc)})
     except Exception as exc:
         result["errors"].append({"code": 500, "message": str(exc)})
     result["success"] = len(result["errors"]) == 0 and result.get("success", False) or result.get("success", False)
-    import pdb; pdb.set_trace()
     return result
 
 

@@ -9,15 +9,15 @@
 <section id="relecov-platform" class=" hero-animated d-flex align-items-center">
     <div class="container d-flex flex-column justify-content-center align-items-center  position-relative">
         <div class="container">
-            {% if ERROR %}
+            {% if errors %}
                 <div class="alert alert-danger">
-                    {% for err in ERROR %}
+                    {% for err in errors %}
                         <div>{{ err }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
 
-            {% if SUCCESS %}
+            {% if success %}
                 <div class="row justify-content-center">
                     <div class="col-sm-9" >
                         <div class="card">
@@ -30,7 +30,7 @@
                     </div> <!--// end col-sm-9 -->
                 </div> <!--// end row -->
             {% endif %}
-            {% if DATA.visualization %}
+            {% if data.visualization %}
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#samples" type="button" role="tab" aria-controls="samples" aria-selected="true">Fields for Sample</button>
@@ -58,7 +58,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {% for field in DATA.visualization.sample %}
+                                                    {% for field in data.visualization.sample %}
                                                         <tr>
                                                             <td>{{ field.label_name }}</td>
                                                             <td>{{ field.order }}</td>
@@ -88,7 +88,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {% for field in DATA.visualization.batch %}
+                                                    {% for field in data.visualization.batch %}
                                                         <tr>
                                                             <td>{{ field.label_name }}</td>
                                                             <td>{{ field.order }}</td>
@@ -145,7 +145,7 @@
                 </script>
 
             {% endif %}
-            {% if DATA.deleted %}
+            {% if data.deleted %}
                 <div class="row row-space-2 margin-b-4">
                     <div class="col-sm-10" >
                         <div class="card">
@@ -162,7 +162,7 @@
                     </div> <!--// end col-sm-9 -->
                 </div> <!--// end row -->
             {% endif %}
-            {% if DATA.schema_fields %}
+            {% if data.schema_fields %}
                 <div class="row justify-content-center p-5">
                     <div class="col-md-10">
                         <div class="card">
@@ -172,11 +172,11 @@
                                     {% csrf_token %}
                                     <div class="scrolling-wrapper">
                                         <input type="hidden" name="action" value="selectFields">
-                                        <input type="hidden" name="schemaID" value="{{DATA.schema_fields.schema_id}}">
+                                        <input type="hidden" name="schemaID" value="{{data.schema_fields.schema_id}}">
                                         <div id="spreadsheet"></div>
                                     </div> <!--  end of scrolling  -->
                                     <script>
-                                        var data = [{% for values in DATA.schema_fields.fields %} [{% for value in values %} {% if forloop.counter == 3 %}{{value}}{% else %}'{{value}}'{% endif %},{% endfor %}], {% endfor %}];
+                                        var data = [{% for values in data.schema_fields.fields %} [{% for value in values %} {% if forloop.counter == 3 %}{{value}}{% else %}'{{value}}'{% endif %},{% endfor %}], {% endfor %}];
 
                                         var table1 = jspreadsheet(document.getElementById('spreadsheet'), {
                                             data: data,

@@ -137,25 +137,13 @@ def search_sample(request):
 def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
-
-    action = request.POST.get("action") if request.method == "POST" else None
-    table_data_json = (
-        request.POST.get("table_data") if request.method == "POST" else None
-    )
-
-    response = core.services.handle_metadata_visualization(
-        action=action, table_data_json=table_data_json
-    )
-
-    return render(
-        request,
-        "core/metadataVisualization.html",
-        {
-            "DATA": response["data"],
-            "SUCCESS": response["success"],
-            "ERROR": response["errors"],
-        },
-    )
+    response = core.services.handle_metadata_visualization(request)
+    context = {
+        **(response.get("data") or {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/metadataVisualization.html", context)
 
 
 @login_required
