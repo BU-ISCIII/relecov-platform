@@ -18,6 +18,9 @@ import core.config
 import core.services
 from core.services import schema_services
 from core.services import sample_services
+from core.services import intranet_services
+from core.services import metadata_services
+from core.services import lab_services
 
 
 # Imports for received samples graphic at intranet
@@ -153,26 +156,26 @@ def intranet(request):
     )
 
     if is_manager:
-        response = core.services.get_intranet_data_for_manager()
+        response = intranet_services.get_intranet_data_for_manager()
         return render(
             request,
             "core/intranet.html",
             {
-                "DATA": response["data"],
-                "SUCCESS": response["success"],
-                "ERROR": response["errors"],
+                "data": response["data"],
+                "success": response["success"],
+                "errors": response["errors"],
             },
         )
 
     # TODO: Didn't tested due to lack of bioinfodata (api related issues)
-    response = core.services.get_intranet_data_for_user(request.user)
+    response = intranet_services.get_intranet_data_for_user(request.user)
     return render(
         request,
         "core/intranet.html",
         {
-            "DATA": response["data"],
-            "SUCCESS": response["success"],
-            "ERROR": response["errors"],
+            "data": response["data"],
+            "success": response["success"],
+            "errors": response["errors"],
         },
     )
 
@@ -188,20 +191,20 @@ def metadata_form(request):
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "uploadMetadataFile" and "metadataFile" in request.FILES:
-            response = core.services.handle_metadata_upload(
+            response = metadata_services.handle_metadata_upload(
                 request.FILES["metadataFile"], request.user.username
             )
             return render(
                 request, "core/metadataForm.html",
                 {
                     "DATA_SAMPLERECORDED": response["data"].get("sample_recorded"),
-                    "SUCCESS": response["success"],
-                    "ERROR": response["errors"]
+                    "success": response["success"],
+                    "errors": response["errors"]
                 }
             )
         #TODO: fix in progress
         if action == "defineSamples":
-            response = core.services.handle_define_samples(
+            response = metadata_services.handle_define_samples(
                 request.POST, request.user, schema_obj
             )
             if "sample_issues" in response["data"]:
@@ -210,8 +213,8 @@ def metadata_form(request):
                     {
                         "DATA_SAMPLEISSUES": response["data"]["sample_issues"],
                         "DATA_FORM": response["data"]["m_form"],
-                        "SUCCESS": response["success"],
-                        "ERROR": response["errors"]
+                        "success": response["success"],
+                        "errors": response["errors"]
                     }
                 )
             if "m_form" in response["data"]:
@@ -219,8 +222,8 @@ def metadata_form(request):
                     request, "core/metadataForm.html",
                     {
                         "DATA_FORM": response["data"]["m_form"],
-                        "SUCCESS": response["success"],
-                        "ERROR": response["errors"]
+                        "success": response["success"],
+                        "errors": response["errors"]
                     }
                 )
             if "m_batch_form" in response["data"]:
@@ -229,8 +232,8 @@ def metadata_form(request):
                     {
                         "DATA_BATCHFORM": response["data"]["m_batch_form"],
                         "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                        "SUCCESS": response["success"],
-                        "ERROR": response["errors"]
+                        "success": response["success"],
+                        "errors": response["errors"]
                     }
                 )
             if "sample_saved" in response["data"]:
@@ -238,13 +241,13 @@ def metadata_form(request):
                     request, "core/metadataForm.html",
                     {
                         "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                        "SUCCESS": response["success"],
-                        "ERROR": response["errors"]
+                        "success": response["success"],
+                        "errors": response["errors"]
                     }
                 )
 
         if action == "defineBatch":
-            response = core.services.handle_define_batch(
+            response = metadata_services.handle_define_batch(
                 request.POST, request.user, schema_obj
             )
             if "m_batch_form" in response["data"]:
@@ -253,8 +256,8 @@ def metadata_form(request):
                     {
                         "DATA_BATCHFORM": response["data"]["m_batch_form"],
                         "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                        "SUCCESS": response["success"],
-                        "ERROR": response["errors"]
+                        "success": response["success"],
+                        "errors": response["errors"]
                     }
                 )
             if "sample_recorded" in response["data"]:
@@ -262,34 +265,34 @@ def metadata_form(request):
                     request, "core/metadataForm.html",
                     {
                         "DATA_SAMPLERECORDED": response["data"]["sample_recorded"],
-                        "SUCCESS": response["success"],
-                        "ERROR": response["errors"]
+                        "success": response["success"],
+                        "errors": response["errors"]
                     }
                 )
 
     # GET request or fallback
-    response = core.services.get_metadata_form_initial(request.user, schema_obj)
+    response = metadata_services.get_metadata_form_initial(request.user, schema_obj)
     if "m_batch_form" in response["data"]:
         return render(
             request, "core/metadataForm.html",
             {
                 "DATA_BATCHFORM": response["data"]["m_batch_form"],
                 "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                "SUCCESS": response["success"],
-                "ERROR": response["errors"]
+                "success": response["success"],
+                "errors": response["errors"]
             }
         )
     if not response["success"]:
         return render(
             request, "core/metadataForm.html",
-            {"ERROR": response["errors"]}
+            {"errors": response["errors"]}
         )
     return render(
         request, "core/metadataForm.html",
         {
             "DATA_FORM": response["data"]["m_form"],
-            "SUCCESS": response["success"],
-            "ERROR": response["errors"]
+            "success": response["success"],
+            "errors": response["errors"]
         }
     )
 
@@ -319,18 +322,18 @@ def organism_annotation(request):
     annotations = core.utils.annotation.get_annotations()
     if request.method == "POST" and request.POST["action"] == "uploadAnnotation":
         gff_parsed = core.utils.annotation.read_gff_file(request.FILES["gffFile"])
-        if "ERROR" in gff_parsed:
+        if "errors" in gff_parsed:
             return render(
                 request,
                 "core/organismAnnotation.html",
-                {"ERROR": gff_parsed["ERROR"], "annotations": annotations},
+                {"errors": gff_parsed["errors"], "annotations": annotations},
             )
         core.utils.annotation.store_gff(gff_parsed, request.user)
         annotations = core.utils.annotation.get_annotations()
         return render(
             request,
             "core/organismAnnotation.html",
-            {"SUCCESS": "Success", "annotations": annotations},
+            {"success": "Success", "annotations": annotations},
         )
     return render(request, "core/organismAnnotation.html", {"annotations": annotations})
 
@@ -338,21 +341,18 @@ def organism_annotation(request):
 # TODO: this needs serialized-based refactor
 @login_required()
 def laboratory_contact(request):
-    lab_data = core.utils.labs.get_lab_contact_details(request.user)
-    if "ERROR" in lab_data:
-        return render(
-            request, "core/laboratoryContact.html", {"ERROR": lab_data["ERROR"]}
-        )
-    if request.method == "POST" and request.POST["action"] == "updateLabData":
-        result = core.utils.labs.update_contact_lab(lab_data, request.POST)
-        if isinstance(result, dict):
-            return render(
-                request,
-                "core/laboratoryContact.html",
-                {"ERROR": result["ERROR"]},
-            )
-        return render(request, "core/laboratoryContact.html", {"Success": "Success"})
-    return render(request, "core/laboratoryContact.html", {"lab_data": lab_data})
+    action = request.POST.get("action") if request.method == "POST" else None
+    response = lab_services.handle_laboratory_contact(
+        action=action,
+        post_data=request.POST if request.method == "POST" else None,
+        user=request.user,
+    )
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/laboratoryContact.html", context)
 
 
 # TODO: this needs serialized-based refactor

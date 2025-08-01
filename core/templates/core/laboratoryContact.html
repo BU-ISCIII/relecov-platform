@@ -25,17 +25,21 @@
                         </div>
                         <!-- Content Row -->
                         <div class="row justify-content-center">
-                            {% if ERROR %}
+                            {% if errors %}
                                     <div class="col-sm-10" >
                                         <div class="card  border-danger mb-3">
                                             <div class="card-header text-center text-danger"><h3 style="text-align:center">ERROR</h3> </div>
                                             <div class="card-body  text-center">
                                                 <br>
-                                                <p><strong>{{ERROR}}</strong></p>
+                                                <p>
+                                                {% for err in errors %}
+                                                    <strong>{{err.message}}</strong>{% if not forloop.last %}<br>{% endif %}
+                                                {% endfor %}
+                                                </p>
                                             </div> <!-- end card body  -->
                                         </div> <!-- end card  -->
                                     </div> <!--// end col-sm-9 -->
-                            {% elif Success %}
+                            {% elif success %}
                                     <div class="col-sm-10" >
                                         <div class="card  border-default mb-3">
                                             <div class="card-header text-center"><h3 style="text-align:center">Successul update </h3> </div>
