@@ -911,5 +911,5 @@ def check_sample_exists(request):
         )
     else:
         return Response(
-            {"message": "Sample not found.", "data": {}}, status=status.HTTP_404_NOT_FOUND
+            {"message": "Sample not found.", "data": {}}, status=status.HTTP_200_OK
         )
