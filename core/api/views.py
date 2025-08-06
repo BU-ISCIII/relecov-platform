@@ -179,7 +179,11 @@ def create_sample_data(request):
 
         schema_obj = core.api.utils.common_functions.get_schema_version_if_exists(data)
         if schema_obj is None:
-            error = {"ERROR": "schema name and version is not defined"}
+            error = {
+                "ERROR": "schema name and version is not defined",
+                "message": "",
+                "data": {},
+            }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         schema_id = schema_obj.get_schema_id()
         # check if sample id field and collecting_institution are in the request
@@ -193,7 +197,7 @@ def create_sample_data(request):
             missing_fields = [f for f in required_db_fields if f not in data]
             print(f"ERROR. Missing: {missing_fields}")
             return Response(
-                {"ERROR": f"Missing: {missing_fields}"},
+                {"ERROR": f"Missing: {missing_fields}", "message": "", "data": {}},
                 status=status.HTTP_409_CONFLICT,
             )
         # check if sample is already defined
@@ -205,7 +209,11 @@ def create_sample_data(request):
         )
         if found_sample:
             found_data = core.api.serializers.CreateSampleSerializer(found_sample).data
-            error = {"ERROR": "Sample already defined.", "data": found_data}
+            error = {
+                "ERROR": "Sample already defined.",
+                "message": "",
+                "data": found_data,
+            }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         # get the user to assign the sample based on the collecting_institution
         # value. If lab is not define user field is set t
@@ -217,7 +225,8 @@ def create_sample_data(request):
         )
         if not sample_serializer.is_valid():
             return Response(
-                sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                {"ERROR": sample_serializer.errors, "message": "", "data": {}},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         sample_obj = sample_serializer.save()
         sample_id = sample_obj.get_sample_id()
@@ -238,7 +247,12 @@ def create_sample_data(request):
                 split_data["ena"], "ena", schema_obj, sample_id
             )
             if "ERROR" in result:
-                return Response(result, status=status.HTTP_206_PARTIAL_CONTENT)
+                response_dict = {
+                    "ERROR": result["ERROR"],
+                    "message": "Error processing ena data",
+                    "data": {},
+                }
+                return Response(response_dict, status=status.HTTP_206_PARTIAL_CONTENT)
             # check that the ena_sample_accession is not empty or "Not Provided"
             if not any(
                 x == split_data["ena"]["ena_sample_accession"]
@@ -267,7 +281,12 @@ def create_sample_data(request):
                 split_data["gisaid"], "gisaid", schema_obj, sample_id
             )
             if "ERROR" in result:
-                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                response_dict = {
+                    "ERROR": result,
+                    "message": "Error processing gisaid data",
+                    "data": {},
+                }
+                return Response(response_dict, status=status.HTTP_400_BAD_REQUEST)
 
             # Save entry in update state table only if gisaid_accession_id is valid
             gisaid_id = split_data["gisaid"].get("gisaid_accession_id")
@@ -291,6 +310,11 @@ def create_sample_data(request):
                 split_data["author"], "author", schema_obj, sample_id
             )
             if "ERROR" in result:
+                response_dict = {
+                    "ERROR": result,
+                    "message": "Error processing authors data",
+                    "data": {},
+                }
                 return Response(result, status=status.HTTP_400_BAD_REQUEST)
         sample_dict = core.api.serializers.CreateSampleSerializer(sample_obj).data
         return Response(
@@ -454,40 +478,60 @@ def create_bioinfo_metadata(request):
     # check schema (name and version)
     schema_obj = core.api.utils.common_functions.get_schema_version_if_exists(data)
     if schema_obj is None:
-        error = {"ERROR": "schema name and version is not defined"}
+        error = {
+            "ERROR": "schema name and version is not defined",
+            "message": "Error found while extracting schema object",
+            "data": {},
+        }
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-    if "sequencing_sample_id" not in data:
-        return Response(
-            {"ERROR": core.config.ERROR_SAMPLE_NAME_NOT_INCLUDED},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    sample_obj = core.utils.samples.get_sample_obj_from_sample_name(
-        data["sequencing_sample_id"]
+    if "sample_fingerprint" not in data:
+        error = {
+            "ERROR": core.config.ERROR_SAMPLE_NAME_NOT_INCLUDED,
+            "message": "Error no sample_fingerprint in data",
+            "data": {},
+        }
+        return Response(error, status=status.HTTP_400_BAD_REQUEST)
+    sample_obj = core.utils.samples.get_sample_obj_from_fingerprint(
+        data["sample_fingerprint"]
     )
     if sample_obj is None:
-        return Response(
-            {"ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        error = {
+            "ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED,
+            "message": "Error searching for requested sample",
+            "data": {},
+        }
+        return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
     analysis_defined = core.api.utils.bioinfo_metadata.get_analysis_defined(sample_obj)
     bioinformatics_analysis_date = data.get("bioinformatics_analysis_date", None)
     if bioinformatics_analysis_date is not None:
         if bioinformatics_analysis_date in list(analysis_defined):
-            return Response(
-                {"ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            error = {
+                "ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED,
+                "message": "Found another sample analysis with the same date",
+                "data": {},
+            }
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
     split_data = core.api.utils.bioinfo_metadata.split_bioinfo_data(data, schema_obj)
     if "ERROR" in split_data:
-        return Response(split_data, status=status.HTTP_400_BAD_REQUEST)
+        error = {
+            "ERROR": split_data["ERROR"],
+            "message": "error extracting bioinfo metadata",
+            "data": {},
+        }
+        return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
     stored_data = core.api.utils.bioinfo_metadata.store_bioinfo_data(
         split_data, schema_obj
     )
     if "ERROR" in stored_data:
-        return Response(stored_data, status=status.HTTP_400_BAD_REQUEST)
+        error = {
+            "ERROR": stored_data["ERROR"],
+            "message": "error storing bioinfo metadata",
+            "data": {},
+        }
+        return Response(error, status=status.HTTP_400_BAD_REQUEST)
     state_id = (
         core.models.SampleState.objects.filter(state__exact="Bioinfo")
         .last()
@@ -504,7 +548,13 @@ def create_bioinfo_metadata(request):
     if date_serializer.is_valid():
         date_serializer.save()
 
-    return Response(status=status.HTTP_201_CREATED)
+    return Response(
+        {
+            "message": f"Bioinfo metadata successfully saved for sample {sample_obj.get_sequencing_sample_id()}",
+            "data": {},
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @extend_schema(
@@ -616,33 +666,41 @@ def create_variant_data(request):
             data["sample_name"]
         )
         if sample_obj is None:
-            return Response(
-                {"ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            error = {
+                "ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED,
+                "message": "",
+                "data": {},
+            }
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         analysis_defined = core.api.utils.variants.get_variant_analysis_defined(
             sample_obj
         )
         if data["bioinformatics_analysis_date"] in list(analysis_defined):
-            return Response(
-                {"ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            error = {
+                "ERROR": core.config.ERROR_ANALYSIS_ALREADY_DEFINED,
+                "message": "",
+                "data": {},
+            }
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
         if "variants" not in data:
-            return Response(
-                {"ERROR": core.config.ERROR_VARIANT_INFORMATION_NOT_DEFINED},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            error = {
+                "ERROR": core.config.ERROR_VARIANT_INFORMATION_NOT_DEFINED,
+                "message": "`variants` key could not be found in data",
+                "data": {},
+            }
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
         if isinstance(data["variants"], str):
             try:
                 data["variants"] = ast.literal_eval(data["variants"])
             except Exception as e:
-                return Response(
-                    {"ERROR": f"Unable to parse variants: {str(e)}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                error = {
+                    "ERROR": f"Unable to parse variants: {str(e)}",
+                    "message": "",
+                    "data": {},
+                }
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
         found_error = False
         v_in_sample_list = []
@@ -653,7 +711,11 @@ def create_variant_data(request):
                 v_data, sample_obj, data["bioinformatics_analysis_date"]
             )
             if "ERROR" in split_data:
-                error = {"ERROR": split_data}
+                error = {
+                    "ERROR": split_data,
+                    "message": "error extracting variant data from request.data",
+                    "data": {},
+                }
                 found_error = True
                 break
 
@@ -661,7 +723,11 @@ def create_variant_data(request):
                 split_data["variant_in_sample"]
             )
             if isinstance(variant_in_sample_obj, dict):
-                error = {"ERROR": variant_in_sample_obj}
+                error = {
+                    "ERROR": variant_in_sample_obj,
+                    "message": "error storing variants for sample",
+                    "data": {},
+                }
                 found_error = True
                 break
 
@@ -674,7 +740,11 @@ def create_variant_data(request):
                     split_data["variant_ann"]
                 )
                 if isinstance(variant_ann_obj, dict):
-                    error = {"ERROR": variant_ann_obj}
+                    error = {
+                        "ERROR": variant_ann_obj,
+                        "message": "error storing variant annotations",
+                        "data": {},
+                    }
                     found_error = True
                     break
 
@@ -694,8 +764,15 @@ def create_variant_data(request):
         sample_id = sample_obj.get_sample_id()
         core.api.utils.common_functions.update_change_state_date(sample_id, state_id)
 
-        return Response(status=status.HTTP_201_CREATED)
-    return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"message": "Successfully updated variant data", "data": {}},
+            status=status.HTTP_201_CREATED,
+        )
+    else:
+        return Response(
+            {"ERROR": "Invalid request method, use POST", "message": "", "data": {}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @extend_schema(
@@ -732,10 +809,12 @@ def update_state(request):
             data["sample_name"]
         )
         if sample_obj is None:
-            return Response(
-                {"ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            error = {
+                "ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED,
+                "message": "",
+                "data": {},
+            }
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         sample_id = sample_obj.get_sample_id()
         # if state exists,
         if core.models.SampleState.objects.filter(state=data["state"]).exists():
@@ -745,14 +824,22 @@ def update_state(request):
                 .get_state_id()
             }
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "ERROR": f"state {data['state']} does not exist in database",
+                    "message": "",
+                    "data": {},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         sample_serializer = core.api.serializers.UpdateStateSampleSerializer(
             sample_obj, data=s_data
         )
         if not sample_serializer.is_valid():
             return Response(
-                sample_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                {"ERROR": sample_serializer.errors, "message": "", "data": {}},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         sample_serializer.save()
 
@@ -768,7 +855,8 @@ def update_state(request):
             )
             if not sample_err_serializer.is_valid():
                 return Response(
-                    sample_err_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    {"ERROR": sample_err_serializer.errors, "message": "", "data": {}},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             sample_err_serializer.save()
 
@@ -777,9 +865,13 @@ def update_state(request):
         )
 
         return Response(
-            "Successful. sample state updated", status=status.HTTP_201_CREATED
+            {"message": "Successful. sample state updated", "data": {}},
+            status=status.HTTP_201_CREATED,
         )
-    return Response(status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {"ERROR": "Invalid request method, use PUT", "message": "", "data": {}},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 @authentication_classes([SessionAuthentication, BasicAuthentication])
@@ -788,7 +880,7 @@ def update_state(request):
 def check_sample_exists(request):
     if request.method != "GET":
         return Response(
-            {"ERROR": "WRONG REQUEST METHOD TO GET SAMPLE DATA, USE GET"},
+            {"ERROR": "Invalid request method, use GET", "message": "", "data": {}},
             status=status.HTTP_400_BAD_REQUEST,
         )
     data = request.query_params
@@ -801,7 +893,11 @@ def check_sample_exists(request):
     if not all(required_dict.values()):
         missing_fields = [x for x, v in required_dict.items() if not v]
         return Response(
-            {"ERROR": f"Missing required fields in data: {missing_fields}"},
+            {
+                "ERROR": f"Missing required fields in data: {missing_fields}",
+                "message": "",
+                "data": {},
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
     temp_fingerprint = core.utils.samples.build_sample_fingerprint(
@@ -809,8 +905,11 @@ def check_sample_exists(request):
     )
     found_sample = core.utils.samples.get_sample_obj_from_fingerprint(temp_fingerprint)
     if found_sample:
-        return Response({"detail": found_sample}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "sample correctly found", "data": found_sample},
+            status=status.HTTP_200_OK,
+        )
     else:
         return Response(
-            {"detail": "Sample not found."}, status=status.HTTP_404_NOT_FOUND
+            {"message": "Sample not found.", "data": {}}, status=status.HTTP_404_NOT_FOUND
         )
