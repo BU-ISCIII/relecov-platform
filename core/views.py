@@ -29,12 +29,14 @@ import core.utils.samples_graphics
 import core.utils.samples_map
 
 
-# FIXME: This needs to homogenize the way passing data to template.
-# FIXME: fornt end needs to manage error screen
-# TODO: update the strucuture object that its going to be rendered
 def index(request):
-    index_data = core.services.get_index_data()
-    return render(request, "core/index.html", {"data": index_data["data"]})
+    response = core.services.get_index_data()
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/index.html", context)
 
 
 @login_required()
