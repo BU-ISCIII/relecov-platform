@@ -190,6 +190,11 @@ def create_sample_data(request):
                 "message": "",
                 "data": {},
             }
+            error = {
+                "ERROR": "schema name and version is not defined",
+                "message": "",
+                "data": {},
+            }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         schema_id = schema_obj.get_schema_id()
         # Check mandatory identifiers (lab name is derived further below if needed)
