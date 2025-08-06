@@ -98,3 +98,10 @@ def get_intranet_data_for_user(user):
     except Exception as exc:
         result["errors"].append({"code": 500, "message": str(exc)})
     return result
+
+
+def get_intranet_data(user):
+    """Return intranet dashboard data based on user permissions."""
+    if user.groups.filter(name="RelecovManager").exists():
+        return get_intranet_data_for_manager()
+    return get_intranet_data_for_user(user)

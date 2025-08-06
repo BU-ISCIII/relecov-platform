@@ -1,7 +1,6 @@
 # Generic imports
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
 import core.api.serializers
 
 # Local imports
@@ -150,33 +149,13 @@ def metadata_visualization(request):
 
 @login_required
 def intranet(request):
-    is_manager = (
-        Group.objects.filter(name="RelecovManager").last() in request.user.groups.all()
-    )
-
-    if is_manager:
-        response = intranet_services.get_intranet_data_for_manager()
-        return render(
-            request,
-            "core/intranet.html",
-            {
-                "data": response["data"],
-                "success": response["success"],
-                "errors": response["errors"],
-            },
-        )
-
-    # TODO: Didn't tested due to lack of bioinfodata (api related issues)
-    response = intranet_services.get_intranet_data_for_user(request.user)
-    return render(
-        request,
-        "core/intranet.html",
-        {
-            "data": response["data"],
-            "success": response["success"],
-            "errors": response["errors"],
-        },
-    )
+    response = intranet_services.get_intranet_data(request.user)
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/intranet.html", context)
 
 
 def variants(request):
