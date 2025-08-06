@@ -3,7 +3,7 @@ import core.utils.samples
 import core.utils.public_db
 import core.utils.bioinfo_analysis
 import core.utils.utils
-from . import get_lab_name_from_user
+import core.utils.labs as labs_utils
 
 
 def get_intranet_data_for_manager():
@@ -54,7 +54,7 @@ def get_intranet_data_for_user(user):
     """Collect dashboard data for a regular user."""
     result = {"data": {}, "success": False, "errors": []}
     try:
-        lab_name = get_lab_name_from_user(user)
+        lab_name = labs_utils.get_lab_name_from_user(user)
         date_lab_samples = core.utils.samples.get_sample_per_date_per_lab(lab_name)
         if not date_lab_samples:
             result["errors"].append({"code": 404, "message": f"No samples found for selected laboratory: {lab_name}"})

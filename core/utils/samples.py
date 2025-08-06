@@ -10,7 +10,6 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.db.models import Q
 from django.db.models import Count
-import core.services
 import relecov_tools.utils
 
 # Local imports
@@ -563,13 +562,13 @@ def get_search_data(user_obj):
     # Allow to search information from any laboratoryr
     group = Group.objects.get(name="RelecovManager")
     if group in user_obj.groups.all():
-        def_labs = core.services.get_all_defined_labs()
+        def_labs = core.utils.labs.get_all_defined_labs()
         if "ERROR" in def_labs:
             s_data["labs"] = ["", ""]
         else:
             s_data["labs"] = def_labs
     else:
-        s_data["labs"] = core.services.get_lab_name_from_user(user_obj)
+        s_data["labs"] = core.utils.labs.get_lab_name_from_user(user_obj)
 
     return s_data
 

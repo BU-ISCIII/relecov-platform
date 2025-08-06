@@ -21,6 +21,7 @@ from core.services import sample_services
 from core.services import intranet_services
 from core.services import metadata_services
 from core.services import lab_services
+from core.services import assignment_services
 
 
 # Imports for received samples graphic at intranet
@@ -36,27 +37,23 @@ def index(request):
     return render(request, "core/index.html", {"data": index_data["data"]})
 
 
-@login_required
+@login_required()
 def assign_samples_to_user(request):
     if request.user.username != "admin":
         return redirect("/")
 
-    action = request.POST.get("action") if request.POST else None
-    lab = request.POST.get("lab")
-    user_id = request.POST.get("userName")
-
-    response = core.services.get_assign_samples_data(
-        action=action, lab=lab, user_id=user_id
+    action = request.POST.get("action") if request.method == "POST" else None
+    response = assignment_services.handle_assign_samples_to_user(
+        action=action,
+        post_data=request.POST if request.method == "POST" else None,
+        user=request.user,
     )
-    return render(
-        request,
-        "core/assignSamplesToUser.html",
-        {
-            "data": response["data"],
-            "success": response["success"] if action else None,
-            "errors": response["errors"],
-        },
-    )
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/assignSamplesToUser.html", context)
 
 
 # TODO: Discuss whether render shuld be used once or twice (one if not result["success"] and another one if result["success"]). Example below shows an scenario where render is used once, letting the logic of errors to be addressed in the tempalte.
