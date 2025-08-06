@@ -10,7 +10,7 @@ def split_bioinfo_data(data, schema_obj):
     split_data["bioinfo"] = {}
     split_data["lineage"] = {}
     for field, value in data.items():
-        if field == "sequencing_sample_id":
+        if field == "sample_fingerprint":
             split_data["sample"] = value
         # if this field belongs to BioinfoAnalysisField table
         if core.models.BioinfoAnalysisField.objects.filter(
@@ -37,7 +37,7 @@ def store_bioinfo_data(s_data, schema_obj):
     """Save the new field data in database"""
     # schema_id = schema_obj.get_schema_id()
     sample_obj = core.models.Sample.objects.filter(
-        sequencing_sample_id__iexact=s_data["sample"]
+        sample_fingerprint__iexact=s_data["sample"]
     ).last()
     # field to BioinfoAnalysisField table
     for field, value in s_data["bioinfo"].items():
