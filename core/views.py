@@ -166,113 +166,20 @@ def variants(request):
 def metadata_form(request):
     schema_obj = core.utils.schema.get_latest_schema("relecov", __package__)
 
-    if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "uploadMetadataFile" and "metadataFile" in request.FILES:
-            response = metadata_services.handle_metadata_upload(
-                request.FILES["metadataFile"], request.user.username
-            )
-            return render(
-                request, "core/metadataForm.html",
-                {
-                    "DATA_SAMPLERECORDED": response["data"].get("sample_recorded"),
-                    "success": response["success"],
-                    "errors": response["errors"]
-                }
-            )
-        #TODO: fix in progress
-        if action == "defineSamples":
-            response = metadata_services.handle_define_samples(
-                request.POST, request.user, schema_obj
-            )
-            if "sample_issues" in response["data"]:
-                return render(
-                    request, "core/metadataForm.html",
-                    {
-                        "DATA_SAMPLEISSUES": response["data"]["sample_issues"],
-                        "DATA_FORM": response["data"]["m_form"],
-                        "success": response["success"],
-                        "errors": response["errors"]
-                    }
-                )
-            if "m_form" in response["data"]:
-                return render(
-                    request, "core/metadataForm.html",
-                    {
-                        "DATA_FORM": response["data"]["m_form"],
-                        "success": response["success"],
-                        "errors": response["errors"]
-                    }
-                )
-            if "m_batch_form" in response["data"]:
-                return render(
-                    request, "core/metadataForm.html",
-                    {
-                        "DATA_BATCHFORM": response["data"]["m_batch_form"],
-                        "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                        "success": response["success"],
-                        "errors": response["errors"]
-                    }
-                )
-            if "sample_saved" in response["data"]:
-                return render(
-                    request, "core/metadataForm.html",
-                    {
-                        "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                        "success": response["success"],
-                        "errors": response["errors"]
-                    }
-                )
-
-        if action == "defineBatch":
-            response = metadata_services.handle_define_batch(
-                request.POST, request.user, schema_obj
-            )
-            if "m_batch_form" in response["data"]:
-                return render(
-                    request, "core/metadataForm.html",
-                    {
-                        "DATA_BATCHFORM": response["data"]["m_batch_form"],
-                        "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                        "success": response["success"],
-                        "errors": response["errors"]
-                    }
-                )
-            if "sample_recorded" in response["data"]:
-                return render(
-                    request, "core/metadataForm.html",
-                    {
-                        "DATA_SAMPLERECORDED": response["data"]["sample_recorded"],
-                        "success": response["success"],
-                        "errors": response["errors"]
-                    }
-                )
-
-    # GET request or fallback
-    response = metadata_services.get_metadata_form_initial(request.user, schema_obj)
-    if "m_batch_form" in response["data"]:
-        return render(
-            request, "core/metadataForm.html",
-            {
-                "DATA_BATCHFORM": response["data"]["m_batch_form"],
-                "DATA_SAMPLESAVED": response["data"]["sample_saved"],
-                "success": response["success"],
-                "errors": response["errors"]
-            }
-        )
-    if not response["success"]:
-        return render(
-            request, "core/metadataForm.html",
-            {"errors": response["errors"]}
-        )
-    return render(
-        request, "core/metadataForm.html",
-        {
-            "DATA_FORM": response["data"]["m_form"],
-            "success": response["success"],
-            "errors": response["errors"]
-        }
+    action = request.POST.get("action") if request.method == "POST" else None
+    response = metadata_services.handle_metadata_form(
+        action=action,
+        post_data=request.POST if request.method == "POST" else None,
+        files=request.FILES if request.method == "POST" else None,
+        user=request.user,
+        schema_obj=schema_obj,
     )
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/metadataForm.html", context)
 
 
 # TODO: this needs serialized-based refactor
