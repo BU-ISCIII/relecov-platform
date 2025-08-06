@@ -116,19 +116,19 @@ def pre_proc_calculation_date():
     invalid_samples = {}
     analysis_date = core.models.BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="bioinformatics_analysis_date",
-    ).values("value", "sample__collecting_lab_sample_id")
+    ).values("value", "sample__sample_unique_id")
     analysis_date = convert_data_to_sample_dict(
-        analysis_date, "sample__collecting_lab_sample_id", "value"
+        analysis_date, "sample__sample_unique_id", "value"
     )
     analysis_date, invalid_samples = convert_str_to_datetime(
         analysis_date, "-", invalid_samples
     )
 
     seq_date = core.models.Sample.objects.all().values(
-        "collecting_lab_sample_id", "sequencing_date"
+        "sample_unique_id", "sequencing_date"
     )
     seq_date = convert_data_to_sample_dict(
-        seq_date, "collecting_lab_sample_id", "sequencing_date"
+        seq_date, "sample_unique_id", "sequencing_date"
     )
 
     # send request to iSkyLIMS
@@ -204,7 +204,7 @@ def pre_proc_variant_graphic():
         variant_samples = (
             core.models.LineageValues.objects.filter(
                 lineage_fieldID__property_name="variant_name",
-                sample__collecting_lab_sample_id__in=samples,
+                sample__sample_unique_id__in=samples,
             )
             .exclude(value__in=invalid_values)
             .values_list("value", flat=True)
@@ -217,7 +217,7 @@ def pre_proc_variant_graphic():
         # Query sample counts instead of summing up
         sample_counts = (
             core.models.Sample.objects.filter(
-                collecting_lab_sample_id__in=samples,
+                sample_unique_id__in=samples,
                 lineage_values__value__in=variant_samples,
             )
             .values("lineage_values__value")  # Group by variant_name
@@ -354,7 +354,6 @@ def pre_proc_variations_per_lineage(chromosome=None):
         mutation_data["SamplesWithLineage"] = number_samples_wlineage
 
         lineage_data[lineage] = mutation_data
-
     print(f"Took {start - time.time()} seconds to process all lineages")
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
         {"graphic_name": "variations_per_lineage", "graphic_data": lineage_data}
@@ -428,10 +427,7 @@ def pre_proc_based_pairs_sequenced():
         {"sample_project_name": "Relecov", "parameter": "diagnostic_pcr_Ct_value_1"}
     )
     samps_db = set(
-        x[0]
-        for x in core.models.Sample.objects.all().values_list(
-            "collecting_lab_sample_id"
-        )
+        x[0] for x in core.models.Sample.objects.all().values_list("sample_unique_id")
     )
     if "ERROR" in pcr_ct_1_values:
         return pcr_ct_1_values
@@ -443,7 +439,7 @@ def pre_proc_based_pairs_sequenced():
 
         base_value_qs = core.models.BioinfoAnalysisValue.objects.filter(
             bioinfo_analysis_fieldID__property_name__exact="number_of_reads_sequenced",
-            sample__collecting_lab_sample_id__exact=sample_name,
+            sample__sample_unique_id__exact=sample_name,
         ).last()
 
         if base_value_qs is None:
@@ -472,20 +468,20 @@ def pre_proc_based_pairs_sequenced():
 def pre_proc_depth_variants():
     depth_sample_list = core.models.BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
-    ).values("value", "sample__collecting_lab_sample_id")
+    ).values("value", "sample__sample_fingerprint")
     variant_sample_list = core.models.BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="number_of_variants_in_consensus"
-    ).values("value", "sample__collecting_lab_sample_id")
+    ).values("value", "sample__sample_fingerprint")
     tmp_depth = {}
     depth_variant = {}
     for item in depth_sample_list:
         try:
-            tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
+            tmp_depth[item["sample__sample_fingerprint"]] = float(item["value"])
         except ValueError:
             # ignore the entry if value cannot converted to float (ex. "Not Provided")
             continue
     for item in variant_sample_list:
-        sample_id = item["sample__collecting_lab_sample_id"]
+        sample_id = item["sample__sample_fingerprint"]
         if sample_id not in tmp_depth:
             continue
         d_value = float(tmp_depth[sample_id])
@@ -512,7 +508,7 @@ def pre_proc_depth_variants():
 def pre_proc_depth_sample_run():
     depth_sample_list = core.models.BioinfoAnalysisValue.objects.filter(
         bioinfo_analysis_fieldID__property_name__exact="depth_of_coverage_value"
-    ).values("value", "sample__collecting_lab_sample_id")
+    ).values("value", "sample__sample_unique_id")
     if len(depth_sample_list) == 0:
         return {"ERROR": "No data"}
     sample_in_run = core.utils.rest_api.get_sample_parameter_data(
@@ -525,7 +521,7 @@ def pre_proc_depth_sample_run():
     depth_sample_run = {}
     for item in depth_sample_list:
         try:
-            tmp_depth[item["sample__collecting_lab_sample_id"]] = float(item["value"])
+            tmp_depth[item["sample__sample_unique_id"]] = float(item["value"])
         except ValueError:
             # ignore the entry if value cannot converted to float
             continue
@@ -667,7 +663,7 @@ def pre_proc_host_info():
                     years_fields[gender][year_age] += counts
                 else:
                     years_fields[gender][year_age] = counts
-        for invalid_key in ["", "Not Applicable"]:
+        for invalid_key in core.config.FIELD_EMPTY_VALUES:
             if invalid_key in years_fields:
                 years_fields["Not Provided"] = {
                     k: years_fields.get("Not Provided", {}).get(k, 0)
@@ -1036,12 +1032,12 @@ def pre_proc_search_samples_summary():
     paginator = Paginator(
         processed_samples_qs, 500
     )  # Dont load the whole queryset at once
-    processed_sampdict = {}
+    match_sampdict = {}
     for page_num in paginator.page_range:
         chunk = paginator.page(page_num)
         for sample in chunk:
-            # TODO: Prone to duplications. Use fingerprint along with iskylims
             sample_id = sample.sample_unique_id
+            seq_id = sample.sequencing_sample_id
             col_inst = sample.collecting_institution
             sub_inst = sample.submitting_institution
             sample_pk = sample.pk
@@ -1049,22 +1045,23 @@ def pre_proc_search_samples_summary():
                 lineage = sample.filt_lineages[0].value
             else:
                 lineage = "Not Defined"
-            processed_sampdict[sample_id] = (sample_pk, lineage, col_inst, sub_inst)
+            match_sampdict[sample_id] = (sample_pk, lineage, col_inst, sub_inst, seq_id)
 
     final_data = defaultdict(lambda: defaultdict(list))
     for s_data in in_date_samples["DATA"]:
         sample_name = s_data["Sample Name"]
-        if sample_name not in processed_sampdict.keys():
+        if sample_name not in match_sampdict.keys():
             errtxt = f"Could not find sample {sample_name} from iskylims. Skipped from search pre_proc_search_samples_summary()"
             logger.error(errtxt)
             continue
         col_date = s_data["collection_sample_date"]
-        sample_pk = processed_sampdict[sample_name][0]
-        lineage_name = processed_sampdict[sample_name][1]
-        col_inst = processed_sampdict[sample_name][2]
-        sub_inst = processed_sampdict[sample_name][3]
+        sample_pk = match_sampdict[sample_name][0]
+        lineage_name = match_sampdict[sample_name][1]
+        col_inst = match_sampdict[sample_name][2]
+        sub_inst = match_sampdict[sample_name][3]
+        seq_id = match_sampdict[sample_name][4]
         final_data[sub_inst][col_inst].append(
-            (sample_pk, sample_name, col_date, lineage_name, col_inst)
+            (sample_pk, seq_id, col_date, lineage_name, col_inst)
         )
 
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
