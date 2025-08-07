@@ -87,15 +87,18 @@ def bioinfo_graphics():
                 for value in str_data:
                     try:
                         v = float(value)
+                    except ValueError:
+                        try:
+                            v = float(str(v).replace(",", "."))
+                        except Exception:
+                            logger.warning(
+                                f"Invalid value encountered in '{graph}': '{value}' could not be converted to float"
+                            )
+                            continue
                         if v < 0:
                             v = 0.0  # negative values
                         if v <= 100:
                             clean_values.append(v)
-                    except ValueError:
-                        logger.warning(
-                            f"Invalid value encountered in '{graph}': '{value}' could not be converted to float"
-                        )
-                        continue
 
                 per_data.append({labels_map.get(graph, graph): clean_values})
 

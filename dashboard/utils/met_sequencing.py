@@ -47,10 +47,13 @@ def sequencing_graphics():
                     try:
                         float_val = float(str_val)
                     except ValueError:
-                        logger.warning(
-                            f"Non-numeric CT value '{str_val}' found in bin '{key}' – skipping."
-                        )
-                        continue
+                        try:
+                            float_val = float(str(str_val).replace(",", "."))
+                        except Exception:
+                            logger.warning(
+                                f"Non-numeric CT value '{str_val}' found in bin '{key}' - skipping."
+                            )
+                            continue
                     if float_val > 40:
                         logger.info(
                             f"Discarded CT value > 40: {float_val} in bin '{key}'"
@@ -64,7 +67,7 @@ def sequencing_graphics():
                 try:
                     int_key = int(key)
                 except ValueError:
-                    logger.warning(f"Invalid bin key '{key}' – skipping.")
+                    logger.warning(f"Invalid bin key '{key}' - skipping.")
                     continue
 
                 filtered_vals = [
@@ -76,7 +79,7 @@ def sequencing_graphics():
                     logger.info(f"{discarded} CT values > 40 discarded in bin {key}")
 
                 if not filtered_vals:
-                    logger.debug(f"All values discarded for bin {key} – skipping.")
+                    logger.debug(f"All values discarded for bin {key} - skipping.")
                     continue
 
                 data["based"].append(int_key)
