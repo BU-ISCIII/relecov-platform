@@ -12,6 +12,9 @@ import re
 from textwrap import wrap as text_wrap
 from django.template.loader import render_to_string
 
+# Local imports
+import core.utils.plotly_graphics
+
 COLOR_PALETTE = [
     "#448873",
     "#809dd4",
@@ -174,6 +177,12 @@ def bar_graphic(data, col_names, legend, yaxis, options):
                 hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}: %{y}<br><extra></extra>",
             )
         )
+        if options.get("log_scaling"):
+            fig = core.utils.plotly_graphics.log_ydata_if_needed(
+                fig,
+                values,
+                ratio=1000,
+            )
     fig.update_layout(
         title=options["title"],
         title_font_size=20,

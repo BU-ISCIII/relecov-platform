@@ -164,6 +164,7 @@ def sequencing_graphics():
             "height": 400,
             "width": 400,
             "xaxis": {"type": "category"},
+            "log_scaling": True
         },
     )
     # box plot for library preparation kit
