@@ -102,8 +102,12 @@ def create_needle_plot_graph_mutation_by_lineage(
                                         id="needleplot-graph",
                                         style={"padding-top": "15px"},
                                     ),
-                                    dcc.Store(id="debounced-relayout", storage_type="memory"),
-                                    dcc.Store(id="relayout-timestamp", storage_type="memory"),
+                                    dcc.Store(
+                                        id="debounced-relayout", storage_type="memory"
+                                    ),
+                                    dcc.Store(
+                                        id="relayout-timestamp", storage_type="memory"
+                                    ),
                                 ],
                                 style={"position": "relative"},
                             )
@@ -120,6 +124,7 @@ def create_needle_plot_graph_mutation_by_lineage(
             ),
         ]
     )
+
     @app.callback(
         Output("relayout-timestamp", "data"),
         Output("debounced-relayout", "data"),
@@ -132,7 +137,6 @@ def create_needle_plot_graph_mutation_by_lineage(
         if last_timestamp is None or now - last_timestamp > 0.4:
             return now, relayout_data
         raise dash.exceptions.PreventUpdate
-
 
     @app.callback(
         Output("needleplot-graph", "figure"),
