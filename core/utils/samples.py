@@ -862,7 +862,12 @@ def save_temp_sample_data(samples, user_obj):
     sample_saved_list = []
     for sample in samples:
         for item, value in sample.items():
-            # TODO: This needs special handling to implement sample_fingerprint
+            """
+            TODO: This needs special handling to implement sample_fingerprint.
+            This data is used to create a temporal table during metadata form completion.
+            Changing core.config.FIELD_FOR_GETTING_SAMPLE_ID would imply that the user needs to know
+            the sample_fingerprint, which is impossible. But at the same time its needed to ensure uniqueness.
+            """
             data = {"sample_name": sample[core.config.FIELD_FOR_GETTING_SAMPLE_ID]}
             data["field"] = item
             data["value"] = value
