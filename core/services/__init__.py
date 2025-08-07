@@ -11,6 +11,7 @@ import core.utils.rest_api
 import core.utils.schema
 import core.utils.variants
 import core.utils.samples
+import core.utils.labs
 import core.utils.bioinfo_analysis
 import core.utils.generic_functions
 import json
@@ -72,97 +73,11 @@ def get_index_data():
     return result
 
 
-def get_all_defined_labs():
-    """Get a list of laboratories that are defined in iSkyLIMS"""
-    sum_data = core.utils.rest_api.get_summarize_data(None)
-    if "ERROR" in sum_data:
-        return sum_data
-    return list(sum_data["laboratory"].keys())
-
-
-def get_defined_users():
-    """Get the id and the user names defined in relecov"""
-    user_list = []
-    user_objs = (
-        core.models.User.objects.all()
-        .exclude(username__iexact="admin")
-        .order_by("username")
-    )
-    for user_obj in user_objs:
-        user_list.append([user_obj.pk, user_obj.username])
-    return user_list
-
-
-def get_labs_and_users_data():
-    labs = get_all_defined_labs()
-    users = get_defined_users()
-    return core.serializers.LabUserAssignSerializer.from_raw_data(
-        labs=labs,
-        users=users,
-    )
-
-
 def get_sample_obj_from_id(sample_id):
     """Return the sample instance from its id"""
     if core.models.Sample.objects.filter(pk__exact=sample_id).exists():
         return core.models.Sample.objects.filter(pk__exact=sample_id).last()
     return None
-
-
-def get_assign_samples_data(action=None, lab=None, user_id=None):
-    result = {"data": {}, "success": False, "errors": []}
-    labs = get_all_defined_labs()
-    users = get_defined_users()
-
-    if action == "assignSamples":
-        if not user_id:
-            result["errors"].append({"code": 400, "message": "No user selected."})
-        else:
-            try:
-                user_obj = core.models.User.objects.get(pk=user_id)
-                samples_qs = core.models.Sample.objects.filter(
-                    collecting_institution__iexact=lab
-                )
-                if samples_qs.exists():
-                    samples_qs.update(user=user_obj)
-                    result["data"] = (
-                        core.serializers.LabUserAssignSerializer.from_raw_data(
-                            labs, users, SUCCESS="Samples reassigned."
-                        )
-                    )
-                    result["success"] = True
-                else:
-                    result["errors"].append(
-                        {
-                            "code": 404,
-                            "message": f"{core.config.ERROR_NO_SAMPLES_ARE_ASSIGNED_TO_LAB} {lab}",
-                        }
-                    )
-            except core.models.User.DoesNotExist:
-                result["errors"].append(
-                    {"code": 404, "message": f"User with ID {user_id} does not exist."}
-                )
-    else:
-        result["data"] = core.serializers.LabUserAssignSerializer.from_raw_data(
-            labs, users
-        )
-        result["success"] = True
-    return result
-
-
-def get_labs_and_users():
-    """Prepares data for sample allocation form."""
-    raw_data = {"labs": get_all_defined_labs(), "users": get_defined_users()}
-    return core.serializers.LabUserDataSerializer.from_raw_data(raw_data)
-
-
-def get_lab_name_from_user(user_obj):
-    """Get the laboratory name for the user"""
-    if core.models.Profile.objects.filter(user=user_obj).exists():
-        profile_obj = core.models.Profile.objects.filter(user=user_obj).last()
-        return profile_obj.get_lab_name()
-    else:
-        return ""
 
 
 # FIXME: refactor its output
@@ -180,11 +95,11 @@ def get_search_data(user_obj):
     # Get laboratories available in the user's group
     group = Group.objects.get(name="RelecovManager")
     if group in user_obj.groups.all():
-        labs = get_all_defined_labs()
+        labs = core.utils.labs.get_all_defined_labs()
         if isinstance(labs, dict) and "ERROR" in labs:
             labs = ["", ""]
     else:
-        labs = [get_lab_name_from_user(user_obj)]
+        labs = [core.utils.labs.get_lab_name_from_user(user_obj)]
 
     return {
         "labs": labs,

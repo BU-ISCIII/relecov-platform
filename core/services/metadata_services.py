@@ -1,8 +1,9 @@
+# Service layer helpers
 import core.utils.samples
 import core.config
 
 
-def handle_metadata_upload(metadata_file, username):
+def _handle_metadata_upload(metadata_file, username):
     """Store uploaded metadata file into Samba."""
     result = {"data": {}, "success": False, "errors": []}
     try:
@@ -14,7 +15,7 @@ def handle_metadata_upload(metadata_file, username):
     return result
 
 
-def handle_define_samples(post_data, user, schema_obj):
+def _handle_define_samples(post_data, user, schema_obj):
     """Process the form for defining samples."""
     result = {"data": {}, "success": False, "errors": []}
     try:
@@ -43,7 +44,7 @@ def handle_define_samples(post_data, user, schema_obj):
     return result
 
 
-def handle_define_batch(post_data, user, schema_obj):
+def _handle_define_batch(post_data, user, schema_obj):
     """Handle metadata batch definition."""
     result = {"data": {}, "success": False, "errors": []}
     try:
@@ -63,7 +64,7 @@ def handle_define_batch(post_data, user, schema_obj):
     return result
 
 
-def get_metadata_form_initial(user, schema_obj):
+def _get_metadata_form_initial(user, schema_obj):
     """Return the initial data to display the metadata form."""
     result = {"data": {}, "success": True, "errors": []}
     try:
@@ -86,3 +87,34 @@ def get_metadata_form_initial(user, schema_obj):
         result["success"] = False
         result["errors"].append({"code": 500, "message": str(exc)})
     return result
+
+
+def handle_metadata_form(action=None, post_data=None, files=None, user=None, schema_obj=None):
+    """Central entry point for metadata form actions."""
+    if action == "uploadMetadataFile" and files:
+        response = _handle_metadata_upload(files.get("metadataFile"), user.username)
+    elif action == "defineSamples":
+        response = _handle_define_samples(post_data, user, schema_obj)
+    elif action == "defineBatch":
+        response = _handle_define_batch(post_data, user, schema_obj)
+    else:
+        response = _get_metadata_form_initial(user, schema_obj)
+
+    mapped_data = {}
+    source = response.get("data", {})
+    if "m_form" in source:
+        mapped_data["DATA_FORM"] = source["m_form"]
+    if "sample_issues" in source:
+        mapped_data["DATA_SAMPLEISSUES"] = source["sample_issues"]
+    if "m_batch_form" in source:
+        mapped_data["DATA_BATCHFORM"] = source["m_batch_form"]
+    if "sample_saved" in source:
+        mapped_data["DATA_SAMPLESAVED"] = source["sample_saved"]
+    if "sample_recorded" in source:
+        mapped_data["DATA_SAMPLERECORDED"] = source["sample_recorded"]
+
+    return {
+        "data": mapped_data,
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
