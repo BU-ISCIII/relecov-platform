@@ -1,6 +1,10 @@
-# Service layer helpers
-import core.utils.samples
+import json
+
 import core.config
+import core.models
+import core.serializers
+import core.utils.schema
+import core.utils.samples
 
 
 def _handle_metadata_upload(metadata_file, username):
@@ -118,3 +122,126 @@ def handle_metadata_form(action=None, post_data=None, files=None, user=None, sch
         "success": response.get("success"),
         "errors": response.get("errors"),
     }
+
+
+def get_metadata_visualization_data(schema):
+    data = {"sample": [], "batch": []}
+    for fill_mode in ["sample", "batch"]:
+        qs = core.models.MetadataVisualization.objects.filter(
+            schemaID=schema, fill_mode=fill_mode, in_use=True
+        ).order_by("order")
+        data[fill_mode] = core.serializers.MetadataVisualizationSerializer(
+            qs, many=True
+        ).data
+    return data
+
+
+def store_metadata_visualization_fields(schema_id, fields, fill_mode="sample"):
+    core.models.MetadataVisualization.objects.filter(
+        schemaID=schema_id, fill_mode=fill_mode
+    ).delete()
+    for field in fields:
+        core.models.MetadataVisualization.objects.create(
+            schemaID_id=schema_id,
+            property_name=field["property_name"],
+            label_name=field["label_name"],
+            order=field["order"],
+            in_use=True,
+            fill_mode=fill_mode,
+        )
+    return True
+
+
+def get_schema_fields_data(schema, template_labels=None):
+    qs = core.models.SchemaProperties.objects.filter(schemaID=schema).order_by("label")
+    serialized = core.serializers.SchemaPropertiesSerializer(qs, many=True).data
+    if template_labels:
+        for field in serialized:
+            label = field["label"].strip()
+            if label in template_labels:
+                field["used"] = True
+                field["order"] = template_labels.index(label)
+            else:
+                field["used"] = False
+                field["order"] = ""
+    return serialized
+
+
+def get_schema_fields_for_jexcel(schema, template_labels=None):
+    fields = get_schema_fields_data(schema, template_labels)
+    return {
+        "schema_id": str(schema.pk),
+        "fields": [
+            [
+                f["property"],
+                f["label"],
+                f["order"],
+                str(f["used"]).lower(),
+                f["fill_mode"],
+            ]
+            for f in fields
+        ],
+    }
+
+
+def handle_metadata_visualization(request):
+    action = request.POST.get("action") if request.method == "POST" else None
+    table_data_json = request.POST.get("tableData") if request.method == "POST" else None
+
+    result = {"data": None, "success": None, "errors": []}
+    try:
+        schema = (
+            core.models.Schema.objects.filter(schema_in_use=True)
+            .order_by("-generated_at")
+            .first()
+        )
+        if not schema:
+            result["success"] = False
+            result["errors"].append(core.config.ERROR_SCHEMA_NOT_DEFINED)
+            return result
+
+        if action == "selectFields":
+            if not table_data_json:
+                result["success"] = False
+                result["errors"].append("No table_data provided in POST.")
+                return result
+            try:
+                rows = json.loads(table_data_json)
+            except Exception as exc:
+                result["success"] = False
+                result["errors"].append(f"Error parsing table_data: {exc}")
+                return result
+
+            core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
+            for row in rows:
+                core.models.MetadataVisualization.objects.create(
+                    schemaID=schema,
+                    property_name=row[0],
+                    label_name=row[1],
+                    order=(row[2] if row[2] != "" else 0),
+                    in_use=row[3],
+                    fill_mode=row[4] if len(row) > 4 else "sample",
+                )
+            result["data"] = {"visualization": get_metadata_visualization_data(schema)}
+            result["success"] = True
+            return result
+
+        if action == "deleteFields":
+            core.models.MetadataVisualization.objects.filter(schemaID=schema).delete()
+            result["data"] = {"deleted": True}
+            result["success"] = True
+            return result
+
+        visualization = get_metadata_visualization_data(schema)
+        if visualization["sample"] or visualization["batch"]:
+            result["data"] = {"visualization": visualization}
+        else:
+            template_labels = core.utils.schema.get_fields_if_template()
+            result["data"] = {
+                "schema_fields": get_schema_fields_for_jexcel(schema, template_labels)
+            }
+        result["success"] = True
+    except Exception as exc:
+        result["success"] = False
+        result["errors"].append(str(exc))
+    return result

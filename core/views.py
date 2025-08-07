@@ -13,7 +13,7 @@ import core.utils.variants
 import core.utils.generic_functions
 import core.utils.lineage
 import core.config
-import core.services
+from core.services import index_services
 from core.services import schema_services
 from core.services import sample_services
 from core.services import intranet_services
@@ -24,7 +24,7 @@ from core.services import annotation_services
 
 
 def index(request):
-    response = core.services.get_index_data()
+    response = index_services.get_index_data()
     context = {
         **response.get("data", {}),
         "success": response.get("success"),
@@ -88,7 +88,7 @@ def schema_display(request, schema_id):
 
 @login_required
 def sample_display(request, sample_id):
-    response = core.services.get_sample_display_data(sample_id, request.user)
+    response = sample_services.get_sample_display_data(sample_id, request.user)
     context = {
         **response.get("data", {}),
         "success": response.get("success"),
@@ -131,7 +131,7 @@ def search_sample(request):
 def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
-    response = core.services.handle_metadata_visualization(request)
+    response = metadata_services.handle_metadata_visualization(request)
     context = {
         **(response.get("data") or {}),
         "success": response.get("success"),
