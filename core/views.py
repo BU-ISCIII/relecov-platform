@@ -52,8 +52,6 @@ def assign_samples_to_user(request):
     return render(request, "core/assignSamplesToUser.html", context)
 
 
-# TODO: Discuss whether render shuld be used once or twice (one if not result["success"] and another one if result["success"]). Example below shows an scenario where render is used once, letting the logic of errors to be addressed in the tempalte.
-# TODO: I think it would be better to put here the request POST/GET logic.
 @login_required
 def schema_handling(request):
     if request.user.username != "admin":
@@ -156,7 +154,7 @@ def intranet(request):
 def variants(request):
     return render(request, "core/variants.html", {})
 
-# TODO: too many utils to apply serializer refactor
+
 @login_required()
 def metadata_form(request):
     schema_obj = core.utils.schema.get_latest_schema("relecov", __package__)
