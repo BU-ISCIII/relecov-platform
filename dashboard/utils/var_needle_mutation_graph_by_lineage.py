@@ -3,7 +3,7 @@ import time
 import plotly.graph_objects as go
 import dash
 from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 from django_plotly_dash import DjangoDash
 
 # Local imports
@@ -101,7 +101,9 @@ def create_needle_plot_graph_mutation_by_lineage(
                                     dcc.Graph(
                                         id="needleplot-graph",
                                         style={"padding-top": "15px"},
-                                    )
+                                    ),
+                                    dcc.Store(id="debounced-relayout", storage_type="memory"),
+                                    dcc.Store(id="relayout-timestamp", storage_type="memory"),
                                 ],
                                 style={"position": "relative"},
                             )
@@ -118,50 +120,29 @@ def create_needle_plot_graph_mutation_by_lineage(
             ),
         ]
     )
+    @app.callback(
+        Output("relayout-timestamp", "data"),
+        Output("debounced-relayout", "data"),
+        Input("needleplot-graph", "relayoutData"),
+        State("relayout-timestamp", "data"),
+        prevent_initial_call=True,
+    )
+    def debounce_relayout(relayout_data, last_timestamp):
+        now = time.time()
+        if last_timestamp is None or now - last_timestamp > 0.4:
+            return now, relayout_data
+        raise dash.exceptions.PreventUpdate
+
 
     @app.callback(
-        [
-            Output("needleplot-graph", "figure"),
-            Output("samples_markdown", "children"),
-            Output("previous-data", "data"),
-        ],  # Track loading state
-        [
-            Input("needleplot-select-lineage", "value"),
-            Input("toggle-rangeslider", "value"),
-            Input("needleplot-graph", "relayoutData"),
-            Input("previous-data", "data"),
-        ],
-        prevent_initial_call=True,  # Avoid triggering on page load
+        Output("needleplot-graph", "figure"),
+        Output("samples_markdown", "children"),
+        Input("debounced-relayout", "data"),
+        Input("needleplot-select-lineage", "value"),
+        Input("toggle-rangeslider", "value"),
+        prevent_initial_call=True,
     )
-    def update_sample(selected_lineage, toogle_rangeslider, relayout_data, prev_data):
-        current_time = time.time()
-        first_load = prev_data["first_load"]
-        next_data = {}
-        if not relayout_data:
-            next_data["prev_relayout"] = relayout_data
-        if not first_load:
-            last_time = prev_data["last_update"]
-            # Dont update if no relayout_data is returned from rangeslider
-            if not relayout_data or not relayout_data.get("xaxis.range", []):
-                print("No valid relayout data found")
-                raise dash.exceptions.PreventUpdate
-            # Compare current relayoutData with the previous one
-            previous_range = prev_data.get("xaxis.range", [])
-            current_range = relayout_data.get("xaxis.range", [])
-            if previous_range == current_range:
-                print("No change in relayoutData, skipping update.")
-                raise dash.exceptions.PreventUpdate
-            last_time = prev_data["last_update"]
-            # Ensure that the last state has not been updated too recently
-            if current_time - last_time < 0.25:
-                print(f"Did not update. Diff was {time.time() - last_time}")
-                raise dash.exceptions.PreventUpdate
-        # Update previous relayout data
-        next_data["prev_relayout"] = relayout_data
-        next_data["first_load"] = False
-        # Start updating process
-        next_data["last_update"] = current_time
-
+    def update_sample(relayout_data, selected_lineage, toogle_rangeslider):
         mdata, _, n_samples = get_variant_data_from_lineages(
             graphic_name="variations_per_lineage",
             lineage=selected_lineage,
@@ -391,6 +372,6 @@ def create_needle_plot_graph_mutation_by_lineage(
                 )
             ],
         )
-        return fig, markdown_text, next_data
+        return fig, markdown_text
 
     return app
