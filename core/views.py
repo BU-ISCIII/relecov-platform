@@ -23,11 +23,6 @@ from core.services import assignment_services
 from core.services import annotation_services
 
 
-# Imports for received samples graphic at intranet
-import core.utils.samples_graphics
-import core.utils.samples_map
-
-
 def index(request):
     response = core.services.get_index_data()
     context = {
@@ -238,31 +233,15 @@ def laboratory_contact(request):
     return render(request, "core/laboratoryContact.html", context)
 
 
-# TODO: this needs serialized-based refactor
-@login_required
+@login_required()
 def received_samples(request):
-    sample_data = {}
-    # samples receive over time map
-    sample_data["map"] = core.utils.samples_map.create_samples_received_map()
-    # samples receive over time graph
-    # df = create_dataframe_from_json()
-    # create_samples_over_time_graph(df)
-
-    # # collecting now data from database
-    sample_data["received_samples_graph"] = (
-        core.utils.samples_graphics.received_samples_graph()
-    )
-    # Pie charts
-    # data = parse_json_file()
-    # create_samples_received_over_time_per_ccaa_pieChart(data)
-    sample_data["samples_per_ccaa"] = core.utils.samples_graphics.received_per_ccaa()
-    # create_samples_received_over_time_per_laboratory_pieChart(data)
-    sample_data["samples_per_lab"] = core.utils.samples_graphics.received_per_lab()
-    return render(
-        request,
-        "core/receivedSamples.html",
-        {"sample_data": sample_data},
-    )
+    response = sample_services.get_received_samples_data()
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/receivedSamples.html", context)
 
 
 def contact(request):
