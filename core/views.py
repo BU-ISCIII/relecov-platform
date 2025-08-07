@@ -11,7 +11,6 @@ import core.utils.labs
 import core.utils.public_db
 import core.utils.variants
 import core.utils.generic_functions
-import core.utils.annotation
 import core.utils.lineage
 import core.config
 import core.services
@@ -21,6 +20,7 @@ from core.services import intranet_services
 from core.services import metadata_services
 from core.services import lab_services
 from core.services import assignment_services
+from core.services import annotation_services
 
 
 # Imports for received samples graphic at intranet
@@ -182,48 +182,46 @@ def metadata_form(request):
     return render(request, "core/metadataForm.html", context)
 
 
-# TODO: this needs serialized-based refactor
 @login_required()
 def annotation_display(request, annot_id):
-    """Display the full information about the organism annotation stored in
-    database
-    """
+    """Display the full information about a stored organism annotation."""
     if request.user.username != "admin":
         return redirect("/")
-    if not core.utils.annotation.check_if_annotation_exists(annot_id):
+
+    response = annotation_services.get_annotation_details(annot_id)
+    if any(err.get("code") == 404 for err in response.get("errors", [])):
         return render(request, "core/error_404.html")
-    annot_data = core.utils.annotation.get_annotation_data(annot_id)
-    return render(
-        request, "core/annotationDisplay.html", {"annotation_data": annot_data}
-    )
+
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/annotationDisplay.html", context)
 
 
-# TODO: this needs serialized-based refactor
 @login_required()
 def organism_annotation(request):
-    """Store the organism annotation gff file"""
+    """Store the organism annotation GFF file."""
     if request.user.username != "admin":
         return redirect("/")
-    annotations = core.utils.annotation.get_annotations()
-    if request.method == "POST" and request.POST["action"] == "uploadAnnotation":
-        gff_parsed = core.utils.annotation.read_gff_file(request.FILES["gffFile"])
-        if "errors" in gff_parsed:
-            return render(
-                request,
-                "core/organismAnnotation.html",
-                {"errors": gff_parsed["errors"], "annotations": annotations},
-            )
-        core.utils.annotation.store_gff(gff_parsed, request.user)
-        annotations = core.utils.annotation.get_annotations()
-        return render(
-            request,
-            "core/organismAnnotation.html",
-            {"success": "Success", "annotations": annotations},
-        )
-    return render(request, "core/organismAnnotation.html", {"annotations": annotations})
+
+    action = request.POST.get("action") if request.method == "POST" else None
+    gff_file = request.FILES.get("gffFile") if request.method == "POST" else None
+
+    response = annotation_services.handle_organism_annotation(
+        action=action,
+        gff_file=gff_file,
+        user=request.user,
+    )
+    context = {
+        **response.get("data", {}),
+        "success": response.get("success"),
+        "errors": response.get("errors"),
+    }
+    return render(request, "core/organismAnnotation.html", context)
 
 
-# TODO: this needs serialized-based refactor
 @login_required()
 def laboratory_contact(request):
     action = request.POST.get("action") if request.method == "POST" else None
