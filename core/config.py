@@ -106,6 +106,7 @@ FIELD_EMPTY_VALUES = [
     "Not Collected",
     "Not Provided [SNOMED:434941000124101]",
     "Not Provided [GENEPIO:0001668]",
+    "Missing",
 ]
 
 MAIN_SCHEMA_STRUCTURE = ["$schema", "required", "type", "properties"]
