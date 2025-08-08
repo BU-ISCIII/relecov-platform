@@ -671,8 +671,8 @@ def pre_proc_host_info():
                     for k in set(years_fields[invalid_key])
                     | set(years_fields.get("Not Provided", {}))
                 }
-            if invalid_key != "Not Provided":
-                del years_fields[invalid_key]
+                if invalid_key != "Not Provided":
+                    del years_fields[invalid_key]
         for key, values in years_fields.items():
             tmp_range_per_key[key], tmp_invalid_data = split_age_in_ranges(values)
             invalid_data += tmp_invalid_data
