@@ -102,6 +102,7 @@ FIELD_EMPTY_VALUES = [
     "None",
     "Not Provided",
     "Not Applicable",
+    "Not Applicable [GENEPIO:0001619]",
     "Not Collected",
     "Not Provided [SNOMED:434941000124101]",
     "Not Provided [GENEPIO:0001668]",
