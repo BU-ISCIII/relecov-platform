@@ -2,6 +2,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django import forms
+from django.core.exceptions import ValidationError
+import json
+import os
 
 # Local imports
 import core.models
@@ -137,7 +141,39 @@ class VariantAnnotationAdmin(admin.ModelAdmin):
     list_display = ["variantID_id", "geneID_id", "hgvs_c", "hgvs_p", "hgvs_p_1_letter"]
 
 
+class SchemaAdminForm(forms.ModelForm):
+    json_content = forms.CharField(widget=forms.Textarea, required=False)
+
+    class Meta:
+        model = core.models.Schema
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.file_name:
+            path = self.instance.file_name.path
+            if os.path.exists(path):
+                with open(path, "r") as f:
+                    try:
+                        self.fields["json_content"].initial = json.dumps(
+                            json.load(f), indent=2
+                        )
+                    except Exception:
+                        self.fields["json_content"].initial = f.read()
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        content = self.cleaned_data.get("json_content")
+        if content:
+            with open(instance.file_name.path, "w") as f:
+                f.write(content)
+        if commit:
+            instance.save()
+        return instance
+
+
 class SchemaAdmin(admin.ModelAdmin):
+    form = SchemaAdminForm
     list_display = [
         "schema_name",
         "schema_version",
@@ -145,6 +181,8 @@ class SchemaAdmin(admin.ModelAdmin):
         "schema_in_use",
         "schema_apps_name",
     ]
+    search_fields = ["schema_name", "schema_version", "schema_apps_name"]
+    list_filter = ["schema_in_use", "schema_default", "schema_apps_name"]
 
 
 class SchemaPropertiesAdmin(admin.ModelAdmin):
