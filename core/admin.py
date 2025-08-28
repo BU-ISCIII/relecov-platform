@@ -152,13 +152,16 @@ class SchemaAdminForm(forms.ModelForm):
         if self.instance and self.instance.file_name:
             path = self.instance.file_name.path
             if os.path.exists(path):
-                with open(path, "r") as f:
+                if self.instance and self.instance.file_name:
+                    f = self.instance.file_name
                     try:
-                        self.fields["json_content"].initial = json.dumps(
-                            json.load(f), indent=2
-                        )
+                        f.open()  # opens file in storage backend
+                        self.fields["json_content"].initial = f.read().decode("utf-8")
+                        f.close()
                     except Exception:
-                        self.fields["json_content"].initial = f.read()
+                        self.fields["json_content"].initial = ""
+            else:
+                print(f"Schema file does not exist: {path}")
 
     def save(self, commit=True):
         instance = super().save(commit=False)
