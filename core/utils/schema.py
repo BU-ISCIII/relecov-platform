@@ -273,7 +273,8 @@ def store_lineage_fields(schema_obj, s_properties):
     """Store the fields to be used for lineage analysis information"""
     for prop_key in s_properties.keys():
         data = dict(s_properties[prop_key])
-        if "classification" in data and data["classification"] == "Lineage fields":
+        lineage_classifs = ["Lineage fields", "Clade fields", "Genomic Typing fields"]
+        if "classification" in data and data["classification"] in lineage_classifs:
             fields = {}
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
