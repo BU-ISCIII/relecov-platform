@@ -128,6 +128,9 @@ sudo mysql -p relecovlims < /path/to/relecov-iskylims_db.sql
 Ahora que ya tenemos MySQL preparado, podemos comenzar con la instalación de la plataforma.
 
 **Clonar la última versión del código:**
+Clona el código en el **home** del usuario administrador (por ejemplo, `~/clones`), **no en `/opt`**.  
+> `/opt` se utilizará como **ruta de instalación/ejecución** que define `INSTALL_PATH` en `install_settings.txt`.
+
 ~~~bash
 git clone git@github.com:BU-ISCIII/relecov-platform.git
 ~~~
@@ -137,11 +140,9 @@ Para _iSkyLIMS_, sigue: [Clonar el repositorio de GitHub](https://github.com/BU-
 **Crear directorios de despliegue:**
 ~~~bash
 cd /opt
-sudo mkdir relecov-platform
-sudo mkdir iskylims
-sudo chown -R root:www-data iskylims
-sudo chown -R dadmin:apache iskylims
-sudo chmod 2775 iskylims
+sudo mkdir -p relecov-platform iskylims
+sudo chown -R root:apache relecov-platform iskylims
+sudo chmod 2775 relecov-platform iskylims
 ~~~
 
 ---
@@ -225,14 +226,30 @@ LOG_PATH='/var/log/apps/relecov-iskylims'  # obligatorio si LOG_TYPE='symbolic_l
 
 # 6. Instalación y despliegue
 
+**Permisos:** para instalar **dependencias del sistema** se requieren privilegios de administración (root/sudo). Para facilitar la separación de responsabilidades (Sistemas vs. Aplicaciones), el script admite el parámetro `--install` / `--upgrade` con estas opciones:
+
+- `dep` → instala/actualiza paquetes del sistema y dependencias de Python del proyecto. **Requiere permisos de administración**.
+- `app` → instala/actualiza únicamente la aplicación (código y migraciones). **No requiere permisos de administración**.
+
+> Ejecuta los comandos desde la carpeta del proyecto correspondiente y con `install_settings.txt` ya configurado.
+
+
 ## 6.1 Instalación *relecov-platform*
 
-~~~bash
-sudo bash install.sh --upgrade dep
-sudo bash install.sh --upgrade app
-~~~
+**Dependencias (requiere administración):**
+```bash
+# Instalación inicial de dependencias
+sudo bash install.sh --install dep
+```
+
+**Aplicacion (no requiere administración):**
+```bash
+# Instalación inicial de dependencias
+bash install.sh --install app
+```
 
 ## 6.2 Instalación *relecov-iskylims*
+Consulta las secciones de instalación/actualización del [LEAME](https://github.com/BU-ISCIII/iskylims/blob/main/LEAME.md#ejecutar-el-script-de-instalaci%C3%B3n)
 
 ~~~bash
 sudo bash install.sh --upgrade dep
@@ -240,89 +257,14 @@ sudo bash install.sh --upgrade app
 ~~~
 
 ## 6.3 Despliegue
-En el servidor de desarrollo ejecutar el endurecimiento básico y reiniciar Apache:
+En el servidor de desarrollo ejecutar el hardening y reiniciar Apache:
 
 ~~~bash
-# 1) Endurecimiento del servidor (hardening)
+# 1) Hardening del servidor (hardening)
 sudo /scripts/hardening.sh
 
 # 2) Reiniciar el servicio web
 sudo systemctl restart httpd
 ~~~
-
-# 7. Carga de datos posteriores a la instalación
-
-Una vez tenemos las dos plataformas desplegadas podemos proceder con los archivos de configuración post-instalación directamente desde la web.
-
-## 7.1 Archivos Post-instalación – *Relecov-Platform*
-
-- **Carga del `relecov_schema.json`**  
-  En *Configuration → SchemaHandling* del nuevo despliegue es posible adjuntar el [`relecov_schema.json`](https://raw.githubusercontent.com/BU-ISCIII/relecov-tools/main/relecov_tools/schema/relecov_schema.json) de la última versión.
-
-- **Carga del GFF de Annotation**  
-  En *Configuration → Annotation* del nuevo despliegue es posible adjuntar el archivo [`GFF`](https://github.com/BU-ISCIII/relecov-platform/blob/develop/conf/NC_045512.2.gff).
-- **Comprobación de iSkyLIMS**  
-  En el panel de admin del nuevo despliegue, comprobar que `ISKYLIMS_SERVER` en `/admin/core/configsetting/` apunta a `relecov-lims`.
-
-## 7.2 Archivos Post-instalación – *Relecov-Iskylims*
-
-- Crear **relecovbot** como usuario en el panel de admin: `/admin/auth/user/`.
-
-### Configurar el esquema RELECOV en iSkyLIMS (vía interfaz web)
-
-1. **URL de acceso al módulo WetLab** (ajusta al entorno):  
-   `http://----/wetlab` (o equivalente).
-
-2. **Acceso**  
-   Entrar en `…/wetlab` con tu usuario de iSkyLIMS.
-
-3. **Navegación**  
-   Ir a: **PARAMETERS SETTINGS → Define Sample projects**.
-
-4. **Crear (o localizar) el proyecto RELECOV**  
-   - Si no existe, pulsa **Add** y crea un proyecto que incluya **“RELECOV”** en el nombre.  
-   - En **Manager**, selecciona a **isabel.cuesta** (o el manager definido para tu instalación).  
-   - Guarda los cambios.
-
-5. **Cargar campos desde el schema (“Load batch”)**  
-   - Dentro del proyecto RELECOV: **Define fields → Load batch**  
-   - **Upload schema**: seleccionar el fichero `relecov_schema.json`.  
-   - **Property where to fetch fields**: `classification`  
-   - **Select the values to be filtered** (deben coincidir con las *Classification* del schema que quieras cargar). Marca:
-     - Database Identifiers
-     - Files info
-     - Host information
-     - Pathogen diagnostic testing
-     - Sample collection and processing
-     - Sequencing  
-   - Confirma y guarda.
-
-6. **Ontologymap (mapeo de variables)**  
-   Configurar las relaciones entre las variables de iSkyLIMS para que mapear en base a la ontología del schema. Ir a:  
-   `http://…./admin/core/ontologymap/` y ajustar, por ejemplo:
-   - `sample_type` → `SNOMED:703065002`
-   - `lab_request` → `GENEPIO:0001159` (submitting_institution)
-   - `species` → `SNOMED:410607006` (Organism)
-   - `sample_name` → `GENEPIO:0000079` (sequencing_sample_id)
-   - `sample_entry_date` → `SNOMED:281271004` (received_date)
-   - `collection_sample_date` → `SNOMED:399445004` (sample_collection_date)
-
-7. **Definir *Species***  
-   Dar de alta los distintos organismos del schema en `http://…./admin/core/species/`:
-   - *Severe acute respiratory syndrome coronavirus 2*
-   - *Respiratory syncytial virus*
-   - *Influenza virus*
-
-8. **Aplicar “wetlab”**  
-   En el apartado de **Apps name** seleccionar **wetlab**.
-
-
-## 7.3 Servicios iSkyLIMS (SAMBA, correo, Apache y verificación)
-
-- **Servicios Iskylims (Realiza la configuración siguiendo **exclusivamente** el LEAME oficial)**  
-  • [Configuración de SAMBA](https://github.com/BU-ISCIII/iskylims/blob/main/LEAME.md#configuración-de-samba)  
-  • [Verificación de correo electrónico](https://github.com/BU-ISCIII/iskylims/blob/main/LEAME.md#verificación-de-correo-electrónico)  
-  • [Configurar el servidor Apache](https://github.com/BU-ISCIII/iskylims/blob/main/LEAME.md#configurar-el-servidor-apache)  
-  • [Verificación de la instalación](https://github.com/BU-ISCIII/iskylims/blob/main/LEAME.md#verificación-de-la-instalación)
 
 ---
