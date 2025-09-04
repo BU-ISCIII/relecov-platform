@@ -490,15 +490,10 @@ def get_sample_obj_from_sample_name(sample_name):
     return None
 
 
-def get_sample_obj_from_fingerprint(sample_fingerprint):
-    """Return the sample instance from its unique fingerprint"""
-    if core.models.Sample.objects.filter(
-        sample_fingerprint__iexact=sample_fingerprint
-    ).exists():
-        return core.models.Sample.objects.filter(
-            sample_fingerprint__iexact=sample_fingerprint
-        ).last()
-    return None
+def get_sample_obj_from_unique_sample_id(unique_sample_id):
+    """Return the Sample instance from its unique, persisted identifier (sample_unique_id)."""
+    qs = core.models.Sample.objects.filter(sample_unique_id__iexact=unique_sample_id)
+    return qs.last() if qs.exists() else None
 
 
 def get_sample_obj_from_id(sample_id):
