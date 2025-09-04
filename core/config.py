@@ -15,7 +15,7 @@ BIOINFO_METADATA_SUCCESSFUL_LOAD = "Bioinfo metadata file was successfully loade
 METADATA_JSON_SUCCESSFUL_LOAD = "Metadata was successfully loaded"
 ERROR_SCHEMA_ID_NOT_DEFINED = "schema ID is not defined"
 ERROR_SCHEMA_NOT_DEFINED = "No schemas have been defined yet"
-ERROR_SAMPLE_NAME_NOT_INCLUDED = "Sample name field is not included in the request"
+ERROR_SAMPLE_NAME_NOT_INCLUDED = "Unique sample id field is not included in the request"
 ERROR_SAMPLE_NOT_DEFINED = "Sample id is not defined"
 ERROR_SAMPLES_NOT_DEFINED_IN_FORM = (
     "Samples were not defined when loading data for batch "
