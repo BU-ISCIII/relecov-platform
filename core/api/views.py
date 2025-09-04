@@ -484,15 +484,15 @@ def create_bioinfo_metadata(request):
             "data": {},
         }
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-    if "sample_fingerprint" not in data:
+    if "unique_sample_id" not in data:
         error = {
             "ERROR": core.config.ERROR_SAMPLE_NAME_NOT_INCLUDED,
-            "message": "Error no sample_fingerprint in data",
+            "message": "Error no unique sample id in data",
             "data": {},
         }
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-    sample_obj = core.utils.samples.get_sample_obj_from_fingerprint(
-        data["sample_fingerprint"]
+    sample_obj = core.utils.samples.get_sample_obj_from_unique_sample_id(
+        data["unique_sample_id"]
     )
     if sample_obj is None:
         error = {
