@@ -395,6 +395,7 @@ def create_sample_data(request):
     request=inline_serializer(
         name="create_bioinfo_metadata",
         fields={
+            "unique_sample_id": serializers.CharField(),
             "bioinformatics_analysis_date": serializers.CharField(),
             "assembly": serializers.CharField(),
             "assembly_params": serializers.CharField(),
@@ -551,7 +552,14 @@ def create_bioinfo_metadata(request):
     return Response(
         {
             "message": f"Bioinfo metadata successfully saved for sample {sample_obj.get_sequencing_sample_id()}",
-            "data": {},
+            "data": {
+                "sample_unique_id": getattr(sample_obj, "sample_unique_id", None)
+                or sample_obj.get_sample_unique_id(),
+                "sample_id": sample_obj.get_sample_id(),
+                "sequencing_sample_id": sample_obj.get_sequencing_sample_id(),
+                "bioinformatics_analysis_date": bioinformatics_analysis_date,
+                "state": "Bioinfo",
+            },
         },
         status=status.HTTP_201_CREATED,
     )
