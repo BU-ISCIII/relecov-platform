@@ -6,12 +6,10 @@ import core.config
 
 def split_bioinfo_data(data, schema_obj):
     """Check if all fields in the request are defined in database"""
-    split_data = {}
-    split_data["bioinfo"] = {}
-    split_data["lineage"] = {}
+    split_data = {"bioinfo": {}, "lineage": {}}
     for field, value in data.items():
-        if field == "sample_fingerprint":
-            split_data["sample"] = value
+        if field == "unique_sample_id":
+            split_data["unique_sample_id"] = value
         # if this field belongs to BioinfoAnalysisField table
         if core.models.BioinfoAnalysisField.objects.filter(
             schemaID=schema_obj, property_name__iexact=field
@@ -35,10 +33,12 @@ def get_analysis_defined(s_obj):
 
 def store_bioinfo_data(s_data, schema_obj):
     """Save the new field data in database"""
-    # schema_id = schema_obj.get_schema_id()
-    sample_obj = core.models.Sample.objects.filter(
-        sample_fingerprint__iexact=s_data["sample"]
-    ).last()
+    uid = s_data.get("unique_sample_id")
+    if not uid:
+        return {"ERROR": "unique_sample_id not found in processed payload"}
+    sample_obj = core.models.Sample.objects.filter(sample_unique_id__iexact=uid).last()
+    if sample_obj is None:
+        return {"ERROR": f"Sample not found for unique_sample_id='{uid}'"}
     # field to BioinfoAnalysisField table
     for field, value in s_data["bioinfo"].items():
         field_id = (
