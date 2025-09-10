@@ -264,7 +264,7 @@ def store_bioinfo_fields(schema_obj, s_properties):
             # fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
-            n_field = core.models.BioinfoAnalysisField.objects.create_new_field(fields)
+            n_field = core.models.BioinfoAnalysisField.objects.create_or_get_field(fields)
             n_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
 
@@ -278,7 +278,7 @@ def store_lineage_fields(schema_obj, s_properties):
             fields = {}
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
-            l_field = core.models.LineageFields.objects.create_new_field(fields)
+            l_field = core.models.LineageFields.objects.create_or_get_field(fields)
             l_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
 
