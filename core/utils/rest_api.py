@@ -93,7 +93,7 @@ def get_sample_fields_data():
     data = r_api.get_request(request, "", "")
     if "ERROR" in data:
         return data
-    return data["DATA"]
+    return data["data"]
 
 
 def get_sample_information(sample_name):
@@ -110,7 +110,7 @@ def get_sample_information(sample_name):
     # data = r_api.get_request(request, sample_name)
     if "ERROR" in data:
         return {"ERROR": data}
-    return data["DATA"]
+    return data["data"]
 
 
 def get_sample_parameter_data(param_data):
@@ -126,7 +126,7 @@ def get_sample_parameter_data(param_data):
     # data = r_api.get_request(request, sample_name)
     if "ERROR" in data:
         return {"ERROR": data}
-    return data["DATA"]
+    return data["data"]
 
 
 def get_sample_project_fields_data(project):
@@ -142,7 +142,7 @@ def get_sample_project_fields_data(project):
     data = r_api.get_request(request, param, project)
     if "ERROR" in data:
         return {"ERROR": data}
-    return data["DATA"]
+    return data["data"]
 
 
 def get_summarize_data(param_data):
@@ -156,7 +156,7 @@ def get_summarize_data(param_data):
     data = r_api.get_request(request, param_data)
     if "ERROR" in data:
         return data
-    return data["DATA"]
+    return data["data"]
 
 
 def get_stats_data(param_data):
@@ -170,7 +170,7 @@ def get_stats_data(param_data):
     data = r_api.get_request(request, param_data)
     if "ERROR" in data:
         return data
-    return data["DATA"]
+    return data["data"]
 
 
 def save_sample_form_data(post_data, credencials):
@@ -185,4 +185,4 @@ def save_sample_form_data(post_data, credencials):
     data = r_api.post_request(json.dumps(post_data), credencials, request)
     if "ERROR" in data:
         return data
-    return data["DATA"]
+    return data["data"]
