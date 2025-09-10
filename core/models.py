@@ -102,6 +102,12 @@ class Schema(models.Model):
 
     class Meta:
         db_table = "core_metadata_schema"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["schema_name", "schema_version", "schema_apps_name"],
+                name="uniq_schema_name_version_app",
+            )
+        ]
 
     def __str__(self):
         return "%s_%s" % (self.schema_name, self.schema_version)
@@ -325,17 +331,17 @@ class MetadataVisualization(models.Model):
 
 
 class BioinfoAnalysisFieldManager(models.Manager):
-    def create_new_field(self, data):
-        new_field = self.create(
+    def create_or_get_field(self, data):
+        obj, created = self.get_or_create(
             property_name=data["property_name"],
-            label_name=data["label_name"],
+            defaults={"label_name": data["label_name"]},
         )
-        return new_field
+        return obj
 
 
 class BioinfoAnalysisField(models.Model):
     schemaID = models.ManyToManyField(Schema)
-    property_name = models.CharField(max_length=60)
+    property_name = models.CharField(max_length=60, unique=True)
     label_name = models.CharField(max_length=80)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -416,17 +422,17 @@ class LineageInfo(models.Model):
 
 
 class LineageFieldsManager(models.Manager):
-    def create_new_field(self, data):
-        new_field = self.create(
+    def create_or_get_field(self, data: dict):
+        obj, created = self.get_or_create(
             property_name=data["property_name"],
-            label_name=data["label_name"],
+            defaults={"label_name": data["label_name"]},
         )
-        return new_field
+        return obj
 
 
 class LineageFields(models.Model):
     schemaID = models.ManyToManyField(Schema)
-    property_name = models.CharField(max_length=60)
+    property_name = models.CharField(max_length=60, unique=True)
     label_name = models.CharField(max_length=80)
     generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
