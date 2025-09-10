@@ -264,7 +264,9 @@ def store_bioinfo_fields(schema_obj, s_properties):
             # fields["classificationID"] = class_obj
             fields["property_name"] = prop_key
             fields["label_name"] = data["label"]
-            n_field = core.models.BioinfoAnalysisField.objects.create_or_get_field(fields)
+            n_field = core.models.BioinfoAnalysisField.objects.create_or_get_field(
+                fields
+            )
             n_field.schemaID.add(schema_obj)
     return {"SUCCESS": ""}
 
