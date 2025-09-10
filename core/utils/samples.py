@@ -496,6 +496,17 @@ def get_sample_obj_from_unique_sample_id(unique_sample_id):
     return qs.last() if qs.exists() else None
 
 
+def get_sample_obj_from_fingerprint(sample_fingerprint):
+    """Return the sample instance from its unique fingerprint"""
+    if core.models.Sample.objects.filter(
+        sample_fingerprint__iexact=sample_fingerprint
+    ).exists():
+        return core.models.Sample.objects.filter(
+            sample_fingerprint__iexact=sample_fingerprint
+        ).last()
+    return None
+
+
 def get_sample_obj_from_id(sample_id):
     """Return the sample instance from its id"""
     if core.models.Sample.objects.filter(pk__exact=sample_id).exists():
