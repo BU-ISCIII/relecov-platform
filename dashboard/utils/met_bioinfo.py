@@ -85,20 +85,22 @@ def bioinfo_graphics():
 
                 clean_values = []
                 for value in str_data:
+                    # Try direct float, then comma replacement
                     try:
                         v = float(value)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         try:
-                            v = float(str(v).replace(",", "."))
+                            v = float(str(value).replace(",", "."))
                         except Exception:
                             logger.warning(
                                 f"Invalid value encountered in '{graph}': '{value}' could not be converted to float"
                             )
                             continue
-                        if v < 0:
-                            v = 0.0  # negative values
-                        if v <= 100:
-                            clean_values.append(v)
+                    # Normalize and filter range
+                    if v < 0:
+                        v = 0.0
+                    if v <= 100:
+                        clean_values.append(v)
 
                 per_data.append({labels_map.get(graph, graph): clean_values})
 
@@ -107,10 +109,20 @@ def bioinfo_graphics():
     bioinfo = {}
     percentage_data = get_percentage_data()
     if "ERROR" not in percentage_data:
-        bioinfo["boxplot_comparation"] = dashboard.utils.plotly.ridge_plot_graphic(
-            percentage_data,
-            {"title": "Density Plot Percentage"},
-        )
+        # Only render ridge plot if there is at least one data point
+        try:
+            total_points = sum(
+                len(list(d.values())[0])
+                for d in percentage_data
+                if isinstance(d, dict) and d
+            )
+        except Exception:
+            total_points = 0
+        if total_points > 0:
+            bioinfo["boxplot_comparation"] = dashboard.utils.plotly.ridge_plot_graphic(
+                percentage_data,
+                {"title": "Density Plot Percentage"},
+            )
     depth_variants_data = get_pre_proc_data("depth_variant_consensus")
     if "ERROR" not in depth_variants_data:
         bioinfo["depth_variants"] = dashboard.utils.plotly.box_plot_graphic_bins(
