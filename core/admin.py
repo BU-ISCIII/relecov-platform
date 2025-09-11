@@ -115,6 +115,7 @@ class SampleAdmin(admin.ModelAdmin):
     ]
     search_fields = ["sequencing_sample_id__icontains"]
     list_filter = ["created_at"]
+    exclude = ("lineage_values", "lineage_info", "bio_analysis_values")
 
 
 class SampleStateAdmin(admin.ModelAdmin):
