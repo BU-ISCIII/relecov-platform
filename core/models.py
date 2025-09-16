@@ -102,12 +102,6 @@ class Schema(models.Model):
 
     class Meta:
         db_table = "core_metadata_schema"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["schema_name", "schema_version", "schema_apps_name"],
-                name="uniq_schema_name_version_app",
-            )
-        ]
 
     def __str__(self):
         return "%s_%s" % (self.schema_name, self.schema_version)
