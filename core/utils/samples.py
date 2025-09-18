@@ -100,6 +100,15 @@ def count_handled_samples():
         .annotate(count=Count("id"))
     )
     data = {entry["stateID__state"]: entry["count"] for entry in counted_data}
+    # Replace Bioinfo count with the number of recorded analyses (one per run)
+    bio_runs = core.models.BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__iexact="bioinformatics_analysis_date",
+        sample__isnull=False,
+    ).count()
+    data["Bioinfo"] = bio_runs
+    # Ensure all expected keys exist so dashboards don't get missing dict entries
+    for state in process:
+        data.setdefault(state, 0)
     return data
 
 
