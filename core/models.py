@@ -705,6 +705,7 @@ class Sample(models.Model):
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
     submitting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     collecting_institution = models.CharField(max_length=120, null=True, blank=True)
+    lab_code_1 = models.CharField(max_length=80, null=True, blank=True)
     submitting_institution = models.CharField(max_length=120, null=True, blank=True)
     sequence_file_R1 = models.CharField(max_length=80, null=True, blank=True)
     sequence_file_R2 = models.CharField(max_length=80, null=True, blank=True)
