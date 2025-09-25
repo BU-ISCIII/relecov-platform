@@ -135,6 +135,7 @@ FIELDS_ON_SAMPLE_TABLE = [
     "microbiology_lab_sample_id",
     "sequencing_sample_id",
     "submitting_lab_sample_id",
+    "lab_code_1",
     "sequence_file_R1",
     "sequence_file_R2",
     "sequence_file_R1_md5",
