@@ -30,6 +30,9 @@ def split_sample_data(data):
     split_data = {"sample": {}, "author": {}, "gisaid": {}, "ena": {}}
 
     for item, value in data.items():
+        target_item = item
+        if item == "collecting_institution_code_1":
+            target_item = "lab_code_1"
         if "author" in item:
             split_data["author"][item] = value
             continue
@@ -51,7 +54,7 @@ def split_sample_data(data):
                     # Value is not a date. Set to None to allow that serialzer
                     # store it in database.
                     value = None
-        split_data["sample"][item] = value
+        split_data["sample"][target_item] = value
 
     # add user and state to sample data
     split_data["sample"]["state"] = (
