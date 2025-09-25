@@ -27,12 +27,14 @@ def prepare_fields_in_sample(s_data):
 
 def split_sample_data(data):
     """Split the json request into dictionnaries with the right fields"""
+    ALIASES = {
+        "collecting_institution_code_1": "lab_code_1",
+    }
     split_data = {"sample": {}, "author": {}, "gisaid": {}, "ena": {}}
 
-    for item, value in data.items():
-        target_item = item
-        if item == "collecting_institution_code_1":
-            target_item = "lab_code_1"
+    normalized_items = {ALIASES.get(item, item): value for item, value in data.items()}
+
+    for item, value in normalized_items.items():
         if "author" in item:
             split_data["author"][item] = value
             continue
@@ -54,7 +56,7 @@ def split_sample_data(data):
                     # Value is not a date. Set to None to allow that serialzer
                     # store it in database.
                     value = None
-        split_data["sample"][target_item] = value
+        split_data["sample"][item] = value
 
     # add user and state to sample data
     split_data["sample"]["state"] = (
