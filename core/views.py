@@ -211,15 +211,36 @@ def intranet(request):
     if manager_group not in request.user.groups.all():
         start = time.time()
         intra_data = {}
+        user_role = core.utils.generic_functions.get_user_role(request.user)
         lab_name = core.utils.labs.get_lab_name_from_user(request.user)
+        lab_code = None
+        lab_codes = core.utils.labs.get_lab_codes_from_user(request.user)
+        if lab_codes:
+            lab_code = lab_codes[0]
         lab_field = core.utils.generic_functions.get_user_lab_field(request.user)
         if not lab_field:
             print(f"No institution field - group found for user: {str(request.user)}")
             return render(request, "core/intranet.html", {"intra_data": {}})
         counted_dates = defaultdict(int)
         for d in all_sample_per_date_detailed:
-            if d[lab_field] != lab_name:
-                continue
+            value = d.get(lab_field)
+            matches_lab = False
+            if user_role == "Collector":
+                if lab_code and value == lab_code:
+                    matches_lab = True
+                else:
+                    fallback_name = (
+                        d.get("legacy_collecting_institution")
+                        or d.get("collecting_institution")
+                        or ""
+                    )
+                    if lab_name and fallback_name:
+                        matches_lab = fallback_name.lower() == lab_name.lower()
+                if not matches_lab:
+                    continue
+            else:
+                if value != lab_name:
+                    continue
             # Adapt YYYY-WNN to datetime format so it can be converted to date object
             converted_date = datetime.strptime(d["iso_yearweek"] + "-1", "%G-W%V-%u")
             # Filter out old data
@@ -234,7 +255,12 @@ def intranet(request):
             key=lambda x: datetime.strptime(x + "-1", "%G-W%V-%u"),
         )
         date_lab_samples = OrderedDict({k: counted_dates[k] for k in dates_sorted})
-        intra_data["lab"] = lab_name
+        display_lab_name = (
+            core.utils.labs.get_display_name_from_code(lab_code)
+            if lab_code
+            else lab_name
+        )
+        intra_data["lab"] = display_lab_name
         print(f"Took {start - time.time()} seconds for date_lab_samples")
         if len(date_lab_samples) > 0:
             start = time.time()
@@ -242,7 +268,7 @@ def intranet(request):
             print(f"Took {start - time.time()} seconds for sample_lab_objs")
             analysis_percent = (
                 core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(
-                    lab_name=lab_name, institution_type=lab_field
+                    lab_name=(lab_code or lab_name), institution_type=lab_field
                 )
             )
             print(f"Took {start - time.time()} seconds for analysis_percent")
@@ -265,9 +291,23 @@ def intranet(request):
                     else 0
                 )
             )
-            lablist = set(
-                [x["collecting_institution"] for x in clean_samples_per_date_detailed]
-            )
+            lablist = []
+            seen_values = set()
+            for entry in clean_samples_per_date_detailed:
+                code = entry.get("lab_code_1")
+                display = entry.get("collecting_institution") or entry.get(
+                    "legacy_collecting_institution"
+                )
+                value = code or display
+                if not value or value in seen_values:
+                    continue
+                seen_values.add(value)
+                label = (
+                    core.utils.labs.get_display_name_from_code(code)
+                    if code
+                    else display
+                )
+                lablist.append({"value": value, "label": label or value})
             if len(lablist) > 1:
                 core.utils.samples.create_dash_bar_for_each_lab(
                     clean_samples_per_date_detailed, lablist
