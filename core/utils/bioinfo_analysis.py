@@ -1,12 +1,24 @@
-from django.db.models import Count, QuerySet
-from django.core.cache import cache
+from collections import Counter
+from itertools import islice
 from typing import Iterable, Union
+
+from django.core.cache import cache
+from django.db.models import QuerySet
 
 import core.config
 import core.models
 import core.utils.samples
 
 SchemaLike = Union["core.models.Schema", Iterable["core.models.Schema"], QuerySet]
+
+
+def _chunked(iterator, chunk_size):
+    """Yield lists pulled from ``iterator`` with up to ``chunk_size`` items."""
+    while True:
+        chunk = list(islice(iterator, chunk_size))
+        if not chunk:
+            break
+        yield chunk
 
 
 def get_bio_analysis_stats_from_lab(
@@ -71,53 +83,79 @@ def get_bioinfo_analyis_fields_utilization(
     schemas (all by default). Executes **one** heavy query + one light query.
     Results can be cached for `cache_seconds`.
     """
-    # -- 0. Pick or normalise schemas ------------------------------------
+    # -- 0. Normalise schema identifiers ---------------------------------
     if schema_qs is None:
-        schema_qs = core.models.Schema.objects.all()
+        schema_ids = list(core.models.Schema.objects.values_list("pk", flat=True))
     elif isinstance(schema_qs, QuerySet):
-        pass
+        schema_ids = list(schema_qs.values_list("pk", flat=True))
+    elif isinstance(schema_qs, (list, tuple, set)):
+        schema_ids = [getattr(item, "pk", item) for item in schema_qs]
     else:
-        schema_qs = schema_qs if isinstance(schema_qs, (list, tuple)) else [schema_qs]
+        schema_ids = [getattr(schema_qs, "pk", schema_qs)]
+
+    schema_ids = sorted({sid for sid in schema_ids if sid is not None})
+    if not schema_ids:
+        return {}
 
     # -- 1. Check cache ---------------------------------------------------
+    cache_key = None
     if use_cache:
-        cache_key = f"bioinfo_util_{hash(tuple(x.pk for x in schema_qs))}"
+        cache_key = f"bioinfo_util_{hash(tuple(schema_ids))}"
         cached = cache.get(cache_key)
         if cached:
             return cached
 
+    sample_filter = {"schema_obj_id__in": schema_ids}
+
     # -- 2. Total samples -------------------------------------------------
-    num_samples = (
-        core.models.Sample.objects.filter(schema_obj__in=schema_qs)
-        .only("id")  # lighter count(*)
-        .count()
-    )
+    num_samples = core.models.Sample.objects.filter(**sample_filter).count()
     if num_samples == 0:
         return {}
 
-    # -- 3. One grouped query: filled counts ------------------------------
-    FIELD_EMPTY = core.config.FIELD_EMPTY_VALUES
-    rows = (
-        core.models.BioinfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID__schemaID__in=schema_qs,
-            value__isnull=False,
-        )
-        .exclude(value__in=FIELD_EMPTY)
-        .values("bioinfo_analysis_fieldID__label_name")
-        .annotate(filled=Count("sample", distinct=True))
+    # -- 3. Chunked scan of bioinfo values -------------------------------
+    FIELD_EMPTY = set(core.config.FIELD_EMPTY_VALUES)
+    through_model = core.models.Sample.bio_analysis_values.through
+    batch_size = 500
+    fields_counter = Counter()
+
+    sample_iter = (
+        core.models.Sample.objects.filter(**sample_filter)
+        .values_list("pk", flat=True)
+        .iterator(chunk_size=batch_size)
     )
 
-    fields_value = {
-        r["bioinfo_analysis_fieldID__label_name"]: r["filled"] for r in rows
-    }
+    for batch in _chunked(sample_iter, batch_size):
+        if not batch:
+            continue
+
+        seen_pairs = set()
+        rows = (
+            through_model.objects.filter(sample_id__in=batch)
+            .filter(bioinfoanalysisvalue__value__isnull=False)
+            .exclude(bioinfoanalysisvalue__value__in=FIELD_EMPTY)
+            .values_list(
+                "bioinfoanalysisvalue__bioinfo_analysis_fieldID__label_name",
+                "sample_id",
+            )
+            .iterator(chunk_size=batch_size)
+        )
+
+        for label, sample_id in rows:
+            key = (label, sample_id)
+            if key in seen_pairs:
+                continue
+            seen_pairs.add(key)
+            fields_counter[label] += 1
+
+    fields_value = dict(fields_counter)
     fields_norm = {k: v / num_samples for k, v in fields_value.items()}
     labels_with_value = set(fields_value)
 
-    # -- 4. Single light query to fetch ALL labels ------------------------
+    # -- 4. Fetch defined labels -----------------------------------------
     defined_labels = set(
-        core.models.BioinfoAnalysisField.objects.filter(
-            schemaID__in=schema_qs
-        ).values_list("label_name", flat=True)
+        core.models.BioinfoAnalysisField.objects.filter(schemaID__pk__in=schema_ids)
+        .values_list("label_name", flat=True)
+        .distinct()
     )
     never_used = defined_labels - labels_with_value
 
@@ -130,7 +168,7 @@ def get_bioinfo_analyis_fields_utilization(
     }
 
     # -- 5. Cache for N seconds ------------------------------------------
-    if use_cache:
+    if cache_key:
         cache.set(cache_key, result, cache_seconds)
 
     return result
