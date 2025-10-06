@@ -1,5 +1,6 @@
 # Generic imports
 import hashlib
+import logging
 from django.db import models, IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -25,8 +26,54 @@ class Profile(models.Model):
         # Mapped to submitting_institution field in Sample model
         return "%s" % (self.laboratory)
 
-    def get_lab_code(self):
-        return "%s" % (self.code_id)
+    def _resolve_lab_code(self):
+        """Return the `lab_code_1` associated with the laboratory name."""
+
+        if not self.laboratory:
+            return ""
+        try:
+            from core.utils import lab_catalog
+        except ImportError:
+            logging.getLogger(__name__).warning(
+                "Unable to import lab_catalog to resolve lab codes"
+            )
+            return ""
+        resolved = lab_catalog.get_lab_code(self.laboratory)
+        return resolved or ""
+
+    def get_lab_code(self, fallback_to_lookup=True):
+        """Return the stored lab code, looking it up if missing."""
+
+        if self.code_id:
+            return "%s" % (self.code_id)
+        if not fallback_to_lookup:
+            return ""
+
+        resolved = self._resolve_lab_code()
+        if resolved:
+            if self.pk:
+                type(self).objects.filter(pk=self.pk).update(code_id=resolved)
+            else:
+                self.code_id = resolved
+        return resolved
+
+    def save(self, *args, **kwargs):
+        resolved_code = self._resolve_lab_code()
+        if resolved_code:
+            self.code_id = resolved_code
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None:
+                if isinstance(update_fields, (list, tuple, set, frozenset)):
+                    fields = []
+                    for item in update_fields:
+                        if item not in fields:
+                            fields.append(item)
+                else:
+                    fields = [update_fields]
+                if "code_id" not in fields:
+                    fields.append("code_id")
+                kwargs["update_fields"] = fields
+        super().save(*args, **kwargs)
 
 
 @receiver(post_save, sender=User)
