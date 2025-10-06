@@ -158,5 +158,5 @@ FIELDS_ON_AUTHOR_TABLE = ["analysis_authors", "author_submitter", "authors"]
 GROUPS_HIERARCHY_ORDERLIST = ("RelecovManager", "Submitter", "Collector")
 INSTITUTION_FIELD_MAPDICT = {
     "Submitter": "submitting_institution",
-    "Collector": "collecting_institution",
+    "Collector": "lab_code_1",
 }
