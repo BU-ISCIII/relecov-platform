@@ -29,6 +29,7 @@ import core.api.utils.public_db
 import core.api.utils.variants
 import core.api.utils.common_functions
 import core.config
+import core.utils.lab_catalog
 
 
 @extend_schema(
@@ -58,6 +59,7 @@ import core.config
                 "study_title": "",
                 "study_type": "Whole Genome Sequencing",
                 "submitting_lab_sample_id": "LAB_856232",
+                "collecting_institution_code_1": "1328000027",
             },
         )
     ],
@@ -85,6 +87,7 @@ import core.config
             "study_title": serializers.CharField(required=False),
             "study_type": serializers.CharField(required=False),
             "submitting_lab_sample_id": serializers.CharField(),
+            "collecting_institution_code_1": serializers.CharField(),
         },
     ),
     description="More descriptive text",
@@ -105,6 +108,7 @@ import core.config
                             "collecting_lab_sample_id": "1000",
                             "submitting_lab_sample_id": "None",
                             "collecting_institution": "Instituto de Salud Carlos III",
+                            "lab_code_1": "1328000027",
                             "submitting_institution": "Instituto de Salud Carlos III",
                             "sequence_file_R1": "SAMPLE1_R1.fastq.gz",
                             "sequence_file_R2": "SAMPLE1_R2.fastq.gz",
@@ -142,6 +146,7 @@ import core.config
                             "collecting_lab_sample_id": "1000",
                             "submitting_lab_sample_id": "None",
                             "collecting_institution": "Instituto de Salud Carlos III",
+                            "lab_code_1": "1328000027",
                             "submitting_institution": "Instituto de Salud Carlos III",
                             "sequence_file_R1": "SAMPLE1_R1.fastq.gz",
                             "sequence_file_R2": "SAMPLE1_R2.fastq.gz",
@@ -186,20 +191,58 @@ def create_sample_data(request):
             }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         schema_id = schema_obj.get_schema_id()
-        # check if sample id field and collecting_institution are in the request
+        # Check mandatory identifiers (lab name is derived further below if needed)
         required_db_fields = [
             "sequencing_sample_id",
             "collecting_lab_sample_id",
             "submitting_institution",
-            "collecting_institution",
         ]
-        if any(field not in data for field in required_db_fields):
-            missing_fields = [f for f in required_db_fields if f not in data]
+        missing_fields = [f for f in required_db_fields if not data.get(f)]
+        if missing_fields:
             print(f"ERROR. Missing: {missing_fields}")
             return Response(
                 {"ERROR": f"Missing: {missing_fields}", "message": "", "data": {}},
                 status=status.HTTP_409_CONFLICT,
             )
+        lab_code_field = "collecting_institution_code_1"
+        lab_code_raw = data.get(lab_code_field)
+        lab_code_value = str(lab_code_raw).strip() if lab_code_raw else ""
+        if lab_code_value in core.config.FIELD_EMPTY_VALUES or not lab_code_value:
+            print(f"ERROR. Missing: [{lab_code_field}]")
+            return Response(
+                {
+                    "ERROR": f"Missing: [{lab_code_field}]",
+                    "message": "",
+                    "data": {},
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        resolved_collecting_name = core.utils.lab_catalog.ensure_lab_display(
+            lab_code_value, fallback_name=data.get("collecting_institution")
+        )
+        provided_collecting_name = (data.get("collecting_institution") or "").strip()
+        if provided_collecting_name:
+            if (
+                resolved_collecting_name
+                and provided_collecting_name.lower() != resolved_collecting_name.lower()
+            ):
+                # Canonicalise to the catalog name
+                data["collecting_institution"] = resolved_collecting_name
+        else:
+            if resolved_collecting_name:
+                data["collecting_institution"] = resolved_collecting_name
+            else:
+                print("Unable to resolve collecting_institution from lab_code_1")
+                return Response(
+                    {
+                        "ERROR": "Missing: ['collecting_institution']",
+                        "message": "",
+                        "data": {},
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+        # Include collecting_institution in the required fields list for fingerprint
+        required_db_fields.append("collecting_institution")
         # check if sample is already defined
         temp_fingerprint = core.utils.samples.build_sample_fingerprint(
             *[data[field] for field in required_db_fields]
@@ -220,6 +263,8 @@ def create_sample_data(request):
         split_data = core.api.utils.samples.split_sample_data(data)
         # Add schema id to store in database
         split_data["sample"]["schema_obj"] = schema_id
+        split_data["sample"]["lab_code_1"] = lab_code_value
+        split_data["sample"]["collecting_institution"] = data["collecting_institution"]
         sample_serializer = core.api.serializers.CreateSampleSerializer(
             data=split_data["sample"]
         )
@@ -892,11 +937,19 @@ def check_sample_exists(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     data = request.query_params
+    lab_code_field = "collecting_institution_code_1"
+    lab_code_raw = data.get(lab_code_field)
+    lab_code_value = str(lab_code_raw).strip() if lab_code_raw else ""
+    collecting_institution = (data.get("collecting_institution") or "").strip()
+    resolved_collecting_name = core.utils.lab_catalog.ensure_lab_display(
+        lab_code_value, fallback_name=collecting_institution
+    )
+
     required_dict = {
         "sequencing_sample_id": data.get("sequencing_sample_id"),
         "collecting_lab_sample_id": data.get("collecting_lab_sample_id"),
         "submitting_institution": data.get("submitting_institution"),
-        "collecting_institution": data.get("collecting_institution"),
+        "collecting_institution": collecting_institution or resolved_collecting_name,
     }
     if not all(required_dict.values()):
         missing_fields = [x for x, v in required_dict.items() if not v]
@@ -908,6 +961,12 @@ def check_sample_exists(request):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
+    if (
+        collecting_institution
+        and resolved_collecting_name
+        and collecting_institution.lower() != resolved_collecting_name.lower()
+    ):
+        required_dict["collecting_institution"] = resolved_collecting_name
     temp_fingerprint = core.utils.samples.build_sample_fingerprint(
         *[value for value in required_dict.values()]
     )
