@@ -5,6 +5,7 @@ from dash import dcc, html
 import plotly.express as px
 from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
+import pandas as pd
 
 COLOR_PALETTE = [
     "#448873",
@@ -49,9 +50,26 @@ mi_template = go.layout.Template(
 
 
 def dash_bar_lab(option_list, data):
-    option = []
-    for opt_list in option_list:
-        option.append({"label": opt_list, "value": opt_list})
+    """Build the Dash app that renders weekly sample counts per laboratory."""
+
+    options = []
+    seen_values = set()
+    for raw_option in option_list:
+        if isinstance(raw_option, dict):
+            label = raw_option.get("label") or raw_option.get("collecting_institution")
+            value = raw_option.get("value") or raw_option.get("lab_code_1")
+            if not value:
+                value = raw_option.get("legacy_name")
+            if not label:
+                label = raw_option.get("legacy_name") or value
+        else:
+            value = str(raw_option)
+            label = value
+        if not value or value in seen_values:
+            continue
+        seen_values.add(value)
+        options.append({"label": label or value, "value": value})
+
     app = DjangoDash(
         "samplePerLabGraphic",
         external_stylesheets=[
@@ -61,19 +79,19 @@ def dash_bar_lab(option_list, data):
     )
     empty_fig = px.bar(x=[0], y=[0], height=300)
 
+    default_value = options[0]["value"] if options else None
+
     app.layout = html.Div(
         [
-            html.H4(
-                "Select the collecting institution", style={"fontFamily": "Oxanium"}
-            ),
+            html.H4("Select the laboratory", style={"fontFamily": "Oxanium"}),
             html.Div(
                 [
                     dcc.Dropdown(
                         id="select_collecting_inst",
-                        options=option,
+                        options=options,
                         clearable=False,
                         multi=False,
-                        value=1,
+                        value=default_value,
                         style={"width": "400px"},
                     ),
                 ]
@@ -88,23 +106,37 @@ def dash_bar_lab(option_list, data):
         Input("select_collecting_inst", "value"),
     )
     def update_graph(select_collecting_inst):
-        if select_collecting_inst is None or select_collecting_inst == 1:
+        if not select_collecting_inst:
             raise PreventUpdate
-        sub_data = data[data.collecting_institution == select_collecting_inst]
-        sub_data = sub_data.drop_duplicates(subset=["iso_yearweek"]).reset_index(
-            drop=True
-        )
+        df = data.copy()
+        selected = str(select_collecting_inst)
+        if "lab_code_1" in df.columns:
+            mask = df["lab_code_1"].fillna("").astype(str) == selected
+            fallback_mask = pd.Series(False, index=df.index)
+            for column in [
+                col
+                for col in ["collecting_institution", "legacy_collecting_institution"]
+                if col in df.columns
+            ]:
+                fallback_mask = fallback_mask | (
+                    df[column].fillna("").astype(str) == selected
+                )
+            df = df[mask | fallback_mask]
+        elif "collecting_institution" in df.columns:
+            df = df[df["collecting_institution"].fillna("").astype(str) == selected]
+        else:
+            df = df.iloc[0:0]
+
+        sub_data = df.drop_duplicates(subset=["iso_yearweek"]).reset_index(drop=True)
         sub_data["iso_yearweek"] = sub_data["iso_yearweek"].str.replace(
             r"W(\d{1})$", r"W0\1", regex=True
         )  # Add padding: W5 -> W05
         sub_data["num_samples"] = sub_data["num_samples"].astype(int)
         sub_data = sub_data.sort_values("iso_yearweek")
         if sub_data.empty:
-            # Return an empty figure if no data is available
-            return (
-                empty_fig,
-                f"Laboratory selected: {select_collecting_inst} (No data available)",
-            )
+            fig = empty_fig
+            fig.update_layout(title="No data available for the selected laboratory")
+            return fig
         graph = px.bar(
             sub_data,
             x=sub_data["iso_yearweek"].astype(str),

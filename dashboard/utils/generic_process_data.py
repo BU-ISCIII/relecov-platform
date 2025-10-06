@@ -25,6 +25,7 @@ import core.utils.rest_api
 import core.utils.generic_functions
 import core.utils.public_db
 import core.utils.bioinfo_analysis
+import core.utils.lab_catalog
 import dashboard.models
 import dashboard.dashboard_config
 import core.config
@@ -189,7 +190,7 @@ def pre_proc_variant_graphic():
 
     date_sample = {}
     date_variant = {}
-    for s_data in in_date_samples["DATA"]:
+    for s_data in in_date_samples["data"]:
         if s_data["collection_sample_date"] not in date_sample:
             date_sample[s_data["collection_sample_date"]] = []
         date_sample[s_data["collection_sample_date"]].append(s_data["Sample Name"])
@@ -778,7 +779,7 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
                 )  # Else just process date directly
             )
             for x in in_date_samples[
-                "DATA"
+                "data"
             ]  # each x is a dict of [{"Sample Name": name, "collection_sample_date": date}]
             if isinstance(
                 x["collection_sample_date"], (datetime, str)
@@ -812,97 +813,92 @@ def pre_proc_samples_per_date_all_lab(detailed=None):
         return {"SUCCESS": "Success"}
     else:
         # Start processing samples per date and for each lab
-        lab_date_count = []
-        lab_list = list(
-            core.models.Sample.objects.values_list("collecting_institution", flat=True)
-            .distinct()
-            .order_by("collecting_institution")
-        )
         samples_dates_dict = {
             x["Sample Name"]: x["collection_sample_date"]
-            for x in in_date_samples["DATA"]
+            for x in in_date_samples["data"]
         }
         join_conditions = [
             When(sample_unique_id=sample_id, then=Value(collect_date))
             for sample_id, collect_date in samples_dates_dict.items()
         ]
-        all_sample_counts_by_lab = (
-            core.models.Sample.objects.filter(collecting_institution__in=lab_list)
-            .annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
-            .values(
-                "submitting_institution", "collecting_institution", "collecting_date"
-            )
-        )
-        valid_insts = all_sample_counts_by_lab.exclude(
-            collecting_date__isnull=True,
-        )
+        relevant_samples = core.models.Sample.objects.filter(
+            sample_unique_id__in=samples_dates_dict.keys()
+        ).annotate(collecting_date=Case(*join_conditions, output_field=DateField()))
+
+        valid_insts = relevant_samples.exclude(collecting_date__isnull=True)
         # FIXME: This filter should not be necessary if database was correctly curated
         valid_insts = valid_insts.filter(collecting_date__gte=datetime(2019, 1, 1))
-        # Collect all the data https://stackoverflow.com/questions/56219162/annotate-response-of-query-based-on-week-number
         lab_date_count = (
             valid_insts.annotate(
                 iso_yearweek=Concat(
-                    Cast(
-                        ExtractIsoYear(F("collecting_date")), IntegerField()
-                    ),  # get ISO year
-                    Value("-W"),  # This just adds a W to match ISO format of YYYY-WW
-                    LPad(
-                        ExtractWeek(F("collecting_date")), 2, Value("0")
-                    ),  # get ISO week and add leading 0 padding
+                    Cast(ExtractIsoYear(F("collecting_date")), IntegerField()),
+                    Value("-W"),
+                    LPad(ExtractWeek(F("collecting_date")), 2, Value("0")),
                     output_field=CharField(),
-                ),
+                )
             )
-            .values("submitting_institution", "collecting_institution", "iso_yearweek")
-            .order_by("collecting_institution", "iso_yearweek")
+            .values(
+                "submitting_institution",
+                "lab_code_1",
+                "collecting_institution",
+                "iso_yearweek",
+            )
+            .order_by("lab_code_1", "collecting_institution", "iso_yearweek")
             .annotate(num_samples=Count("iso_yearweek"))
         )
-        # Create an auxiliar dict to get all registered events of collecting_institution+iso_yearweek
-        lab_date_count_dict = {
-            (
+
+        lab_date_count_dict = {}
+        for item in lab_date_count:
+            raw_display = item.get("collecting_institution")
+            lab_code = item.get("lab_code_1") or core.utils.lab_catalog.get_lab_code(
+                raw_display
+            )
+            display_name = core.utils.lab_catalog.ensure_lab_display(
+                lab_code, fallback_name=raw_display
+            )
+            key = (
                 item["submitting_institution"],
-                item["collecting_institution"],
-                item["iso_yearweek"],
-            ): item["num_samples"]
-            for item in lab_date_count
-        }
-        all_submitters = set([x[0] for x in lab_date_count_dict.keys()])
+                lab_code or display_name or "",
+            )
+            entry = lab_date_count_dict.setdefault(
+                key,
+                {
+                    "lab_code_1": lab_code,
+                    "display": display_name,
+                    "legacy_collecting_institution": raw_display,
+                    "dates": {},
+                },
+            )
+            entry["dates"][item["iso_yearweek"]] = item["num_samples"]
 
-        # Fill non-registered dates in lab_date_count_dict with num_samples=0
         final_lab_dates_count = []
-        for subinst in all_submitters:
-            subinst_date_counts = [x for x in lab_date_count_dict if x[0] == subinst]
-            related_colinsts = set([x[1] for x in subinst_date_counts])
-            for colinst in related_colinsts:
-                inst_date_counts = [x for x in subinst_date_counts if x[1] == colinst]
-                # For each institution, simulate all the possible weeks between the first and the last registered date
-                first_date = min(
-                    [
-                        datetime.strptime(x[2] + "-1", "%G-W%V-%u")
-                        for x in inst_date_counts
-                    ]
+        for (subinst, _lab_key), info in lab_date_count_dict.items():
+            dates_dict = info["dates"]
+            display_name = info["display"]
+            sorted_dates = sorted(
+                datetime.strptime(iso + "-1", "%G-W%V-%u") for iso in dates_dict.keys()
+            )
+            if not sorted_dates:
+                continue
+            first_date = sorted_dates[0]
+            last_date = sorted_dates[-1]
+            date_range = core.utils.generic_functions.list_all_possible_weeks(
+                first_date, last_date, output_format="%G-W%V"
+            )
+            for date in date_range:
+                num_samples = dates_dict.get(date, 0)
+                final_lab_dates_count.append(
+                    {
+                        "submitting_institution": subinst,
+                        "collecting_institution": display_name,
+                        "lab_code_1": info.get("lab_code_1"),
+                        "legacy_collecting_institution": info.get(
+                            "legacy_collecting_institution"
+                        ),
+                        "iso_yearweek": date,
+                        "num_samples": num_samples,
+                    }
                 )
-                last_date = max(
-                    [
-                        datetime.strptime(x[2] + "-1", "%G-W%V-%u")
-                        for x in inst_date_counts
-                    ]
-                )
-                date_range = core.utils.generic_functions.list_all_possible_weeks(
-                    first_date, last_date, output_format="%G-W%V"
-                )
-                for date in date_range:
-                    # Get the number of samples (defaulting to 0 if not found)
-                    num_samples = lab_date_count_dict.get((subinst, colinst, date), 0)
-
-                    # Append the result for this institution and week
-                    final_lab_dates_count.append(
-                        {
-                            "submitting_institution": subinst,
-                            "collecting_institution": colinst,
-                            "iso_yearweek": date,
-                            "num_samples": num_samples,
-                        }
-                    )
         dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
             {
                 "graphic_name": "samples_per_date_all_lab_detailed",
@@ -1013,7 +1009,7 @@ def pre_proc_search_samples_summary():
     in_date_samples = core.utils.rest_api.fetch_samples_on_condition(
         "collection_sample_date"
     )
-    logger.info(f"Fetched {len(in_date_samples['DATA'])} samples with collection_date")
+    logger.info(f"Fetched {len(in_date_samples['data'])} samples with collection_date")
     # Prefetch only lineage_values with the desired property
     filtered_lineages = Prefetch(
         "lineage_values",
@@ -1024,7 +1020,7 @@ def pre_proc_search_samples_summary():
     )
     processed_samples_qs = (
         core.models.Sample.objects.filter(
-            sample_unique_id__in=[x["Sample Name"] for x in in_date_samples["DATA"]]
+            sample_unique_id__in=[x["Sample Name"] for x in in_date_samples["data"]]
         )
         .prefetch_related(filtered_lineages)
         .order_by("id")
@@ -1039,36 +1035,62 @@ def pre_proc_search_samples_summary():
         for sample in chunk:
             sample_id = sample.sample_unique_id
             seq_id = sample.sequencing_sample_id
-            col_inst = sample.collecting_institution
+            display_name = sample.collecting_institution
+            lab_code = sample.lab_code_1 or core.utils.lab_catalog.get_lab_code(
+                display_name
+            )
             sub_inst = sample.submitting_institution
             sample_pk = sample.pk
             if sample.filt_lineages:
                 lineage = sample.filt_lineages[0].value
             else:
                 lineage = "Not Defined"
-            match_sampdict[sample_id] = (sample_pk, lineage, col_inst, sub_inst, seq_id)
+            match_sampdict[sample_id] = (
+                sample_pk,
+                lineage,
+                lab_code,
+                display_name,
+                sub_inst,
+                seq_id,
+            )
 
-    final_data = defaultdict(lambda: defaultdict(list))
-    for s_data in in_date_samples["DATA"]:
+    final_data = defaultdict(dict)
+    for s_data in in_date_samples["data"]:
         sample_name = s_data["Sample Name"]
         if sample_name not in match_sampdict.keys():
             errtxt = f"Could not find sample {sample_name} from iskylims. Skipped from search pre_proc_search_samples_summary()"
             logger.error(errtxt)
             continue
         col_date = s_data["collection_sample_date"]
-        sample_pk = match_sampdict[sample_name][0]
-        lineage_name = match_sampdict[sample_name][1]
-        col_inst = match_sampdict[sample_name][2]
-        sub_inst = match_sampdict[sample_name][3]
-        seq_id = match_sampdict[sample_name][4]
-        final_data[sub_inst][col_inst].append(
-            (sample_pk, seq_id, col_date, lineage_name, col_inst)
+        sample_pk, lineage_name, lab_code, display_name, sub_inst, seq_id = (
+            match_sampdict[sample_name]
         )
+        lab_identifier = lab_code or display_name or ""
+        bucket = final_data[sub_inst].setdefault(
+            lab_identifier,
+            {
+                "lab_code_1": lab_code,
+                "collecting_institution": display_name,
+                "rows": [],
+            },
+        )
+        bucket["rows"].append([sample_pk, seq_id, col_date, lineage_name, display_name])
+    serializable_data = {
+        sub_inst: {
+            lab_key: {
+                "lab_code_1": info.get("lab_code_1"),
+                "collecting_institution": info.get("collecting_institution"),
+                "rows": info.get("rows", []),
+            }
+            for lab_key, info in labs.items()
+        }
+        for sub_inst, labs in final_data.items()
+    }
 
     dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
         {
             "graphic_name": "search_samples_summary_table",
-            "graphic_data": final_data,
+            "graphic_data": serializable_data,
         }
     )
     return {"SUCCESS": "Success"}

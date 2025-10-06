@@ -2,6 +2,7 @@
 import core.models
 import core.utils.rest_api
 import core.utils.samples
+import core.utils.lab_catalog
 
 
 def get_lab_contact_details(user_obj):
@@ -14,9 +15,9 @@ def get_lab_contact_details(user_obj):
     if "ERROR" in data:
         return data["ERROR"]
 
-    if not data["DATA"]:
+    if not data["data"]:
         return ""
-    lab_data = data.get("DATA", {}).copy()
+    lab_data = data.get("data", {}).copy()
     return lab_data
 
 
@@ -43,6 +44,24 @@ def get_collecting_insts_from_user(user_obj):
     """
     available_samples = core.utils.samples.get_available_samples_for_user(user_obj)
     return available_samples.values_list("collecting_institution", flat=True).distinct()
+
+
+def get_lab_codes_from_user(user_obj):
+    """Return the set of lab_code_1 values associated with the user's profile."""
+
+    profile = core.models.Profile.objects.filter(user=user_obj).last()
+    if not profile:
+        return []
+    code = profile.get_lab_code()
+    return [code] if code else []
+
+
+def get_display_name_from_code(lab_code):
+    """Resolve a human-readable name for the given lab code."""
+
+    if not lab_code:
+        return ""
+    return core.utils.lab_catalog.ensure_lab_display(lab_code)
 
 
 def update_contact_lab(data):

@@ -309,23 +309,77 @@ def create_date_sample_bar(lab_sample, cust_data):
     return histogram
 
 
-def create_dash_bar_for_each_lab(labs_data, labs_list=[]):
-    """Create a dash_bar plot for the given labs_data and list of laboratories
+def create_dash_bar_for_each_lab(labs_data, labs_list=None):
+    """Create the Dash bar plot that compares the weekly reception per lab.
 
     Args:
-        labs_data (dict): Dictionary with the following structure:
-            {
-                'submitting_institution': subinst,
-                'collecting_institution': colinst,
-                'iso_yearweek': single_date,
-                'num_samples': num_samples
-            }
-        labs_list (list, optional): _description_. Defaults to [].
+        labs_data (Iterable[dict]): Entries containing at least
+            ``lab_code_1`` (optional), ``collecting_institution`` (display name)
+            and ``iso_yearweek`` + ``num_samples``.
+        labs_list (Iterable[dict|str], optional): Option definitions for the
+            dropdown. When omitted an option list is built from ``labs_data``.
     """
+
     df_data = pd.DataFrame(labs_data)
-    if not labs_list:
-        labs_list = get_all_collecting_insts()
-    core.utils.plotly_dash_graphics.dash_bar_lab(labs_list, df_data)
+    if df_data.empty:
+        return
+
+    if "lab_code_1" not in df_data.columns:
+        df_data["lab_code_1"] = None
+
+    legacy_column = df_data.get("legacy_collecting_institution")
+    if "collecting_institution" in df_data.columns:
+        df_data["collecting_institution"] = df_data["collecting_institution"].fillna(
+            legacy_column
+        )
+    else:
+        df_data["collecting_institution"] = legacy_column
+
+    if labs_list is None:
+        labs_list = []
+
+    normalised_options = []
+    seen_values = set()
+
+    def _add_option(value, label):
+        if not value or value in seen_values:
+            return
+        seen_values.add(value)
+        normalised_options.append({"label": label or value, "value": value})
+
+    for raw_option in labs_list:
+        if isinstance(raw_option, dict):
+            value = (
+                raw_option.get("value")
+                or raw_option.get("lab_code_1")
+                or raw_option.get("collecting_institution")
+                or raw_option.get("legacy_name")
+            )
+            label = (
+                raw_option.get("label")
+                or raw_option.get("collecting_institution")
+                or raw_option.get("legacy_name")
+                or raw_option.get("value")
+                or raw_option.get("lab_code_1")
+            )
+        else:
+            value = str(raw_option)
+            label = value
+        _add_option(value, label)
+
+    if not normalised_options:
+        for _, row in df_data.iterrows():
+            code = row.get("lab_code_1")
+            display = row.get("collecting_institution") or row.get(
+                "legacy_collecting_institution"
+            )
+            value = code or display
+            label = (
+                core.utils.labs.get_display_name_from_code(code) if code else display
+            )
+            _add_option(value, label)
+
+    core.utils.plotly_dash_graphics.dash_bar_lab(normalised_options, df_data)
     return
 
 
@@ -437,12 +491,32 @@ def get_sample_display_data(sample_id, user):
     # Allow to see information obut sample to relecovManager
     manager_group = Group.objects.get(name="RelecovManager")
     if manager_group not in user.groups.all():
+        user_role = core.utils.generic_functions.get_user_role(user)
         user_inst_field = core.utils.generic_functions.get_user_lab_field(user)
-        sample_lab = sample_obj.__dict__.get(user_inst_field)
-        if not core.models.Profile.objects.filter(
-            user=user, laboratory__iexact=sample_lab
-        ).exists():
-            return {"ERROR": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
+        user_lab_name = core.utils.labs.get_lab_name_from_user(user)
+
+        if user_role == "Collector":
+            allowed_codes = set(core.utils.labs.get_lab_codes_from_user(user))
+            sample_code = getattr(sample_obj, "lab_code_1", None)
+            sample_name = getattr(sample_obj, "collecting_institution", "")
+            if sample_code in allowed_codes:
+                pass
+            elif (
+                user_lab_name
+                and sample_name
+                and sample_name.lower() == user_lab_name.lower()
+            ):
+                pass
+            else:
+                return {"ERROR": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
+        else:
+            sample_lab = getattr(sample_obj, user_inst_field, None)
+            if (
+                not sample_lab
+                or not user_lab_name
+                or sample_lab.lower() != user_lab_name.lower()
+            ):
+                return {"ERROR": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
 
     s_data = {}
     s_data["basic"] = list(
@@ -580,7 +654,7 @@ def get_sample_per_date_per_all_lab(detailed=None):
 
 def get_search_table_for_user(user_obj):
     """Extract the data to fill the table of available samples to search
-    for the given lab_name, based on collecting_institution"""
+    for the given user, prioritizing lab_code_1 when available"""
     samples_to_search = dashboard.utils.generic_graphic_data.get_graphic_json_data(
         "search_samples_summary_table"
     )
@@ -594,20 +668,36 @@ def get_search_table_for_user(user_obj):
         )
     user_role = core.utils.generic_functions.get_user_role(user_obj)
     table_data = []
+    if user_role == "RelecovManager":
+        for subinst_labs_dict in samples_to_search.values():
+            for info in subinst_labs_dict.values():
+                table_data.extend(info.get("rows", []))
+        return table_data
     if user_role == "Submitter":
         user_lab = core.utils.labs.get_lab_name_from_user(user_obj)
-        for _, table_rows in samples_to_search.get(user_lab, {}).items():
-            table_data.extend(table_rows)
+        lab_entries = samples_to_search.get(user_lab, {})
+        for info in lab_entries.values():
+            table_data.extend(info.get("rows", []))
     else:
-        lab_list = core.utils.labs.get_collecting_insts_from_user(user_obj)
-        for lab in lab_list:
-            found = False
-            for subinst_labs_dict in samples_to_search.values():
-                if lab in subinst_labs_dict.keys():
-                    found = True
-                    table_data.extend(subinst_labs_dict[lab])
-            if not found:
-                print(f"Found no samples for lab {lab} in search_samples_summary")
+        lab_codes = set(core.utils.labs.get_lab_codes_from_user(user_obj))
+        user_lab = core.utils.labs.get_lab_name_from_user(user_obj)
+        for subinst_labs_dict in samples_to_search.values():
+            for info in subinst_labs_dict.values():
+                bucket_code = info.get("lab_code_1")
+                bucket_display = info.get("collecting_institution")
+                rows = info.get("rows", [])
+                matched = False
+                if lab_codes and bucket_code and bucket_code in lab_codes:
+                    matched = True
+                elif (
+                    (not lab_codes or not bucket_code)
+                    and user_lab
+                    and bucket_display
+                    and bucket_display.lower() == user_lab.lower()
+                ):
+                    matched = True
+                if matched:
+                    table_data.extend(rows)
     if not table_data:
         print(f"Found no sample for user {user_obj.username} in search_samples_summary")
     return table_data
@@ -695,12 +785,35 @@ def get_all_submitting_insts():
 
 
 def get_all_collecting_insts():
-    """Function to get all collecting_institutions in an ordered list"""
-    return list(
-        core.models.Sample.objects.values_list("collecting_institution", flat=True)
+    """Return the list of collecting institutions mapped to their lab codes."""
+
+    records = (
+        core.models.Sample.objects.order_by()
+        .values("lab_code_1", "collecting_institution")
         .distinct()
-        .order_by("collecting_institution")
     )
+
+    options = []
+    seen_values = set()
+    for entry in records:
+        lab_code = entry.get("lab_code_1")
+        legacy_name = entry.get("collecting_institution")
+        value = lab_code or legacy_name
+        if not value or value in seen_values:
+            continue
+        label = core.utils.labs.get_display_name_from_code(lab_code)
+        if not label:
+            label = legacy_name or value
+        options.append(
+            {
+                "value": value,
+                "label": label,
+                "lab_code_1": lab_code,
+                "legacy_name": legacy_name,
+            }
+        )
+        seen_values.add(value)
+    return options
 
 
 def get_all_recieved_samples_with_dates(accumulated=False):
@@ -857,7 +970,8 @@ def get_available_samples_for_user(user_obj):
     """Return the samples that the user should be able to see,
     wether its a Manager, Submitter or Collector. Based on its laboratory"""
     user_role = core.utils.generic_functions.get_user_role(user_obj)
-    user_lab = core.models.Profile.objects.filter(user=user_obj).last().get_lab_name()
+    profile_obj = core.models.Profile.objects.filter(user=user_obj).last()
+    user_lab = profile_obj.get_lab_name() if profile_obj else ""
     if user_role == "RelecovManager":
         return core.models.Sample.objects.all()
     elif user_role == "Submitter":
@@ -865,9 +979,15 @@ def get_available_samples_for_user(user_obj):
             submitting_institution__iexact=user_lab
         )
     elif user_role == "Collector":
-        return core.models.Sample.objects.filter(
-            collecting_institution__iexact=user_lab
-        )
+        lab_codes = core.utils.labs.get_lab_codes_from_user(user_obj)
+        filters = Q()
+        if lab_codes:
+            filters |= Q(lab_code_1__in=lab_codes)
+        if user_lab:
+            filters |= Q(collecting_institution__iexact=user_lab)
+        if not filters.children:
+            return core.models.Sample.objects.none()
+        return core.models.Sample.objects.filter(filters).distinct()
     else:
         return core.models.Sample.objects.none()
 
