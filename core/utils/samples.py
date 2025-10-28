@@ -498,13 +498,13 @@ def get_sample_display_data(sample_id, user):
         if user_role == "Collector":
             allowed_codes = set(core.utils.labs.get_lab_codes_from_user(user))
             sample_code = getattr(sample_obj, "lab_code_1", None)
-            sample_name = getattr(sample_obj, "collecting_institution", "")
+            sample_lab_name = getattr(sample_obj, "collecting_institution", "")
             if sample_code in allowed_codes:
                 pass
             elif (
                 user_lab_name
-                and sample_name
-                and sample_name.lower() == user_lab_name.lower()
+                and sample_lab_name
+                and sample_lab_name.lower() == user_lab_name.lower()
             ):
                 pass
             else:
