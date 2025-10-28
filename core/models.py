@@ -1,6 +1,5 @@
 # Generic imports
 import hashlib
-import logging
 from django.db import models, IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -9,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # Local imports
 import core.config
+from core.utils import lab_catalog
 
 
 class Profile(models.Model):
@@ -31,13 +31,6 @@ class Profile(models.Model):
 
         if not self.laboratory:
             return ""
-        try:
-            from core.utils import lab_catalog
-        except ImportError:
-            logging.getLogger(__name__).warning(
-                "Unable to import lab_catalog to resolve lab codes"
-            )
-            return ""
         resolved = lab_catalog.get_lab_code(self.laboratory)
         return resolved or ""
 
@@ -55,7 +48,7 @@ class Profile(models.Model):
                 type(self).objects.filter(pk=self.pk).update(code_id=resolved)
             else:
                 self.code_id = resolved
-        return resolved
+        return resolved or ""
 
     def save(self, *args, **kwargs):
         resolved_code = self._resolve_lab_code()
