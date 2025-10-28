@@ -202,7 +202,7 @@ def create_sample_data(request):
             print(f"ERROR. Missing: {missing_fields}")
             return Response(
                 {"ERROR": f"Missing: {missing_fields}", "message": "", "data": {}},
-                status=status.HTTP_409_CONFLICT,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         lab_code_field = "collecting_institution_code_1"
         lab_code_raw = data.get(lab_code_field)
@@ -215,32 +215,24 @@ def create_sample_data(request):
                     "message": "",
                     "data": {},
                 },
-                status=status.HTTP_409_CONFLICT,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         resolved_collecting_name = core.utils.lab_catalog.ensure_lab_display(
             lab_code_value, fallback_name=data.get("collecting_institution")
         )
-        provided_collecting_name = (data.get("collecting_institution") or "").strip()
-        if provided_collecting_name:
-            if (
-                resolved_collecting_name
-                and provided_collecting_name.lower() != resolved_collecting_name.lower()
-            ):
-                # Canonicalise to the catalog name
-                data["collecting_institution"] = resolved_collecting_name
-        else:
-            if resolved_collecting_name:
-                data["collecting_institution"] = resolved_collecting_name
-            else:
-                print("Unable to resolve collecting_institution from lab_code_1")
-                return Response(
-                    {
-                        "ERROR": "Missing: ['collecting_institution']",
-                        "message": "",
-                        "data": {},
-                    },
-                    status=status.HTTP_409_CONFLICT,
-                )
+        provided_collecting_name = data.get("collecting_institution", "").strip()
+        canonical_collecting_name = resolved_collecting_name or provided_collecting_name
+        if not canonical_collecting_name:
+            print("Unable to resolve collecting_institution from lab_code_1")
+            return Response(
+                {
+                    "ERROR": "Missing: ['collecting_institution']. Could not resolve from lab_code_1",
+                    "message": "",
+                    "data": {},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data["collecting_institution"] = canonical_collecting_name
         # Include collecting_institution in the required fields list for fingerprint
         required_db_fields.append("collecting_institution")
         # check if sample is already defined
@@ -940,7 +932,7 @@ def check_sample_exists(request):
     lab_code_field = "collecting_institution_code_1"
     lab_code_raw = data.get(lab_code_field)
     lab_code_value = str(lab_code_raw).strip() if lab_code_raw else ""
-    collecting_institution = (data.get("collecting_institution") or "").strip()
+    collecting_institution = data.get("collecting_institution", "").strip()
     resolved_collecting_name = core.utils.lab_catalog.ensure_lab_display(
         lab_code_value, fallback_name=collecting_institution
     )
@@ -949,7 +941,7 @@ def check_sample_exists(request):
         "sequencing_sample_id": data.get("sequencing_sample_id"),
         "collecting_lab_sample_id": data.get("collecting_lab_sample_id"),
         "submitting_institution": data.get("submitting_institution"),
-        "collecting_institution": collecting_institution or resolved_collecting_name,
+        "collecting_institution": resolved_collecting_name or collecting_institution,
     }
     if not all(required_dict.values()):
         missing_fields = [x for x, v in required_dict.items() if not v]
@@ -961,12 +953,6 @@ def check_sample_exists(request):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if (
-        collecting_institution
-        and resolved_collecting_name
-        and collecting_institution.lower() != resolved_collecting_name.lower()
-    ):
-        required_dict["collecting_institution"] = resolved_collecting_name
     temp_fingerprint = core.utils.samples.build_sample_fingerprint(
         *[value for value in required_dict.values()]
     )
