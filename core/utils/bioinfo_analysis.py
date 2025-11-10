@@ -117,6 +117,7 @@ def get_bioinfo_analyis_fields_utilization(
     through_model = core.models.Sample.bio_analysis_values.through
     batch_size = 500
     fields_counter = Counter()
+    touched_labels = set()
 
     sample_iter = (
         core.models.Sample.objects.filter(**sample_filter)
@@ -131,16 +132,26 @@ def get_bioinfo_analyis_fields_utilization(
         seen_pairs = set()
         rows = (
             through_model.objects.filter(sample_id__in=batch)
-            .filter(bioinfoanalysisvalue__value__isnull=False)
-            .exclude(bioinfoanalysisvalue__value__in=FIELD_EMPTY)
             .values_list(
                 "bioinfoanalysisvalue__bioinfo_analysis_fieldID__label_name",
                 "sample_id",
+                "bioinfoanalysisvalue__value",
             )
             .iterator(chunk_size=batch_size)
         )
 
-        for label, sample_id in rows:
+        for label, sample_id, raw_value in rows:
+            if label is None:
+                continue
+            touched_labels.add(label)
+
+            if raw_value is None:
+                continue
+
+            value = raw_value.strip() if isinstance(raw_value, str) else raw_value
+            if value in FIELD_EMPTY:
+                continue
+
             key = (label, sample_id)
             if key in seen_pairs:
                 continue
@@ -157,13 +168,17 @@ def get_bioinfo_analyis_fields_utilization(
         .values_list("label_name", flat=True)
         .distinct()
     )
-    never_used = defined_labels - labels_with_value
+    never_used = defined_labels - touched_labels
+    always_none = touched_labels - labels_with_value
+
+    for label in always_none | never_used:
+        fields_value.setdefault(label, 0)
 
     result = {
         "fields_value": fields_value,
         "fields_norm": fields_norm,
         "never_used": list(never_used),
-        "always_none": list(never_used),  # backward-compat
+        "always_none": list(always_none),
         "num_samples": num_samples,
     }
 
