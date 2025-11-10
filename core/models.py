@@ -990,6 +990,12 @@ class Variant(models.Model):
 
     class Meta:
         db_table = "core_variant"
+        indexes = [
+            models.Index(
+                fields=["chromosomeID_id", "pos", "alt"],
+                name="variant_chr_pos_alt_idx",
+            ),
+        ]
 
     def __str__(self):
         return "%s_%s" % (self.pos, self.alt)
@@ -1031,6 +1037,16 @@ class VariantInSample(models.Model):
 
     class Meta:
         db_table = "core_variant_in_sample"
+        indexes = [
+            models.Index(
+                fields=["sampleID_id", "bioinformatics_analysis_date"],
+                name="vinsample_sampdate_idx",
+            ),
+            models.Index(
+                fields=["variantID_id"],
+                name="variantinsample_variant_idx",
+            ),
+        ]
 
     def __str__(self):
         return "%s_%s" % (self.sampleID_id, self.variantID_id)
@@ -1107,6 +1123,12 @@ class VariantAnnotation(models.Model):
 
     class Meta:
         db_table = "core_variant_annotation"
+        indexes = [
+            models.Index(
+                fields=["hgvs_c", "hgvs_p", "hgvs_p_1_letter"],
+                name="variant_annotation_hgvs_idx",
+            ),
+        ]
 
     def __str__(self):
         return "%s" % (self.variantID_id)
