@@ -17,6 +17,7 @@ from drf_spectacular.utils import (
 from rest_framework import serializers
 from django.http import QueryDict
 import ast
+from django.db import transaction
 
 # Local imports
 import core.urls
@@ -609,6 +610,7 @@ def create_bioinfo_metadata(request):
             description="Variant example",
             value={
                 "sample_name": "sample_name_12345",
+                "unique_sample_id": "RLCV-0000001234",
                 "variants": [
                     {
                         "Chromosome": "NC_045512.2",
@@ -660,6 +662,7 @@ def create_bioinfo_metadata(request):
         name="VariantUpload",
         fields={
             "sample_name": serializers.CharField(),
+            "unique_sample_id": serializers.CharField(required=False),
             "Variants": inline_serializer(
                 name="variant",
                 fields={
@@ -707,16 +710,58 @@ def create_variant_data(request):
         if isinstance(data, QueryDict):
             data = data.dict()
 
-        sample_obj = core.utils.samples.get_sample_obj_from_sample_name(
-            data["sample_name"]
-        )
+        sample_name = data.get("sample_name")
+        unique_sample_id = data.get("unique_sample_id")
+        sample_obj = None
+
+        # 1) Prioritise explicit unique_sample_id
+        if unique_sample_id:
+            sample_obj = core.utils.samples.get_sample_obj_from_unique_sample_id(
+                unique_sample_id
+            )
+            if sample_obj is None:
+                error = {
+                    "ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED,
+                    "message": f"Sample not found for unique_sample_id '{unique_sample_id}'",
+                    "data": {},
+                }
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2) Fallback to any provided sample_name
+        if sample_obj is None and sample_name:
+            sample_obj = core.utils.samples.get_sample_obj_from_sample_name(sample_name)
+            if sample_obj is None:
+                # sample_name might already contain the unique identifier
+                sample_obj = core.utils.samples.get_sample_obj_from_unique_sample_id(
+                    sample_name
+                )
+
         if sample_obj is None:
             error = {
                 "ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED,
-                "message": "",
+                "message": "Sample identifier not found in platform",
                 "data": {},
             }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3) If both identifiers are provided, ensure they refer to the same sample
+        if unique_sample_id and sample_name:
+            sample_unique = (getattr(sample_obj, "sample_unique_id", "") or "").strip()
+            sample_seq = (getattr(sample_obj, "sequencing_sample_id", "") or "").strip()
+            sample_name_norm = sample_name.strip().casefold()
+            sample_unique_norm = sample_unique.casefold() if sample_unique else ""
+            sample_seq_norm = sample_seq.casefold() if sample_seq else ""
+            matches_unique = sample_name_norm == sample_unique_norm
+            matches_seq = sample_name_norm == sample_seq_norm
+            if not (matches_unique or matches_seq):
+                error = {
+                    "ERROR": core.config.ERROR_SAMPLE_NOT_DEFINED,
+                    "message": (
+                        "sample_name does not match the provided unique_sample_id for the same sample"
+                    ),
+                    "data": {},
+                }
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
         analysis_defined = core.api.utils.variants.get_variant_analysis_defined(
             sample_obj
         )
@@ -747,57 +792,95 @@ def create_variant_data(request):
                 }
                 return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-        found_error = False
-        v_in_sample_list = []
-        v_an_list = []
+        cache = core.api.utils.variants.VariantProcessingCache()
+        variant_in_sample_objects: list[core.models.VariantInSample] = []
+        variant_annotation_objects: list[core.models.VariantAnnotation] = []
+        pending_annotation_keys: set[tuple[str, str, str]] = set()
 
-        for v_data in data["variants"]:
-            split_data = core.api.utils.variants.split_variant_data(
-                v_data, sample_obj, data["bioinformatics_analysis_date"]
-            )
-            if "ERROR" in split_data:
-                error = {
-                    "ERROR": split_data,
-                    "message": "error extracting variant data from request.data",
-                    "data": {},
-                }
-                found_error = True
-                break
-
-            variant_in_sample_obj = core.api.utils.variants.store_variant_in_sample(
-                split_data["variant_in_sample"]
-            )
-            if isinstance(variant_in_sample_obj, dict):
-                error = {
-                    "ERROR": variant_in_sample_obj,
-                    "message": "error storing variants for sample",
-                    "data": {},
-                }
-                found_error = True
-                break
-
-            v_in_sample_list.append(variant_in_sample_obj)
-
-            if not core.api.utils.variants.variant_annotation_exists(
-                split_data["variant_ann"]
-            ):
-                variant_ann_obj = core.api.utils.variants.store_variant_annotation(
-                    split_data["variant_ann"]
+        with transaction.atomic():
+            for v_data in data["variants"]:
+                split_data = core.api.utils.variants.split_variant_data(
+                    v_data,
+                    sample_obj,
+                    data["bioinformatics_analysis_date"],
+                    cache=cache,
                 )
-                if isinstance(variant_ann_obj, dict):
-                    error = {
-                        "ERROR": variant_ann_obj,
-                        "message": "error storing variant annotations",
-                        "data": {},
-                    }
-                    found_error = True
-                    break
+                if "ERROR" in split_data:
+                    return Response(
+                        {
+                            "ERROR": split_data,
+                            "message": "error extracting variant data from request.data",
+                            "data": {},
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
-                v_an_list.append(variant_ann_obj)
+                variant_in_sample_data = split_data["variant_in_sample"]
+                try:
+                    variant_id = int(variant_in_sample_data["variantID_id"])
+                except (ValueError, TypeError) as exc:
+                    return Response(
+                        {
+                            "ERROR": f"Invalid variantID_id value: {variant_in_sample_data.get('variantID_id')}",
+                            "message": str(exc),
+                            "data": {},
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
-        if found_error:
-            core.api.utils.variants.delete_created_variancs(v_in_sample_list, v_an_list)
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+                variant_kwargs = {
+                    key: value
+                    for key, value in variant_in_sample_data.items()
+                    if key != "variantID_id"
+                }
+                variant_kwargs["sampleID_id"] = sample_obj
+                variant_kwargs["variantID_id_id"] = variant_id
+
+                variant_in_sample_objects.append(
+                    core.models.VariantInSample(**variant_kwargs)
+                )
+
+                ann_data = split_data["variant_ann"].copy()
+                ann_key = (
+                    cache._norm(ann_data.get("hgvs_c")),
+                    cache._norm(ann_data.get("hgvs_p")),
+                    cache._norm(ann_data.get("hgvs_p_1_letter")),
+                )
+
+                if ann_key in pending_annotation_keys:
+                    continue
+
+                if core.api.utils.variants.variant_annotation_exists(
+                    ann_data, cache=cache
+                ):
+                    continue
+
+                cache.cache_annotation(
+                    ann_data.get("hgvs_c"),
+                    ann_data.get("hgvs_p"),
+                    ann_data.get("hgvs_p_1_letter"),
+                )
+                pending_annotation_keys.add(ann_key)
+                ann_kwargs = {
+                    key: value
+                    for key, value in ann_data.items()
+                    if key not in {"variantID_id", "geneID_id", "effectID_id"}
+                }
+                ann_kwargs["variantID_id_id"] = variant_id
+                ann_kwargs["geneID_id_id"] = ann_data.get("geneID_id")
+                ann_kwargs["effectID_id_id"] = ann_data.get("effectID_id")
+                variant_annotation_objects.append(
+                    core.models.VariantAnnotation(**ann_kwargs)
+                )
+
+            if variant_in_sample_objects:
+                core.models.VariantInSample.objects.bulk_create(
+                    variant_in_sample_objects, batch_size=500
+                )
+            if variant_annotation_objects:
+                core.models.VariantAnnotation.objects.bulk_create(
+                    variant_annotation_objects, batch_size=500
+                )
 
         sample_obj.update_state("Variant")
         # Include date and state in DateState table
