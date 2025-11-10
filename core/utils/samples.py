@@ -329,11 +329,19 @@ def create_dash_bar_for_each_lab(labs_data, labs_list=None):
 
     legacy_column = df_data.get("legacy_collecting_institution")
     if "collecting_institution" in df_data.columns:
-        df_data["collecting_institution"] = df_data["collecting_institution"].fillna(
-            legacy_column
-        )
+        if legacy_column is not None:
+            df_data["collecting_institution"] = df_data[
+                "collecting_institution"
+            ].fillna(legacy_column)
+        else:
+            df_data["collecting_institution"] = df_data[
+                "collecting_institution"
+            ].fillna("")
     else:
-        df_data["collecting_institution"] = legacy_column
+        if legacy_column is not None:
+            df_data["collecting_institution"] = legacy_column.fillna("")
+        else:
+            df_data["collecting_institution"] = ""
 
     if labs_list is None:
         labs_list = []
