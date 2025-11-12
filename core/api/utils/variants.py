@@ -16,27 +16,27 @@ class VariantProcessingCache:
     """
 
     def __init__(self):
-        self.filters = {}
-        self.effects = {}
+        self.filters: dict[str, int] = {}
+        self.effects: dict[str, int] = {}
         self.chromosomes = {}
-        self.genes = {}
-        self.variants = {}
-        self.variant_annotations = set()
+        self.genes: dict[str, int] = {}
+        self.variants: dict[tuple[str, str, str, str], int] = {}
+        self.variant_annotations: set[tuple[str, str, str]] = set()
 
     @staticmethod
     def _norm(value: Optional[str]) -> str:
         return value.casefold() if isinstance(value, str) else ""
 
-    def cache_filter(self, value: str, obj: core.models.Filter) -> None:
-        self.filters[self._norm(value)] = obj
+    def cache_filter(self, value: str, obj_id: int) -> None:
+        self.filters[self._norm(value)] = obj_id
 
-    def get_filter(self, value: str):
+    def get_filter(self, value: str) -> Optional[int]:
         return self.filters.get(self._norm(value))
 
-    def cache_effect(self, value: str, obj: core.models.Effect) -> None:
-        self.effects[self._norm(value)] = obj
+    def cache_effect(self, value: str, obj_id: int) -> None:
+        self.effects[self._norm(value)] = obj_id
 
-    def get_effect(self, value: str):
+    def get_effect(self, value: str) -> Optional[int]:
         return self.effects.get(self._norm(value))
 
     def cache_chrom(self, value: str, obj: core.models.Chromosome) -> None:
@@ -45,10 +45,10 @@ class VariantProcessingCache:
     def get_chrom(self, value: str):
         return self.chromosomes.get(self._norm(value))
 
-    def cache_gene(self, value: str, obj: core.models.Gene) -> None:
-        self.genes[self._norm(value)] = obj
+    def cache_gene(self, value: str, obj_id: int) -> None:
+        self.genes[self._norm(value)] = obj_id
 
-    def get_gene(self, value: str):
+    def get_gene(self, value: str) -> Optional[int]:
         return self.genes.get(self._norm(value))
 
     def cache_variant(self, chrom: str, pos: str, ref: str, alt: str, variant_id: int):
@@ -75,48 +75,56 @@ class VariantProcessingCache:
         )
         self.variant_annotations.add(key)
 
+    def reset(self) -> None:
+        self.filters.clear()
+        self.effects.clear()
+        self.chromosomes.clear()
+        self.genes.clear()
+        self.variants.clear()
+        self.variant_annotations.clear()
+
 
 def create_or_get_filter_obj(filter_value, cache=None):
     """Return the filter instance or create if not exists"""
     if cache:
-        cached = cache.get_filter(filter_value)
-        if cached:
-            return cached
+        cached_id = cache.get_filter(filter_value)
+        if cached_id:
+            return cached_id
     filter_obj = core.models.Filter.objects.filter(filter__iexact=filter_value).last()
     if filter_obj:
         if cache:
-            cache.cache_filter(filter_value, filter_obj)
-        return filter_obj
+            cache.cache_filter(filter_value, filter_obj.pk)
+        return filter_obj.pk
     filter_serializer = core.api.serializers.CreateFilterSerializer(
         data={"filter": filter_value}
     )
     if filter_serializer.is_valid():
         filter_obj = filter_serializer.save()
         if cache:
-            cache.cache_filter(filter_value, filter_obj)
-        return filter_obj
+            cache.cache_filter(filter_value, filter_obj.pk)
+        return filter_obj.pk
     return {"ERROR": core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
 
 def create_or_get_effect_obj(effect_value, cache=None):
     """Return the effect instance or create if not exists"""
     if cache:
-        cached = cache.get_effect(effect_value)
-        if cached:
-            return cached
+        cached_id = cache.get_effect(effect_value)
+        if cached_id:
+            return cached_id
     effect_obj = core.models.Effect.objects.filter(effect__iexact=effect_value).last()
     if effect_obj:
         if cache:
-            cache.cache_effect(effect_value, effect_obj)
-        return effect_obj
+            cache.cache_effect(effect_value, effect_obj.pk)
+        return effect_obj.pk
     effect_serializer = core.api.serializers.CreateEffectSerializer(
         data={"effect": effect_value}
     )
     if effect_serializer.is_valid():
         effect_obj = effect_serializer.save()
         if cache:
-            cache.cache_effect(effect_value, effect_obj)
-        return effect_obj
+            cache.cache_effect(effect_value, effect_obj.pk)
+        return effect_obj.pk
 
     return {"ERROR": core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
@@ -180,12 +188,12 @@ def get_variant_id(data, cache=None):
     ).last()
     if variant_obj is None:
         # Create the variant
-        filter_obj = create_or_get_filter_obj(data["Filter"], cache=cache)
-        if isinstance(filter_obj, dict):
-            return filter_obj
+        filter_id = create_or_get_filter_obj(data["Filter"], cache=cache)
+        if isinstance(filter_id, dict):
+            return filter_id
         variant_dict = {}
         variant_dict["chromosomeID_id"] = chr_obj.get_chromosome_id()
-        variant_dict["filterID_id"] = filter_obj.get_filter_id()
+        variant_dict["filterID_id"] = filter_id
         variant_dict["pos"] = pos
         variant_dict["alt"] = data["alt"]
         variant_dict["ref"] = data["ref"]
@@ -195,7 +203,7 @@ def get_variant_id(data, cache=None):
         if not variant_serializer.is_valid():
             return {"ERROR": core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}
         variant_obj = variant_serializer.save()
-    variant_id = variant_obj.get_variant_id()
+    variant_id = variant_obj.pk
     if cache:
         cache.cache_variant(chromosome, pos, ref, alt, variant_id)
     return variant_id
@@ -211,20 +219,21 @@ def get_required_variant_ann_id(data, cache=None):
     """Look for the ids that variant annotation needs"""
     v_ann_ids = {}
     gene_name = data["gene"]
-    gene_obj = cache.get_gene(gene_name) if cache else None
-    if gene_obj is None:
+    gene_id = cache.get_gene(gene_name) if cache else None
+    if gene_id is None:
         gene_obj = core.utils.variants.get_gene_obj_from_gene_name(gene_name)
-        if cache and gene_obj:
-            cache.cache_gene(gene_name, gene_obj)
+        if gene_obj is None:
+            return {"ERROR": core.config.ERROR_GENE_NOT_DEFINED_IN_DATABASE}
+        gene_id = gene_obj.get_gene_id()
+        if cache:
+            cache.cache_gene(gene_name, gene_id)
 
-    if gene_obj is None:
-        return {"ERROR": core.config.ERROR_GENE_NOT_DEFINED_IN_DATABASE}
-    v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
-    effect_obj = create_or_get_effect_obj(data["effect"], cache=cache)
-    if isinstance(effect_obj, dict):
-        return effect_obj
-    v_ann_ids["geneID_id"] = gene_obj.get_gene_id()
-    v_ann_ids["effectID_id"] = effect_obj.get_effect_id()
+    effect_id = create_or_get_effect_obj(data["effect"], cache=cache)
+    if isinstance(effect_id, dict):
+        return effect_id
+
+    v_ann_ids["geneID_id"] = gene_id
+    v_ann_ids["effectID_id"] = effect_id
     return v_ann_ids
 
 
