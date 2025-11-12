@@ -90,7 +90,7 @@ def create_or_get_filter_obj(filter_value, cache=None):
         cached_id = cache.get_filter(filter_value)
         if cached_id:
             return cached_id
-    filter_obj = core.models.Filter.objects.filter(filter__iexact=filter_value).last()
+    filter_obj = core.models.Filter.objects.filter(filter=filter_value).last()
     if filter_obj:
         if cache:
             cache.cache_filter(filter_value, filter_obj.pk)
@@ -112,7 +112,7 @@ def create_or_get_effect_obj(effect_value, cache=None):
         cached_id = cache.get_effect(effect_value)
         if cached_id:
             return cached_id
-    effect_obj = core.models.Effect.objects.filter(effect__iexact=effect_value).last()
+    effect_obj = core.models.Effect.objects.filter(effect=effect_value).last()
     if effect_obj:
         if cache:
             cache.cache_effect(effect_value, effect_obj.pk)
@@ -184,7 +184,7 @@ def get_variant_id(data, cache=None):
             return cached_variant_id
 
     variant_obj = core.models.Variant.objects.filter(
-        chromosomeID_id=chr_obj, pos__iexact=pos, alt__iexact=alt
+        chromosomeID_id=chr_obj, pos=pos, alt=alt
     ).last()
     if variant_obj is None:
         # Create the variant
@@ -272,9 +272,9 @@ def variant_annotation_exists(data, cache=None):
     if cache and cache.has_annotation(hgvs_c, hgvs_p, hgvs_p1):
         return True
     exists = core.models.VariantAnnotation.objects.filter(
-        hgvs_c__iexact=hgvs_c,
-        hgvs_p__iexact=hgvs_p,
-        hgvs_p_1_letter__iexact=hgvs_p1,
+        hgvs_c=hgvs_c,
+        hgvs_p=hgvs_p,
+        hgvs_p_1_letter=hgvs_p1,
     ).exists()
     if exists and cache:
         cache.cache_annotation(hgvs_c, hgvs_p, hgvs_p1)
