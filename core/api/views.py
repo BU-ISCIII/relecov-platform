@@ -705,6 +705,8 @@ def create_bioinfo_metadata(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_variant_data(request):
+    CHUNK_SIZE = 250
+
     if request.method == "POST":
         data = request.data
         if isinstance(data, QueryDict):
@@ -797,6 +799,20 @@ def create_variant_data(request):
         variant_annotation_objects: list[core.models.VariantAnnotation] = []
         pending_annotation_keys: set[tuple[str, str, str]] = set()
 
+        def flush_chunk():
+            if variant_in_sample_objects:
+                core.models.VariantInSample.objects.bulk_create(
+                    variant_in_sample_objects, batch_size=CHUNK_SIZE
+                )
+                variant_in_sample_objects.clear()
+            if variant_annotation_objects:
+                core.models.VariantAnnotation.objects.bulk_create(
+                    variant_annotation_objects, batch_size=CHUNK_SIZE
+                )
+                variant_annotation_objects.clear()
+            pending_annotation_keys.clear()
+            cache.reset()
+
         with transaction.atomic():
             for v_data in data["variants"]:
                 split_data = core.api.utils.variants.split_variant_data(
@@ -873,14 +889,9 @@ def create_variant_data(request):
                     core.models.VariantAnnotation(**ann_kwargs)
                 )
 
-            if variant_in_sample_objects:
-                core.models.VariantInSample.objects.bulk_create(
-                    variant_in_sample_objects, batch_size=500
-                )
-            if variant_annotation_objects:
-                core.models.VariantAnnotation.objects.bulk_create(
-                    variant_annotation_objects, batch_size=500
-                )
+                if len(variant_in_sample_objects) >= CHUNK_SIZE:
+                    flush_chunk()
+            flush_chunk()
 
         sample_obj.update_state("Variant")
         # Include date and state in DateState table
