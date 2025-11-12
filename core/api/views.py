@@ -800,98 +800,99 @@ def create_variant_data(request):
         pending_annotation_keys: set[tuple[str, str, str]] = set()
 
         def flush_chunk():
-            if variant_in_sample_objects:
-                core.models.VariantInSample.objects.bulk_create(
-                    variant_in_sample_objects, batch_size=CHUNK_SIZE
-                )
-                variant_in_sample_objects.clear()
-            if variant_annotation_objects:
-                core.models.VariantAnnotation.objects.bulk_create(
-                    variant_annotation_objects, batch_size=CHUNK_SIZE
-                )
-                variant_annotation_objects.clear()
+            if not variant_in_sample_objects and not variant_annotation_objects:
+                return
+            with transaction.atomic():
+                if variant_in_sample_objects:
+                    core.models.VariantInSample.objects.bulk_create(
+                        variant_in_sample_objects, batch_size=CHUNK_SIZE
+                    )
+                    variant_in_sample_objects.clear()
+                if variant_annotation_objects:
+                    core.models.VariantAnnotation.objects.bulk_create(
+                        variant_annotation_objects, batch_size=CHUNK_SIZE
+                    )
+                    variant_annotation_objects.clear()
+
             pending_annotation_keys.clear()
             cache.reset()
 
-        with transaction.atomic():
-            for v_data in data["variants"]:
-                split_data = core.api.utils.variants.split_variant_data(
-                    v_data,
-                    sample_obj,
-                    data["bioinformatics_analysis_date"],
-                    cache=cache,
-                )
-                if "ERROR" in split_data:
-                    return Response(
-                        {
-                            "ERROR": split_data,
-                            "message": "error extracting variant data from request.data",
-                            "data": {},
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                variant_in_sample_data = split_data["variant_in_sample"]
-                try:
-                    variant_id = int(variant_in_sample_data["variantID_id"])
-                except (ValueError, TypeError) as exc:
-                    return Response(
-                        {
-                            "ERROR": f"Invalid variantID_id value: {variant_in_sample_data.get('variantID_id')}",
-                            "message": str(exc),
-                            "data": {},
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                variant_kwargs = {
-                    key: value
-                    for key, value in variant_in_sample_data.items()
-                    if key != "variantID_id"
-                }
-                variant_kwargs["sampleID_id"] = sample_obj
-                variant_kwargs["variantID_id_id"] = variant_id
-
-                variant_in_sample_objects.append(
-                    core.models.VariantInSample(**variant_kwargs)
+        for v_data in data["variants"]:
+            split_data = core.api.utils.variants.split_variant_data(
+                v_data,
+                sample_obj,
+                data["bioinformatics_analysis_date"],
+                cache=cache,
+            )
+            if "ERROR" in split_data:
+                return Response(
+                    {
+                        "ERROR": split_data,
+                        "message": "error extracting variant data from request.data",
+                        "data": {},
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-                ann_data = split_data["variant_ann"].copy()
-                ann_key = (
-                    cache._norm(ann_data.get("hgvs_c")),
-                    cache._norm(ann_data.get("hgvs_p")),
-                    cache._norm(ann_data.get("hgvs_p_1_letter")),
+            variant_in_sample_data = split_data["variant_in_sample"]
+            try:
+                variant_id = int(variant_in_sample_data["variantID_id"])
+            except (ValueError, TypeError) as exc:
+                return Response(
+                    {
+                        "ERROR": f"Invalid variantID_id value: {variant_in_sample_data.get('variantID_id')}",
+                        "message": str(exc),
+                        "data": {},
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-                if ann_key in pending_annotation_keys:
-                    continue
+            variant_kwargs = {
+                key: value
+                for key, value in variant_in_sample_data.items()
+                if key != "variantID_id"
+            }
+            variant_kwargs["sampleID_id"] = sample_obj
+            variant_kwargs["variantID_id_id"] = variant_id
 
-                if core.api.utils.variants.variant_annotation_exists(
-                    ann_data, cache=cache
-                ):
-                    continue
+            variant_in_sample_objects.append(
+                core.models.VariantInSample(**variant_kwargs)
+            )
 
-                cache.cache_annotation(
-                    ann_data.get("hgvs_c"),
-                    ann_data.get("hgvs_p"),
-                    ann_data.get("hgvs_p_1_letter"),
-                )
-                pending_annotation_keys.add(ann_key)
-                ann_kwargs = {
-                    key: value
-                    for key, value in ann_data.items()
-                    if key not in {"variantID_id", "geneID_id", "effectID_id"}
-                }
-                ann_kwargs["variantID_id_id"] = variant_id
-                ann_kwargs["geneID_id_id"] = ann_data.get("geneID_id")
-                ann_kwargs["effectID_id_id"] = ann_data.get("effectID_id")
-                variant_annotation_objects.append(
-                    core.models.VariantAnnotation(**ann_kwargs)
-                )
+            ann_data = split_data["variant_ann"].copy()
+            ann_key = (
+                cache._norm(ann_data.get("hgvs_c")),
+                cache._norm(ann_data.get("hgvs_p")),
+                cache._norm(ann_data.get("hgvs_p_1_letter")),
+            )
 
-                if len(variant_in_sample_objects) >= CHUNK_SIZE:
-                    flush_chunk()
-            flush_chunk()
+            if ann_key in pending_annotation_keys:
+                continue
+
+            if core.api.utils.variants.variant_annotation_exists(ann_data, cache=cache):
+                continue
+
+            cache.cache_annotation(
+                ann_data.get("hgvs_c"),
+                ann_data.get("hgvs_p"),
+                ann_data.get("hgvs_p_1_letter"),
+            )
+            pending_annotation_keys.add(ann_key)
+            ann_kwargs = {
+                key: value
+                for key, value in ann_data.items()
+                if key not in {"variantID_id", "geneID_id", "effectID_id"}
+            }
+            ann_kwargs["variantID_id_id"] = variant_id
+            ann_kwargs["geneID_id_id"] = ann_data.get("geneID_id")
+            ann_kwargs["effectID_id_id"] = ann_data.get("effectID_id")
+            variant_annotation_objects.append(
+                core.models.VariantAnnotation(**ann_kwargs)
+            )
+
+            if len(variant_in_sample_objects) >= CHUNK_SIZE:
+                flush_chunk()
+        flush_chunk()
 
         sample_obj.update_state("Variant")
         # Include date and state in DateState table
