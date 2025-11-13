@@ -551,22 +551,34 @@ def get_sample_display_data(sample_id, user):
             )
         s_data["actions"] = actions
 
-    sample_id = sample_obj.get_sequencing_sample_id()
+    # Lab metadata in iSkyLIMS is keyed by the platform-wide unique sample id
+    # (the value shown as Sample Name in iSky). Keep a fallback to the historical
+    # sequencing_sample_id so legacy records can still resolve.
+    lookup_ids = []
+    unique_id = (sample_obj.get_unique_id() or "").strip()
+    seq_id = (sample_obj.get_sequencing_sample_id() or "").strip()
+    if unique_id:
+        lookup_ids.append(unique_id)
+    if seq_id and seq_id not in lookup_ids:
+        lookup_ids.append(seq_id)
+
     # Fetch information from iSkyLIMS
-    if sample_id != "":
+    for sample_id in lookup_ids:
         iskylims_data = core.utils.rest_api.get_sample_information(sample_id)
-        if "ERROR" not in iskylims_data:
-            s_data["iskylims_basic"] = []
-            s_data["iskylims_p_data"] = []
-            # iskylims_data is a list with one element. Then get the first element
-            iskylims_data = iskylims_data[0]
-            for key, i_data in iskylims_data.items():
-                if key == "Project values":
-                    for p_key, p_data in iskylims_data["Project values"].items():
-                        s_data["iskylims_p_data"].append([p_key, p_data])
-                else:
-                    s_data["iskylims_basic"].append([key, i_data])
-            s_data["iskylims_project"] = iskylims_data["sample_project"]
+        if "ERROR" in iskylims_data:
+            continue
+        s_data["iskylims_basic"] = []
+        s_data["iskylims_p_data"] = []
+        # iskylims_data is a list with one element. Then get the first element
+        iskylims_data = iskylims_data[0]
+        for key, i_data in iskylims_data.items():
+            if key == "Project values":
+                for p_key, p_data in iskylims_data["Project values"].items():
+                    s_data["iskylims_p_data"].append([p_key, p_data])
+            else:
+                s_data["iskylims_basic"].append([key, i_data])
+        s_data["iskylims_project"] = iskylims_data.get("sample_project")
+        break
     return s_data
 
 
