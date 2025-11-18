@@ -565,7 +565,7 @@ def get_sample_display_data(sample_id, user):
     # Fetch information from iSkyLIMS
     for sample_id in lookup_ids:
         iskylims_data = core.utils.rest_api.get_sample_information(sample_id)
-        if "ERROR" in iskylims_data:
+        if not iskylims_data or "ERROR" in iskylims_data:
             continue
         s_data["iskylims_basic"] = []
         s_data["iskylims_p_data"] = []
