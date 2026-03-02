@@ -9,7 +9,7 @@ This script installs and upgrades the iskylims app.
 Usage : $0 [--demo_data] [--install_type] [--git_revision] [--compose_file] [--install_conf] [--action] [--script] [--script_before] [--script_after] [--engine] [--test]
     Optional input data:
     --demo_data         | Provide already downloaded demo data from Zenodo
-    --install_type      | Specify the installation type for iSkyLIMS (default: full)
+    --install_type      | Specify the installation type for apps (default: full)
     --git_revision      | Specify the Git revision to install (default: main)
     --compose_file      | Compose file to use (overrides default)
     --install_conf      | Settings file consumed during container image build (mandatory for production)
@@ -182,7 +182,7 @@ while getopts $options opt; do
             exit 1
             ;;
         v)
-            echo $ISKYLIMS_VERSION
+            echo $RELECOVPLATFORM_VERSION
             exit 1
             ;;
         \?)
@@ -274,25 +274,89 @@ fi
 
 set_engine
 
+# Check if a service exists in the compose file
+#
+# Parameters:
+#   $1 - Service name to check
+#
+# Returns:
+#   0 if the service exists, 1 otherwise
 service_exists() {
     compose_exec -f "$compose_file" ps --services 2>/dev/null | grep -Fxq "$1"
 }
 
+# Return the name of the container for a given service name.
+# The container name is different based on whether we are in test mode or not.
+#
+# Parameters:
+#   $1 - Service name to return the container name for
+#
+# Returns:
+#   The name of the container for the given service name
+service_container_name() {
+    local service_name="$1"
+    if [ "$mode" = "test" ]; then
+        case "$service_name" in
+            db) echo "relecov_test_db" ;;
+            iskylims_app) echo "relecov_test_iskylims_app" ;;
+            app) echo "relecov_test_app" ;;
+            nextstrain) echo "relecov_test_nextstrain" ;;
+            *) echo "" ;;
+        esac
+    else
+        case "$service_name" in
+            iskylims_app) echo "relecov_iskylims_app" ;;
+            app) echo "relecov_app" ;;
+            nextstrain) echo "relecov_nextstrain" ;;
+            *) echo "" ;;
+        esac
+    fi
+}
+
+# Resolve the container ID for a given service name.
+#
+# Parameters:
+#   $1 - Service name to resolve the container ID for
+#
+# Returns:
+#   The container ID for the given service name, or an error code if unable to resolve.
+#
+# Errors:
+#   1 - Unable to resolve container ID for given service name.
 resolve_service_container() {
     local service_name="$1"
     local service_container
-    service_container="$(compose_exec -f "$compose_file" ps -q "$service_name" | head -n 1)"
+    local container_name
+    container_name="$(service_container_name "$service_name")"
+
+    if [ -n "$container_name" ] && engine_exec inspect -f '{{.Id}}' "$container_name" >/dev/null 2>&1; then
+        service_container="$container_name"
+    else
+        service_container="$(engine_exec ps -a --filter "label=com.docker.compose.service=${service_name}" --format '{{.ID}}' | head -n 1)"
+    fi
+
     if [ -z "$service_container" ]; then
-        echo "Error: unable to resolve container ID for service '$service_name'."
-        exit 1
+        echo "Error: unable to resolve container ID for service '$service_name'." >&2
+        return 1
     fi
     echo "$service_container"
 }
 
+# Ensure a service is running.
+#
+# Parameters:
+#   $1 - Service name to ensure is running
+#   $2 - Container ID for the service
+#
+# Returns:
+#   The container ID if the service is running, or an error code if unable to resolve.
+#
+# Errors:
+#   1 - Service container does not exist.
+#   2 - Service container is not running.
 ensure_service_running() {
     local service_name="$1"
-    local service_container
-    service_container="$(resolve_service_container "$service_name")"
+    local service_container="$2"
     if ! engine_exec inspect -f '{{.State.Running}}' "$service_container" >/dev/null 2>&1; then
         echo "Error: service '$service_name' container does not exist."
         exit 1
@@ -305,6 +369,16 @@ ensure_service_running() {
     echo "$service_container"
 }
 
+# Return the repository path for a given service name.
+#
+# Parameters:
+#   $1 - Service name to retrieve the repository path for.
+#
+# Returns:
+#   The repository path for the given service name.
+#
+# Errors:
+#   1 - Unknown service name passed to the function.
 service_repo_path() {
     case "$1" in
         iskylims_app) echo "/srv/iskylims" ;;
@@ -321,6 +395,41 @@ service_install_path() {
     esac
 }
 
+# Remove stale test containers left over from previous runs.
+#
+# This function will only be executed in "test" mode when the engine is "podman".
+#
+# Parameters:
+#   None
+#
+# Returns:
+#   None
+#
+# Errors:
+#   None
+cleanup_stale_test_containers() {
+    if [ "$mode" != "test" ] || [ "$engine" != "podman" ]; then
+        return 0
+    fi
+
+    local svc cname cstate
+    for svc in db iskylims_app app nextstrain samba; do
+        cname="$(service_container_name "$svc")"
+        if [ -z "$cname" ]; then
+            continue
+        fi
+        if engine_exec inspect -f '{{.Id}}' "$cname" >/dev/null 2>&1; then
+            cstate="$(engine_exec inspect -f '{{.State.Status}}' "$cname" 2>/dev/null || true)"
+            if [ "$cstate" != "running" ]; then
+                echo "Removing stale test container '$cname' (state: ${cstate:-unknown})"
+                engine_exec rm -f "$cname" >/dev/null 2>&1 || true
+            fi
+        fi
+    done
+}
+
+cleanup_stale_test_containers
+
 echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep and GIT_REVISION=$git_revision..."
 INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$install_conf_container" \
     compose_exec -f "$compose_file" build --no-cache \
@@ -331,7 +440,9 @@ compose_exec -f "$compose_file" up -d
 
 echo "Waiting 20 seconds for starting database and web services..."
 sleep 20
-
+# Set uid and gid for app user in the container, to ensure runtime directories are created with correct ownership
+# If the user has specified custom values for APP_UID and APP_GID in env variables, these will be used
+# Otherwise, default to 1212 which is the value used in the Dockerfile.
 app_uid="${APP_UID:-1212}"
 app_gid="${APP_GID:-1212}"
 
@@ -354,16 +465,18 @@ if [ "$run_script" = true ]; then
     done
 fi
 
-install_services=("iskylims_app")
-if [ "$mode" = "test" ] && service_exists "app"; then
-    install_services+=("app")
-fi
+
+
+install_services=("iskylims_app" "app")
 
 installed_iskylims=false
 installed_platform=false
 
 for target_service in "${install_services[@]}"; do
-    target_container="$(ensure_service_running "$target_service")"
+    if ! target_container="$(resolve_service_container "$target_service")"; then
+        exit 1
+    fi
+    ensure_service_running "$target_service" "$target_container"
     target_repo_path="$(service_repo_path "$target_service")"
     target_install_path="$(service_install_path "$target_service")"
 
