@@ -93,7 +93,7 @@ services:
     restart: unless-stopped
     command: ["nextstrain", "view", "/data", "--port", "8100", "--host", "0.0.0.0"]
     volumes:
-      - ./docker/data/nextstrain:/data:ro
+      - relecov_test_nextstrain_data:/data
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     ports:
@@ -109,3 +109,4 @@ volumes:
   relecov_test_logs:
   relecov_test_documents:
   relecov_test_static:
+  relecov_test_nextstrain_data:
