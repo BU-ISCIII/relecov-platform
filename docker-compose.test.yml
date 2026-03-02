@@ -1,0 +1,111 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: relecov_test_db
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: iskylims_docker
+      MYSQL_USER: django
+      MYSQL_PASSWORD: djangopass
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --user=django --password=djangopass --silent"]
+      interval: 5s
+      retries: 15
+      start_period: 30s
+      timeout: 3s
+    ports:
+      - "6606:3306"
+    volumes:
+      - relecov_test_db_data:/var/lib/mysql
+      - ./docker/mysql/init-test.sql:/docker-entrypoint-initdb.d/init-test.sql:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - relecov_test_net
+
+  iskylims_app:
+    build:
+      context: ../relecov-iskylims
+      args:
+        INSTALL_TYPE: ${ISKYLIMS_INSTALL_TYPE:-dep}
+        GIT_REVISION: ${ISKYLIMS_GIT_REVISION:-main}
+        INSTALL_CONF: ${ISKYLIMS_INSTALL_CONF:-conf/docker_test_settings.txt}
+        APP_UID: ${APP_UID:-1212}
+        APP_GID: ${APP_GID:-1212}
+    container_name: relecov_test_iskylims_app
+    restart: unless-stopped
+    environment:
+      APP_MODE: dev
+      APP_PORT: 8001
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      relecov_test_net:
+        aliases:
+          - relecov-lims
+          - iskylimsapp
+
+  app:
+    build:
+      context: .
+      args:
+        INSTALL_TYPE: ${INSTALL_TYPE:-dep}
+        GIT_REVISION: ${GIT_REVISION:-main}
+        INSTALL_CONF: ${INSTALL_CONF:-conf/docker_test_settings.txt}
+        APP_UID: ${APP_UID:-1212}
+        APP_GID: ${APP_GID:-1212}
+    container_name: relecov_test_app
+    restart: unless-stopped
+    environment:
+      APP_MODE: dev
+      APP_PORT: 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      iskylims_app:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - relecov_test_logs:/opt/relecov-platform/logs
+      - relecov_test_documents:/opt/relecov-platform/documents
+      - relecov_test_static:/opt/relecov-platform/static
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - relecov_test_net
+
+  nextstrain:
+    image: nextstrain/base:latest
+    container_name: relecov_test_nextstrain
+    restart: unless-stopped
+    command: ["nextstrain", "view", "/data", "--port", "8100", "--host", "0.0.0.0"]
+    volumes:
+      - ./docker/data/nextstrain:/data:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    ports:
+      - "8100:8100"
+    networks:
+      - relecov_test_net
+
+networks:
+  relecov_test_net:
+
+volumes:
+  relecov_test_db_data:
+  relecov_test_logs:
+  relecov_test_documents:
+  relecov_test_static:

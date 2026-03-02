@@ -1,22 +1,12 @@
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: relecov_redis
-    restart: unless-stopped
-    networks:
-      - relecov_net
-
   app:
     build:
       context: .
       args:
         INSTALL_TYPE: full
-        GIT_REVISION: <git-branch>
+        GIT_REVISION: develop
     container_name: relecov_app
     restart: unless-stopped
-    depends_on:
-      redis:
-        condition: service_started
     ports:
       - "8000:8000"
     volumes:
@@ -46,10 +36,10 @@ services:
 
   iskylims_app:
     build:
-      context: ../iskylims
+      context: ../relecov-iskylims
       args:
         INSTALL_TYPE: full
-        GIT_REVISION: <git-branch>
+        GIT_REVISION: develop
     container_name: relecov_iskylims_app
     restart: unless-stopped
     environment:

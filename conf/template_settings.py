@@ -27,8 +27,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "django_crontab",
-    "channels",
-    "channels_redis",
     "core",
     "dashboard",
     "docs",
@@ -128,19 +126,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = False
-
-ASGI_APPLICATION = "relecov_platform.routing.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [
-                ("127.0.0.1", 6379),
-            ],
-        },
-    }
-}
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
