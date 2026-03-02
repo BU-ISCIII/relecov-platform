@@ -1,0 +1,62 @@
+FROM registry.access.redhat.com/ubi9/ubi
+ENV TZ=Europe/Madrid
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Runtime user (override with build args if needed)
+ARG APP_UID=1212
+ARG APP_GID=1212
+
+
+# Updates
+RUN dnf -y update
+
+# Essential software
+RUN dnf -y install \
+    git wget \
+    python3.11 python3.11-pip python3.11-devel python3.11-wheel \
+    gcc gcc-c++ make \
+    openssl-devel libffi-devel \
+    mariadb mariadb-connector-c-devel postgresql-devel \
+    httpd-devel cronie \
+    rsync tzdata \
+    pkgconf-pkg-config \
+    && dnf clean all
+
+# Ensure python3 points to the desired version
+RUN ln -sf /usr/bin/python3.11 /usr/bin/python3
+
+# Set git repository
+RUN mkdir /srv/relecov-platform 
+WORKDIR /srv/relecov-platform
+
+# Copy the local git repository to docker image directory
+COPY . /srv/relecov-platform/
+
+ENV PATH="/usr/sbin/cron:$PATH"
+RUN chmod +x /srv/relecov-platform/scripts/container_start.sh
+
+# Set default install type
+ARG INSTALL_TYPE=dep
+ARG GIT_REVISION=main
+ARG INSTALL_CONF=conf/docker_test_settings.txt
+
+# Execute the dependency stage only; app migrations run when the container is up.
+ENV SKIP_SYSTEM_PACKAGES=1
+RUN /bin/bash install.sh --install dep --git_revision $GIT_REVISION --conf $INSTALL_CONF --skip_apache_restart
+# Use the virtualenv created by install.sh
+ENV PATH="/opt/relecov-platform/virtualenv/bin:${PATH}"
+
+WORKDIR /opt/relecov-platform
+
+# Create non-root user and set ownership
+RUN groupadd -g ${APP_GID} relecov-platform && \
+    useradd -m -u ${APP_UID} -g ${APP_GID} -s /sbin/nologin relecov-platform && \
+    chown -R ${APP_UID}:${APP_GID} /opt/relecov-platform /srv/relecov-platform && \
+    git config --system --add safe.directory /srv/relecov-platform
+
+# Expose
+EXPOSE 8000
+
+# Start the application once install.sh has populated /opt/relecov-platform.
+USER relecov-platform
+CMD ["/srv/relecov-platform/scripts/container_start.sh"]

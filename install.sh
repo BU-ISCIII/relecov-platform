@@ -1,29 +1,32 @@
 #!/bin/bash
 
-PLATFORM_VERSION="1.0.0"
-## . ./install_settings.txt
+APP_VERSION="3.1.0dev"
 
-
+# usage: prints the command line help and usage examples.
 usage() {
-	cat << EOF
-This script install and upgrade the relecov platform application.
+cat << EOF
+This script install and upgrade the relecov-platform app.
 
-usage : $0 --upgrade --git_revision dev --conf
-	Optional input data:
-    --install       | Define the type of installation full/dep/app
-    --upgrade       | Upgrade the relecov application full/dep/app
+usage : $0 --upgrade --git_revision --conf
+    Optional input data:
+    --install       | Install relecov-platform full/dep/app
+    --upgrade       | Upgrade relecov-platform full/dep/app
     --git_revision  | Git revision name to run (it can be git branch, git version tag or commit SHA)
     --conf          | Select custom configuration file. Default: ./install_settings.txt
-    --tables        | Load the first inital tables for upgrades in conf folder
-    --script        | Run a migration script.
-    --docker        | Specific installation for docker compose configuration.
+    --tables        | Load the first inital tables (from conf folder)
+    --skip_tables   | Skip loading initial tables (even during install)
+    --script        | Run a migration script after migrations.
+    --script_before | Run a migration script before migrations.
+    --script_after  | Run a migration script after migrations (same as --script).
+    --ren_app       | Rename apps required for the upgrade migration to 3.0.0
+    --docker        | Deprecated. Use --skip_apache_restart to avoid Apache checks/restart.
 
 
 Examples:
-    To install only software dependencies for relecov application
+    Install relecov-platform only dep
     sudo $0 --install dep
 
-    To install only Relecov platform application
+    Install only relecov-platform app
     $0 --install app
 
     Upgrade using develop code
@@ -34,150 +37,175 @@ Examples:
 
     Make adjustments for apps renaming in upgrade 2.3.0 to 2.3.1
     $0 --upgrade full --ren_app --script <migration_script> --tables
+
+    Upgrade running pre/post migration scripts:
+    $0 --upgrade app --script_before <pre_script> --script_after <post_script>
 EOF
 }
 
-db_check(){
-    # user should have mysql permission on remote server.
-    mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist > /dev/null
+# log: write timestamped log entries to stdout.
+_log_compose_entry() {
+    local level="$1"; shift
+    local message="$*"
+    local timestamp
+    timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+    printf "%s [%s] %s" "$timestamp" "$level" "$message"
+}
 
-    if ! [ $? -eq 0 ]; then
-        echo -e "${RED}ERROR : Unable to connect to database. Check if your database is running and accessible${NC}"
+log() {
+    local level="$1"; shift
+    local message="$*"
+    local entry
+    entry="$(_log_compose_entry "$level" "$message")"
+    printf "%s\n" "$entry"
+}
+
+# db_check: verifies connectivity to the configured MySQL instance using mysqladmin/mysqlshow.
+db_check(){
+    log "INFO" "Checking database connectivity against $DB_SERVER_IP:$DB_PORT"
+    local mysqladmin_bin
+    local mysqlshow_bin
+    mysqladmin_bin="$(command -v mysqladmin || command -v mariadb-admin || true)"
+    mysqlshow_bin="$(command -v mysqlshow || command -v mariadb-show || true)"
+
+    if [ -z "$mysqladmin_bin" ] || [ -z "$mysqlshow_bin" ]; then
+        log "ERROR" "mysql client tools not found (mysqladmin/mysqlshow or mariadb-admin/mariadb-show)."
         exit 1
     fi
-    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -w -o $DB_NAME`
+
+    "$mysqladmin_bin" -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist > /dev/null
+
+    if ! [ $? -eq 0 ]; then
+        log "ERROR" "Unable to connect to database. Check if your database is running and accessible"
+        exit 1
+    fi
+    RESULT=`"$mysqlshow_bin" --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o $DB_NAME`
 
     if  ! [ "$RESULT" == "$DB_NAME" ] ; then
-        echo -e "${RED}ERROR : $DB_NAME database is not defined yet ${NC}"
-        echo -e "${RED}ERROR : Create $DB_NAME database on your mysql server and run again the installation script ${NC}"
+        log "ERROR" "relecov-platform database is not defined yet"
+        log "ERROR" "Create relecov-platform database on your mysql server and run again the installation script"
         exit 1
     fi
 }
 
+# apache_check: ensures apache/httpd service is running depending on distribution.
 apache_check(){
     if [[ $linux_distribution == "Ubuntu" ]]; then
         if ! pidof apache2 > /dev/null ; then
-            # web server down, restart the server
-            echo "Apache Server is down... Trying to restart Apache"
+            log "WARN" "Apache Server is down... Trying to restart Apache"
             systemctl restart apache2.service
             sleep 10
             if pidof apache2 > /dev/null ; then
-                echo "Apache Server is up"
+                log "INFO" "Apache Server is up"
             else
-                echo -e "${RED}ERROR : Unable to start Apache ${NC}"
-                echo -e "${RED}ERROR : Solve the issue with Apache server and run again the installation script ${NC}"
+                log "ERROR" "Unable to start Apache"
+                log "ERROR" "Solve the issue with Apache server and run again the installation script"
                 exit 1
             fi
         fi
     elif [[ $linux_distribution == "CentOs" || $linux_distribution == "RedHatEnterprise" ]]; then
         if ! pidof httpd > /dev/null ; then
-            # web server down, restart the server
-            echo "Apache Server is down... Trying to restart Apache"
+            log "WARN" "Apache Server is down... Trying to restart Apache"
             systemctl restart httpd
             sleep 10
             if pidof httpd > /dev/null ; then
-                echo "Apache Server is up"
+                log "INFO" "Apache Server is up"
             else
-                echo -e "${RED}ERROR : Unable to start Apache ${NC}"
-                echo -e "${RED}ERROR : Solve the issue with Apache server and run again the installation script ${NC}"
+                log "ERROR" "Unable to start Apache"
+                log "ERROR" "Solve the issue with Apache server and run again the installation script"
                 exit 1
             fi
         fi
     fi
 }
 
+# python_check: confirm required Python version is available in PYTHON_BIN_PATH.
 python_check(){
-
-    python_version=$(su -c $PYTHON_BIN_PATH --version $user)
+    python_version=$(su -c $PYTHON_BIN_PATH --version $user 2>&1)
     if [[ $python_version == "" ]]; then
-        echo -e "${RED}ERROR : Python3 is not found in your system ${NC}"
-        echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
+        log "ERROR" "Python3 is not found in your system"
+        log "ERROR" "Solve the issue with Python and run again the installation script"
         exit 1
     fi
     p_version=$(echo $python_version | cut -d"." -f2)
     if (( $p_version < 7 )); then
-        echo -e "${RED}ERROR : Application requieres at least the version 3.7.x of Python3  ${NC}"
-        echo -e "Your python version is $python_version"
-        echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
+        log "ERROR" "Application requires at least version 3.7.x of Python3"
+        log "ERROR" "Solve the issue with python and run again the installation script"
         exit 1
     fi
 }
 
+# root_check: enforce running privileged sections as root.
 root_check(){
     if [[ $EUID -ne 0 ]]; then
-        printf "\n\n%s"
-        printf "${RED}------------------${NC}\n"
-        printf "%s"
-        printf "${RED}Exiting installation. This script must be run as root ${NC}\n"
-        printf "\n\n%s"
-        printf "${RED}------------------${NC}\n"
-        printf "%s"
+        log "ERROR" "Exiting installation. This script must be run as root"
         exit 1
     fi
 }
 
+# update_settings_and_urls: rewrite Django settings and urls with deployment values.
 update_settings_and_urls(){
-    # save SECRET KEY at home user directory
-    grep ^SECRET $INSTALL_PATH/$PROJECT_NAME/settings.py > ~/.secret
+    log "INFO" "Updating settings.py and urls.py with deployment values"
+    local project_dir="$INSTALL_PATH/$PROJECT_NAME"
+    grep ^SECRET "$project_dir/settings.py" > ~/.secret
 
-    cp conf/template_settings.py $INSTALL_PATH/$PROJECT_NAME/settings.py
-    cp conf/urls.py $INSTALL_PATH/$PROJECT_NAME/
-    cp conf/routing.py $INSTALL_PATH/$PROJECT_NAME/
+    cp conf/template_settings.py "$project_dir/settings.py"
+    cp conf/urls.py "$project_dir"
+    if [ -f conf/routing.py ]; then
+        cp conf/routing.py "$project_dir"
+    fi
     
-    # replacing dummy variables with real values
-    sed -i "/^SECRET/c\\$(cat ~/.secret)" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/djangouser/${DB_USER}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/djangopass/${DB_PASS}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/djangohost/${DB_SERVER_IP}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/djangoport/${DB_PORT}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/djangodbname/${DB_NAME}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
+    sed -i "/^SECRET/c\\$(cat ~/.secret)" "$project_dir/settings.py"
+    sed -i "s/djangouser/${DB_USER}/g" "$project_dir/settings.py"
+    sed -i "s/djangopass/${DB_PASS}/g" "$project_dir/settings.py"
+    sed -i "s/djangohost/${DB_SERVER_IP}/g" "$project_dir/settings.py"
+    sed -i "s/djangoport/${DB_PORT}/g" "$project_dir/settings.py"
+    sed -i "s/djangodbname/${DB_NAME}/g" "$project_dir/settings.py"
 
-    sed -i "s/emailhostserver/${EMAIL_HOST_SERVER}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/emailport/${EMAIL_PORT}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/emailhostuser/${EMAIL_HOST_USER}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/emailhostpassword/${EMAIL_HOST_PASSWORD}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/emailhosttls/${EMAIL_USE_TLS}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
-    sed -i "s/localhost/${DNS_URL}/g" $INSTALL_PATH/$PROJECT_NAME/settings.py
+    sed -i "s/emailhostserver/${EMAIL_HOST_SERVER}/g" "$project_dir/settings.py"
+    sed -i "s/emailport/${EMAIL_PORT}/g" "$project_dir/settings.py"
+    sed -i "s/emailhostuser/${EMAIL_HOST_USER}/g" "$project_dir/settings.py"
+    sed -i "s/emailhostpassword/${EMAIL_HOST_PASSWORD}/g" "$project_dir/settings.py"
+    sed -i "s/emailhosttls/${EMAIL_USE_TLS}/g" "$project_dir/settings.py"
+    sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" "$project_dir/settings.py"
+    sed -i "s/localhost/${DNS_URL}/g" "$project_dir/settings.py"
 }
 
-upgrade_venv(){
-    echo "activate the virtualenv"
-    source virtualenv/bin/activate
-    echo "Installing required python packages"
-    python -m pip install --upgrade pip
-    python -m pip install -r conf/requirements.txt
-}
-
+# restore_git_ref: reset repository to branch/tag/commit active before script ran.
 restore_git_ref() {
     echo "Restoring to initial git reference: $initial_git_ref"
     git checkout "$initial_git_ref" --quiet
 }
 
-update_system_deps() {
+# load_tables: wrapper to call Django loaddata with optional verbosity.
+load_tables() {
+    # Function parameters
+    local data_file="${1:-conf/first_install_tables.json}"
+    local verbose="${2:-false}"
 
-    if [[ $linux_distribution == "Ubuntu" ]]; then
-        echo "Software installation for Ubuntu"
-        apt-get update && apt-get upgrade -y
-        apt-get install -y \
-            apt-utils wget \
-            libmysqlclient-dev \
-            python3-venv  \
-            libpq-dev \
-            python3-dev python3-pip python3-wheel \
-            apache2-dev libxml2 libxml2-dev libxslt1-dev\
-            gnuplot
+    # Check if the file exists
+    if [[ ! -f "$data_file" ]]; then
+        echo "Error: The data file '$data_file' does not exist."
+        return 1
     fi
 
-    if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-        echo "Software installation for Centos/RedHat"
-        yum groupinstall "Development tools"
-        yum install zlib-devel bzip2-devel openssl-devel \
-                        wget httpd-devel mysql-libs sqlite sqlite-devel \
-                        mariadb-devel libffi-devel libxml2 libxml2-devel libxslt libxslt-devel \
-                        gnuplot
+    # Conditional message based on verbose mode
+    if [[ "$verbose" == true ]]; then
+        echo "Loading pre-filled tables from file: $data_file"
     fi
 
+    # Load pre-filled tables
+    python manage.py loaddata "$data_file"
+    if [[ $? -eq 0 ]]; then
+        echo "Tables loaded successfully from '$data_file'."
+    else
+        echo "Error loading tables from '$data_file'."
+        return 1
+    fi
+
+    if [[ "$verbose" == true ]]; then
+        echo "Table loading process completed."
+    fi
 }
 
 # Ensure to recover current git branch/tag/SHA on script exit
@@ -194,493 +222,427 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
+ORANGE='\033[0;33m'
 
-# translate long options to short
-reset=true
-for arg in "$@"
-do
-    if [ -n "$reset" ]; then
-        unset reset
-        set --      # this resets the "$@" array so we can rebuild it
+# log_section: print a visually separated header in both console and log.
+log_section() {
+    local message="$1"
+    log "INFO" "$message"
+    printf "\n\n%s\n" "${YELLOW}------------------${NC}"
+    printf "%b\n" "${YELLOW}${message}${NC}"
+    printf "%s\n\n" "${YELLOW}------------------${NC}"
+}
+
+# log_info: convenience helper for blue info messages (console only).
+log_info() {
+    printf "%b\n" "${BLUE}$(_log_compose_entry "INFO" "$1")${NC}"
+}
+
+# log_warn: emit warning text in cyan for terminal visibility.
+log_warn() {
+    printf "%b\n" "${CYAN}$(_log_compose_entry "WARN" "$1")${NC}"
+}
+
+# log_error: emit error text in red for terminal visibility.
+log_error() {
+    printf "%b\n" "${RED}$(_log_compose_entry "ERROR" "$1")${NC}"
+}
+
+# abort_install: log an error and exit with optional status.
+abort_install() {
+    log_error "$1"
+    exit "${2:-1}"
+}
+
+ensure_file_exists() {
+    local file_path="$1"
+    local friendly_name="${2:-$1}"
+    if [ ! -f "$file_path" ]; then
+        abort_install "Required file '$friendly_name' not found."
     fi
-    case "$arg" in
-    # OPTIONAL
-        --install)      set -- "$@" -i ;;
-        --upgrade)      set -- "$@" -u ;;
-        --script)       set -- "$@" -s ;;
-        --tables)       set -- "$@" -t ;;
-        --git_revision) set -- "$@" -g ;;
-        --conf)         set -- "$@" -c ;;
-        --docker)       set -- "$@" -k ;;
+}
 
-    # ADITIONAL
-        --help)         set -- "$@" -h ;;
-        --version)      set -- "$@" -v ;;
-    # PASSING VALUE IN PARAMETER
-        *)              set -- "$@" "$arg" ;;
-    esac
-done
+# load_install_config: source the selected install_settings file.
+load_install_config() {
+    ensure_file_exists "$conf" "$conf"
+    # shellcheck disable=SC1090
+    . "$conf"
+}
 
-# SETTING DEFAULT VALUES
-tables=false
-git_branch=$initial_git_ref
-conf="./install_settings.txt"
-install=true
-install_type="full"
-upgrade=false
-upgrade_type="full"
-docker=false
-SUPERUSER="admin"
-
-# PARSE VARIABLE ARGUMENTS WITH getops
-options=":c:s:i:u:g:tdkvh"
-while getopts $options opt; do
-	case $opt in
-        i ) 
-            install=true
-            upgrade=false
-            if [[ "$OPTARG" -eq "full" || "$OPTARG" -eq "dep" || "$OPTARG" -eq "app" ]]; then
-                install_type=$OPTARG
-                upgrade_type=$OPTARG
-            else
-                echo "Upgrade is not set to one valid option. Use: --upgrade full/app/dep"
-                exit 1
+# checkout_git_revision: ensure desired git revision exists and check it out safely.
+checkout_git_revision() {
+    if git rev-parse --verify "$git_branch" >/dev/null 2>&1; then
+        if [[ $git_branch != $initial_git_ref ]]; then
+            local local_changes
+            local_changes=$(git status --porcelain)
+            if [[ -n $local_changes ]]; then
+                abort_install "Unable to switch to $git_branch. Commit or stash local changes first."
             fi
-            ;;
-		u )
-            install=false
-			upgrade=true
-            if [[ "$OPTARG" -eq "full" || "$OPTARG" -eq "dep" || "$OPTARG" -eq "app" ]]; then
-                upgrade_type=$OPTARG
-                install_type=$OPTARG
-            else
-                echo "Upgrade is not set to one valid option. Use: --upgrade full/app/dep"
-                exit 1
-            fi
-            ;;
-        s )
-            run_script=true
-            migration_script+=("$OPTARG")
-            ;;
-        t )
-            tables=true
-            ;;
-		g )
-			git_branch=$OPTARG
-			;;
-        c )
-            conf=$OPTARG
-            ;;
-        k )
-            docker=true
-		  	;;
-		h )
-		  	usage
-		  	exit 1
-		  	;;
-		v )
-		  	echo $PLATFORM_VERSION
-		  	exit 1
-		  	;;
-		\?)
-			echo "Invalid Option: -$OPTARG" 1>&2
-			usage
-			exit 1
-			;;
-		: )
-      		echo "Option -$OPTARG requires an argument." >&2
-      		exit 1
-      		;;
-      	* )
-			echo "Unimplemented option: -$OPTARG" >&2;
-			exit 1
-			;;
-	esac
-done
-shift $((OPTIND-1))
-#=============================================================================
-#                     SETTINGS CHECKINGS
-#=============================================================================
-
-if [ ! -f "$conf" ]; then
-    printf "\n\n%s"
-    printf "${RED}------------------${NC}\n"
-    printf "${RED}Unable to start.${NC}\n"
-    printf "${RED}Configuration File $conf does not exist.${NC}\n"
-    printf "${RED}------------------${NC}\n"
-    exit 1
-fi
-
-# Read configuration file
-
-. $conf
-
-# Check if git reference (branch, SHA, or tag) exists and checkout
-if git rev-parse --verify "$git_branch" >/dev/null 2>&1; then
-    if [[ $git_branch != $initial_git_ref ]]; then
-        # Check for local changes
-        local_changes=$(git status --porcelain)
-        if [[ -n $local_changes ]]; then
-            printf "\n\n%s"
-            printf "${RED}------------------${NC}\n"
-            printf "${RED}Unable to switch to $git_branch.${NC}\n"
-            printf "${RED}You have local changes that would be overwritten by checkout:${NC}\n"
-            printf "${RED}\t'$local_changes'.${NC}\n"
-            printf "${RED}Please commit or stash your changes before switching.${NC}\n"
-            printf "${RED}------------------${NC}\n"
-            exit 1
-        else
-            printf "${YELLOW}Switching to revision $git_branch.${NC}\n"
+            printf "${YELLOW}Switching to revision %s.${NC}\n" "$git_branch"
             git checkout "$git_branch" --quiet
+        else
+            printf "${YELLOW}Using current revision: '%s'.${NC}\n" "$git_branch"
         fi
     else
-        printf "${YELLOW}Using current revision: '$git_branch'.${NC}\n"
+        abort_install "Git reference $git_branch is not defined in ${PWD}."
     fi
-else
-    printf "\n\n%s"
-    printf "${RED}------------------${NC}\n"
-    printf "${RED}Unable to start.${NC}\n"
-    printf "${RED}Git reference $git_branch is not defined in ${PWD}.${NC}\n"
-    printf "${RED}------------------${NC}\n"
-    exit 1
-fi
-#================================================================
-# CHECK REQUIREMENTS BEFORE STARTING INSTALLATION
-#================================================================
+}
 
-echo "Checking main requirements"
-python_check
-printf "${BLUE}Valid version of Python${NC}\n"
-if [ $docker == false ]; then
-    db_check
-    printf "${BLUE}Successful check for database${NC}\n"
-    apache_check
-    printf "${BLUE}Successful check for apache${NC}\n"
-fi
-
-if [ "$install_type" == "full" ] || [ "$install_type" == "dep" ] || [ "$upgrade_type" == "full" ] || [ "$upgrade_type" == "dep" ]; then
-    printf "${YELLOW} Checking requirement of root  user when installation is full or dep ${NC}\n"
-    root_check
-    printf "${BLUE}Successful checking of root user${NC}\n"
-fi
-
-#=============================================================================
-#                   UPGRADE INSTALLATION
-# Check if parameter is passing to script to upgrade the installation
-# If "upgrade" parameter is set then the script only execute the upgrade part.
-# If other parameter as upgrade is given return usage message and exit
-#=============================================================================
-if [ $upgrade == true ]; then
-    # check if upgrade keyword is given
-    if [ ! -d $INSTALL_PATH ]; then
-        printf "\n\n%s"
-        printf "${RED}------------------${NC}\n"
-        printf "${RED}Unable to start the upgrade.${NC}\n"
-        printf "${RED}Folder $INSTALL_PATH does not exist.${NC}\n"
-        printf "${RED}------------------${NC}\n"
-        exit 1
+# check_requirements: run Python/DB/Apache/root validations before install/upgrade.
+check_requirements() {
+    log_section "Checking main requirements"
+    python_check
+    log_info "Valid version of Python"
+    if [[ "$operation_scope" == "full" || "$operation_scope" == "app" ]]; then
+        db_check
+        log_info "Successful check for database"
+        if [ "$restart_apache" = true ]; then
+            apache_check
+            log_info "Successful check for apache"
+        fi
     fi
-    #================================================================
-    # MAIN_BODY FOR UPGRADE
-    #================================================================
-    printf "\n\n%s"
-    printf "${YELLOW}------------------${NC}\n"
-    printf "%s"
-    printf "${YELLOW}Starting Relecov Upgrade version: ${PLATFORM_VERSION}${NC}\n"
-    printf "%s"
-    printf "${YELLOW}------------------${NC}\n\n"
-    
-    if [ "$upgrade_type" = "full" ] || [ "$upgrade_type" = "dep" ]; then
-        
-        # Linux distribution
-        linux_distribution=$(lsb_release -i | cut -f 2-)
-        update_system_deps
 
-        mkdir -p $INSTALL_PATH/conf
+    if [ "$install_type" == "full" ] || [ "$install_type" == "dep" ] || [ "$upgrade_type" == "full" ] || [ "$upgrade_type" == "dep" ]; then
+        log_warn "Checking requirement of root user when installation is full or dep"
+        root_check
+        log_info "Successful checking of root user"
+    fi
+}
 
-        if [ -d $INSTALL_PATH/virtualenv ]; then
+# install_system_packages: install InterOp and distro-specific OS packages required by relecov-platform.
+install_system_packages() {
+    if [ "${SKIP_SYSTEM_PACKAGES:-}" = "1" ]; then
+        echo "Skipping system package installation (SKIP_SYSTEM_PACKAGES=1)"
+        return
+    fi
+
+    echo "Installing Interop"
+    if [ -d /opt/interop ]; then
+        echo "There is already an interop installation"
+        echo "Skipping Interop installation"
+    else
+        cd /opt
+        echo "Downloading interop software"
+        wget https://github.com/Illumina/interop/releases/download/v1.1.15/InterOp-1.1.15-Linux-GNU.tar.gz
+        tar -xf  InterOp-1.1.15-Linux-GNU.tar.gz
+        ln -s InterOp-1.1.15-Linux-GNU interop
+        rm InterOp-1.1.15-Linux-GNU.tar.gz
+        echo "Interop is now installed"
+        cd -
+    fi
+
+    if command -v lsb_release >/dev/null 2>&1; then
+        if command -v lsb_release >/dev/null 2>&1; then
+            linux_distribution=$(lsb_release -i | cut -f 2-)
+        else
+            linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
+        fi
+    else
+        linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
+    fi
+
+    if [[ $linux_distribution == "Ubuntu" || $linux_distribution == "ubuntu" ]]; then
+        echo "Software installation for Ubuntu"
+        apt-get update && apt-get upgrade -y
+        apt-get install -y \
+            apt-utils wget \
+            libmysqlclient-dev \
+            python3-venv  \
+            libpq-dev \
+            python3-dev python3-pip python3-wheel \
+            apache2-dev cifs-utils \
+            gnuplot
+
+    elif [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" || $linux_distribution == "centos" || $linux_distribution == "rhel" || $linux_distribution == "fedora" ]]; then
+        echo "Software installation for Centos/RedHat"
+        yum groupinstall "Development tools"
+        yum install zlib-devel bzip2-devel openssl-devel \
+                    wget httpd-devel mysql-libs sqlite sqlite-devel \
+                    mariadb-devel libffi-devel \
+                    gnuplot cifs-utils
+    fi
+}
+
+# run_django_deploy: execute makemigrations/migrate and optional fixture/superuser steps.
+run_django_deploy() {
+    local mode="${1:-install}"
+    if [ "$run_script_before" = true ]; then
+        for val in "${migration_script_before[@]}"; do
+            if [[ $val = *","* ]]; then
+                parameters=(${val//,/ })
+                echo "Running pre-migration script: ${parameters[0]}"
+                ./manage.py runscript ${parameters[0]} --script-args ${parameters[1]}
+                echo "Done pre-migration script: ${parameters[0]}"
+            else
+                echo "Running pre-migration script: $val"
+                ./manage.py runscript $val
+                echo "Done pre-migration script: $val"
+            fi
+        done
+    fi
+
+    if [ "$mode" = "upgrade" ]; then
+        echo "Applying migrations in fake-initial mode"
+        python manage.py migrate --noinput --fake-initial
+        # Second pass ensures non-initial migrations are applied after fake-initial.
+        echo "Applying migrations"
+        python manage.py migrate --noinput
+    else
+        echo "Applying migrations"
+        python manage.py migrate --noinput
+    fi
+
+    if [ "$tables" = true ]; then
+        echo "Loading pre-filled tables..."
+        load_tables "$prefilled_tables" true
+        echo "Done loading pre-filled tables..."
+    fi
+
+    if [ "$run_script" = true ]; then
+        for val in "${migration_script[@]}"; do
+            if [[ $val = *","* ]]; then
+                parameters=(${val//,/ })
+                echo "Running post-migration script: ${parameters[0]}"
+                ./manage.py runscript ${parameters[0]} --script-args ${parameters[1]}
+                echo "Done post-migration script: ${parameters[0]}"
+            else
+                echo "Running post-migration script: $val"
+                ./manage.py runscript $val
+                echo "Done post-migration script: $val"
+            fi
+        done
+    fi
+
+    if [ "$mode" = "install" ]; then
+        echo "Creating super user "
+        python manage.py createsuperuser --username admin
+    fi
+}
+
+# sync_requirements_file: copy repository requirements into the target installation path.
+sync_requirements_file() {
+    mkdir -p $INSTALL_PATH/conf
+    rsync -rlv conf/requirements.txt $INSTALL_PATH/conf/requirements.txt
+}
+
+# setup_virtualenv: create or refresh the Python virtualenv depending on mode.
+setup_virtualenv() {
+    local mode="$1"
+    cd $INSTALL_PATH
+    if [ "$mode" = "install" ]; then
+        if [ -d virtualenv ]; then
+            echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
             read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
-            echo    # (optional) move to a new line
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+                rm -rf $INSTALL_PATH/virtualenv
+                bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+            else
+                echo "virtualenv already defined. Skipping."
+            fi
+        else
+            bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+        fi
+    else
+        if [ -d virtualenv ]; then
+            read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
+            echo
             if [[ $REPLY =~ ^[Yy]$ ]] ; then
                 rm -rf $INSTALL_PATH/virtualenv
-                rsync -rlv conf/requirements.txt $INSTALL_PATH/conf/requirements.txt
-                cd $INSTALL_PATH
                 bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-                upgrade_venv
-                cd -
-            else
-                rsync -rlv conf/requirements.txt $INSTALL_PATH/conf/requirements.txt
-                cd $INSTALL_PATH
-                upgrade_venv
-                cd -
-            fi    
+            fi
         else
-            echo "There is no virtualenv to upgrade in $INSTALL_PATH."
-            read -p "Do you want to create a new virtualenv and reinstall? (Y/N) " -n 1 -r
-            echo    # (optional) move to a new line
+            read -p "There is no virtualenv. Do you want to create a new one? (Y/N) " -n 1 -r
+            echo
             if [[ $REPLY =~ ^[Yy]$ ]] ; then
-                rsync -rlv conf/requirements.txt $INSTALL_PATH/conf/requirements.txt
-                cd $INSTALL_PATH
                 bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-                upgrade_venv
-                cd -
             else
                 echo "Exiting..."
                 exit 0
             fi
         fi
     fi
+    cd -
+}
 
-    if [ "$upgrade_type" = "full" ] || [ "$upgrade_type" = "app" ]; then
+# prepare_documents_structure: ensure document directories and templates exist with correct permissions.
+prepare_documents_structure() {
+    echo "Created documents structure"
+    mkdir -p $INSTALL_PATH/documents/wetlab
+    mkdir -p $INSTALL_PATH/documents/wetlab/tmp
+    mkdir -p $INSTALL_PATH/documents/wetlab/sample_sheet
+    mkdir -p $INSTALL_PATH/documents/wetlab/images_plot
+    mkdir -p $INSTALL_PATH/documents/wetlab/templates
+    mkdir -p $INSTALL_PATH/documents/wetlab/sample_sheets_lib_prep
+    mkdir -p $INSTALL_PATH/documents/drylab
+    mkdir -p $INSTALL_PATH/documents/drylab/service_files
 
-        # update installation by sinchronize folders
-        echo "Copying files to installation folder"
-        rsync -rlv conf/ $INSTALL_PATH/conf/
-        rsync -rlv --fuzzy --delay-updates --delete-delay \
-            --exclude "logs" --exclude "documents" --exclude "migrations" --exclude "__pycache__" \
-            README.md LICENSE conf $REQUIRED_MODULES $INSTALL_PATH/
-        
-        PROJECT_MANAGE="$INSTALL_PATH/manage.py"
-        if [ ! -f "$PROJECT_MANAGE" ]; then
-            # Starting Relecov Platform
-            echo "No valid $PROJECT_MANAGE project was found in $INSTALL_PATH. Creating it..."
-            cd $INSTALL_PATH
+    chown -R $user:$apache_group $INSTALL_PATH/documents
+    chmod 775 $INSTALL_PATH/documents
 
-            echo "activate the virtualenv"
-            source virtualenv/bin/activate
+    cp $INSTALL_PATH/conf/*_template.csv $INSTALL_PATH/documents/wetlab/templates/
+    cp $INSTALL_PATH/conf/samples_template.xlsx $INSTALL_PATH/documents/wetlab/templates/
 
-            django-admin startproject "$PROJECT_NAME" .
-            if [ $? -ne 0 ]; then
-                echo "Error: Failed to create Django project. Aborting."
-                exit 1
-            fi
+    mkdir -p $INSTALL_PATH/documents/wetlab/collection_index_kits/
+    cp $INSTALL_PATH/conf/collection_index_kits/*.txt $INSTALL_PATH/documents/wetlab/collection_index_kits/
 
-            if [ $docker == false ]; then
-                echo "Creating super user "
-                admin_exists=$(python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username=${SUPERUSER}).exists())")
-                if [ "$admin_exists" = "False" ]; then
-                    echo "Super user $SUPERUSER does not exist. Creating one now..."
-                    python manage.py createsuperuser --username admin
-                elif [ $? -ne 0 ]; then
-                    echo "There was an error trying to check superuser status. No superuser created..."
-                else
-                    echo "Super user $SUPERUSER already exists. Skipping superuser creation."
-                fi
-            fi
-            cd -
-        fi
+    cp $INSTALL_PATH/conf/template_logging_config.ini $INSTALL_PATH/wetlab/logging_config.ini
+    sed -i "s|INSTALL_PATH|${INSTALL_PATH}|g" $INSTALL_PATH/wetlab/logging_config.ini
+}
 
-        cd $INSTALL_PATH
-        echo "activate the virtualenv"
-        source virtualenv/bin/activate
+# install_python_requirements: activate the venv and install required Python packages.
+install_python_requirements() {
+    cd $INSTALL_PATH
+    echo "activate the virtualenv"
+    source virtualenv/bin/activate
+    echo "Installing required python packages"
+    python -m pip install --upgrade pip
+    python -m pip install wheel
+    python -m pip install -r conf/requirements.txt
+    cd -
+}
 
-        # update the settings.py and the main urls
-        echo "Update settings and url file."
-        update_settings_and_urls
-
-        if python manage.py makemigrations | grep -q "No changes"; then
-            # check for pending migrations
-            if ./manage.py showmigrations | grep '\[ \]'; then
-                echo "There are pending migrations"
-                read -p "Do you want to update database with the pending migrations? (Y/N) " -n 1 -r
-                echo    #  move to a new line
-                if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-                    echo "Continue running script without running migrate command."
-                else
-                    echo "Running migrate..."
-                    python manage.py migrate
-                    echo "Done migrate command."
-                fi
-            else
-                echo "No migration is required"
-            fi
-        else
-            read -p "Do you want to proceed with the migrate command? (Y/N) " -n 1 -r
-            echo    # (optional) move to a new line
-            if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-                echo "Exiting without running migrate command."
-                exit 1
-            fi
-            echo "Running migrate..."
-            python manage.py migrate
-            echo "Done migrate command."
-        fi
-
-        echo "Running collect statics..."
-        python manage.py collectstatic
-        echo "Done collect statics"
-
-        if [ $tables == true ] ; then
-            echo "Loading pre-filled tables..."
-            python manage.py loaddata conf/first_install_tables.json
-            echo "Done loading pre-filled tables..."
-        fi
-
-        if [ $run_script ]; then
-            for val in "${migration_script[@]}"; do
-                echo "Running migration script: $val"
-                python manage.py runscript $val
-                echo "Done migration script: $val"
-            done
-        fi
-
-        cd -
-
-        # Linux distribution
-        linux_distribution=$(lsb_release -i | cut -f 2-)
-        echo "Updating Apache configuration"
-        if [[ $linux_distribution == "Ubuntu" ]]; then
-            cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
-        fi
-        if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-            cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
-        fi
-        echo ""
-        echo "Restart apache server to update changes"
-        if [[ $linux_distribution == "Ubuntu" ]]; then
-                apache_daemon="apache2"
-        else
-                apache_daemon="httpd"
-        fi
-        
-        # systemctl restart $apache_user
-
-        if ! [ $? -eq 0 ]; then
-            echo -e "${ORANGE}Apache server restart failed. trying with sudo{NC}"
-            sudo systemctl restart $apache_daemon
-        fi
+ensure_virtualenv_ready() {
+    if [ ! -d "$INSTALL_PATH/virtualenv" ]; then
+        log_warn "Virtualenv missing. INSTALL_PATH=$INSTALL_PATH"
+        ls -la "$INSTALL_PATH" || true
+        abort_install "Virtualenv not found at $INSTALL_PATH/virtualenv. Run --install dep first."
     fi
-    printf "\n\n%s"
-    printf "${BLUE}------------------${NC}\n"
-    printf "%s"
-    printf "${BLUE}Successfuly upgrade of $PROJECT_NAME version: ${PLATFORM_VERSION}${NC}\n"
-    printf "%s"
-    printf "${BLUE}------------------${NC}\n\n"
-    # exit once upgrade is finished
-    exit 0
+}
 
-fi
-
-#================================================================
-# INSTALL REPOSITORY REQUIRED SOFTWARE AND PYTHON VIRTUAL ENVIRONMENT
-#================================================================
-
-if [ $install == true ]; then
-
-    if [ "$install_type" == "full" ] || [ "$install_type" == "dep" ]; then
-
-        #================================================================
-        # MAIN_BODY FOR INSTALL
-        #================================================================
-        printf "\n\n%s"
-        printf "${YELLOW}------------------${NC}\n"
-        printf "%s"
-        printf "${YELLOW}Starting Relecov Installation version: ${PLATFORM_VERSION}${NC}\n"
-        printf "%s"
-        printf "${YELLOW}------------------${NC}\n\n"
-
-        user=$SUDO_USER
-        group=$(groups | cut -d" " -f1)
-
-        # Find out server Linux distribution
+# restart_apache_service: restart Apache/HTTPD unless running inside Docker or explicitly skipped.
+restart_apache_service() {
+    if command -v lsb_release >/dev/null 2>&1; then
         linux_distribution=$(lsb_release -i | cut -f 2-)
+    else
+        linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
+    fi
+    if [[ $linux_distribution == "Ubuntu" ]]; then
+        apache_daemon="apache2"
+    else
+        apache_daemon="httpd"
+    fi
+    if ! systemctl restart $apache_daemon; then
+        echo -e "${ORANGE}Apache server restart failed. trying with sudo${NC}"
+        sudo systemctl restart $apache_daemon
+    fi
+}
 
-        if [[ $linux_distribution == "Ubuntu" ]]; then
-            apache_group="www-data"
-        else
-            apache_group="apache"
-        fi
+# run_dependency_stage: execute the dependency portion (system packages + venv + pip) for install or upgrade.
+run_dependency_stage() {
+    local mode="$1"
 
-        echo "Starting $PROJECT_NAME installation"
+    if [ "$mode" = "install" ]; then
+    log_section "Preparing dependency environment for installation"
         if [ -d $INSTALL_PATH ]; then
-            echo "There already is an installation of $PROJECT_NAME in $INSTALL_PATH."
+            echo "There already is an installation of relecov-platform in $INSTALL_PATH."
             read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
-            echo    # (optional) move to a new line
+            echo
             if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-                echo "Exiting without running $PROJECT_NAME installation"
+                echo "Exiting without running relecov-platform installation"
                 exit 1
             else
                 rm -rf $INSTALL_PATH
             fi
         fi
-
-        update_system_deps
-
-        ## Create the installation folder
-        mkdir -p $INSTALL_PATH/conf
+        install_system_packages
+        mkdir -p $INSTALL_PATH
+        linux_distribution=$(lsb_release -i | cut -f 2-)
+        if [[ $linux_distribution == "Ubuntu" ]]; then
+            apache_group="www-data"
+        else
+            apache_group="apache"
+        fi
         chown -R $user:$apache_group $INSTALL_PATH
         chmod 775 $INSTALL_PATH
-
-        # Copy requirements before moving to install path
-        rsync -rlv conf/requirements.txt $INSTALL_PATH/conf/requirements.txt
-
-        cd $INSTALL_PATH
-        # install virtual environment
-        echo "Creating virtual environment"
-        if [ -d $INSTALL_PATH/virtualenv ]; then
-            echo "There already is a virtualenv for iskylims in $INSTALL_PATH."
-            read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
-            echo    # (optional) move to a new line
-            if [[ $REPLY =~ ^[Yy]$ ]] ; then
-                echo "Removing old virtual env and reinstalling"
-                rm -rf $INSTALL_PATH/virtualenv
-                bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-            else
-                echo "virtualenv alredy defined. Skipping."
-            fi
-        else
-            bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
+    else
+        log_section "Preparing dependency environment for upgrade"
+        if [ ! -d $INSTALL_PATH ]; then
+            abort_install "Unable to start the upgrade. Folder $INSTALL_PATH does not exist."
         fi
-
-        echo "activate the virtualenv"
-        source virtualenv/bin/activate
-
-        # Install python packages required for relecov-platform
-        echo "Installing required python packages"
-        python -m pip install wheel
-        python -m pip install -r conf/requirements.txt
-
-        cd -
-
-        if [ "$install_type" == "full" ] || [ "$install_type" == "app" ]; then
-            printf "\n\n%s"
-            printf "${BLUE}------------------${NC}\n"
-            printf "%s"
-            printf "${BLUE}Software dep are successfuly installed${NC}\n"
-            printf "%s"
-            printf "${BLUE}------------------${NC}\n\n"
-        else
-            printf "\n\n%s"
-            printf "${BLUE}------------------${NC}\n"
-            printf "%s"
-            printf "${BLUE}Software dependencies are successfuly installed${NC}\n"
-            printf "%s"
-            printf "${BLUE}------------------${NC}\n\n"
-            printf "\n\n%s"
-            printf "${RED}------------------${NC}\n"
-            printf "%s"
-            printf "${RED}Exiting${NC}\n"
-            printf "%s"
-            printf "${RED}------------------${NC}\n\n"
-            exit 0
-        fi
+        install_system_packages
     fi
 
-    #================================================================
-    # INSTALL RELECOV PLATFORM APPLICATION
-    #================================================================
+    sync_requirements_file
+    setup_virtualenv "$mode"
+    install_python_requirements
+}
+
+# upgrade_application_files: sync code/config and run upgrade-specific tasks (renames, migrations).
+upgrade_application_files() {
+    if [ ! -d $INSTALL_PATH ]; then
+        abort_install "Unable to start the upgrade. Folder $INSTALL_PATH does not exist."
+    fi
+
+    log_section "Starting relecov-platform Upgrade version: ${APP_VERSION}"
+
+    echo "Copying files to installation folder"
+    rsync -rlv conf/ $INSTALL_PATH/conf/
+    rsync -rlv --fuzzy --delay-updates --delete-delay \
+          --exclude "logs" --exclude "documents" --exclude "__pycache__" \
+          README.md LICENSE test conf $REQUIRED_MODULES $INSTALL_PATH
+
+    cd $INSTALL_PATH
+    ensure_virtualenv_ready
+    echo "activate the virtualenv"
+    source virtualenv/bin/activate
+
+    if [ ! -f "$INSTALL_PATH/manage.py" ]; then
+        echo "manage.py not found. Creating ${PROJECT_NAME} project"
+        "$INSTALL_PATH/virtualenv/bin/python" -m django startproject "$PROJECT_NAME" .
+    fi
+
+    echo "Update settings and url file."
+    update_settings_and_urls
+    prepare_documents_structure
+
+    run_django_deploy "upgrade"
+    echo "Deleting static files..."
+    if [ -d "$INSTALL_PATH/static" ]; then
+        if command -v mountpoint >/dev/null 2>&1 && mountpoint -q "$INSTALL_PATH/static"; then
+            echo "Static directory is a mount point. Skipping delete."
+        else
+            rm -rf "$INSTALL_PATH/static" || echo "Skipping static removal (busy)."
+        fi
+    fi
+    echo "Running collect statics..."
+    python manage.py collectstatic
+    echo "Done collect statics"
+
+    cd -
+    log_section "Successfuly upgrade of relecov-platform version: ${APP_VERSION}"
+}
+
+# install_application_files: deploy Django project files, update settings, and run initial migrations.
+install_application_files() {
+    log_section "Starting relecov-platform install version: ${APP_VERSION}"
+
+    user=${SUDO_USER:-$USER}
+    group=$(groups | cut -d" " -f1)
+
+    if command -v lsb_release >/dev/null 2>&1; then
+        linux_distribution=$(lsb_release -i | cut -f 2-)
+    else
+        linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
+    fi
+
+    if [[ $linux_distribution == "Ubuntu" || $linux_distribution == "ubuntu" ]]; then
+        apache_group="www-data"
+    else
+        apache_group="apache"
+    fi
 
     if [ "$install_type" == "full" ] || [ "$install_type" == "app" ]; then
 
         if [ $LOG_TYPE == "symbolic_link" ]; then
             if [ -d $LOG_PATH ]; then
-                if [ ! -d $INSTALL_PATH/logs ]; then
-                    echo "Deleting existing symbolin link" 
-                    rm $INSTALL_PATH/logs
+                if [ -e "$INSTALL_PATH/logs" ]; then
+                    echo "Log target $INSTALL_PATH/logs already exists. Leaving it unchanged."
+                else
+                    echo "Creating symbolic link to log folder"
+                    ln -s "$LOG_PATH" "$INSTALL_PATH/logs"
+                    chmod 775 "$LOG_PATH"
                 fi
-                echo "Creating symbolic link to log folder"
-                ln -s $LOG_PATH  $INSTALL_PATH/logs
-                chmod 775 $LOG_PATH
             else
                 echo "Log folder path: $LOG_PATH does not exist. Fix it in the install_settings.txt and run again."
             exit 1
@@ -695,70 +657,205 @@ if [ $install == true ]; then
             fi
         fi
 
-        if [ ! -d $INSTALL_PATH/documents ]; then
-            echo "Creating documents folder at $INSTALL_PATH/documents"
-            mkdir -p $INSTALL_PATH/documents
-            chown $user:$apache_group $INSTALL_PATH/documents
-            chmod 775 $INSTALL_PATH/documents
-        else
-            echo "Documents folder already exists at $INSTALL_PATH/documents"
-        fi
-
-
-        mkdir -p $INSTALL_PATH/$PROJECT_NAME
-        rsync -rlv README.md LICENSE conf $REQUIRED_MODULES $INSTALL_PATH/
+        rsync -rlv README.md LICENSE test conf $REQUIRED_MODULES $INSTALL_PATH
 
         cd $INSTALL_PATH
 
-        # Starting platform
+        prepare_documents_structure
+
+        ensure_virtualenv_ready
         echo "activate the virtualenv"
         source virtualenv/bin/activate
 
-        # Starting Relecov Platform
-        echo "Creating $PROJECT_NAME project"
-        django-admin startproject $PROJECT_NAME .
-        
-        # update the settings.py and the main urls
-        echo "Updating settings and urls"
+        echo "Creating ${PROJECT_NAME} project"
+        "$INSTALL_PATH/virtualenv/bin/python" -m django startproject "$PROJECT_NAME" .
+
         update_settings_and_urls
 
-        if [ $docker == false ]; then
-            echo "Creating the database structure for $PROJECT_NAME"
-            python manage.py migrate
-            python manage.py makemigrations $MIGRATION_MODULES
-            python manage.py migrate
-            echo "Loading in database initial data"
-            python manage.py loaddata conf/first_install_tables.json
+        run_django_deploy "install"
 
-            echo "Updating Apache configuration"
-            if [[ $linux_distribution == "Ubuntu" ]]; then
-                cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/000-default.conf
-            fi
-
-            if [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" ]]; then
-                cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
-            fi
-
-            echo "Creating super user "
-            python manage.py createsuperuser --username admin
-        fi
-
-        # copy static files 
         echo "Run collectstatic"
         python manage.py collectstatic
 
         cd -
 
-        printf "\n\n%s"
-        printf "${BLUE}------------------${NC}\n"
-        printf "%s"
-        printf "${BLUE}Successfuly $PROJECT_NAME Installation version: ${PLATFORM_VERSION}${NC}\n"
-        printf "%s"
-        printf "${BLUE}------------------${NC}\n\n"
-        
+        log_section "Successfuly relecov-platform Installation version: ${APP_VERSION}"
         echo "Installation completed"
+    fi
+}
+
+# translate long options to short
+reset=true
+for arg in "$@"
+do
+    if [ -n "$reset" ]; then
+      unset reset
+      set --      # this resets the "$@" array so we can rebuild it
+    fi
+    case "$arg" in
+    # OPTIONAL
+        --install)      set -- "$@" -i ;;
+        --upgrade)      set -- "$@" -u ;;
+        --script)       set -- "$@" -s ;;
+        --script_before) set -- "$@" -p ;;
+        --script_after) set -- "$@" -o ;;
+        --script_prev)  set -- "$@" -p ;;
+        --tables)       set -- "$@" -t ;;
+        --skip_tables)  set -- "$@" -b ;;
+        --git_revision) set -- "$@" -g ;;
+        --conf)         set -- "$@" -c ;;
+        --ren_app)      set -- "$@" -r ;;
+        --docker)       set -- "$@" -k ;;
+        --skip_apache_restart) set -- "$@" -a ;;
+
+    # ADITIONAL
+        --help)     set -- "$@" -h ;;
+        --version)  set -- "$@" -v ;;
+    # PASSING VALUE IN PARAMETER
+        *)          set -- "$@" "$arg" ;;
+    esac
+done
+
+# SETTING DEFAULT VALUES
+ren_app=false
+tables=false
+git_branch=$initial_git_ref
+conf="./install_settings.txt"
+install=true
+install_type="full"
+upgrade=false
+upgrade_type="full"
+docker=false
+prefilled_tables="conf/first_install_tables.json"
+restart_apache=true
+run_script=false
+run_script_before=false
+migration_script=()
+migration_script_before=()
+skip_tables=false
+
+# PARSE VARIABLE ARGUMENTS WITH getops
+options=":c:s:i:u:r:g:tdbkvhao:p:"
+while getopts $options opt; do
+    case $opt in
+        i ) 
+            install=true
+            upgrade=false
+            if [[ "$OPTARG" == "full" || "$OPTARG" == "dep" || "$OPTARG" == "app" ]]; then
+                install_type=$OPTARG
+                upgrade_type=$OPTARG
+            else
+                echo "Upgrade is not set to one valid option. Use: --upgrade full/app/dep"
+                exit 1
+            fi
+            ;;
+        u )
+            install=false
+            upgrade=true
+            if [[ "$OPTARG" == "full" || "$OPTARG" == "dep" || "$OPTARG" == "app" ]]; then
+                upgrade_type=$OPTARG
+                install_type=$OPTARG
+            else
+                echo "Upgrade is not set to one valid option. Use: --upgrade full/app/dep"
+                exit 1
+            fi
+            ;;
+        s )
+            run_script=true
+            migration_script+=("$OPTARG")
+            ;;
+        p )
+            run_script_before=true
+            migration_script_before+=("$OPTARG")
+            ;;
+        o )
+            run_script=true
+            migration_script+=("$OPTARG")
+            ;;
+        t )
+            tables=true
+            ;;
+        b )
+            tables=false
+            skip_tables=true
+            ;;
+        r )
+            ren_app=true
+            ;;
+		g )
+			git_branch=$OPTARG
+            ;;
+        c )
+            conf=$OPTARG
+            ;;
+        k )
+            docker=true
+            restart_apache=false
+            ;;
+        a )
+            restart_apache=false
+            ;;
+        h )
+            usage
+            exit 1
+            ;;
+        v )
+            echo $APP_VERSION
+            exit 1
+            ;;
+        \?)
+            echo "Invalid Option: -$OPTARG" 1>&2
+            usage
+            exit 1
+            ;;
+        : )
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
+            ;;
+        * )
+            echo "Unimplemented option: -$OPTARG" >&2;
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+operation="install"
+operation_scope="$install_type"
+if [ $upgrade == true ]; then
+    operation="upgrade"
+    operation_scope="$upgrade_type"
+fi
+
+# Default to loading initial tables on installs unless explicitly skipped.
+if [ "$operation" = "install" ] && [ "$skip_tables" = false ] && [ "$tables" = false ]; then
+    tables=true
+fi
+
+load_install_config
+PROJECT_NAME="${PROJECT_NAME:-relecov_platform}"
+checkout_git_revision
+user=${SUDO_USER:-$USER}
+check_requirements
+
+if [[ "$operation_scope" == "full" || "$operation_scope" == "dep" ]]; then
+    run_dependency_stage "$operation"
+    if [ "$operation_scope" = "dep" ]; then
+        log_info "Dependency stage completed."
         exit 0
     fi
+fi
+
+if [[ "$operation_scope" == "full" || "$operation_scope" == "app" ]]; then
+    if [ "$operation" = "install" ]; then
+        install_application_files
+    else
+        upgrade_application_files
+    fi
+    if [ $restart_apache == true ]; then
+        restart_apache_service
+    fi
+    exit 0
 fi
 
 printf "\n\n%s"
@@ -770,4 +867,3 @@ printf "${RED}------------------${NC}\n\n"
 echo "See the usage examples"
 usage
 exit 1
-

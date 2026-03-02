@@ -1,0 +1,71 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: relecov_redis
+    restart: unless-stopped
+    networks:
+      - relecov_net
+
+  app:
+    build:
+      context: .
+      args:
+        INSTALL_TYPE: full
+        GIT_REVISION: <git-branch>
+    container_name: relecov_app
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./docker/data/logs:/opt/relecov-platform/logs
+      - ./docker/data/documents:/opt/relecov-platform/documents
+      - ./docker/data/static:/opt/relecov-platform/static
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - relecov_net
+
+  nextstrain:
+    image: nextstrain/base:latest
+    container_name: relecov_nextstrain
+    restart: unless-stopped
+    command: ["nextstrain", "view", "/data", "--port", "8100", "--host", "0.0.0.0"]
+    volumes:
+      - ./docker/data/nextstrain:/data:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    ports:
+      - "8100:8100"
+    networks:
+      - relecov_net
+
+  iskylims_app:
+    build:
+      context: ../iskylims
+      args:
+        INSTALL_TYPE: full
+        GIT_REVISION: <git-branch>
+    container_name: relecov_iskylims_app
+    restart: unless-stopped
+    environment:
+      DB_HOST: host.docker.internal
+      DB_PORT: 3306
+    ports:
+      - "8001:8001"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      relecov_net:
+        aliases:
+          - iskylimsapp
+
+networks:
+  relecov_net:
