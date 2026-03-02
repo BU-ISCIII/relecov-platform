@@ -274,32 +274,51 @@ fi
 
 set_engine
 
-app_service="iskylims_app"
-app_container=""
-
 service_exists() {
     compose_exec -f "$compose_file" ps --services 2>/dev/null | grep -Fxq "$1"
 }
 
-resolve_app_container() {
-    app_container="$(compose_exec -f "$compose_file" ps -q "$app_service" | head -n 1)"
-    if [ -z "$app_container" ]; then
-        echo "Error: unable to resolve container ID for service '$app_service'."
+resolve_service_container() {
+    local service_name="$1"
+    local service_container
+    service_container="$(compose_exec -f "$compose_file" ps -q "$service_name" | head -n 1)"
+    if [ -z "$service_container" ]; then
+        echo "Error: unable to resolve container ID for service '$service_name'."
         exit 1
     fi
+    echo "$service_container"
 }
 
-ensure_app_running() {
-    resolve_app_container
-    if ! engine_exec inspect -f '{{.State.Running}}' "$app_container" >/dev/null 2>&1; then
-        echo "Error: service '$app_service' container does not exist."
+ensure_service_running() {
+    local service_name="$1"
+    local service_container
+    service_container="$(resolve_service_container "$service_name")"
+    if ! engine_exec inspect -f '{{.State.Running}}' "$service_container" >/dev/null 2>&1; then
+        echo "Error: service '$service_name' container does not exist."
         exit 1
     fi
-    if [ "$(engine_exec inspect -f '{{.State.Running}}' "$app_container")" != "true" ]; then
-        echo "Error: service '$app_service' container is not running. Showing logs:"
-        engine_exec logs --tail 200 "$app_container"
+    if [ "$(engine_exec inspect -f '{{.State.Running}}' "$service_container")" != "true" ]; then
+        echo "Error: service '$service_name' container is not running. Showing logs:"
+        engine_exec logs --tail 200 "$service_container"
         exit 1
     fi
+    echo "$service_container"
+}
+
+service_repo_path() {
+    case "$1" in
+        iskylims_app) echo "/srv/iskylims" ;;
+        app) echo "/srv/relecov-platform" ;;
+        *) echo "Error: unknown service '$1'" >&2; exit 1 ;;
+    esac
+}
+
+service_install_path() {
+    case "$1" in
+        iskylims_app) echo "/opt/iskylims" ;;
+        app) echo "/opt/relecov-platform" ;;
+        *) echo "Error: unknown service '$1'" >&2; exit 1 ;;
+    esac
 }
 
 echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep and GIT_REVISION=$git_revision..."
@@ -312,26 +331,13 @@ compose_exec -f "$compose_file" up -d
 
 echo "Waiting 20 seconds for starting database and web services..."
 sleep 20
-ensure_app_running
 
 app_uid="${APP_UID:-1212}"
 app_gid="${APP_GID:-1212}"
-echo "Ensuring runtime directories are writable by ${app_uid}:${app_gid}"
-engine_exec exec -u 0 -it "$app_container" sh -lc "mkdir -p /opt/iskylims/documents /opt/iskylims/logs /opt/iskylims/static /opt/iskylims/cron /opt/iskylims/tmp && chown -R ${app_uid}:${app_gid} /opt/iskylims/documents /opt/iskylims/logs /opt/iskylims/static /opt/iskylims/cron /opt/iskylims/tmp"
 
 host_install_conf_path="$install_conf"
 if [[ "$host_install_conf_path" != /* ]]; then
     host_install_conf_path="$repo_root/$host_install_conf_path"
-fi
-
-container_install_conf_path="$install_conf_container"
-if [[ "$container_install_conf_path" != /* ]]; then
-    container_install_conf_path="/srv/iskylims/$container_install_conf_path"
-fi
-
-if ! engine_exec exec -it "$app_container" test -f "$container_install_conf_path"; then
-    echo "Copying install configuration into container at $container_install_conf_path"
-    engine_exec cp "$host_install_conf_path" "${app_container}:$container_install_conf_path"
 fi
 
 script_args_before=""
@@ -348,27 +354,65 @@ if [ "$run_script" = true ]; then
     done
 fi
 
-if [ "$action" = "upgrade" ]; then
-    echo "Running install.sh upgrade inside the container"
-    engine_exec exec -it "$app_container" bash -c "cd /srv/iskylims && bash install.sh --upgrade app --git_revision \"$git_revision\" --conf \"$install_conf_container\" --skip_apache_restart$script_args_before$script_args_after"
-else
-    echo "Running install.sh install inside the container"
-    engine_exec exec -it "$app_container" bash -c "cd /srv/iskylims && bash install.sh --install app --git_revision \"$git_revision\" --conf \"$install_conf_container\" --skip_apache_restart$script_args_before$script_args_after"
+install_services=("iskylims_app")
+if [ "$mode" = "test" ] && service_exists "app"; then
+    install_services+=("app")
 fi
 
-if ! engine_exec exec -it "$app_container" test -f /opt/iskylims/manage.py; then
-    echo "Error: /opt/iskylims/manage.py not found after install.sh. Showing logs:"
-    engine_exec logs --tail 200 "$app_container"
-    exit 1
-fi
+installed_iskylims=false
+installed_platform=false
 
-if [ "$skip_test_data" = false ]; then
-    engine_exec exec -it "$app_container" python3 manage.py loaddata test/test_data.json
-else
-    echo "Skipping test data fixtures as requested"
-fi
+for target_service in "${install_services[@]}"; do
+    target_container="$(ensure_service_running "$target_service")"
+    target_repo_path="$(service_repo_path "$target_service")"
+    target_install_path="$(service_install_path "$target_service")"
 
-if [ "$skip_demo_data" = false ] && service_exists "samba"; then
+    echo "Ensuring runtime directories for $target_service are writable by ${app_uid}:${app_gid}"
+    engine_exec exec -u 0 -it "$target_container" sh -lc "mkdir -p ${target_install_path}/documents ${target_install_path}/logs ${target_install_path}/static ${target_install_path}/cron ${target_install_path}/tmp && chown -R ${app_uid}:${app_gid} ${target_install_path}/documents ${target_install_path}/logs ${target_install_path}/static ${target_install_path}/cron ${target_install_path}/tmp"
+
+    container_install_conf_path="$install_conf_container"
+    if [[ "$container_install_conf_path" != /* ]]; then
+        container_install_conf_path="${target_repo_path}/$container_install_conf_path"
+    fi
+
+    if ! engine_exec exec -it "$target_container" test -f "$container_install_conf_path"; then
+        echo "Copying install configuration into $target_service at $container_install_conf_path"
+        engine_exec cp "$host_install_conf_path" "${target_container}:$container_install_conf_path"
+    fi
+
+    if [ "$action" = "upgrade" ]; then
+        echo "Running install.sh upgrade in $target_service"
+        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --upgrade app --git_revision \"$git_revision\" --conf \"$install_conf_container\" --skip_apache_restart$script_args_before$script_args_after"
+    else
+        echo "Running install.sh install in $target_service"
+        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --install app --git_revision \"$git_revision\" --conf \"$install_conf_container\" --skip_apache_restart$script_args_before$script_args_after"
+    fi
+
+    if ! engine_exec exec -it "$target_container" test -f "$target_install_path/manage.py"; then
+        echo "Error: $target_install_path/manage.py not found after install.sh for service $target_service. Showing logs:"
+        engine_exec logs --tail 200 "$target_container"
+        exit 1
+    fi
+
+    if [ "$target_service" = "iskylims_app" ]; then
+        installed_iskylims=true
+        if [ "$skip_test_data" = false ]; then
+            if engine_exec exec -it "$target_container" test -f test/test_data.json; then
+                engine_exec exec -it "$target_container" python3 manage.py loaddata test/test_data.json
+            else
+                echo "No test/test_data.json found in $target_service. Skipping fixture load."
+            fi
+        else
+            echo "Skipping test data fixtures for $target_service as requested"
+        fi
+    fi
+
+    if [ "$target_service" = "app" ]; then
+        installed_platform=true
+    fi
+done
+
+if [ "$installed_iskylims" = true ] && [ "$skip_demo_data" = false ] && service_exists "samba"; then
     echo "Downloading and copying test files to the Samba container"
     if [ "$demo_data" == "false" ]; then
         wget https://zenodo.org/record/8091169/files/iskylims_demo_data.tar.gz
@@ -398,13 +442,28 @@ fi
 
 access_urls=()
 if [ -n "$dns_url" ] && [ "$dns_url" != "*" ]; then
-    access_urls+=("http://${dns_url}:8001")
+    if [ "$installed_iskylims" = true ]; then
+        access_urls+=("iSkyLIMS: http://${dns_url}:8001")
+    fi
+    if [ "$installed_platform" = true ]; then
+        access_urls+=("RELECOV Platform: http://${dns_url}:8000")
+    fi
 fi
 if [ -n "$local_ip" ] && [ "$local_ip" != "*" ]; then
-    access_urls+=("http://${local_ip}:8001")
+    if [ "$installed_iskylims" = true ]; then
+        access_urls+=("iSkyLIMS: http://${local_ip}:8001")
+    fi
+    if [ "$installed_platform" = true ]; then
+        access_urls+=("RELECOV Platform: http://${local_ip}:8000")
+    fi
 fi
 if [ ${#access_urls[@]} -eq 0 ]; then
-    access_urls+=("http://localhost:8001")
+    if [ "$installed_iskylims" = true ]; then
+        access_urls+=("iSkyLIMS: http://localhost:8001")
+    fi
+    if [ "$installed_platform" = true ]; then
+        access_urls+=("RELECOV Platform: http://localhost:8000")
+    fi
 fi
 
-echo "You can now access iSkyLIMS via: ${access_urls[*]}"
+echo "You can now access services via: ${access_urls[*]}"
