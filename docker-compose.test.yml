@@ -21,7 +21,7 @@ services:
       - "6606:3306"
     volumes:
       - relecov_test_db_data:/var/lib/mysql
-      - ./docker/mysql/init-test.sql:/docker-entrypoint-initdb.d/init-test.sql:ro
+      - ./tests/sql/init-test.sql:/docker-entrypoint-initdb.d/init-test.sql:ro
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
