@@ -383,13 +383,19 @@ run_django_deploy() {
 
     if [ "$mode" = "upgrade" ]; then
         echo "Applying migrations in fake-initial mode"
-        python manage.py migrate --noinput --fake-initial
+        if ! python manage.py migrate --noinput --fake-initial; then
+            abort_install "migrate --fake-initial failed"
+        fi
         # Second pass ensures non-initial migrations are applied after fake-initial.
         echo "Applying migrations"
-        python manage.py migrate --noinput
+        if ! python manage.py migrate --noinput; then
+            abort_install "migrate failed after fake-initial"
+        fi
     else
         echo "Applying migrations"
-        python manage.py migrate --noinput
+        if ! python manage.py migrate --noinput; then
+            abort_install "migrate failed"
+        fi
     fi
 
     if [ "$tables" = true ]; then
@@ -468,26 +474,10 @@ setup_virtualenv() {
 # prepare_documents_structure: ensure document directories and templates exist with correct permissions.
 prepare_documents_structure() {
     echo "Created documents structure"
-    mkdir -p $INSTALL_PATH/documents/wetlab
-    mkdir -p $INSTALL_PATH/documents/wetlab/tmp
-    mkdir -p $INSTALL_PATH/documents/wetlab/sample_sheet
-    mkdir -p $INSTALL_PATH/documents/wetlab/images_plot
-    mkdir -p $INSTALL_PATH/documents/wetlab/templates
-    mkdir -p $INSTALL_PATH/documents/wetlab/sample_sheets_lib_prep
-    mkdir -p $INSTALL_PATH/documents/drylab
-    mkdir -p $INSTALL_PATH/documents/drylab/service_files
+    mkdir -p $INSTALL_PATH/documents/schemas
 
     chown -R $user:$apache_group $INSTALL_PATH/documents
     chmod 775 $INSTALL_PATH/documents
-
-    cp $INSTALL_PATH/conf/*_template.csv $INSTALL_PATH/documents/wetlab/templates/
-    cp $INSTALL_PATH/conf/samples_template.xlsx $INSTALL_PATH/documents/wetlab/templates/
-
-    mkdir -p $INSTALL_PATH/documents/wetlab/collection_index_kits/
-    cp $INSTALL_PATH/conf/collection_index_kits/*.txt $INSTALL_PATH/documents/wetlab/collection_index_kits/
-
-    cp $INSTALL_PATH/conf/template_logging_config.ini $INSTALL_PATH/wetlab/logging_config.ini
-    sed -i "s|INSTALL_PATH|${INSTALL_PATH}|g" $INSTALL_PATH/wetlab/logging_config.ini
 }
 
 # install_python_requirements: activate the venv and install required Python packages.
