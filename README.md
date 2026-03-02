@@ -370,6 +370,7 @@ In the admin panel of the new deployment, verify that `ISKYLIMS_SERVER` in `/adm
 
 7. **Define *Species***  
    Register the different organisms in the schema at `http://…./admin/core/species/`:
+
    - *Severe acute respiratory syndrome coronavirus 2*
    - *Respiratory syncytial virus*
    - *Influenza virus*
@@ -379,3 +380,26 @@ In the admin panel of the new deployment, verify that `ISKYLIMS_SERVER` in `/adm
 
 ---
 
+# 8. Developer workflow: migrations
+
+When you modify any Django model (for example in `core/models.py` or `dashboard/models.py`), create and commit migration files in this repository.
+
+Commands:
+~~~bash
+cd /opt/relecov-platform
+source virtualenv/bin/activate
+
+# Generate migrations only for the project apps
+python manage.py makemigrations core dashboard docs
+
+# Validate they apply cleanly
+python manage.py migrate --plan
+python manage.py migrate
+
+# Review generated files
+git status
+~~~
+
+Commit the generated files under each app `migrations/` folder (for example `core/migrations/` and `dashboard/migrations/`).
+
+Do not rely on `install.sh` to generate migrations automatically in production/test deployments.
