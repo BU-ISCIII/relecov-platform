@@ -13,6 +13,7 @@ Usage : $0 [--demo_data] [--install_type] [--git_revision] [--compose_file] [--i
     --git_revision      | Specify the Git revision to install (default: main)
     --compose_file      | Compose file to use (overrides default)
     --install_conf      | Settings file consumed during container image build (mandatory for production)
+    --install_conf_map  | Service-specific settings file: service,path (can be repeated)
     --action            | install (default) or upgrade, to control DB initialisation steps
     --script            | Run a Django migration script after migrations (can be repeated)
     --script_before     | Run a Django migration script before migrations (can be repeated)
@@ -26,11 +27,17 @@ Examples:
     Deploy production container pointing to an external DB/Samba:
     bash $0 --install_conf conf/my_prod_settings.txt
 
+    Deploy production with per-service settings:
+    bash $0 --install_conf_map app,conf/docker_production_platform_settings.txt --install_conf_map iskylims_app,conf/docker_production_iskylims_settings.txt
+
     Upgrade an existing production deployment using the same database:
     bash $0 --install_conf conf/my_prod_settings.txt --action upgrade
 
     Install demo container system with local services
     bash $0 --test
+
+    Install test with explicit per-service settings:
+    bash $0 --test --install_conf_map app,conf/docker_test_platform_settings.txt --install_conf_map iskylims_app,conf/docker_test_iskylims_settings.txt
 
     Provide already downloaded data from Zenodo (compressed) for test environment
     bash $0 --demo_data /path/to/iskylims_demo_data.tar.gz
@@ -57,6 +64,7 @@ do
         --git_revision)      set -- "$@" -g ;;
         --compose_file)      set -- "$@" -c ;;
         --install_conf)      set -- "$@" -s ;;
+        --install_conf_map)  set -- "$@" -j ;;
         --action)            set -- "$@" -a ;;
         --script)            set -- "$@" -m ;;
         --script_before)     set -- "$@" -b ;;
@@ -80,6 +88,7 @@ git_revision="main"
 compose_file=""
 install_conf=""
 install_conf_container=""
+install_conf_map_entries=()
 skip_demo_data=""
 skip_test_data=""
 mode="production"
@@ -127,7 +136,7 @@ compose_exec() {
 }
 
 # PARSE VARIABLE ARGUMENTS WITH getopts
-options=":d:i:g:c:s:a:m:b:f:e:vhntp"
+options=":d:i:g:c:s:j:a:m:b:f:e:vhntp"
 while getopts $options opt; do
     case $opt in
         d)
@@ -141,6 +150,9 @@ while getopts $options opt; do
             ;;
         s)
             install_conf=$OPTARG
+            ;;
+        j)
+            install_conf_map_entries+=("$OPTARG")
             ;;
         a)
             action=$OPTARG
@@ -206,18 +218,10 @@ if [ "$mode" = "test" ]; then
     if [ -z "$compose_file" ]; then
         compose_file="docker-compose.test.yml"
     fi
-    if [ -z "$install_conf" ]; then
-        install_conf="conf/docker_test_settings.txt"
-    fi
 else
     if [ -z "$compose_file" ]; then
         compose_file="docker-compose.prod.yml"
     fi
-fi
-
-if [ "$mode" = "production" ] && [ -z "$install_conf" ]; then
-    echo "Production deployments require --install_conf pointing to your settings file."
-    exit 1
 fi
 
 if [ -z "$skip_demo_data" ]; then
@@ -246,31 +250,106 @@ if [ ! -f "$compose_file" ]; then
     exit 1
 fi
 
-if [ ! -f "$install_conf" ]; then
-    echo "Install configuration '$install_conf' not found"
-    exit 1
-fi
-
 repo_root="$(pwd)"
-temp_install_conf=""
-if [[ "$install_conf" = /* ]] && [[ "$install_conf" != "$repo_root/"* ]]; then
-    temp_install_conf="$repo_root/.tmp_docker_install_conf_$$.txt"
-    echo "Copying $install_conf into temporary file $temp_install_conf for Docker build/runtime."
-    cp "$install_conf" "$temp_install_conf"
-    install_conf="$temp_install_conf"
-    cleanup_temp_conf() {
-        if [ -n "$temp_install_conf" ] && [ -f "$temp_install_conf" ]; then
-            rm -f "$temp_install_conf"
-        fi
-    }
-    trap cleanup_temp_conf EXIT
-fi
+temp_install_conf_files=()
+declare -A service_install_conf_input=()
+declare -A install_conf_host_by_service=()
+declare -A install_conf_container_by_service=()
+install_services=("iskylims_app" "app")
 
-if [[ "$install_conf" = "$repo_root/"* ]]; then
-    install_conf_container="${install_conf#$repo_root/}"
-else
-    install_conf_container="$install_conf"
-fi
+cleanup_temp_confs() {
+    local f
+    for f in "${temp_install_conf_files[@]}"; do
+        if [ -n "$f" ] && [ -f "$f" ]; then
+            rm -f "$f"
+        fi
+    done
+}
+trap cleanup_temp_confs EXIT
+
+default_service_install_conf() {
+    case "$1" in
+        iskylims_app) echo "conf/docker_test_settings.txt" ;;
+        app) echo "conf/docker_test_settings.txt" ;;
+        *) echo "conf/docker_test_settings.txt" ;;
+    esac
+}
+
+service_is_install_target() {
+    local wanted="$1"
+    local s
+    for s in "${install_services[@]}"; do
+        if [ "$s" = "$wanted" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+prepare_service_conf() {
+    local svc="$1"
+    local conf_value="$2"
+    local host_path="$conf_value"
+    local resolved_path="$conf_value"
+    local temp_path=""
+
+    if [[ "$resolved_path" != /* ]]; then
+        host_path="$repo_root/$resolved_path"
+    else
+        host_path="$resolved_path"
+    fi
+
+    if [ ! -f "$host_path" ]; then
+        echo "Install configuration '$conf_value' for service '$svc' not found"
+        exit 1
+    fi
+
+    if [[ "$host_path" = /* ]] && [[ "$host_path" != "$repo_root/"* ]]; then
+        temp_path="$repo_root/.tmp_docker_install_conf_${svc}_$$.txt"
+        echo "Copying $host_path into temporary file $temp_path for service '$svc'."
+        cp "$host_path" "$temp_path"
+        host_path="$temp_path"
+        temp_install_conf_files+=("$temp_path")
+    fi
+
+    if [[ "$host_path" = "$repo_root/"* ]]; then
+        install_conf_container="${host_path#$repo_root/}"
+    else
+        install_conf_container="$host_path"
+    fi
+
+    install_conf_host_by_service["$svc"]="$host_path"
+    install_conf_container_by_service["$svc"]="$install_conf_container"
+}
+
+for map_entry in "${install_conf_map_entries[@]}"; do
+    svc_name="${map_entry%%,*}"
+    conf_name="${map_entry#*,}"
+    if [ -z "$svc_name" ] || [ -z "$conf_name" ] || [ "$svc_name" = "$map_entry" ]; then
+        echo "Invalid --install_conf_map value '$map_entry'. Expected format: service,path"
+        exit 1
+    fi
+    if ! service_is_install_target "$svc_name"; then
+        echo "Unknown service '$svc_name' in --install_conf_map. Valid services: ${install_services[*]}"
+        exit 1
+    fi
+    service_install_conf_input["$svc_name"]="$conf_name"
+done
+
+for target_service in "${install_services[@]}"; do
+    chosen_conf="${service_install_conf_input[$target_service]}"
+    if [ -z "$chosen_conf" ]; then
+        if [ -n "$install_conf" ]; then
+            chosen_conf="$install_conf"
+        elif [ "$mode" = "test" ]; then
+            chosen_conf="$(default_service_install_conf "$target_service")"
+        else
+            echo "Production deployments require --install_conf or --install_conf_map for service '$target_service'."
+            exit 1
+        fi
+    fi
+    prepare_service_conf "$target_service" "$chosen_conf"
+done
 
 set_engine
 
@@ -282,7 +361,7 @@ set_engine
 # Returns:
 #   0 if the service exists, 1 otherwise
 service_exists() {
-    compose_exec -f "$compose_file" ps --services 2>/dev/null | grep -Fxq "$1"
+    compose_exec -f "$compose_file" config --services 2>/dev/null | grep -Fxq "$1"
 }
 
 # Return the name of the container for a given service name.
@@ -431,11 +510,18 @@ cleanup_stale_test_containers() {
 cleanup_stale_test_containers
 
 echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep and GIT_REVISION=$git_revision..."
-INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$install_conf_container" \
-    compose_exec -f "$compose_file" build --no-cache \
-    --build-arg INSTALL_TYPE="dep" \
-    --build-arg GIT_REVISION="$git_revision" \
-    --build-arg INSTALL_CONF="$install_conf_container"
+for target_service in "${install_services[@]}"; do
+    if service_exists "$target_service"; then
+        service_install_conf="${install_conf_container_by_service[$target_service]}"
+        echo "Building $target_service with INSTALL_CONF=$service_install_conf"
+        INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$service_install_conf" \
+            compose_exec -f "$compose_file" build --no-cache \
+            --build-arg INSTALL_TYPE="dep" \
+            --build-arg GIT_REVISION="$git_revision" \
+            --build-arg INSTALL_CONF="$service_install_conf" \
+            "$target_service"
+    fi
+done
 compose_exec -f "$compose_file" up -d
 
 echo "Waiting 20 seconds for starting database and web services..."
@@ -445,11 +531,6 @@ sleep 20
 # Otherwise, default to 1212 which is the value used in the Dockerfile.
 app_uid="${APP_UID:-1212}"
 app_gid="${APP_GID:-1212}"
-
-host_install_conf_path="$install_conf"
-if [[ "$host_install_conf_path" != /* ]]; then
-    host_install_conf_path="$repo_root/$host_install_conf_path"
-fi
 
 script_args_before=""
 if [ "$run_script_before" = true ]; then
@@ -465,10 +546,6 @@ if [ "$run_script" = true ]; then
     done
 fi
 
-
-
-install_services=("iskylims_app" "app")
-
 installed_iskylims=false
 installed_platform=false
 
@@ -483,22 +560,28 @@ for target_service in "${install_services[@]}"; do
     echo "Ensuring runtime directories for $target_service are writable by ${app_uid}:${app_gid}"
     engine_exec exec -u 0 -it "$target_container" sh -lc "mkdir -p ${target_install_path}/documents ${target_install_path}/logs ${target_install_path}/static ${target_install_path}/cron ${target_install_path}/tmp && chown -R ${app_uid}:${app_gid} ${target_install_path}/documents ${target_install_path}/logs ${target_install_path}/static ${target_install_path}/cron ${target_install_path}/tmp"
 
-    container_install_conf_path="$install_conf_container"
+    host_install_conf_path="${install_conf_host_by_service[$target_service]}"
+    service_install_conf="${install_conf_container_by_service[$target_service]}"
+    container_install_conf_path="$service_install_conf"
     if [[ "$container_install_conf_path" != /* ]]; then
         container_install_conf_path="${target_repo_path}/$container_install_conf_path"
     fi
 
     if ! engine_exec exec -it "$target_container" test -f "$container_install_conf_path"; then
         echo "Copying install configuration into $target_service at $container_install_conf_path"
+        if [ ! -f "$host_install_conf_path" ]; then
+            echo "Error: host install configuration not found for $target_service at $host_install_conf_path"
+            exit 1
+        fi
         engine_exec cp "$host_install_conf_path" "${target_container}:$container_install_conf_path"
     fi
 
     if [ "$action" = "upgrade" ]; then
         echo "Running install.sh upgrade in $target_service"
-        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --upgrade app --git_revision \"$git_revision\" --conf \"$install_conf_container\" --skip_apache_restart$script_args_before$script_args_after"
+        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --upgrade app --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
     else
         echo "Running install.sh install in $target_service"
-        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --install app --git_revision \"$git_revision\" --conf \"$install_conf_container\" --skip_apache_restart$script_args_before$script_args_after"
+        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --install app --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
     fi
 
     if ! engine_exec exec -it "$target_container" test -f "$target_install_path/manage.py"; then
@@ -548,6 +631,10 @@ echo "Skipping crontab add/start (cron is managed by the container entrypoint)"
 
 dns_url=""
 local_ip=""
+host_install_conf_path="${install_conf_host_by_service[app]}"
+if [ -z "$host_install_conf_path" ]; then
+    host_install_conf_path="${install_conf_host_by_service[iskylims_app]}"
+fi
 if [ -f "$host_install_conf_path" ]; then
     dns_url=$(grep -E "^DNS_URL=" "$host_install_conf_path" | tail -n 1 | cut -d= -f2- | sed "s/^['\"]//;s/['\"]$//")
     local_ip=$(grep -E "^LOCAL_SERVER_IP=" "$host_install_conf_path" | tail -n 1 | cut -d= -f2- | sed "s/^['\"]//;s/['\"]$//")
