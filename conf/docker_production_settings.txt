@@ -1,0 +1,33 @@
+### Production specific installation config
+# Copy this file or edit the values below so they match the external
+# infrastructure you are connecting to before building the image.
+
+### Installation path and modules settings
+INSTALL_PATH='/opt/relecov-platform'
+REQUIRED_MODULES='core dashboard docs'
+MIGRATION_MODULES='core dashboard django_plotly_dash'
+
+### (optional) Python installation path where pip and python executables are located
+PYTHON_BIN_PATH='python3.11'
+
+### Settings required to access database (external MySQL server)
+DB_USER='django'
+DB_PASS='djangopass'
+DB_NAME='relecov_dev'
+DB_SERVER_IP='host.container.internal'  # hostname or IP of the production DB (use host.docker.internal for host DB)
+DB_PORT=3306
+
+### Settings required for sending emails
+EMAIL_HOST_SERVER='smtp.yourdomain'
+EMAIL_PORT='25'
+EMAIL_HOST_USER='bioinfo'
+EMAIL_HOST_PASSWORD=''
+EMAIL_USE_TLS='False'
+
+### Settings required for accessing iSkyLIMS
+LOCAL_SERVER_IP='*'
+DNS_URL='*'
+
+### Logs settings
+LOG_TYPE="regular_folder"
+LOG_PATH=""
