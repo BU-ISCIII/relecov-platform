@@ -10,9 +10,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./docker/data/logs:/opt/relecov-platform/logs:Z
-      - relecov_test_documents:/opt/relecov-platform/documents
-      - ./docker/data/static:/opt/relecov-platform/static:Z
+      - /var/log/local/apps/relecov-platform:/opt/relecov-platform/logs:Z
+      - relecov_documents:/opt/relecov-platform/documents
+      - /opt/relecov-platform/static-host:/opt/relecov-platform/static:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     extra_hosts:
