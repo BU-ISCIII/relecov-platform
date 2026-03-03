@@ -10,9 +10,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./docker/data/logs:/opt/relecov-platform/logs
-      - ./docker/data/documents:/opt/relecov-platform/documents
-      - ./docker/data/static:/opt/relecov-platform/static
+      - ./docker/data/logs:/opt/relecov-platform/logs:Z
+      - relecov_test_documents:/opt/relecov-platform/documents
+      - ./docker/data/static:/opt/relecov-platform/static:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     extra_hosts:
@@ -21,7 +21,7 @@ services:
       - relecov_net
 
   nextstrain:
-    image: nextstrain/base:latest
+    image: docker.io/nextstrain/base:latest
     container_name: relecov_nextstrain
     restart: unless-stopped
     command: ["nextstrain", "view", "/data", "--port", "8100", "--host", "0.0.0.0"]
