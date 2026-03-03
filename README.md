@@ -1,405 +1,389 @@
-# relecov-platform
+# RELECOV Platform
 
-[![python_lint](https://github.com/BU-ISCIII/relecov-tools/actions/workflows/python_lint.yml/badge.svg)](https://github.com/BU-ISCIII/relecov-tools/actions/workflows/python_lint.yml)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Django](https://img.shields.io/static/v1?label=Django&message=3.2.17&color=blue?style=plastic&logo=django)](https://github.com/django/django)
-[![Python](https://img.shields.io/static/v1?label=Python&message=3.9.10&color=green?style=plastic&logo=Python)](https://www.python.org/)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap-v5.0-blueviolet?style=plastic&logo=Bootstrap)](https://getbootstrap.com)
-[![version](https://img.shields.io/badge/version-1.0.0-orange?style=plastic&logo=GitHub)](https://github.com/BU-ISCIII/relecov-platform.git)
+RELECOV Platform deployment guide (containers and bare-metal), including iSkyLIMS and Nextstrain integration.
 
-> THIS REPO IS IN ACTIVE DEVELOPMENT.
->
-> Web application for the **RELECOV Platform**.  
-> This README focuses on **RELECOV Platform** setup and the **integration points** with iSkyLIMS.  
-> Generic iSkyLIMS steps are referenced to its official LEAME to avoid duplication.
+- [RELECOV Platform](#relecov-platform)
+  - [Get the code (required)](#get-the-code-required)
+  - [Choose your path](#choose-your-path)
+  - [Minimum requirements](#minimum-requirements)
+  - [Docker deployment](#docker-deployment)
+    - [Local test stack](#local-test-stack)
+    - [Production container stack](#production-container-stack)
+    - [Upgrade docker deployment](#upgrade-docker-deployment)
+  - [Bare-metal deployment (Ubuntu/CentOS)](#bare-metal-deployment-ubuntucentos)
+    - [Install](#install)
+    - [Upgrade](#upgrade)
+  - [Common operations (Docker + bare-metal)](#common-operations-docker--bare-metal)
+    - [Database creation, users and grants](#database-creation-users-and-grants)
+    - [Backups](#backups)
+    - [Restore / rollback](#restore--rollback)
+    - [What to do if something fails](#what-to-do-if-something-fails)
+  - [Post-install configuration](#post-install-configuration)
+    - [RELECOV Platform](#relecov-platform-1)
+    - [iSkyLIMS](#iskylims)
+    - [Smoke test](#smoke-test)
+  - [Developer workflow](#developer-workflow)
+    - [Migrations](#migrations)
+    - [Container-based development loop](#container-based-development-loop)
+    - [Useful diagnostics](#useful-diagnostics)
 
-| Component                 | Version | Description                                         |
-|--------------------------|---------|-----------------------------------------------------|
-| Apache Tomcat            | 8.5+    | Application server, Java Servlet container.         |
-| Red Hat Enterprise Linux | 7+      | Operating system (Red Hat distribution).            |
-| Microsoft SQL Server     | 2017    | Relational database system (if used externally).    |
-| Python                   | 3.10+   | Programming language.                               |
-| Django                   | 5.1.6   | Web framework.                                      |
+## Get the code (required)
 
----
+```bash
+git clone https://github.com/bu-isciii/relecov-platform.git
+cd relecov-platform
+```
 
-## Table of contents
+iSkyLIMS is required for the integrated platform stack:
 
-- [1. Installation flow overview](#1-installation-flow-overview)
-- [2. System prerequisites](#2-system-prerequisites)
-  - [2.1 Base packages](#21-base-packages)
+```bash
+cd ..
+git clone https://github.com/bu-isciii/relecov-iskylims.git
+```
 
----
+## Choose your path
 
-# 1. Installation flow overview
+- Docker (test): full local stack for validation.
+- Docker (production): app + iSkyLIMS + Nextstrain containers pointing to your production DB.
+- Bare-metal: install directly on the host using `install.sh`.
 
-1. Host prerequisites (packages, basic services, users/groups, directories and permissions).
-2. MySQL/MariaDB: install/start, harden, create DBs and application user.
-3. Restore DB dumps (if available) **or** perform a clean install with migrations.
-4. Clone repositories: **relecov-platform** and **iSkyLIMS**.
-5. Configure `install_settings.txt` in each project.
-6. Install (dependencies + application) using `install.sh`.
-7. Load initial data (schema, GFF, test data, iSkyLIMS projects/ontologies).
-8. Start and validate (web service, Django admin access, smoke tests).
+## Minimum requirements
 
----
+Baseline software (minimum recommended):
 
-# 2. System prerequisites
+- MySQL 8.0+ or MariaDB 10.4+
+- Git 2.34+
+- Python 3.11+
+- Apache HTTP Server 2.4+ (for reverse proxy on production)
+- Docker Engine + Compose v2, or Podman 4.9+ + `podman-compose`
+- `tar`, `rsync`, `wget`, `curl`
 
-## 2.1 Base packages
+Notes:
 
-Before you start, ensure:
+- This guide does not cover MySQL installation itself, only DB/user/grant creation and operational tasks.
+- For container deployments with external DB, ensure network connectivity from containers to DB host/port.
+- For Podman, prefer `host.containers.internal` in DB host settings.
 
-- You have **sudo privileges** to install required packages.
-- Database server (MySQL/MariaDB) is running.
-- A local mail server is configured to send emails.
-- Apache HTTP server is running.
-- System dependencies are installed.
+## Docker deployment
 
-**RedHat/CentOS:**
-~~~bash
-sudo yum install -y redhat-lsb-core
-~~~
+Prerequisites:
 
-**Ubuntu:**
-~~~bash
-sudo apt update && sudo apt install -y lsb-release
-~~~
+- Docker Compose v2 or Podman + podman-compose.
+- Both repositories checked out side-by-side:
+  - `relecov-platform`
+  - `relecov-iskylims`
 
-**pkg-config:**
-~~~bash
-sudo apt install -y pkgconf
-~~~
+### Local test stack
 
-**MySQL server y cliente (Ubuntu):**
-~~~bash
-sudo apt install -y mysql-server mysql-client
-~~~
+Runs:
 
----
+- `relecov_test_db` (MySQL)
+- `relecov_test_app` (RELECOV Platform)
+- `relecov_test_iskylims_app` (iSkyLIMS)
+- `relecov_test_nextstrain` (Nextstrain viewer)
 
-# 3. Database (MySQL)
+Basic test install:
 
-If there is no active MySQL server, it will be necessary to create one first.
+```bash
+cd relecov-platform
+bash container_install.sh --test --engine podman 2>&1 | tee relecov_test_install.log
+```
 
-**Install MySQL (Ubuntu):**
-~~~bash
-sudo apt install -y mysql-server mysql-client
-~~~
+Per-service conf mapping (recommended):
 
-**Start SQL server and enable at start-up:**
-~~~bash
-sudo systemctl start mysql
-sudo systemctl enable mysql
-~~~
+```bash
+bash container_install.sh --test --engine podman \
+  --install_conf_map app,conf/docker_test_platform_settings.txt \
+  --install_conf_map iskylims_app,conf/docker_test_iskylims_settings.txt \
+  2>&1 | tee relecov_test_install.log
+```
 
-**Check that the server is active:**
-~~~bash
-systemctl status mysql
-~~~
+### Production container stack
 
-**Example output:**
-~~~bash
-mysql.service - MySQL Community Server
-Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
-Active: active (running) since Wed 2025-01-29 08:36:16 CET; 1 month 17 days ago
-Main PID: 1648 (mysqld)
-Status: "Server is operational"
-Tasks: 46 (limit: 38269)
-Memory: 772.4M
-CPU: 1d 5h 31min 6.848s
-CGroup: /system.slice/mysql.service
-└─1648 /usr/sbin/mysqld
-~~~
+1. Prepare production confs (separate for each service):
 
-**Create admin credentials:**
-~~~bash
-sudo mysql_secure_installation
-~~~
-- Delete test database (`test_database`)
-- Disable anonymous users and remote administrator access
-- Reload *privilege tables* to apply changes
+```bash
+cp conf/docker_production_settings.txt conf/docker_production_platform_settings.txt
+cp ../relecov-iskylims/conf/docker_production_settings.txt ../relecov-iskylims/conf/docker_production_iskylims_settings.txt
+```
 
-## 3.1 Creating the Database (once MySQL has been initialised)
+2. Edit both files with your production DB/network values.
 
-**Create RELECOV database:**
-~~~bash
-sudo mysql -u root -p
-~~~
+3. Deploy:
 
-Within the MySQL client:
-~~~sql
-CREATE DATABASE relecov;
-CREATE DATABASE relecovlims;
-~~~
+```bash
+cd relecov-platform
+bash container_install.sh --engine podman \
+  --action install \
+  --install_conf_map app,conf/docker_production_platform_settings.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
+  2>&1 | tee relecov_prod_install.log
+```
 
-**Check if it is created correctly:**
-~~~sql
-SHOW DATABASES;
-~~~
+4. Endpoints:
 
-**Create a non-admin user for managing the new databases:**
-~~~sql
-CREATE USER 'relecov_user'@'localhost' IDENTIFIED BY 'mypassword';
-GRANT ALL PRIVILEGES ON relecov.* TO 'relecov_user'@'localhost';
-GRANT ALL PRIVILEGES ON relecovlims.* TO 'relecov_user'@'localhost';
+- RELECOV Platform: `http://<host>:8000`
+- iSkyLIMS: `http://<host>:8001`
+- Nextstrain: `http://<host>:8100`
+
+### Upgrade docker deployment
+
+Use `upgrade` when DB schema/data already exist.
+> IMPORTANT:Before upgrading, perform backups from [Backups](#backups).
+
+```bash
+cd relecov-platform
+bash container_install.sh --engine podman \
+  --action upgrade \
+  --install_conf_map app,conf/docker_production_platform_settings.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
+  2>&1 | tee relecov_prod_upgrade.log
+```
+
+## Bare-metal deployment (Ubuntu/CentOS)
+
+### Install
+
+1. Prepare DB/users/grants from [Database creation, users and grants](#database-creation-users-and-grants).
+2. Edit config files:
+
+- `relecov-platform/conf/install_settings.txt`
+- `relecov-iskylims/conf/install_settings.txt`
+
+3. Install dependencies + app (needs root):
+
+```bash
+cd relecov-platform
+bash install.sh --install full --conf conf/install_settings.txt
+
+cd ../relecov-iskylims
+bash install.sh --install full --conf conf/install_settings.txt
+```
+
+### Upgrade
+
+```bash
+cd relecov-platform
+bash install.sh --upgrade app --conf conf/install_settings.txt
+
+cd ../relecov-iskylims
+bash install.sh --upgrade app --conf conf/install_settings.txt
+```
+
+Before upgrading, perform backups from [Backups](#backups).
+
+## Common operations (Docker + bare-metal)
+
+### Database creation, users and grants
+
+Run as MySQL root:
+
+```sql
+CREATE DATABASE IF NOT EXISTS relecov_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS iskylims_rel_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'relecov'@'%' IDENTIFIED BY 'djangopass';
+CREATE USER IF NOT EXISTS 'relecovlims'@'%' IDENTIFIED BY 'djangopass';
+
+CREATE USER IF NOT EXISTS 'relecov'@'localhost' IDENTIFIED BY 'djangopass';
+CREATE USER IF NOT EXISTS 'relecovlims'@'localhost' IDENTIFIED BY 'djangopass';
+
+GRANT ALL PRIVILEGES ON relecov_dev.* TO 'relecov'@'%';
+GRANT ALL PRIVILEGES ON relecov_dev.* TO 'relecov'@'localhost';
+
+GRANT ALL PRIVILEGES ON iskylims_rel_dev.* TO 'relecovlims'@'%';
+GRANT ALL PRIVILEGES ON iskylims_rel_dev.* TO 'relecovlims'@'localhost';
+
 FLUSH PRIVILEGES;
-EXIT;
-~~~
+```
 
-**Upload database backup (if applicable):**
-~~~bash
-sudo mysql -p relecov     < /path/to/relecov-platform_db.sql
-sudo mysql -p relecovlims < /path/to/relecov-iskylims_db.sql
-~~~
+Verification:
 
----
+```sql
+SHOW GRANTS FOR 'relecov'@'%';
+SHOW GRANTS FOR 'relecovlims'@'%';
+```
 
-# 4. Clone repositories
+### Backups
 
-Now that we have MySQL ready, we can begin installing the platform.
+Database dumps:
 
-**Clone the latest version of the code:**
-~~~bash
-git clone git@github.com:BU-ISCIII/relecov-platform.git
-git clone git@github.com:BU-ISCIII/iskylims.git
-~~~
+```bash
+mysqldump -h <db_host> -P <db_port> -u relecov -p relecov_dev > relecov_dev_$(date +%Y%m%d_%H%M%S).sql
+mysqldump -h <db_host> -P <db_port> -u relecovlims -p iskylims_rel_dev > iskylims_rel_dev_$(date +%Y%m%d_%H%M%S).sql
+```
 
-**Create deployment directories:**
-~~~bash
-cd /opt
-sudo mkdir relecov-platform
-sudo mkdir iskylims
-sudo chown -R root:www-data iskylims
-sudo chown -R dadmin:apache iskylims
-sudo chmod 2775 iskylims
-~~~
+RELECOV logs (host bind path used by production compose):
 
----
+```bash
+tar -czf relecov_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apps/relecov-platform .
+```
 
-# 5. Configuration – `install_settings.txt`
+Docker/Podman named volumes (documents + nextstrain datasets):
 
-**Copy the configuration template (relecov-platform):**
-~~~bash
-cp relecov_platform/conf/template_install_settings.txt relecov_platform/install_settings.txt
-~~~
+```bash
+# podman (replace with docker if needed)
+podman run --rm -v relecov_documents:/from -v "$PWD":/to alpine \
+  tar -czf /to/relecov_documents_$(date +%Y%m%d_%H%M%S).tgz -C /from .
 
-## 5.1 Edit `install_settings.txt` – *relecov-platform*
-~~~ini
-### Installation path
-INSTALL_PATH='/opt/relecov-platform'
-PROJECT_NAME='relecov_platform'
-REQUIRED_MODULES='core dashboard docs'
-MIGRATION_MODULES='core dashboard'
+podman run --rm -v nextstrain_data:/from -v "$PWD":/to alpine \
+  tar -czf /to/nextstrain_data_$(date +%Y%m%d_%H%M%S).tgz -C /from .
+```
 
-### (optional) Python installation path where pip and python executables are located
-PYTHON_BIN_PATH='/path/to/bin/python3'  # example: /usr/bin/python3
+Suggested backup order before any risky change:
 
-### Settings required to access database
-DB_USER='relecov_user'
-DB_PASS='relecov_user-password'  ## The One defined in the ddbb creation in 3.4.3
-DB_NAME='relecov'
-DB_SERVER_IP='mydatabaseip.isciii.es'  # 'localhost' si fuera solo para uso local
-DB_PORT='3306'                         # ejemplo
+1. DB dumps.
+2. Documents volume.
+3. Nextstrain datasets volume.
+4. Logs archive.
 
-### Settings required for accessing relecov-platform
-LOCAL_SERVER_IP='10.22.140.235'        # example: 172.0.0.1
-DNS_URL='relecov-platform.isciiides.es' # Dejarlo vacío si fuera solo para uso local
-SUPERUSER='admin'
+### Restore / rollback
 
-### Logs settings
-LOG_TYPE='symbolic_link'                # can be symbolic_link or regular_folder
-LOG_PATH='/var/log/apps/relecov-platform'  # obligatorio si LOG_TYPE='symbolic_link'
+Restore DB:
 
-# Check whether LOG_PATH exists; if not, create it.
-~~~
+```bash
+mysql -h <db_host> -P <db_port> -u relecov -p relecov_dev < relecov_dev_YYYYMMDD_HHMMSS.sql
+mysql -h <db_host> -P <db_port> -u relecovlims -p iskylims_rel_dev < iskylims_rel_dev_YYYYMMDD_HHMMSS.sql
+```
 
-## 5.2 Edit `install_settings.txt` – *relecov-iskylims*
-~~~ini
-### Installation path and modules settings
-INSTALL_PATH='/opt/iskylims'
-REQUIRED_MODULES='core drylab wetlab clinic django_utils'
-MIGRATION_MODULES='core drylab wetlab django_utils'
-FAKEINITIAL_MODULES='django_utils iSkyLIMS_core iSkyLIMS_wetlab iSkyLIMS_drylab'
+Restore volumes:
 
-### (optional) Python installation path where pip and python executables are located
-PYTHON_BIN_PATH='python3'  # example: /opt/python/3.9.6/bin/python3
+```bash
+podman run --rm -v relecov_documents:/to -v "$PWD":/from alpine \
+  sh -lc "cd /to && tar -xzf /from/relecov_documents_YYYYMMDD_HHMMSS.tgz"
 
-### Settings required to access database
-DB_USER='relecov_user'
-DB_PASS='relecov_user-password'  ## The One defined in the ddbb creation in 3.4.3
-DB_NAME='relecovlims'
-DB_SERVER_IP='mydatabaseip.isciii.es'   # 'localhost' si fuera solo para uso local
-DB_PORT='3306'                          # ejemplo
+podman run --rm -v nextstrain_data:/to -v "$PWD":/from alpine \
+  sh -lc "cd /to && tar -xzf /from/nextstrain_data_YYYYMMDD_HHMMSS.tgz"
+```
 
-### Settings required for sending emails
-EMAIL_HOST_SERVER='localhost'
-EMAIL_PORT='25'
-EMAIL_HOST_USER='bioinfo'
-EMAIL_HOST_PASSWORD=''
-EMAIL_USE_TLS='False'
+Restore logs archive:
 
-### Settings required for accessing relecov-platform
-LOCAL_SERVER_IP='10.22.140.235'         # example: 172.0.0.1
-DNS_URL='relecov-iskylims.isciiides.es' # '' si fuera solo para uso local
-SUPERUSER='admin'                        # name of the django superuser that will be created
+```bash
+sudo mkdir -p /var/log/local/apps/relecov-platform
+sudo tar -xzf relecov_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apps/relecov-platform
+```
 
-### Logs settings
-LOG_TYPE='symbolic_link'                 # can be symbolic_link or regular_folder
-LOG_PATH='/var/log/apps/relecov-iskylims'  # obligatorio si LOG_TYPE='symbolic_link'
+### What to do if something fails
 
-# Check whether LOG_PATH exists; if not, create it.
-~~~
+Quick checks:
 
----
+```bash
+podman ps -a
+podman logs --tail 200 relecov_app
+podman logs --tail 200 relecov_iskylims_app
+podman logs --tail 200 relecov_nextstrain
+```
 
-# 6. Installation and deployment
+If deployment is broken after migration or bad data load, rollback using [Restore / rollback](#restore--rollback).
 
-## 6.1 Instalation *relecov-platform*
+## Post-install configuration
 
-**With preloaded database:**
-~~~bash
-sudo bash install.sh --upgrade dep
-sudo bash install.sh --upgrade app
-~~~
+### RELECOV Platform
 
-**Full installation (without preloaded DB):**
-~~~bash
-sudo bash install.sh --install full
-~~~
+1. Create the admin/superuser if not already created.
+2. Load RELECOV schema:
+in `Configuration -> SchemaHandling`, upload the latest `relecov_schema.json`:
+`https://raw.githubusercontent.com/BU-ISCIII/relecov-tools/main/relecov_tools/schema/relecov_schema.json`
+3. Load annotation GFF:
+in `Configuration -> Annotation`, upload:
+`conf/NC_045512.2.gff`
+4. iSkyLIMS endpoint verification:
+in `/admin/core/configsetting/`, ensure `ISKYLIMS_SERVER` points to your iSkyLIMS service (for example `relecov-lims` in test, or your production hostname).
 
-## 6.2 Instalation *relecov-iskylims*
+### iSkyLIMS
 
-**With preloaded database:**
-~~~bash
-sudo bash install.sh --upgrade dep
-sudo bash install.sh --upgrade app
-~~~
+Pre-load RELECOV sample project data before normal usage:
 
-**Full installation (without preloaded DB):**
-~~~bash
-sudo bash install.sh --install full --conf install_settings.txt
-~~~
+```bash
+cd /opt/iskylims
+source virtualenv/bin/activate
+python manage.py migrate --noinput
+python manage.py loaddata /path/to/relecov_iskylims_projects.json
+```
 
-## 6.3 Local deployment
+If you need to generate that fixture from an existing environment:
 
-~~~bash
-source activate env/bin/activate
-~~~
+```bash
+cd /opt/iskylims
+source virtualenv/bin/activate
+python manage.py dumpdata --indent 2 core.SampleProjects > ~/relecov_iskylims_test_data.json
+```
 
-**RELECOV-PLATFORM:**
-~~~bash
-./manage.py runserver 8000
-~~~
+Then configure RELECOV in iSkyLIMS:
 
-**RELECOV-ISKYLIMS:**
-~~~bash
-./manage.py runserver 8001
-~~~
+1. Create `relecovbot` in `/admin/auth/user/` and assign required permissions/groups for your integration flows.
+2. Go to WetLab (`/wetlab`) and open:
+`PARAMETERS SETTINGS -> Define Sample projects`.
+3. If the project does not exist, create one including `RELECOV` in the name and set the manager (for example `isabel.cuesta` in your environment).
+4. In that RELECOV project:
+`Define fields -> Load batch`, then set:
+- `upload schema`: `relecov_schema.json`
+- `Property where to fetch fields`: `classification`
+- select classifications to import:
+  - Database Identifiers
+  - Files info
+  - Host information
+  - Pathogen diagnostic testing
+  - Sample collection and processing
+  - Sequencing
+5. Configure ontology mapping in `/admin/core/ontologymap/`:
+- `lab_request` -> `GENEPIO:0001153` (submitting_institution)
+- `species` -> `GENEPIO:0001386` (Organism)
+- `sample_name` -> `GENEPIO:0001123` (sequencing_sample_id)
+- `sample_entry_date` -> `NCIT:C93644` (received_date)
+- `collection_sample_date` -> `GENEPIO:0001174` (sample_collection_date)
+6. Define species in:
+`PARAMETERS SETTINGS -> Initial Settings -> Define new Specie`.
+Add all enum values used by your schema for `Organism` (or the ontology-mapped equivalent), for example:
+- Severe acute respiratory syndrome coronavirus 2
+- Respiratory syncytial virus
+- Influenza virus
+7. Ensure `wetlab` app assignment is enabled for the related flow.
 
----
+### Smoke test
 
-## 6.4 Deployment in development server
+Recommended endpoint checks:
 
-On the development server, run basic hardening and restart Apache:
+```bash
+curl -I http://<host>:8000
+curl -I http://<host>:8001
+curl -I http://<host>:8100
+```
 
-~~~bash
-# 1) Server hardening
-sudo /scripts/hardening.sh
+## Developer workflow
 
-# 2) Restart the web service (apache)
-sudo systemctl restart httpd
-~~~
+### Migrations
 
-# 7. Post-installation data upload
+Create and review migrations locally, then commit migration files:
 
-Once we have both platforms deployed, we can proceed with the post-installation configuration files directly from the web.
-
-## 7.1 Post-installation files – *Relecov-Platform*
-
-- **Loading `relecov_schema.json`**  
-  In *Configuration → SchemaHandling* of the new deployment, it is possible to attach the latest version of [`relecov_schema.json`](https://raw.githubusercontent.com/BU-ISCIII/relecov-tools/main/relecov_tools/schema/relecov_schema.json).
-
-- **Loading the Annotation GFF**
-In *Configuration → Annotation* of the new deployment, it is possible to attach the [`GFF`](https://github.com/BU-ISCIII/relecov-platform/blob/develop/conf/NC_045512.2.gff) file.
-- **iSkyLIMS verification**
-In the admin panel of the new deployment, verify that `ISKYLIMS_SERVER` in `/admin/core/configsetting/` points to `relecov-lims`.
-
-## 7.2 Post-installation files – *Relecov-Iskylims*
-
-- Create **relecovbot** as a user in the admin panel: `/admin/auth/user/`.
-
-### Configure the RELECOV scheme in iSkyLIMS (via web interface)
-
-1. **URL for accessing the WetLab module** (adjust to your environment):  
-   `http://----/wetlab` (or equivalent).
-
-2. **Access**  
-   Log in to `…/wetlab` with your iSkyLIMS username.
-
-3. **Navigation**  
-   Go to: **PARAMETERS SETTINGS → Define Sample projects**.
-
-4. **Create (or locate) the RELECOV project**  
-   - If it does not exist, click **Add** and create a project that includes **‘RELECOV’** in the name.  
-   - In **Manager**, select **isabel.cuesta** (or the manager defined for your installation).  
-   - Save the changes.
-
-5. **Cargar campos desde el esquema («Load batch»)**  
-   - Dentro del proyecto RELECOV: **Define fields → Load batch**  
-   - **Upload schema**: seleccionar el archivo `relecov_schema.json`.  
-   - **Property where to fetch fields**: `classification`  
-   - **Seleccionar los valores que se van a filtrar** (deben coincidir con las *Classification* del esquema que quieras cargar). Marca:
-     - Identificadores de la base de datos
-     - Información de los archivos
-     - Información del host
-     - Pruebas de diagnóstico de patógenos
-     - Recogida y procesamiento de muestras
-     - Secuenciación  
-   - Confirmar y guardar.
-
-6. **Ontologymap (variable mapping)**  
-   Configure the relationships between iSkyLIMS variables to map based on the schema ontology. Go to:  
-   `http://…./admin/core/ontologymap/` and adjust, for example:
-   - `sample_type` → `SNOMED:703065002`
-   - `lab_request` → `GENEPIO:0001159` (submitting_institution)
-   - `species` → `SNOMED:410607006` (Organism)
-   - `sample_name` → `GENEPIO:0000079` (sequencing_sample_id)
-   - `sample_entry_date` → `SNOMED:281271004` (received_date)
-   - `collection_sample_date` → `SNOMED:399445004` (sample_collection_date)
-
-7. **Define *Species***  
-   Register the different organisms in the schema at `http://…./admin/core/species/`:
-
-   - *Severe acute respiratory syndrome coronavirus 2*
-   - *Respiratory syncytial virus*
-   - *Influenza virus*
-
-8. **Apply ‘wetlab’**  
-   In the **Apps name** section, select **wetlab**.
-
----
-
-# 8. Developer workflow: migrations
-
-When you modify any Django model (for example in `core/models.py` or `dashboard/models.py`), create and commit migration files in this repository.
-
-Commands:
-~~~bash
+```bash
 cd /opt/relecov-platform
 source virtualenv/bin/activate
 
-# Generate migrations only for the project apps
-python manage.py makemigrations core dashboard docs
+python manage.py makemigrations core dashboard
+python manage.py migrate --noinput
+python manage.py showmigrations core dashboard
+```
 
-# Validate they apply cleanly
-python manage.py migrate --plan
-python manage.py migrate
+Do not rely on runtime auto-generation of migrations in production.
 
-# Review generated files
-git status
-~~~
+### Container-based development loop
 
-Commit the generated files under each app `migrations/` folder (for example `core/migrations/` and `dashboard/migrations/`).
+```bash
+# bring stack down (keep volumes)
+podman-compose -f docker-compose.test.yml down
 
-Do not rely on `install.sh` to generate migrations automatically in production/test deployments.
+# rebuild changed services
+podman-compose -f docker-compose.test.yml build app iskylims_app
+
+# start again
+podman-compose -f docker-compose.test.yml up -d
+```
+
+### Useful diagnostics
+
+```bash
+podman exec -it relecov_test_app python /opt/relecov-platform/manage.py check
+podman exec -it relecov_test_iskylims_app python /opt/iskylims/manage.py check
+podman volume ls | grep -E 'relecov|nextstrain'
+```
