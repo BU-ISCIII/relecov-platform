@@ -13,6 +13,7 @@ django-markdownx==4.0.7
 django-plotly-dash==2.4.5
 djangorestframework==3.15.2
 drf-spectacular==0.27.2
+gunicorn==21.2.0
 jsonpointer==3.0.0
 Markdown==3.7
 mod-wsgi==5.0.0
