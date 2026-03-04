@@ -135,9 +135,8 @@ STATICFILES_FINDERS = [
 ]
 
 PLOTLY_COMPONENTS = [
-    "dash_core_components",
-    "dash_html_components",
-    "dash_renderer",
+    "dash.dcc",
+    "dash.html",
     "dpd_components",
     # Other components, as needed
     # "dash_bootstrap_components",
