@@ -1,11 +1,11 @@
 channels==4.1.0
 channels-redis==4.2.0
-cryptography==41.0.5
+cryptography==46.0.5
 dash==2.18.2
 dash-bio==1.0.2
 dash-bootstrap-components==1.7.1
 dash-daq==0.5.0
-Django==5.1.6
+Django==5.2.12
 django-cleanup==9.0.0
 django-extensions==3.2.3
 django-markdownx==4.0.7
@@ -19,7 +19,7 @@ mod-wsgi==5.0.0
 mysqlclient==2.2.4
 numpy==2.1.0
 pandas==2.2.2
-relecov-tools>=1.4.0
+relecov-tools>=1.8.0
 xlrd==1.2.0
 folium==0.19.4
 django-crontab==0.7.1
