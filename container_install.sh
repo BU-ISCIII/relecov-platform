@@ -275,6 +275,14 @@ default_service_install_conf() {
     esac
 }
 
+service_build_context_dir() {
+    case "$1" in
+        app) echo "$repo_root" ;;
+        iskylims_app) echo "$repo_root/../relecov-iskylims" ;;
+        *) echo "$repo_root" ;;
+    esac
+}
+
 service_is_install_target() {
     local wanted="$1"
     local s
@@ -289,9 +297,16 @@ service_is_install_target() {
 prepare_service_conf() {
     local svc="$1"
     local conf_value="$2"
+    local service_context_dir=""
     local host_path="$conf_value"
     local resolved_path="$conf_value"
     local temp_path=""
+
+    service_context_dir="$(service_build_context_dir "$svc")"
+    if [ ! -d "$service_context_dir" ]; then
+        echo "Build context directory '$service_context_dir' for service '$svc' not found"
+        exit 1
+    fi
 
     if [[ "$resolved_path" != /* ]]; then
         host_path="$repo_root/$resolved_path"
@@ -304,16 +319,16 @@ prepare_service_conf() {
         exit 1
     fi
 
-    if [[ "$host_path" = /* ]] && [[ "$host_path" != "$repo_root/"* ]]; then
-        temp_path="$repo_root/.tmp_docker_install_conf_${svc}_$$.txt"
+    if [[ "$host_path" = /* ]] && [[ "$host_path" != "$service_context_dir/"* ]]; then
+        temp_path="$service_context_dir/.tmp_docker_install_conf_${svc}_$$.txt"
         echo "Copying $host_path into temporary file $temp_path for service '$svc'."
         cp "$host_path" "$temp_path"
         host_path="$temp_path"
         temp_install_conf_files+=("$temp_path")
     fi
 
-    if [[ "$host_path" = "$repo_root/"* ]]; then
-        install_conf_container="${host_path#$repo_root/}"
+    if [[ "$host_path" = "$service_context_dir/"* ]]; then
+        install_conf_container="${host_path#$service_context_dir/}"
     else
         install_conf_container="$host_path"
     fi
