@@ -90,15 +90,11 @@ def create_samples_received_map():
         ),
     ).add_to(m)
 
-    m.get_root().html.add_child(
-        folium.Element(
-            """
+    m.get_root().html.add_child(folium.Element("""
     <style>
         .leaflet-interactive:focus { outline: none !important; box-shadow: none !important; }
     </style>
-    """
-        )
-    )
+    """))
 
     # Generar el HTML del mapa
     map_html = m.get_root().render()

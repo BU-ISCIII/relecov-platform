@@ -6,7 +6,6 @@ from django.urls import include, path
 # Local imports
 import dashboard.views
 
-
 urlpatterns = [
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
     # Methodology graphics

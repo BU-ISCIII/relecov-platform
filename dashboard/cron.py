@@ -3,7 +3,6 @@ import inspect
 from datetime import datetime
 from collections import defaultdict
 
-
 # Local imports
 import core.models
 import dashboard.models

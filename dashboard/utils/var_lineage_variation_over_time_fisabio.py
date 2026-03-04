@@ -3,6 +3,7 @@
 """
 Generate lineage variation over time plot with data selection
 """
+
 # ---------------------------------------------------------------
 __author__ = "Alejandro Sanz-Carbonell (FISABIO - RELECOV)"
 __credits__ = ["Alejandro Sanz-Carbonel"]

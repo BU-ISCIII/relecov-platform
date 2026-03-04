@@ -1,7 +1,6 @@
 # Local imports
 import dashboard.models
 
-
 """
 def get_graphic_in_data_frame(graphic_name):
     Collect the pre-processed data from database and return in panda's
