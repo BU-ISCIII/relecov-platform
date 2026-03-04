@@ -45,6 +45,6 @@ fi
 
 exec gunicorn "${PROJECT_MODULE}.wsgi:application" \
     --bind "0.0.0.0:${APP_PORT}" \
-    --workers 3 \
-    --threads 2 \
+    --workers 1 \
+    --threads 1 \
     --timeout 120
