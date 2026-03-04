@@ -9,6 +9,8 @@ RELECOV Platform deployment guide (containers and bare-metal), including iSkyLIM
   - [Docker deployment](#docker-deployment)
     - [Local test stack](#local-test-stack)
     - [Production container stack](#production-container-stack)
+      - [Persist logs/documents on the host](#persist-logsdocuments-on-the-host)
+      - [Apache reverse proxy (host)](#apache-reverse-proxy-host)
     - [Upgrade docker deployment](#upgrade-docker-deployment)
   - [Bare-metal deployment (Ubuntu/CentOS)](#bare-metal-deployment-ubuntucentos)
     - [Install](#install)
@@ -25,6 +27,7 @@ RELECOV Platform deployment guide (containers and bare-metal), including iSkyLIM
   - [Developer workflow](#developer-workflow)
     - [Migrations](#migrations)
     - [Container-based development loop](#container-based-development-loop)
+    - [Persistent host paths](#persistent-host-paths)
     - [Useful diagnostics](#useful-diagnostics)
 
 ## Get the code (required)
@@ -125,6 +128,45 @@ bash container_install.sh --engine podman \
 - RELECOV Platform: `http://<host>:8000`
 - iSkyLIMS: `http://<host>:8001`
 - Nextstrain: `http://<host>:8100`
+
+#### Persist logs/documents on the host
+
+For production container deployments, keep these paths persistent:
+
+- Logs: `/var/log/local/apps/relecov-platform` -> `/opt/relecov-platform/logs`
+- Documents: named volume `relecov_documents` -> `/opt/relecov-platform/documents`
+- Static: `/opt/relecov-platform/static-host` -> `/opt/relecov-platform/static`
+
+Prepare host directories and ownership:
+
+```bash
+sudo mkdir -p /var/log/local/apps/relecov-platform
+sudo mkdir -p /opt/relecov-platform/static-host
+sudo chown -R ${APP_UID:-1212}:${APP_GID:-1212} /var/log/local/apps/relecov-platform /opt/relecov-platform/static-host
+```
+
+#### Apache reverse proxy (host)
+
+For production, host Apache can proxy the platform container on `localhost:8000`.
+
+You can use the existing Apache templates in this repository:
+
+- Ubuntu/Debian: `conf/relecov_apache_ubuntu.conf`
+- CentOS/RHEL: `conf/relecov_apache_centos_redhat.conf`
+
+Copy and enable (adapt paths/domain names to your environment):
+
+```bash
+# Ubuntu/Debian
+sudo cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/relecov-platform.conf
+sudo a2ensite relecov-platform.conf
+sudo a2enmod proxy proxy_http headers rewrite
+sudo systemctl reload apache2
+
+# CentOS/RHEL
+sudo cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
+sudo systemctl reload httpd
+```
 
 ### Upgrade docker deployment
 
@@ -379,6 +421,10 @@ podman-compose -f docker-compose.test.yml build app iskylims_app
 # start again
 podman-compose -f docker-compose.test.yml up -d
 ```
+
+### Persistent host paths
+
+See [Persist logs/documents on the host](#persist-logsdocuments-on-the-host) in the production deployment section.
 
 ### Useful diagnostics
 
