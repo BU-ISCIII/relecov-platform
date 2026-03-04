@@ -41,7 +41,7 @@ iSkyLIMS is required for the integrated platform stack:
 
 ```bash
 cd ..
-git clone https://github.com/bu-isciii/relecov-iskylims.git
+git clone https://github.com/bu-isciii/iskylims.git relecov-iskylims
 ```
 
 ## Choose your path
