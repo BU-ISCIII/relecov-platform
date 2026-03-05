@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-ISKYLIMS_VERSION="3.1.0"
+RELECOVPLATFORM_VERSION="1.0.0"
 
 usage() {
 cat << EOF
