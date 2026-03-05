@@ -340,11 +340,7 @@ install_system_packages() {
     fi
 
     if command -v lsb_release >/dev/null 2>&1; then
-        if command -v lsb_release >/dev/null 2>&1; then
             linux_distribution=$(lsb_release -i | cut -f 2-)
-        else
-            linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
-        fi
     else
         linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
     fi
