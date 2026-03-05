@@ -697,7 +697,6 @@ do
         --script)       set -- "$@" -s ;;
         --script_before) set -- "$@" -p ;;
         --script_after) set -- "$@" -o ;;
-        --script_prev)  set -- "$@" -p ;;
         --tables)       set -- "$@" -t ;;
         --skip_tables)  set -- "$@" -b ;;
         --git_revision) set -- "$@" -g ;;
