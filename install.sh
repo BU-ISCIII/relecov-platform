@@ -448,7 +448,7 @@ setup_virtualenv() {
             echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
             read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
             echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+            if [[ $REPLY =~ ^[Yy]$ ]] ; then
                 rm -rf $INSTALL_PATH/virtualenv
                 bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
             else
