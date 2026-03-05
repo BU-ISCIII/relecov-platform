@@ -10,7 +10,13 @@ APP_MODE="${APP_MODE:-prod}"
 APP_PORT="${APP_PORT:-8000}"
 PROJECT_MODULE="${PROJECT_MODULE:-relecov_platform}"
 
+WAIT_TIMEOUT_SECONDS=100
+wait_start="${SECONDS}"
 while [ ! -f "${APP_DIR}/manage.py" ]; do
+    if (( SECONDS - wait_start >= WAIT_TIMEOUT_SECONDS )); then
+        echo "Timed out after ${WAIT_TIMEOUT_SECONDS}s waiting for ${APP_DIR}/manage.py" >&2
+        exit 1
+    fi
     sleep 2
 done
 
