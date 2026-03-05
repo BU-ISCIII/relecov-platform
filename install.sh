@@ -738,7 +738,7 @@ while getopts $options opt; do
                 install_type=$OPTARG
                 upgrade_type=$OPTARG
             else
-                echo "Upgrade is not set to one valid option. Use: --upgrade full/app/dep"
+                echo "Install is not set to one valid option. Use: --install full/app/dep"
                 exit 1
             fi
             ;;
