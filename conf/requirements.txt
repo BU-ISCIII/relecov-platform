@@ -14,7 +14,7 @@ djangorestframework==3.15.2
 drf-spectacular==0.27.2
 gunicorn==21.2.0
 jsonpointer==3.0.0
-Markdown==3.7
+Markdown==3.8.1
 mod-wsgi==5.0.0
 mysqlclient==2.2.4
 numpy==2.1.0
