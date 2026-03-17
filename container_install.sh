@@ -9,7 +9,7 @@ This script installs and upgrades the iskylims app.
 Usage : $0 [--demo_data] [--git_revision] [--compose_file] [--install_conf] [--action] [--script] [--script_before] [--script_after] [--engine] [--test]
     Optional input data:
     --demo_data         | Provide already downloaded demo data from Zenodo
-    --git_revision      | Specify the Git revision to install (default: main)
+    --git_revision      | Specify the Git revision to install (default: main, or 'current' to use copied local sources)
     --compose_file      | Compose file to use (overrides default)
     --install_conf      | Settings file consumed during container image build (mandatory for production)
     --install_conf_map  | Service-specific settings file: service,path (can be repeated)
@@ -35,8 +35,8 @@ Examples:
     Install demo container system with local services
     bash $0 --test
 
-    Install test with explicit per-service settings:
-    bash $0 --test --install_conf_map app,conf/docker_test_platform_settings.txt --install_conf_map iskylims_app,conf/docker_test_iskylims_settings.txt
+    Install test stack from current local committed sources without checking out a branch in-container
+    bash $0 --test --git_revision current
 
     Provide already downloaded data from Zenodo (compressed) for test environment
     bash $0 --demo_data /path/to/iskylims_demo_data.tar.gz
@@ -250,6 +250,10 @@ temp_install_conf_files=()
 declare -A service_install_conf_input=()
 declare -A install_conf_host_by_service=()
 declare -A install_conf_container_by_service=()
+declare -A local_head_hash_by_service=()
+declare -A local_head_short_by_service=()
+declare -A image_id_before_by_service=()
+declare -A image_id_after_by_service=()
 install_services=("iskylims_app" "app")
 
 cleanup_temp_confs() {
@@ -484,6 +488,96 @@ service_install_path() {
     esac
 }
 
+compose_service_image_id() {
+    compose_exec -f "$compose_file" images -q "$1" 2>/dev/null | tail -n 1
+}
+
+print_local_source_diagnostics() {
+    local service_name="$1"
+    local service_context_dir=""
+    service_context_dir="$(service_build_context_dir "$service_name")"
+
+    echo "Local source diagnostics for $service_name:"
+    if command -v git >/dev/null 2>&1 && git -C "$service_context_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        local_head_hash_by_service["$service_name"]="$(git -C "$service_context_dir" rev-parse HEAD)"
+        local_head_short_by_service["$service_name"]="$(git -C "$service_context_dir" rev-parse --short HEAD)"
+        echo "  local HEAD: $(git -C "$service_context_dir" log -1 --oneline)"
+        echo "  local HEAD hash: ${local_head_hash_by_service[$service_name]}"
+    else
+        echo "  local git metadata unavailable"
+    fi
+}
+
+print_existing_artifact_diagnostics() {
+    local service_name="$1"
+    echo "Image diagnostics before build for $service_name:"
+    image_id_before_by_service["$service_name"]="$(compose_service_image_id "$service_name")"
+    if [ -n "${image_id_before_by_service[$service_name]}" ]; then
+        echo "  image before build: ${image_id_before_by_service[$service_name]}"
+    else
+        echo "  image before build: none"
+    fi
+}
+
+print_service_image_after_build() {
+    local service_name="$1"
+    local previous_id="${image_id_before_by_service[$service_name]}"
+    echo "Image diagnostics after build for $service_name:"
+    image_id_after_by_service["$service_name"]="$(compose_service_image_id "$service_name")"
+    if [ -n "${image_id_after_by_service[$service_name]}" ]; then
+        echo "  image after build: ${image_id_after_by_service[$service_name]}"
+        if [ -n "$previous_id" ] && [ "$previous_id" = "${image_id_after_by_service[$service_name]}" ]; then
+            echo "  image id check: unchanged"
+        elif [ -n "$previous_id" ] && [ "$previous_id" != "${image_id_after_by_service[$service_name]}" ]; then
+            echo "  image id check: changed"
+        else
+            echo "  image id check: created"
+        fi
+    else
+        echo "  image after build: not found"
+    fi
+}
+
+print_container_source_diagnostics() {
+    local service_name="$1"
+    local service_container="$2"
+    local label="$3"
+    local service_repo=""
+    local container_repo_head_hash=""
+    local container_repo_head_short=""
+
+    service_repo="$(service_repo_path "$service_name")"
+    echo "$label"
+    container_repo_head_hash="$(engine_exec exec "$service_container" sh -lc "
+        if [ -d '$service_repo/.git' ]; then
+            cd '$service_repo' && git rev-parse HEAD
+        fi
+    " 2>/dev/null | tail -n 1)"
+    container_repo_head_short="$(engine_exec exec "$service_container" sh -lc "
+        if [ -d '$service_repo/.git' ]; then
+            cd '$service_repo' && git rev-parse --short HEAD
+        fi
+    " 2>/dev/null | tail -n 1)"
+    if [ -n "$container_repo_head_hash" ]; then
+        echo "  container /srv HEAD hash: $container_repo_head_hash"
+    fi
+    if [ -n "${local_head_hash_by_service[$service_name]}" ] && [ -n "$container_repo_head_hash" ]; then
+        if [ "${local_head_hash_by_service[$service_name]}" = "$container_repo_head_hash" ]; then
+            echo "  HEAD check: OK local=${local_head_short_by_service[$service_name]} container=$container_repo_head_short"
+        else
+            echo "  HEAD check: MISMATCH local=${local_head_short_by_service[$service_name]} container=$container_repo_head_short"
+        fi
+    fi
+    engine_exec exec "$service_container" sh -lc "
+        echo '  $service_repo HEAD:'
+        if [ -d '$service_repo/.git' ]; then
+            cd '$service_repo' && git log -1 --oneline
+        else
+            echo 'not a git checkout'
+        fi
+    " || true
+}
+
 # Remove stale test containers left over from previous runs.
 #
 # This function will only be executed in "test" mode when the engine is "podman".
@@ -523,6 +617,8 @@ echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep a
 for target_service in "${install_services[@]}"; do
     if service_exists "$target_service"; then
         service_install_conf="${install_conf_container_by_service[$target_service]}"
+        print_local_source_diagnostics "$target_service"
+        print_existing_artifact_diagnostics "$target_service"
         echo "Building $target_service with INSTALL_CONF=$service_install_conf"
         INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$service_install_conf" \
             compose_exec -f "$compose_file" build --no-cache \
@@ -530,6 +626,7 @@ for target_service in "${install_services[@]}"; do
             --build-arg GIT_REVISION="$git_revision" \
             --build-arg INSTALL_CONF="$service_install_conf" \
             "$target_service"
+        print_service_image_after_build "$target_service"
     fi
 done
 compose_exec -f "$compose_file" up -d
@@ -564,6 +661,7 @@ for target_service in "${install_services[@]}"; do
         exit 1
     fi
     ensure_service_running "$target_service" "$target_container"
+    print_container_source_diagnostics "$target_service" "$target_container" "Container diagnostics after startup for $target_service:"
     target_repo_path="$(service_repo_path "$target_service")"
     target_install_path="$(service_install_path "$target_service")"
 
@@ -593,6 +691,8 @@ for target_service in "${install_services[@]}"; do
         echo "Running install.sh install in $target_service"
         engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --install app --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
     fi
+
+    print_container_source_diagnostics "$target_service" "$target_container" "Container diagnostics after install.sh for $target_service:"
 
     if ! engine_exec exec -it "$target_container" test -f "$target_install_path/manage.py"; then
         echo "Error: $target_install_path/manage.py not found after install.sh for service $target_service. Showing logs:"
@@ -626,6 +726,14 @@ if [ "$installed_iskylims" = true ] && [ "$skip_demo_data" = false ] && service_
     fi
     engine_exec cp "$demo_data" samba:/mnt
     engine_exec exec -it samba tar -xf /mnt/iskylims_demo_data.tar.gz -C /mnt
+    engine_exec exec -it samba sh -lc '
+        for root in /mnt/test_ngs_data /mnt/Runs; do
+            if [ -d "$root" ]; then
+                find "$root" -type d -exec chmod o+rx {} +
+                find "$root" -type f -exec chmod o+r {} +
+            fi
+        done
+    '
 
     echo "Deleting compressed test file"
     engine_exec exec -it samba rm /mnt/iskylims_demo_data.tar.gz
