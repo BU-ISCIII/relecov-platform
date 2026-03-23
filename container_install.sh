@@ -250,6 +250,7 @@ temp_install_conf_files=()
 declare -A service_install_conf_input=()
 declare -A install_conf_host_by_service=()
 declare -A install_conf_container_by_service=()
+declare -A install_path_by_service=()
 declare -A local_head_hash_by_service=()
 declare -A local_head_short_by_service=()
 declare -A image_id_before_by_service=()
@@ -265,6 +266,12 @@ cleanup_temp_confs() {
     done
 }
 trap cleanup_temp_confs EXIT
+
+read_install_conf_value() {
+    local key="$1"
+    local file="$2"
+    grep -E "^${key}=" "$file" | tail -n 1 | cut -d= -f2- | sed "s/^['\"]//;s/['\"]$//"
+}
 
 default_service_install_conf() {
     case "$1" in
@@ -334,6 +341,17 @@ prepare_service_conf() {
 
     install_conf_host_by_service["$svc"]="$host_path"
     install_conf_container_by_service["$svc"]="$install_conf_container"
+    case "$svc" in
+        app)
+            install_path_by_service["$svc"]="${APP_INSTALL_PATH:-$(read_install_conf_value "INSTALL_PATH" "$host_path")}"
+            if [ -z "${install_path_by_service[$svc]}" ]; then
+                install_path_by_service["$svc"]="/opt/relecov-platform"
+            fi
+            ;;
+        iskylims_app)
+            install_path_by_service["$svc"]="/opt/iskylims"
+            ;;
+    esac
 }
 
 for map_entry in "${install_conf_map_entries[@]}"; do
@@ -482,8 +500,8 @@ service_repo_path() {
 
 service_install_path() {
     case "$1" in
-        iskylims_app) echo "/opt/iskylims" ;;
-        app) echo "/opt/relecov-platform" ;;
+        iskylims_app) echo "${install_path_by_service[$1]:-/opt/iskylims}" ;;
+        app) echo "${install_path_by_service[$1]:-/opt/relecov-platform}" ;;
         *) echo "Error: unknown service '$1'" >&2; exit 1 ;;
     esac
 }
@@ -614,22 +632,33 @@ cleanup_stale_test_containers() {
 cleanup_stale_test_containers
 
 echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep and GIT_REVISION=$git_revision..."
+platform_install_path="$(service_install_path "app")"
+if service_exists "apache"; then
+    mkdir -p "$platform_install_path/conf" "$platform_install_path/logs/apache"
+    if [ -f "$repo_root/conf/relecov_apache_reverse_proxy.conf" ]; then
+        sed "s#__APP_INSTALL_PATH__#${platform_install_path}#g" \
+            "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
+            > "$platform_install_path/conf/relecov_apache_reverse_proxy.conf"
+    fi
+fi
 for target_service in "${install_services[@]}"; do
     if service_exists "$target_service"; then
         service_install_conf="${install_conf_container_by_service[$target_service]}"
+        target_install_path="$(service_install_path "$target_service")"
         print_local_source_diagnostics "$target_service"
         print_existing_artifact_diagnostics "$target_service"
         echo "Building $target_service with INSTALL_CONF=$service_install_conf"
-        INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$service_install_conf" \
+        INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$service_install_conf" APP_INSTALL_PATH="$target_install_path" \
             compose_exec -f "$compose_file" build --no-cache \
             --build-arg INSTALL_TYPE="dep" \
             --build-arg GIT_REVISION="$git_revision" \
             --build-arg INSTALL_CONF="$service_install_conf" \
+            --build-arg APP_INSTALL_PATH="$target_install_path" \
             "$target_service"
         print_service_image_after_build "$target_service"
     fi
 done
-compose_exec -f "$compose_file" up -d
+APP_INSTALL_PATH="$platform_install_path" compose_exec -f "$compose_file" up -d
 
 echo "Waiting 20 seconds for starting database and web services..."
 sleep 20

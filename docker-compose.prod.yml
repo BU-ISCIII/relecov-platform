@@ -1,18 +1,47 @@
 services:
+  apache:
+    container_name: relecov_apache
+    restart: unless-stopped
+    image: registry.access.redhat.com/ubi9/httpd-24
+    depends_on:
+      - app
+    ports:
+      - "8000:8000"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+      - ${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/relecov.conf:Z,ro
+      - ${APP_INSTALL_PATH:-/opt/relecov-platform}/logs/apache:/var/log/httpd:Z
+      - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:Z,ro
+      - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:Z,ro
+    networks:
+      - relecov_net
+
   app:
     build:
       context: .
       args:
-        INSTALL_TYPE: full
-        GIT_REVISION: develop
+        INSTALL_TYPE: ${INSTALL_TYPE:-full}
+        GIT_REVISION: ${GIT_REVISION:-develop}
+        INSTALL_CONF: ${INSTALL_CONF:-conf/docker_production_settings.txt}
+        APP_UID: ${APP_UID:-1212}
+        APP_GID: ${APP_GID:-1212}
+        APP_SHELL: ${APP_SHELL:-/sbin/nologin}
+        APP_INSTALL_PATH: ${APP_INSTALL_PATH:-/opt/relecov-platform}
     container_name: relecov_app
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: relecov_platform.settings
+      APP_MODE: prod
+      APP_PORT: 8000
+      APP_INSTALL_PATH: ${APP_INSTALL_PATH:-/opt/relecov-platform}
+    user: "${APP_UID:-1212}:${APP_GID:-1212}"
     volumes:
-      - /var/log/local/apps/relecov-platform:/opt/relecov-platform/logs:Z
-      - relecov_documents:/opt/relecov-platform/documents
-      - /opt/relecov-platform/static-host:/opt/relecov-platform/static:Z
+      - /var/log/local/apps/relecov-platform:${APP_INSTALL_PATH:-/opt/relecov-platform}/logs:Z
+      - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents
+      - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     extra_hosts:
@@ -63,3 +92,4 @@ networks:
 volumes:
   nextstrain_data:
   relecov_documents:
+  relecov_static:
