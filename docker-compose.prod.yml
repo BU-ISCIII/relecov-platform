@@ -5,15 +5,19 @@ services:
     image: registry.access.redhat.com/ubi9/httpd-24
     depends_on:
       - app
+      - nextstrain
+      - iskylims_app
     ports:
-      - "8000:8000"
+      - "8090:8080"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-      - ${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/relecov.conf:Z,ro
-      - ${APP_INSTALL_PATH:-/opt/relecov-platform}/logs/apache:/var/log/httpd:Z
-      - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:Z,ro
-      - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:Z,ro
+      - /opt/relecov-platform/conf/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/relecov.conf:Z,ro
+      - relecov_apache_logs:/var/log/httpd:Z
+      - relecov_static:/opt/relecov-platform/static:z,ro
+      - relecov_documents:/opt/relecov-platform/documents:z,ro
+      - iskylims_static:/opt/iskylims/static:z,ro
+      - iskylims_documents:/opt/iskylims/documents:z,ro
     networks:
       - relecov_net
 
@@ -22,7 +26,7 @@ services:
       context: .
       args:
         INSTALL_TYPE: ${INSTALL_TYPE:-full}
-        GIT_REVISION: ${GIT_REVISION:-develop}
+        GIT_REVISION: ${GIT_REVISION:-current}
         INSTALL_CONF: ${INSTALL_CONF:-conf/docker_production_settings.txt}
         APP_UID: ${APP_UID:-1212}
         APP_GID: ${APP_GID:-1212}
@@ -38,14 +42,14 @@ services:
       APP_PORT: 8000
       APP_INSTALL_PATH: ${APP_INSTALL_PATH:-/opt/relecov-platform}
     user: "${APP_UID:-1212}:${APP_GID:-1212}"
-    volumes:
-      - /var/log/local/apps/relecov-platform:${APP_INSTALL_PATH:-/opt/relecov-platform}/logs:Z
-      - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents
-      - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:Z
-      - /etc/localtime:/etc/localtime:ro
-      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/log/local/apps/relecov-platform:/opt/relecov-platform/logs:Z
+      - relecov_documents:/opt/relecov-platform/documents:z
+      - relecov_static:/opt/relecov-platform/static:z
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
       - relecov_net
 
@@ -58,8 +62,8 @@ services:
       - nextstrain_data:/data
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-    ports:
-      - "8100:8100"
+    expose:
+      - "8100"
     networks:
       - relecov_net
 
@@ -68,17 +72,17 @@ services:
       context: ../relecov-iskylims
       args:
         INSTALL_TYPE: full
-        GIT_REVISION: develop
+        GIT_REVISION: ${ISKYLIMS_GIT_REVISION:-current}
     container_name: relecov_iskylims_app
     restart: unless-stopped
-    environment:
-      DB_HOST: host.docker.internal
-      DB_PORT: 3306
-    ports:
-      - "8001:8001"
+    expose:
+      - "8001"
     volumes:
+      - /var/log/local/apps/relecov-iskylims:/opt/iskylims/logs:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+      - iskylims_static:/opt/iskylims/static:z
+      - iskylims_documents:/opt/iskylims/documents:z
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -91,5 +95,8 @@ networks:
 
 volumes:
   nextstrain_data:
-  relecov_documents:
   relecov_static:
+  relecov_documents:
+  relecov_apache_logs:
+  iskylims_documents:
+  iskylims_static:
