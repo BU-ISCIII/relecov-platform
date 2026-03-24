@@ -636,9 +636,8 @@ platform_install_path="$(service_install_path "app")"
 if service_exists "apache"; then
     mkdir -p "$platform_install_path/conf" "$platform_install_path/logs/apache"
     if [ -f "$repo_root/conf/relecov_apache_reverse_proxy.conf" ]; then
-        sed "s#__APP_INSTALL_PATH__#${platform_install_path}#g" \
-            "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
-            > "$platform_install_path/conf/relecov_apache_reverse_proxy.conf"
+        cp "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
+            "$platform_install_path/conf/relecov_apache_reverse_proxy.conf"
     fi
 fi
 for target_service in "${install_services[@]}"; do
