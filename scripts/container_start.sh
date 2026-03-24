@@ -9,6 +9,9 @@ CRON_LOG="${TMP_DIR}/supercronic.log"
 APP_MODE="${APP_MODE:-prod}"
 APP_PORT="${APP_PORT:-8000}"
 PROJECT_MODULE="${PROJECT_MODULE:-relecov_platform}"
+GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
+GUNICORN_KEEPALIVE="${GUNICORN_KEEPALIVE:-5}"
+GUNICORN_THREADS="${GUNICORN_THREADS:-2}"
 
 WAIT_TIMEOUT_SECONDS=100
 wait_start="${SECONDS}"
@@ -66,8 +69,21 @@ else
     echo "supercronic not found. Skipping cron."
 fi
 
+if [ -n "${WEB_CONCURRENCY:-}" ]; then
+    GUNICORN_WORKERS="${WEB_CONCURRENCY}"
+else
+    cpu_count="$(getconf _NPROCESSORS_ONLN 2>/dev/null || nproc 2>/dev/null || echo 1)"
+    if [ "${cpu_count}" -le 2 ]; then
+        GUNICORN_WORKERS=2
+    else
+        GUNICORN_WORKERS=4
+    fi
+fi
+
 exec gunicorn "${PROJECT_MODULE}.wsgi:application" \
     --bind "0.0.0.0:${APP_PORT}" \
-    --workers 1 \
-    --threads 1 \
-    --timeout 120
+    --workers "${GUNICORN_WORKERS}" \
+    --threads "${GUNICORN_THREADS}" \
+    --keep-alive "${GUNICORN_KEEPALIVE}" \
+    --timeout "${GUNICORN_TIMEOUT}" \
+    --worker-tmp-dir /dev/shm

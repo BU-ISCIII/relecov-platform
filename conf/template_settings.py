@@ -13,7 +13,7 @@ SECRET_KEY = "PLACEHOLDER"
 
 
 # SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "localserverip", "dns_url"]
 
@@ -76,6 +76,7 @@ DATABASES = {
         "PORT": "djangoport",
         "NAME": "djangodbname",
         "HOST": "djangohost",
+        "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "60")),
     },
 }
 
