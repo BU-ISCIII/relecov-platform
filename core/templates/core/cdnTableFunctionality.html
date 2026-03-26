@@ -1,3 +1,68 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.css"/>
 
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs5/jq-3.6.0/jszip-2.5.0/dt-1.11.5/b-2.2.2/b-colvis-2.2.2/b-html5-2.2.2/b-print-2.2.2/datatables.min.js"></script>
+<script>
+  (function () {
+    function setActiveSortState(api, tableEl) {
+      const order = api.order();
+      const activeColumn = order.length ? order[0][0] : null;
+      const activeDirection = order.length ? order[0][1] : null;
+
+      $(tableEl).find('thead tr:first-child th').each(function (index) {
+        const $header = $(this);
+        $header.find('.dt-explicit-sort button').removeClass('active');
+        if (index === activeColumn) {
+          $header
+            .find('.dt-explicit-sort button[data-direction="' + activeDirection + '"]')
+            .addClass('active');
+        }
+      });
+    }
+
+    function enableExplicitSorting(api, tableEl) {
+      $(tableEl).find('thead tr:first-child th').each(function (index) {
+        const $header = $(this);
+        if ($header.data('explicit-sort-initialized')) {
+          return;
+        }
+        $header.data('explicit-sort-initialized', true);
+
+        const titleHtml = $header.html();
+        $header.empty().append($('<span class="dt-column-title"></span>').html(titleHtml));
+
+        const $controls = $('<span class="dt-explicit-sort"></span>');
+        const $asc = $('<button type="button" data-direction="asc" aria-label="Sort ascending">▲</button>');
+        const $desc = $('<button type="button" data-direction="desc" aria-label="Sort descending">▼</button>');
+
+        [$asc, $desc].forEach(function ($button) {
+          $button.on('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            api.order([index, $(this).data('direction')]).draw();
+          });
+        });
+
+        $controls.append($asc, $desc);
+        $header.append($controls);
+      });
+
+      api.on('order.dt', function () {
+        setActiveSortState(api, tableEl);
+      });
+
+      setActiveSortState(api, tableEl);
+    }
+
+    $.extend(true, $.fn.dataTable.defaults, {
+      columnDefs: [{ targets: '_all', orderable: false }]
+    });
+
+    $(document).on('init.dt', function (event, settings) {
+      if (!settings || !settings.nTable) {
+        return;
+      }
+      const api = new $.fn.dataTable.Api(settings);
+      enableExplicitSorting(api, settings.nTable);
+    });
+  })();
+</script>
