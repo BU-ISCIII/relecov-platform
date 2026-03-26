@@ -82,6 +82,16 @@
                                                                   width: 100% !important;
                                                                   table-layout: auto;
                                                                 }
+                                                                #sample_list a.sample-browser-link {
+                                                                  color: var(--color-blue);
+                                                                  font-weight: 500;
+                                                                  text-decoration: underline;
+                                                                  text-underline-offset: 0.12em;
+                                                                }
+                                                                #sample_list a.sample-browser-link:hover,
+                                                                #sample_list a.sample-browser-link:focus {
+                                                                  color: var(--color-primary);
+                                                                }
                                                                 thead tr.filter-row th select {
                                                                   min-width: 150px;
                                                                   width: 100%;
@@ -96,7 +106,7 @@
                                                         <tbody>
                                                             {% for pk, s_name, col_date, lineage, col_inst in sample_summary %}
                                                                 <tr>
-                                                                    <td><a href="sampleDisplay={{pk}}">{{s_name}}</a></td>
+                                                                    <td><a class="sample-browser-link" href="sampleDisplay={{pk}}">{{s_name}}</a></td>
                                                                     <td>{{col_date}}</td>
                                                                     <td>{{lineage}}</td>
                                                                     <td>{{col_inst}}</td>
