@@ -527,6 +527,7 @@ def get_sample_display_data(sample_id, user):
                 return {"ERROR": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE}
 
     s_data = {}
+    s_data["sample_name"] = sample_obj.get_sample_name()
     s_data["basic"] = list(
         zip(
             core.config.HEADING_FOR_BASIC_SAMPLE_DATA,
