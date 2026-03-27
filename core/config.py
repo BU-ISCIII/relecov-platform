@@ -91,6 +91,7 @@ HEADING_FOR_VARIANT_TABLE_DISPLAY = [
     "ref_dp",
     "alt_dp",
     "af",
+    "Gene ID",
     "hgvs_c",
     "hgvs_p",
     "hgvs_p_1_letter",
