@@ -414,8 +414,55 @@
                                         </div>  <!-- end tab variant -->
                                         <script type="text/javascript">
                                             $(document).ready(function() {
+                                                var variantExportFilename = '{{ sample_data.sample_name|default:"sample"|escapejs }}_variants';
+                                                variantExportFilename = variantExportFilename.replace(/[\\\\/:*?"<>|]/g, '_').trim();
+
+                                                function cleanVariantExportHeader(data, columnIdx, node) {
+                                                    var $header = $(node).clone();
+                                                    $header.find('.dt-explicit-sort').remove();
+                                                    return $header.text().replace(/[▲▼]/g, '').trim();
+                                                }
+
                                                 $('#variant_table_data').DataTable({
                                                     responsive: true,
+                                                    dom:
+                                                        "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                                                        "<'row'<'col-sm-12'tr>>" +
+                                                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                                                    buttons: [
+                                                        {
+                                                            extend: 'csvHtml5',
+                                                            text: 'RAW CSV',
+                                                            title: null,
+                                                            filename: variantExportFilename,
+                                                            exportOptions: {
+                                                                format: {
+                                                                    header: cleanVariantExportHeader
+                                                                },
+                                                                modifier: {
+                                                                    search: 'none',
+                                                                    order: 'index',
+                                                                    page: 'all'
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            extend: 'csvHtml5',
+                                                            text: 'Filtered CSV',
+                                                            title: null,
+                                                            filename: variantExportFilename,
+                                                            exportOptions: {
+                                                                format: {
+                                                                    header: cleanVariantExportHeader
+                                                                },
+                                                                modifier: {
+                                                                    search: 'applied',
+                                                                    order: 'applied',
+                                                                    page: 'all'
+                                                                }
+                                                            }
+                                                        }
+                                                    ],
                                                 });
                                         });
                                         </script>
