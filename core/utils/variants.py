@@ -70,8 +70,10 @@ def get_variant_data_from_sample(sample_id):
             if len(v_ann_objs) > 1:
                 v_ann_data_p = []
                 for v_ann_obj in v_ann_objs:
-                    # HGVS_C	HGVS_P	HGVS_P_1LETTER
-                    v_ann_data_p.append(v_ann_obj.get_variant_annot_data())
+                    # GENE_ID, HGVS_C, HGVS_P, HGVS_P_1LETTER
+                    v_ann_data_p.append(
+                        [v_ann_obj.get_geneID_id()] + v_ann_obj.get_variant_annot_data()
+                    )
                 v_ann_data = []
 
                 for idx in range(len(v_ann_data_p[0])):
@@ -83,10 +85,12 @@ def get_variant_data_from_sample(sample_id):
                         )
                 v_ann_data_p = v_ann_data
             elif len(v_ann_objs) == 1:
-                v_ann_data_p = v_ann_objs[0].get_variant_annot_data()
+                v_ann_data_p = [
+                    v_ann_objs[0].get_geneID_id()
+                ] + v_ann_objs[0].get_variant_annot_data()
             # Set dummy values if not variant annotation objects exists
             else:
-                v_ann_data_p = ["-", "-", "-"]
+                v_ann_data_p = ["-", "-", "-", "-"]
 
             variant_data.append(v_data + v_in_s_data + v_ann_data_p)
     data["variant_data"] = variant_data
