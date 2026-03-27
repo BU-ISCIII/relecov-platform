@@ -85,9 +85,9 @@ def get_variant_data_from_sample(sample_id):
                         )
                 v_ann_data_p = v_ann_data
             elif len(v_ann_objs) == 1:
-                v_ann_data_p = [
-                    v_ann_objs[0].get_geneID_id()
-                ] + v_ann_objs[0].get_variant_annot_data()
+                v_ann_data_p = [v_ann_objs[0].get_geneID_id()] + v_ann_objs[
+                    0
+                ].get_variant_annot_data()
             # Set dummy values if not variant annotation objects exists
             else:
                 v_ann_data_p = ["-", "-", "-", "-"]
