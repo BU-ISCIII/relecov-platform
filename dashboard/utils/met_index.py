@@ -12,22 +12,6 @@ import dashboard.utils.plotly
 from dashboard.models import GraphicJsonFile
 
 
-def _get_lims_field_display_map(project_name="Relecov"):
-    """Return a display-name map for iSkyLIMS project fields."""
-    project_fields = core.utils.rest_api.get_sample_project_fields_data(project_name)
-    if not project_fields or "ERROR" in project_fields:
-        return {}
-    display_map = {}
-    for field in project_fields:
-        field_name = field.get("sample_project_field_name")
-        if not field_name:
-            continue
-        display_map[field_name] = (
-            field.get("sample_project_field_description") or field_name
-        )
-    return display_map
-
-
 def _read_cached_bioinfo_util():
     """
     Returns the pre-baked JSON of bioinfo field usage,
@@ -68,7 +52,9 @@ def schema_fields_utilization():
         util_data["ERROR"] = lims_fields["ERROR"]
     else:
         f_values = []
-        lims_field_display_map = _get_lims_field_display_map("Relecov")
+        lims_field_display_map = core.utils.rest_api.get_sample_project_field_display_map(
+            "Relecov"
+        )
         for value in lims_fields["fields_norm"].values():
             f_values.append(value)
 

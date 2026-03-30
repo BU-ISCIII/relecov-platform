@@ -145,6 +145,26 @@ def get_sample_project_fields_data(project):
     return data["data"]
 
 
+def get_sample_project_field_display_map(project):
+    """Return a map from project field key to its preferred display label."""
+    if isinstance(project, dict):
+        project = project.get("value")
+    if not project:
+        return {}
+    project_fields = get_sample_project_fields_data(project)
+    if not project_fields or "ERROR" in project_fields:
+        return {}
+    display_map = {}
+    for field in project_fields:
+        field_name = field.get("sample_project_field_name")
+        if not field_name:
+            continue
+        display_map[field_name] = (
+            field.get("sample_project_field_description") or field_name
+        )
+    return display_map
+
+
 def get_summarize_data(param_data):
     """Send API request to iSkyLIMS to get the summarize data options"""
     iskylims_server = core.utils.generic_functions.get_configuration_value(
