@@ -572,8 +572,10 @@ def get_sample_display_data(sample_id, user):
         s_data["iskylims_p_data"] = []
         # iskylims_data is a list with one element. Then get the first element
         iskylims_data = iskylims_data[0]
-        project_field_display_map = core.utils.rest_api.get_sample_project_field_display_map(
-            iskylims_data.get("sample_project")
+        project_field_display_map = (
+            core.utils.rest_api.get_sample_project_field_display_map(
+                iskylims_data.get("sample_project")
+            )
         )
         for key, i_data in iskylims_data.items():
             if key == "Project values":

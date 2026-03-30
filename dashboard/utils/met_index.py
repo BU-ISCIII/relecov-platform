@@ -52,8 +52,8 @@ def schema_fields_utilization():
         util_data["ERROR"] = lims_fields["ERROR"]
     else:
         f_values = []
-        lims_field_display_map = core.utils.rest_api.get_sample_project_field_display_map(
-            "Relecov"
+        lims_field_display_map = (
+            core.utils.rest_api.get_sample_project_field_display_map("Relecov")
         )
         for value in lims_fields["fields_norm"].values():
             f_values.append(value)
