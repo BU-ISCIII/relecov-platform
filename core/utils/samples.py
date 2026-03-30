@@ -40,9 +40,8 @@ def get_iskylims_project_field_display_map(project_name):
         field_name = field.get("sample_project_field_name")
         if not field_name:
             continue
-        display_name = (
-            field.get("sample_project_field_description")
-            or field.get("sample_project_field_name")
+        display_name = field.get("sample_project_field_description") or field.get(
+            "sample_project_field_name"
         )
         display_map[field_name] = display_name
     return display_map
