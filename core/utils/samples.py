@@ -26,6 +26,28 @@ import core.models
 import dashboard.utils.generic_graphic_data
 
 
+def get_iskylims_project_field_display_map(project_name):
+    """Return a map from iSkyLIMS project field key to display label."""
+    if isinstance(project_name, dict):
+        project_name = project_name.get("value")
+    if not project_name:
+        return {}
+    project_fields = core.utils.rest_api.get_sample_project_fields_data(project_name)
+    if not project_fields or "ERROR" in project_fields:
+        return {}
+    display_map = {}
+    for field in project_fields:
+        field_name = field.get("sample_project_field_name")
+        if not field_name:
+            continue
+        display_name = (
+            field.get("sample_project_field_description")
+            or field.get("sample_project_field_name")
+        )
+        display_map[field_name] = display_name
+    return display_map
+
+
 def analyze_input_samples(request):
     result = {}
     save_samples = []
@@ -572,10 +594,18 @@ def get_sample_display_data(sample_id, user):
         s_data["iskylims_p_data"] = []
         # iskylims_data is a list with one element. Then get the first element
         iskylims_data = iskylims_data[0]
+        project_field_display_map = get_iskylims_project_field_display_map(
+            iskylims_data.get("sample_project")
+        )
         for key, i_data in iskylims_data.items():
             if key == "Project values":
                 for p_key, p_data in iskylims_data["Project values"].items():
-                    s_data["iskylims_p_data"].append([p_key, p_data])
+                    s_data["iskylims_p_data"].append(
+                        [
+                            project_field_display_map.get(p_key, p_key),
+                            p_data,
+                        ]
+                    )
             else:
                 s_data["iskylims_basic"].append([key, i_data])
         s_data["iskylims_project"] = iskylims_data.get("sample_project")
