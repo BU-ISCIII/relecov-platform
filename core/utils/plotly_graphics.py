@@ -1,13 +1,8 @@
 # Generic imports
-import time
 from plotly.offline import plot
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.figure_factory as ff
-import dash
-from dash import dcc, html
-from django_plotly_dash import DjangoDash
-from dash.dependencies import Input, Output
 from django.template.loader import render_to_string
 
 COLOR_PALETTE = [
@@ -223,343 +218,222 @@ def pie_graphic(data, names, title, show_legend=False):
     return plot_div
 
 
-def needle_plot(mdata):
-    """Create a needleplot using dash that represents mutations along some
-    genomic regions.
-    """
-    mdata = mdata.copy()
-    mdata["x"] = [int(x) for x in mdata["x"]]
-    app = DjangoDash("sampleVariantGraphic", serve_locally=True)
-    app.layout = html.Div(
-        children=[
-            html.Div(
-                children=[
-                    html.Div(
-                        [
-                            "Show Range Slider",
-                            dcc.Checklist(
-                                id="toggle-rangeslider",
-                                options=[{"label": "Enable", "value": "on"}],
-                                value=["on"],
-                                inline=True,
-                            ),
-                        ],
-                        style={"margin-left": "20px"},
-                    ),
-                    html.Div(
-                        children=[
-                            dcc.Markdown(
-                                id="samples_markdown",
-                            )
-                        ],
-                        style={"margin-left": "50px"},
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "justify-content": "start",
-                    "align-items": "flex-start",
-                },
-            ),
-            html.Div(
-                children=[
-                    dcc.Loading(
-                        id="loading_plot_wrapper",
-                        type="default",
-                        children=[
-                            html.Div(
-                                id="needleplot-container-div",
-                                children=[
-                                    dcc.Store(id="mdata-store", data=mdata),
-                                    dcc.Graph(
-                                        id="needleplot-graph",
-                                        style={"padding-top": "15px"},
-                                    ),
-                                ],
-                                style={"position": "relative"},
-                            )
-                        ],
-                        overlay_style={"visibility": "visible", "filter": "blur(1px)"},
-                        parent_style={"position": "relative"},
-                    ),
-                    dcc.Store(
-                        id="previous-data",
-                        storage_type="memory",
-                        data={"first_load": True},
-                    ),
-                ],
-            ),
-        ]
+def empty_sample_variant_figure():
+    fig = go.Figure()
+    fig.update_layout(
+        title="No variants available for the selected sample",
+        template=mi_template,
+        xaxis_title="Genome Position",
+        yaxis_title="Allele Frequency",
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        yaxis_range=[-0.12, 1.15],
     )
+    return fig
 
-    @app.callback(
-        [
-            Output("needleplot-graph", "figure"),
-            Output("samples_markdown", "children"),
-            Output("previous-data", "data"),
-        ],  # Track loading state
-        [
-            Input("mdata-store", "data"),
-            Input("toggle-rangeslider", "value"),
-            Input("needleplot-graph", "relayoutData"),
-            Input("previous-data", "data"),
-        ],
-        prevent_initial_call=True,  # Avoid triggering on page load
-    )
-    def update_sample(mdata, toogle_rangeslider, relayout_data, prev_data):
-        current_time = time.time()
-        first_load = prev_data["first_load"]
-        next_data = {}
-        if not relayout_data:
-            next_data["prev_relayout"] = relayout_data
-        if not first_load:
-            last_time = prev_data["last_update"]
-            # Dont update if no relayout_data is returned from rangeslider
-            if not relayout_data or not relayout_data.get("xaxis.range", []):
-                print("No valid relayout data found")
-                raise dash.exceptions.PreventUpdate
-            # Compare current relayoutData with the previous one
-            previous_range = prev_data.get("xaxis.range", [])
-            current_range = relayout_data.get("xaxis.range", [])
-            if previous_range == current_range:
-                print("No change in relayoutData, skipping update.")
-                raise dash.exceptions.PreventUpdate
-            last_time = prev_data["last_update"]
-            # Ensure that the last state has not been updated too recently
-            if current_time - last_time < 0.25:
-                print(f"Did not update. Diff was {time.time() - last_time}")
-                raise dash.exceptions.PreventUpdate
-        # Update previous relayout data
-        next_data["prev_relayout"] = relayout_data
-        next_data["first_load"] = False
-        # Start updating process
-        next_data["last_update"] = current_time
-        markdown_text = "Showing mutations for selected sample"
-        # TODO: Include all color mapping dicts for domains and mutation types in graphic_json
-        domain_color_map = {
-            "orf1ab": "#1f77b4",  # Blue
-            "S": "#ff7f0e",  # Orange
-            "ORF3a": "#2ca02c",  # Green
-            "E": "#d62728",  # Red
-            "M": "#9467bd",  # Purple
-            "ORF6": "#8c564b",  # Brown
-            "ORF7a": "#e377c2",  # Pink
-            "ORF7b": "#7f7f7f",  # Gray
-            "ORF8": "#bcbd22",  # Yellow-green
-            "N": "#17becf",  # Cyan
-            "ORF10": "#ffbb78",  # Light orange
-        }
-        mutation_color_map = {
-            "missense_variant": "#E6194B",  # Red
-            "Unknown": "#A9A9A9",  # Gray THESE ARE RENAMED FROM NONE VALUES
-            "disruptive_inframe_insertion": "#BFEF45",  # Light Green
-            "frameshift_variant": "#F58231",  # Orange
-            "splice_region_variant&stop_retained_variant": "#FF8DA1",  # Pink
-            "conservative_inframe_deletion": "#BF8970",  # Yellow
-            "synonymous_variant": "#4363D8",  # Blue
-            "stop_lost": "#42D4F4",  # Cyan
-            "frameshift_variant&start_lost": "#F032E6",  # Magenta
-            "start_lost": "#3CB44B",  # Green
-            "disruptive_inframe_deletion": "#D4AF37",  # Light Red
-            "gene_fusion": "#469990",  # Teal
-            "conservative_inframe_insertion": "#DCBEFF",  # Lavender
-            "stop_gained": "#9A6324",  # Brown
-            "upstream_gene_variant": "#911EB4",  # Purple
-            "frameshift_variant&stop_lost&splice_region_variant": "#800000",  # Dark Red
-            "frameshift_variant&stop_gained": "#A65628",  # Dark Brown
-            "stop_retained_variant": "#FF6347",  # Tomato Red
-            "downstream_gene_variant": "#808000",  # Olive
-        }
 
-        # Create NeedlePlot and extract figure
-        fig = go.Figure()
-        if toogle_rangeslider == ["on"]:
-            fig.update_layout(
-                xaxis_rangeslider=dict(visible=True, bgcolor="rgba(255, 255, 255, 0)")
-            )
-        if relayout_data and "xaxis.range" in relayout_data:
-            # relayout data listens to updates in the plot from rangeslider
-            min_x, max_x = relayout_data["xaxis.range"]
-            fig.update_layout(xaxis=dict(range=relayout_data["xaxis.range"]))
-        else:
-            min_x, max_x = (min(mdata["x"]), max(mdata["x"]))
+def build_sample_variant_initial_arguments(mdata):
+    normalized = {
+        "x": [int(x) for x in mdata.get("x", []) if x is not None],
+        "y": list(mdata.get("y", [])),
+        "mutationGroups": list(mdata.get("mutationGroups", [])),
+        "domains": list(mdata.get("domains", [])),
+    }
+    return {
+        "mdata-store": {"data": normalized},
+        "toggle-rangeslider": {"value": ["on"]},
+        "previous-data": {"data": {"first_load": True}},
+    }
 
-        # X range will be used to define wether to show genome annotations
-        x_range = max_x - min_x
 
-        max_pos = 0
-        # Store used annotation possitions to avoid overlap
-        used_annotations = []
-        all_max_x = max([int(x["coord"].split("-")[1]) for x in mdata["domains"]])
-        domain_selectors = [
-            dict(
-                label="All",
-                method="relayout",
-                args=[{"xaxis.range": [0, all_max_x]}],
-            )
-        ]
-        # Sort domains based on their starting positions, needed for annotations
-        sorted_domains = sorted(
-            mdata["domains"], key=lambda x: int(x["coord"].split("-")[0])
+def build_sample_variant_figure(mdata, toggle_rangeslider=None, relayout_data=None):
+    if not mdata or not mdata.get("x"):
+        return empty_sample_variant_figure()
+
+    domain_color_map = {
+        "orf1ab": "#1f77b4",
+        "S": "#ff7f0e",
+        "ORF3a": "#2ca02c",
+        "E": "#d62728",
+        "M": "#9467bd",
+        "ORF6": "#8c564b",
+        "ORF7a": "#e377c2",
+        "ORF7b": "#7f7f7f",
+        "ORF8": "#bcbd22",
+        "N": "#17becf",
+        "ORF10": "#ffbb78",
+    }
+    mutation_color_map = {
+        "missense_variant": "#E6194B",
+        "Unknown": "#A9A9A9",
+        "disruptive_inframe_insertion": "#BFEF45",
+        "frameshift_variant": "#F58231",
+        "splice_region_variant&stop_retained_variant": "#FF8DA1",
+        "conservative_inframe_deletion": "#BF8970",
+        "synonymous_variant": "#4363D8",
+        "stop_lost": "#42D4F4",
+        "frameshift_variant&start_lost": "#F032E6",
+        "start_lost": "#3CB44B",
+        "disruptive_inframe_deletion": "#D4AF37",
+        "gene_fusion": "#469990",
+        "conservative_inframe_insertion": "#DCBEFF",
+        "stop_gained": "#9A6324",
+        "upstream_gene_variant": "#911EB4",
+        "frameshift_variant&stop_lost&splice_region_variant": "#800000",
+        "frameshift_variant&stop_gained": "#A65628",
+        "stop_retained_variant": "#FF6347",
+        "downstream_gene_variant": "#808000",
+    }
+
+    x_values = [int(x) for x in mdata.get("x", [])]
+    y_values = list(mdata.get("y", []))
+    mutation_groups = list(mdata.get("mutationGroups", []))
+    domains = [dict(domain) for domain in mdata.get("domains", [])]
+    max_len = min(len(x_values), len(y_values), len(mutation_groups))
+    x_values = x_values[:max_len]
+    y_values = y_values[:max_len]
+    mutation_groups = mutation_groups[:max_len]
+
+    fig = go.Figure()
+    if toggle_rangeslider == ["on"]:
+        fig.update_layout(
+            xaxis_rangeslider=dict(visible=True, bgcolor="rgba(255, 255, 255, 0)")
         )
-        for domain in sorted_domains:
-            start, end = map(int, domain["coord"].split("-"))
-            domain_selectors.append(
-                dict(
-                    label=domain["name"],
-                    method="relayout",
-                    args=[
-                        {
-                            "xaxis.range": [start, end],
-                        }
-                    ],
-                )
-            )
-            max_pos = max(max_pos, end)
-            fig.add_shape(
-                type="rect",
-                x0=start,
-                x1=end,
-                y0=0,
-                y1=-0.12,
-                fillcolor=domain_color_map.get(domain["name"], "lightgray"),
-                opacity=0.3,
-                layer="below",
-                line=dict(width=0),
-            )
-            # Define a threshold for spacing relative to the x range. I used 0.04 ad-hoc
-            x_space_threshold = x_range * 0.05
+    if relayout_data and "xaxis.range" in relayout_data:
+        min_x, max_x = relayout_data["xaxis.range"]
+        fig.update_layout(xaxis=dict(range=relayout_data["xaxis.range"]))
+    else:
+        min_x, max_x = (min(x_values), max(x_values))
 
-            # Determine an appropriate y-level to avoid overlap
-            annotation_x = (start + end) / 2  # Place annotation in the middle
-            annotation_y = -0.06  # Default y-level
-
-            for prev_x, _ in used_annotations:
-                if abs(annotation_x - prev_x) < x_space_threshold:
-                    domain["name"] = ""  # Do not show annotation if it would overlap
-                    break
-            else:
-                # Store the adjusted position if the annotation is used
-                used_annotations.append((annotation_x, annotation_y))
-
-            # Add text labels for domains
-            fig.add_annotation(
-                x=annotation_x,
-                y=annotation_y,
-                text=domain["name"],
-                showarrow=False,
-                font=dict(size=12, color="black"),
+    x_range = max_x - min_x if max_x > min_x else 1
+    max_pos = 0
+    used_annotations = []
+    all_max_x = max([int(x["coord"].split("-")[1]) for x in domains]) if domains else max_x
+    domain_selectors = [
+        dict(
+            label="All",
+            method="relayout",
+            args=[{"xaxis.range": [0, all_max_x]}],
+        )
+    ]
+    sorted_domains = sorted(domains, key=lambda x: int(x["coord"].split("-")[0]))
+    for domain in sorted_domains:
+        start, end = map(int, domain["coord"].split("-"))
+        domain_selectors.append(
+            dict(
+                label=domain["name"],
+                method="relayout",
+                args=[{"xaxis.range": [start, end]}],
             )
+        )
+        max_pos = max(max_pos, end)
         fig.add_shape(
             type="rect",
-            x0=0,
-            x1=max_pos,
+            x0=start,
+            x1=end,
             y0=0,
             y1=-0.12,
-            fillcolor="lightgray",
+            fillcolor=domain_color_map.get(domain["name"], "lightgray"),
             opacity=0.3,
             layer="below",
             line=dict(width=0),
         )
-        # Filter mutations based on selected range
-        filtered_indices = [i for i, x in enumerate(mdata["x"]) if min_x <= x <= max_x]
+        x_space_threshold = x_range * 0.05
+        annotation_x = (start + end) / 2
+        annotation_y = -0.06
 
-        filtered_x = [mdata["x"][i] for i in filtered_indices]
-        filtered_y = [mdata["y"][i] for i in filtered_indices]
-        filtered_mutation_groups = [
-            mdata["mutationGroups"][i] for i in filtered_indices
-        ]
+        for prev_x, _ in used_annotations:
+            if abs(annotation_x - prev_x) < x_space_threshold:
+                domain["name"] = ""
+                break
+        else:
+            used_annotations.append((annotation_x, annotation_y))
 
-        mutation_traces = {}
-        for x, y, mutation_type in zip(
-            filtered_x, filtered_y, filtered_mutation_groups
-        ):
-            if mutation_type is None:
-                mutation_type = "Unknown"
-            color = mutation_color_map.get(mutation_type)
-
-            if mutation_type not in mutation_traces:
-                mutation_traces[mutation_type] = {
-                    "x_points": [],
-                    "y_points": [],
-                    "x_lines": [],
-                    "y_lines": [],
-                    "color": color,
-                }
-
-            # Add mutation marker
-            mutation_traces[mutation_type]["x_points"].append(int(x))
-            mutation_traces[mutation_type]["y_points"].append(y)
-
-            # Ensure each line (needle) is positioned at its own location
-            mutation_traces[mutation_type]["x_lines"].extend(
-                [int(x), int(x), None]
-            )  # None for breaks
-            mutation_traces[mutation_type]["y_lines"].extend(
-                [-0.005, y, None]
-            )  # None for breaks
-
-        # Add traces for each mutation type
-        for mutation_type, data in mutation_traces.items():
-            # Line trace for needles
-            fig.add_trace(
-                go.Scatter(
-                    x=data["x_lines"],
-                    y=data["y_lines"],
-                    mode="lines",
-                    line=dict(color=data["color"], width=1),
-                    name=mutation_type,  # Legend entry (same as marker)
-                    legendgroup=mutation_type,  # group legend with markers
-                    showlegend=False,  # Hide extra legend entry for lines
-                )
-            )
-
-            # Marker trace for mutation points
-            fig.add_trace(
-                go.Scatter(
-                    x=data["x_points"],
-                    y=data["y_points"],
-                    mode="markers",
-                    marker=dict(size=10, color=data["color"]),
-                    legendgroup=mutation_type,  # Group legend with lines
-                    name=mutation_type,  # Legend entry
-                )
-            )
-        fig.update_layout(
-            title={
-                "text": "Needle Plot",
-                "x": 0.1,
-                "xanchor": "left",
-            },
-            xaxis=dict(
-                title="Genome Position",
-                tickmode="auto",
-                automargin=True,
-                tickformat="d",
-                showgrid=False,
-                zeroline=False,
-                range=[min_x, max_x],
-                rangeselector=dict(),
-            ),
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            yaxis_title="Allele Frequency",
-            yaxis_range=[-0.12, 1.15],
-            updatemenus=[
-                dict(
-                    type="buttons",
-                    direction="right",
-                    x=0,
-                    y=1.15,
-                    xanchor="left",
-                    showactive=True,
-                    buttons=domain_selectors,
-                )
-            ],
+        fig.add_annotation(
+            x=annotation_x,
+            y=annotation_y,
+            text=domain["name"],
+            showarrow=False,
+            font=dict(size=12, color="black"),
         )
-        return fig, markdown_text, next_data
+    fig.add_shape(
+        type="rect",
+        x0=0,
+        x1=max_pos or max_x,
+        y0=0,
+        y1=-0.12,
+        fillcolor="lightgray",
+        opacity=0.3,
+        layer="below",
+        line=dict(width=0),
+    )
 
-    return app
+    filtered_indices = [i for i, x in enumerate(x_values) if min_x <= x <= max_x]
+    mutation_traces = {}
+    for idx in filtered_indices:
+        mutation_type = mutation_groups[idx] or "Unknown"
+        color = mutation_color_map.get(mutation_type, "#6c757d")
+        mutation_traces.setdefault(
+            mutation_type,
+            {"x_points": [], "y_points": [], "x_lines": [], "y_lines": [], "color": color},
+        )
+        mutation_traces[mutation_type]["x_points"].append(int(x_values[idx]))
+        mutation_traces[mutation_type]["y_points"].append(y_values[idx])
+        mutation_traces[mutation_type]["x_lines"].extend([int(x_values[idx]), int(x_values[idx]), None])
+        mutation_traces[mutation_type]["y_lines"].extend([-0.005, y_values[idx], None])
+
+    for mutation_type, data in mutation_traces.items():
+        fig.add_trace(
+            go.Scatter(
+                x=data["x_lines"],
+                y=data["y_lines"],
+                mode="lines",
+                line=dict(color=data["color"], width=1),
+                name=mutation_type,
+                legendgroup=mutation_type,
+                showlegend=False,
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=data["x_points"],
+                y=data["y_points"],
+                mode="markers",
+                marker=dict(size=10, color=data["color"]),
+                legendgroup=mutation_type,
+                name=mutation_type,
+            )
+        )
+
+    fig.update_layout(
+        title={"text": "Needle Plot", "x": 0.1, "xanchor": "left"},
+        xaxis=dict(
+            title="Genome Position",
+            tickmode="auto",
+            automargin=True,
+            tickformat="d",
+            showgrid=False,
+            zeroline=False,
+            range=[min_x, max_x],
+            rangeselector=dict(),
+        ),
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        yaxis_title="Allele Frequency",
+        yaxis_range=[-0.12, 1.15],
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                x=0,
+                y=1.15,
+                xanchor="left",
+                showactive=True,
+                buttons=domain_selectors,
+            )
+        ],
+    )
+    return fig
 
 
 def log_ydata_if_needed(graph, ydata, ratio=100):

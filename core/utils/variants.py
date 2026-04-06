@@ -135,7 +135,7 @@ def get_variant_graphic_from_sample(sample_id):
         # delete no longer needed ids
         v_data.pop("v_id")
 
-    return core.utils.plotly_graphics.needle_plot(v_data)
+    return core.utils.plotly_graphics.build_sample_variant_initial_arguments(v_data)
 
 
 def get_gene_obj_from_gene_name(gene_name):
