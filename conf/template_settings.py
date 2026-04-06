@@ -45,6 +45,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
+    "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
 ]
 
 ROOT_URLCONF = "relecov_platform.urls"
@@ -132,16 +133,23 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     "django_plotly_dash.finders.DashAssetFinder",
+    "django_plotly_dash.finders.DashAppDirectoryFinder",
     "core.finders.DashComponentFinderNoDuplicates",
 ]
 
 PLOTLY_COMPONENTS = [
-    "dash.dcc",
-    "dash.html",
     "dpd_components",
-    # Other components, as needed
-    # "dash_bootstrap_components",
+    "dpd_static_support",
+    "dash_bootstrap_components",
+    "dash_daq",
+    "dash_bio",
 ]
+
+PLOTLY_DASH = {
+    "view_decorator": "django_plotly_dash.access.login_required",
+    "cache_arguments": True,
+    "serve_locally": True,
+}
 
 SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"basic": {"type": "basic"}}}
 
