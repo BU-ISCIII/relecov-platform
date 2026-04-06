@@ -311,7 +311,7 @@ def intranet(request):
             if len(lablist) > 1:
                 intra_data["sample_per_lab_initial_arguments"] = (
                     core.utils.samples.create_dash_bar_for_each_lab(
-                    clean_samples_per_date_detailed, lablist
+                        clean_samples_per_date_detailed, lablist
                     )
                 )
                 intra_data["show_per_lab_dash"] = True
@@ -405,7 +405,7 @@ def intranet(request):
             ]
             manager_intra_data["sample_per_lab_initial_arguments"] = (
                 core.utils.samples.create_dash_bar_for_each_lab(
-                clean_samples_per_date_detailed, all_labs
+                    clean_samples_per_date_detailed, all_labs
                 )
             )
             # Get the latest action from each lab

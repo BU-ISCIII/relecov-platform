@@ -172,10 +172,10 @@ def build_lineage_variation_figure(df_full, start_date=None, end_date=None):
         )
 
     fig.update_xaxes(title="Collection Date (ISOweeks)")
-    fig.update_yaxes(range=[0, 100], title_text="<b>Lineage % relative", secondary_y=False)
     fig.update_yaxes(
-        title_text="<b>Number of samples processed</b>", secondary_y=True
+        range=[0, 100], title_text="<b>Lineage % relative", secondary_y=False
     )
+    fig.update_yaxes(title_text="<b>Number of samples processed</b>", secondary_y=True)
     fig.update_layout(
         title_text="Variants over the selected period",
         autotypenumbers="convert types",

@@ -308,7 +308,9 @@ def build_sample_variant_figure(mdata, toggle_rangeslider=None, relayout_data=No
     x_range = max_x - min_x if max_x > min_x else 1
     max_pos = 0
     used_annotations = []
-    all_max_x = max([int(x["coord"].split("-")[1]) for x in domains]) if domains else max_x
+    all_max_x = (
+        max([int(x["coord"].split("-")[1]) for x in domains]) if domains else max_x
+    )
     domain_selectors = [
         dict(
             label="All",
@@ -375,11 +377,19 @@ def build_sample_variant_figure(mdata, toggle_rangeslider=None, relayout_data=No
         color = mutation_color_map.get(mutation_type, "#6c757d")
         mutation_traces.setdefault(
             mutation_type,
-            {"x_points": [], "y_points": [], "x_lines": [], "y_lines": [], "color": color},
+            {
+                "x_points": [],
+                "y_points": [],
+                "x_lines": [],
+                "y_lines": [],
+                "color": color,
+            },
         )
         mutation_traces[mutation_type]["x_points"].append(int(x_values[idx]))
         mutation_traces[mutation_type]["y_points"].append(y_values[idx])
-        mutation_traces[mutation_type]["x_lines"].extend([int(x_values[idx]), int(x_values[idx]), None])
+        mutation_traces[mutation_type]["x_lines"].extend(
+            [int(x_values[idx]), int(x_values[idx]), None]
+        )
         mutation_traces[mutation_type]["y_lines"].extend([-0.005, y_values[idx], None])
 
     for mutation_type, data in mutation_traces.items():

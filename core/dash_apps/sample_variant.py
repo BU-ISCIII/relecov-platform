@@ -116,4 +116,3 @@ def register():
             "prev_relayout": relayout_data,
         }
         return figure, "Showing mutations for selected sample", next_data
-
