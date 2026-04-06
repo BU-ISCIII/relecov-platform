@@ -44,12 +44,19 @@ def mutations_in_lineage(request):
             "dashboard/variantMutationsInLineage.html",
             {"ERROR": dashboard.dashboard_config.ERROR_NO_LINEAGES_ARE_DEFINED_YET},
         )
-    dashboard.utils.var_needle_mutation_graph_by_lineage.create_needle_plot_graph_mutation_by_lineage(
+    initial_arguments = dashboard.utils.var_needle_mutation_graph_by_lineage.create_needle_plot_graph_mutation_by_lineage(
         lineages_list, lineage, mdata, n_samples
     )
+    if "ERROR" in initial_arguments:
+        return render(
+            request,
+            "dashboard/variantMutationsInLineage.html",
+            {"ERROR": initial_arguments["ERROR"]},
+        )
     return render(
         request,
         "dashboard/variantMutationsInLineage.html",
+        {"needle_plot_initial_arguments": initial_arguments},
     )
 
 
