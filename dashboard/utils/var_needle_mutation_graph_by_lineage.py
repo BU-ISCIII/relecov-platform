@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
 
-
 APP_NAME = "needlePlotMutationByLineage"
 
 

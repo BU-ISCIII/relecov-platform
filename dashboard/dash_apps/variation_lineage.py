@@ -5,7 +5,6 @@ from django_plotly_dash import DjangoDash
 
 import dashboard.utils.var_lineage_variation_over_time_graph
 
-
 APP_NAME = "variationLineageOverTime"
 
 

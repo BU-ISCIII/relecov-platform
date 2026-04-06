@@ -5,7 +5,6 @@ from django_plotly_dash import DjangoDash
 
 import core.utils.plotly_graphics
 
-
 APP_NAME = "sampleVariantGraphic"
 
 

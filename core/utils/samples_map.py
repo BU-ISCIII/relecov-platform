@@ -89,15 +89,11 @@ def build_samples_received_map_html():
         ),
     ).add_to(m)
 
-    m.get_root().html.add_child(
-        folium.Element(
-            """
+    m.get_root().html.add_child(folium.Element("""
     <style>
         .leaflet-interactive:focus { outline: none !important; box-shadow: none !important; }
     </style>
-    """
-        )
-    )
+    """))
 
     return m.get_root().render()
 

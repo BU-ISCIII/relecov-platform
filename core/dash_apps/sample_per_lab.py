@@ -8,7 +8,6 @@ import pandas as pd
 
 import core.utils.plotly_dash_graphics
 
-
 APP_NAME = "samplePerLabGraphic"
 
 
