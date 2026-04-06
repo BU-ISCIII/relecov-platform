@@ -1,17 +1,16 @@
-# Generic imports
-import os
 import json
+import os
+
 import folium
-from dash import html
-from django_plotly_dash import DjangoDash
 import pandas as pd
 
 # Local imports
+import dashboard.utils.generic_graphic_data
+import dashboard.utils.generic_process_data
 from relecov_platform import settings as relecov_platform_settings
-import dashboard.models
 
 
-def create_samples_received_map():
+def build_samples_received_map_html():
     geojson_file = os.path.join(
         relecov_platform_settings.STATIC_ROOT,
         "dashboard",
@@ -96,13 +95,11 @@ def create_samples_received_map():
     </style>
     """))
 
-    # Generar el HTML del mapa
-    map_html = m.get_root().render()
+    return m.get_root().render()
 
-    # Reemplazar el gráfico de Plotly por Folium en DjangoDash
-    app = DjangoDash("samplesReceivedOverTimeMap")
-    app.layout = html.Div(
-        children=[
-            html.Iframe(srcDoc=map_html, style={"width": "100%", "height": "800px"}),
-        ],
-    )
+
+def create_samples_received_map():
+    result = build_samples_received_map_html()
+    if isinstance(result, dict) and "ERROR" in result:
+        return result
+    return {"OK": True}
