@@ -84,12 +84,16 @@ def register():
             return _empty_figure()
 
         sub_data = df.drop_duplicates(subset=["iso_yearweek"]).reset_index(drop=True)
-        sub_data["iso_yearweek"] = sub_data["iso_yearweek"].astype(str).str.replace(
-            r"W(\d{1})$", r"W0\1", regex=True
+        sub_data["iso_yearweek"] = (
+            sub_data["iso_yearweek"]
+            .astype(str)
+            .str.replace(r"W(\d{1})$", r"W0\1", regex=True)
         )
-        sub_data["num_samples"] = pd.to_numeric(
-            sub_data["num_samples"], errors="coerce"
-        ).fillna(0).astype(int)
+        sub_data["num_samples"] = (
+            pd.to_numeric(sub_data["num_samples"], errors="coerce")
+            .fillna(0)
+            .astype(int)
+        )
         sub_data = sub_data.sort_values("iso_yearweek")
 
         graph = px.bar(

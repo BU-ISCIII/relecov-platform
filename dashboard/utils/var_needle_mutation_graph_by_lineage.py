@@ -51,7 +51,9 @@ def build_needle_plot_initial_arguments(lineage_list, lineage):
     }
 
 
-def build_needle_plot_figure(selected_lineage, toggle_rangeslider=None, relayout_data=None):
+def build_needle_plot_figure(
+    selected_lineage, toggle_rangeslider=None, relayout_data=None
+):
     mdata, _, n_samples = get_variant_data_from_lineages(
         graphic_name="variations_per_lineage",
         lineage=selected_lineage,
@@ -116,11 +118,17 @@ def build_needle_plot_figure(selected_lineage, toggle_rangeslider=None, relayout
     domain_selectors = [
         dict(label="All", method="relayout", args=[{"xaxis.range": [0, all_max_x]}])
     ]
-    sorted_domains = sorted(mdata["domains"], key=lambda x: int(x["coord"].split("-")[0]))
+    sorted_domains = sorted(
+        mdata["domains"], key=lambda x: int(x["coord"].split("-")[0])
+    )
     for domain in sorted_domains:
         start, end = map(int, domain["coord"].split("-"))
         domain_selectors.append(
-            dict(label=domain["name"], method="relayout", args=[{"xaxis.range": [start, end]}])
+            dict(
+                label=domain["name"],
+                method="relayout",
+                args=[{"xaxis.range": [start, end]}],
+            )
         )
         max_pos = max(max_pos, end)
         fig.add_shape(
@@ -241,7 +249,9 @@ def build_needle_plot_figure(selected_lineage, toggle_rangeslider=None, relayout
     return fig, markdown_text
 
 
-def create_needle_plot_graph_mutation_by_lineage(lineage_list, lineage, mdata, n_samples):
+def create_needle_plot_graph_mutation_by_lineage(
+    lineage_list, lineage, mdata, n_samples
+):
     if not mdata:
         return {"ERROR": "No lineage mutation data available"}
     return build_needle_plot_initial_arguments(lineage_list, lineage)

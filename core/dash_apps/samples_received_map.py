@@ -13,7 +13,12 @@ def register():
 
     app.layout = html.Div(
         children=[
-            dcc.Interval(id="samples-received-map-load", interval=1, n_intervals=0, max_intervals=1),
+            dcc.Interval(
+                id="samples-received-map-load",
+                interval=1,
+                n_intervals=0,
+                max_intervals=1,
+            ),
             html.Iframe(
                 id="samples-received-map-frame",
                 srcDoc="",

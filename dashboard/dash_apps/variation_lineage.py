@@ -34,7 +34,9 @@ def _build_empty_figure():
 
 
 def register():
-    data_df = dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
+    data_df = (
+        dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
+    )
     if isinstance(data_df, dict) or data_df.empty:
         first_date = None
         last_date = None
@@ -42,15 +44,11 @@ def register():
     else:
         first_date = data_df["Collection date"].min()
         last_date = data_df["Collection date"].max()
-        df_full = (
-            dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
-                data_df
-            )
+        df_full = dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
+            data_df
         )
-        initial_figure = (
-            dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
-                df_full
-            )
+        initial_figure = dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
+            df_full
         )
 
     app = DjangoDash(
@@ -111,13 +109,13 @@ def register():
         [Input("datePickerRange", "start_date"), Input("datePickerRange", "end_date")],
     )
     def update_graph(start_date, end_date):
-        data_df = dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
+        data_df = (
+            dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
+        )
         if isinstance(data_df, dict) or data_df.empty:
             return initial_figure
-        df_full = (
-            dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
-                data_df
-            )
+        df_full = dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
+            data_df
         )
         return dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
             df_full, start_date=start_date, end_date=end_date
