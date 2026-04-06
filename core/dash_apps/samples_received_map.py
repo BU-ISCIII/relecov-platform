@@ -4,7 +4,6 @@ from django_plotly_dash import DjangoDash
 
 import core.utils.samples_map
 
-
 APP_NAME = "samplesReceivedOverTimeMap"
 
 

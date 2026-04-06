@@ -4,7 +4,6 @@ from django_plotly_dash import DjangoDash
 
 import dashboard.utils.var_needle_mutation_graph_by_lineage
 
-
 APP_NAME = "needlePlotMutationByLineage"
 
 
