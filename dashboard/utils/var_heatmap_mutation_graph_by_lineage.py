@@ -13,13 +13,11 @@ Mutation heatmap
 # Generic imports
 import pandas as pd
 import plotly.express as px
-from dash import dcc, html
-from dash.dependencies import Input, Output
-from django_plotly_dash import DjangoDash
 
 # Local imports
 import core.models
 import core.utils.samples
+import core.utils.variants
 
 
 def create_dataframe(sample_list, gene_list):
@@ -78,7 +76,35 @@ def create_dataframe(sample_list, gene_list):
     return pandas_df
 
 
+def get_default_sample_and_gene_options():
+    chromosome_obj = core.utils.variants.get_default_chromosome()
+    if chromosome_obj is None:
+        return [], []
+    gene_list = core.utils.variants.get_gene_list(chromosome_obj)
+    sample_list = core.utils.variants.get_sample_in_variant_list(chromosome_obj)
+    return sample_list, gene_list
+
+
+def empty_heatmap_figure():
+    fig = px.imshow(
+        [[None]],
+        labels=dict(x="Mutation", y="Sample", color="AF"),
+        color_continuous_scale="RdYlGn",
+        range_color=[0, 1],
+    )
+    fig.update_layout(
+        title="No mutation data available",
+        yaxis={"title": "Samples"},
+        xaxis={"title": "Mutations", "tickangle": 45},
+        layout_coloraxis_showscale=True,
+        layout_showlegend=False,
+    )
+    return fig
+
+
 def get_figure(data: pd.DataFrame, sample_ids: list, genes: list):
+    if data.empty:
+        return empty_heatmap_figure()
     # Order by position
     data = data.sort_values(by=["POS"])
 
@@ -114,72 +140,14 @@ def get_figure(data: pd.DataFrame, sample_ids: list, genes: list):
     return fig
 
 
+def get_heatmap_options():
+    sample_list, gene_list = get_default_sample_and_gene_options()
+    df = create_dataframe(sample_list=sample_list, gene_list=gene_list)
+    all_genes = list(df["GENE"].unique()) if not df.empty else gene_list
+    all_sample_ids = list(df["SAMPLE"].unique()) if not df.empty else sample_list
+    return all_sample_ids, all_genes
+
+
 def create_heatmap(sample_list, gene_list):
     df = create_dataframe(sample_list=sample_list, gene_list=gene_list)
-    get_figure(df, sample_list, genes=gene_list)
-
-    all_genes = list(df["GENE"].unique())
-    all_sample_ids = list(df["SAMPLE"].unique())
-
-    app = DjangoDash("mutationHeatmap")
-    app.layout = html.Div(
-        children=[
-            html.Div(
-                style={
-                    "display": "flex",
-                    "justify-content": "space-between",
-                    "align-items": "flex-start",
-                },
-                children=[
-                    html.P("Select samples"),
-                    html.P("Select genes"),
-                ],
-            ),
-            # html.P("Select samples"),
-            html.Div(
-                style={
-                    "display": "flex",
-                    "justify-content": "start",
-                    "align-items": "flex-start",
-                },
-                children=[
-                    dcc.Dropdown(
-                        id="mutation_heatmap_select_sample",
-                        options=[{"label": i, "value": i} for i in all_sample_ids],
-                        clearable=False,
-                        multi=True,
-                        value=all_sample_ids,
-                        style={"width": "390px", "margin-right": "30px"},
-                        # placeholder="Select samples",
-                    ),
-                    dcc.Dropdown(
-                        # "Select genes",
-                        id="mutation_heatmap_gene_dropdown",
-                        options=[{"label": i, "value": i} for i in all_genes],
-                        clearable=False,
-                        multi=True,
-                        value=all_genes,
-                        style={"width": "390px", "margin-right": "35px"},
-                        # placeholder="Select genes",
-                    ),
-                ],
-            ),
-            dcc.Graph(
-                id="mutation_heatmap_graph",
-                figure=get_figure(df, all_sample_ids, genes=None),
-                # style={"width": "1500px", "height": "700px"},
-            ),
-        ]
-    )
-
-    @app.callback(
-        Output("mutation_heatmap_graph", "figure"),
-        Input("mutation_heatmap_select_sample", "value"),
-        Input("mutation_heatmap_gene_dropdown", "value"),
-    )
-    def update_selected_sample(selected_sample: int, selected_genes):
-        data = create_dataframe(
-            sample_list=list(selected_sample), gene_list=selected_genes
-        )
-        fig = get_figure(data, selected_sample, genes=selected_genes)
-        return fig
+    return get_figure(df, sample_list, genes=gene_list)

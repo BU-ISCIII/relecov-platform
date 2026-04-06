@@ -156,9 +156,6 @@ def variants_mutations_in_lineages_heatmap(request):
             "dashboard/variantsMutationsInLineagesHeatmap.html",
             {"ERROR": core.config.ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED},
         )
-    dashboard.utils.var_heatmap_mutation_graph_by_lineage.create_heatmap(
-        sample_list, gene_list
-    )
     return render(request, "dashboard/variantsMutationsInLineagesHeatmap.html")
 
 
