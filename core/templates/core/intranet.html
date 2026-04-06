@@ -70,7 +70,7 @@
                                                                             {{ manager_intra_data.sample_gauge_graph | safe }}
                                                                     </div> <!-- end col-md-5 -->
                                                                     <div class="col-md-12">
-                                                                        {% plotly_app name="samplePerLabGraphic" ratio=1 %}
+                                                                        {% plotly_app name="samplePerLabGraphic" ratio=1 initial_arguments=manager_intra_data.sample_per_lab_initial_arguments %}
                                                                 </div> <!-- end col-md-7 -->
                                                                 {% else %}
                                                                     <div class="col-md-7">
@@ -294,7 +294,7 @@
                                                             {% if intra_data.show_per_lab_dash %}
                                                             <div class="col-md-12">
                                                                 <div style="max-width: 100%; overflow-x: auto;">
-                                                                    {% plotly_app name="samplePerLabGraphic" ratio=1 %}
+                                                                        {% plotly_app name="samplePerLabGraphic" ratio=1 initial_arguments=intra_data.sample_per_lab_initial_arguments %}
                                                                 </div>
                                                             </div> <!-- end col-md-7 -->
                                                             {% endif %}
