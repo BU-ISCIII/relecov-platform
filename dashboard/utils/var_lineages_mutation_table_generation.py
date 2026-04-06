@@ -8,13 +8,11 @@ Mutation table under needle plot
 
 # Generic imports
 import pandas as pd
-from dash import dash_table, dcc, html
-from dash.dependencies import Input, Output
-from django_plotly_dash import DjangoDash
 
 # Local imports
 import core.models
 import core.utils.samples
+import core.utils.variants
 
 """
 import core.utils.handling_variant
@@ -81,50 +79,25 @@ def create_dataframe(sample_list, effect_list):
     return df_pandas
 
 
+def get_default_sample_and_effect_options():
+    chromosome_obj = core.utils.variants.get_default_chromosome()
+    if chromosome_obj is None:
+        return [], []
+    sample_list = core.utils.variants.get_sample_in_variant_list(chromosome_obj)
+    if not sample_list:
+        return [], []
+    df = create_dataframe(
+        sample_list=sample_list,
+        effect_list=list(core.models.Effect.objects.values_list("effect", flat=True)),
+    )
+    if df.empty:
+        return sample_list, []
+    return sample_list, list(df["EFFECT"].dropna().unique())
+
+
 def create_mutation_table(sample_list, effect_list):
     df = create_dataframe(sample_list=sample_list, effect_list=effect_list)
-    all_effects = list(df["EFFECT"].unique())
-    PAGE_SIZE = 20
-
-    app = DjangoDash("mutationTable")
-
-    app.layout = html.Div(
-        children=[
-            # html.P(id="mutation_table-message"),
-            html.P("Select effects"),
-            dcc.Dropdown(
-                id="mutation_table-effect_dropdown",
-                options=[{"label": i, "value": i} for i in all_effects],
-                clearable=False,
-                multi=True,
-                value=all_effects,
-                style={"width": "400px"},
-                placeholder="Mutation effect",
-            ),
-            html.Br(),
-            dash_table.DataTable(
-                id="mutation_datatable",
-                data=df.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df.columns],
-                page_current=0,
-                page_size=PAGE_SIZE,
-                page_action="custom",
-            ),
-        ]
-    )
-
-    @app.callback(
-        Output("mutation_datatable", "data"),
-        Input("mutation_table-effect_dropdown", "value"),
-    )
-    def update_selected_effects(selected_effects):
-        data = {}
-        sample_list = [2018185, 210067]
-
-        if isinstance(selected_effects, list) and len(selected_effects) >= 1:
-            df = create_dataframe(sample_list=sample_list, effect_list=selected_effects)
-            data = df.to_dict("records")
-        return data
+    return df.to_dict("records")
 
     """
     @app.callback(
