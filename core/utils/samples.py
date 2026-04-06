@@ -387,8 +387,17 @@ def create_dash_bar_for_each_lab(labs_data, labs_list=None):
             )
             _add_option(value, label)
 
-    core.utils.plotly_dash_graphics.dash_bar_lab(normalised_options, df_data)
-    return
+    default_value = normalised_options[0]["value"] if normalised_options else None
+    records = df_data.to_dict("records")
+    return {
+        "select_collecting_inst": {
+            "options": normalised_options,
+            "value": default_value,
+        },
+        "sample_per_lab_data": {
+            "data": records,
+        },
+    }
 
 
 def fancy_gauge_graphic(value):
