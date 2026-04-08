@@ -2,7 +2,6 @@ from functools import wraps
 
 from django.contrib.auth.decorators import login_required as login_required_decorator
 
-
 # Only Dash apps embedded in intranet-only pages should require authentication.
 # Public dashboard apps must stay accessible without login.
 PROTECTED_DASH_APPS = {
