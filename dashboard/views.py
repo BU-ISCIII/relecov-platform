@@ -24,6 +24,7 @@ import dashboard.utils.var_samples_received_over_time_pie
 def variants_index(request):
     return render(request, "dashboard/variantsIndex.html")
 
+
 def mutations_in_lineage(request):
     # mutations in lineages by lineage
     def_chrom = core.utils.variants.get_default_chromosome()
