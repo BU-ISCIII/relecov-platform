@@ -21,13 +21,9 @@ import dashboard.utils.var_needle_mutation_graph_by_lineage
 import dashboard.utils.var_samples_received_over_time_pie
 
 
-# dashboard/variants
-@login_required
 def variants_index(request):
     return render(request, "dashboard/variantsIndex.html")
 
-
-@login_required
 def mutations_in_lineage(request):
     # mutations in lineages by lineage
     def_chrom = core.utils.variants.get_default_chromosome()
@@ -62,7 +58,6 @@ def mutations_in_lineage(request):
 
 # FIXME: template html has bad ref in plotly_app. App name shoudl be replaced by 'model3D_bn'
 # FIXME: Couldn't find in variants dashboard a button or ref to acces this url
-@login_required
 def spike_mutations_3d(request):
     dashboard.utils.var_molecule3D_bn_graph.create_model3D_bn()
     return render(request, "dashboard/variantSpikeMutations3D.html")
@@ -119,7 +114,6 @@ def samples_received_over_time_pie_laboratory(request):
 
 
 # FIXME: isn't called from urls.py and html template is not available.
-@login_required
 def variants_mutations_in_lineages_heatmap(request):
     chromesome_objs = core.utils.variants.get_all_chromosome_objs()
     if chromesome_objs is None:
@@ -159,14 +153,11 @@ def variants_mutations_in_lineages_heatmap(request):
     return render(request, "dashboard/variantsMutationsInLineagesHeatmap.html")
 
 
-# dashboard/methodology
-@login_required
 def methodology_index(request):
     graphics = dashboard.utils.met_index.index_dash_fields()
     return render(request, "dashboard/methodologyIndex.html", {"graphics": graphics})
 
 
-@login_required
 def methodology_host_info(request):
     host_info = dashboard.utils.met_host_info.host_info_graphics()
     if "ERROR" in host_info:
@@ -178,7 +169,6 @@ def methodology_host_info(request):
     )
 
 
-@login_required
 def methodology_sequencing(request):
     sequencing = dashboard.utils.met_sequencing.sequencing_graphics()
     if "ERROR" in sequencing:
@@ -194,7 +184,6 @@ def methodology_sequencing(request):
     )
 
 
-@login_required
 def methodology_sample_processing(request):
     sample_processing = (
         dashboard.utils.met_sample_preprocessing.sample_processing_graphics()
@@ -212,7 +201,6 @@ def methodology_sample_processing(request):
     )
 
 
-@login_required
 def methodology_bioinfo(request):
     bioinfo = dashboard.utils.met_bioinfo.bioinfo_graphics()
     return render(request, "dashboard/methodologyBioinfo.html", {"bioinfo": bioinfo})

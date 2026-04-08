@@ -145,7 +145,7 @@ PLOTLY_COMPONENTS = [
 ]
 
 PLOTLY_DASH = {
-    "view_decorator": "django_plotly_dash.access.login_required",
+    "view_decorator": "core.dash_access.selective_login_required",
     # Use the Django session backend for initial_arguments. The default cache is
     # LocMemCache in this deployment, which is process-local and breaks Dash
     # iframe initial state across multiple workers.
