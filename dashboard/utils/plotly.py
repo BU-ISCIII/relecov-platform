@@ -282,14 +282,7 @@ def box_plot_graphic(data, options):
             values = np.array(values)
             if values.size == 0:
                 continue
-            min_val, q1, median, q3, max_val = (
-                np.min(values),
-                np.percentile(values, 25),
-                np.median(values),
-                np.percentile(values, 75),
-                np.max(values),
-            )
-            formatted_label, hover_label = format_labels(
+            formatted_label, _hover_label = format_labels(
                 [key], wrap=wrap_length, truncate=truncate_length
             )
             formatted_labels.append(formatted_label[0])
@@ -303,27 +296,11 @@ def box_plot_graphic(data, options):
                     name=formatted_label[0],
                     boxmean=True,
                     jitter=0.4,
-                    boxpoints="all",
+                    boxpoints="outliers",
                     pointpos=0,
                     marker=dict(size=3, opacity=0.25),
                     marker_color=color,
-                    hoverinfo="skip",
-                )
-            )
-            fig.add_trace(
-                go.Scatter(
-                    x=[formatted_label[0]] * len(values),
-                    y=values,
-                    mode="markers",
-                    marker=dict(color=color, opacity=0),
-                    customdata=[[hover_label[0], min_val, q1, median, q3, max_val]]
-                    * len(values),
-                    hovertemplate="<b>%{customdata[0]}</b><br>"
-                    "Min: %{customdata[1]:.2f}<br>"
-                    "Q1: %{customdata[2]:.2f}<br>"
-                    "Median: %{customdata[3]:.2f}<br>"
-                    "Q3: %{customdata[4]:.2f}<br>"
-                    "Max: %{customdata[5]:.2f}<br><extra></extra>",
+                    hovertemplate="<b>%{x}</b><br>%{y}<extra></extra>",
                 )
             )
     if wrap_length or truncate_length:
