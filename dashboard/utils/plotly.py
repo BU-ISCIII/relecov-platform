@@ -28,6 +28,10 @@ COLOR_PALETTE = [
     "#46523a",
 ]
 
+PLOTLY_CONFIG = {
+    "displaylogo": False,
+}
+
 DEFAULT_MARGIN = dict(t=30, b=120, l=50, r=20)
 DEFAULT_HEIGHT = 400
 DEFAULT_XAXIS = dict(tickangle=-45, automargin=False)
@@ -194,7 +198,12 @@ def bar_graphic(data, col_names, legend, yaxis, options):
     )
     if wrap_length or truncate_length:
         fig.update_xaxes(ticktext=formatted_labels)
-    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    plot_div = plot(
+        fig,
+        output_type="div",
+        include_plotlyjs=False,
+        config=PLOTLY_CONFIG,
+    )
     return plot_div
 
 
@@ -222,7 +231,12 @@ def line_graphic(x_data, y_data, options):
         height=DEFAULT_HEIGHT,
         xaxis=DEFAULT_XAXIS,
     )
-    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    plot_div = plot(
+        fig,
+        output_type="div",
+        include_plotlyjs=False,
+        config=PLOTLY_CONFIG,
+    )
     return plot_div
 
 
@@ -245,7 +259,12 @@ def pie_graphic(labels, values, options, show_legend=True):
         template=mi_template,
         title=options["title"],
     )
-    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    plot_div = plot(
+        fig,
+        output_type="div",
+        include_plotlyjs=False,
+        config=PLOTLY_CONFIG,
+    )
     return plot_div
 
 
@@ -318,7 +337,12 @@ def box_plot_graphic(data, options):
         xaxis=DEFAULT_XAXIS,
         title=options["title"],
     )
-    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    plot_div = plot(
+        fig,
+        output_type="div",
+        include_plotlyjs=False,
+        config=PLOTLY_CONFIG,
+    )
     return plot_div
 
 
@@ -350,7 +374,12 @@ def ridge_plot_graphic(data, options):
         yaxis_title="",
         showlegend=False,
     )
-    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    plot_div = plot(
+        fig,
+        output_type="div",
+        include_plotlyjs=False,
+        config=PLOTLY_CONFIG,
+    )
     return plot_div
 
 
@@ -390,5 +419,10 @@ def box_plot_graphic_bins(x_data, y_data, options):
         height=DEFAULT_HEIGHT,
         xaxis=DEFAULT_XAXIS,
     )
-    plot_div = plot(fig, output_type="div", config={"displaylogo": False})
+    plot_div = plot(
+        fig,
+        output_type="div",
+        include_plotlyjs=False,
+        config=PLOTLY_CONFIG,
+    )
     return plot_div
