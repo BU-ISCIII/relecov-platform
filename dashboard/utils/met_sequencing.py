@@ -4,7 +4,6 @@ import pandas as pd
 import logging
 
 # Local imports
-import core.utils.rest_api
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.plotly
 import dashboard.utils.generic_process_data
