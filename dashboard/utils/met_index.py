@@ -50,7 +50,9 @@ def schema_fields_utilization():
     }
     lims_util = _read_cached_lims_util()
     if lims_util is None:
-        result = dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util()
+        result = (
+            dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util()
+        )
         if "ERROR" in result:
             util_data["ERROR"] = result["ERROR"]
         else:
@@ -58,9 +60,7 @@ def schema_fields_utilization():
 
     if lims_util is not None:
         util_data["lims_f_values"] = lims_util.get("lims_f_values", 0)
-        util_data["summary"]["lab_values"] = lims_util.get(
-            "summary_lab_values", [0, 0]
-        )
+        util_data["summary"]["lab_values"] = lims_util.get("summary_lab_values", [0, 0])
         util_data["field_detail_data"] = lims_util.get(
             "field_detail_data", util_data["field_detail_data"]
         )
