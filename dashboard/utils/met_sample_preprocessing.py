@@ -57,16 +57,16 @@ def sample_processing_graphics():
         return data
 
     def fetch_data(project_field, columns):
-        # get stats utilization fields from LIMS about nucleic acid extraction protocol
-        lims_data = core.utils.rest_api.get_stats_data(
-            {
-                "sample_project_name": "Relecov",
-                "project_field": project_field,
-            }
-        )
-        if "ERROR" in lims_data:
-            return lims_data
         if "," in project_field:
+            # get stats utilization fields from LIMS for paired aggregations
+            lims_data = core.utils.rest_api.get_stats_data(
+                {
+                    "sample_project_name": "Relecov",
+                    "project_field": project_field,
+                }
+            )
+            if "ERROR" in lims_data:
+                return lims_data
             data = []
             for key, values in lims_data.items():
                 tmp_data = []
@@ -79,7 +79,22 @@ def sample_processing_graphics():
                 data.append({key: tmp_data})
             return data
         else:
-            return pandas.DataFrame(lims_data.items(), columns=columns)
+            json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                project_field
+            )
+            if json_data is None:
+                if project_field == "nucleic_acid_extraction_protocol":
+                    result = (
+                        dashboard.utils.generic_process_data.pre_proc_nucleic_acid_extraction_protocol()
+                    )
+                else:
+                    return {"ERROR": "pre-processing not defined"}
+                if "ERROR" in result:
+                    return result
+                json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                    project_field
+                )
+            return pandas.DataFrame(json_data.items(), columns=columns)
 
     sample_processing = {}
 

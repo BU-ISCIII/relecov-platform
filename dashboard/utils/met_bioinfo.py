@@ -4,7 +4,6 @@ from statistics import mean
 
 # Local imports
 import logging
-import core.models
 import dashboard.dashboard_config
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.plotly
@@ -65,45 +64,27 @@ def bioinfo_graphics():
         return data
 
     def get_percentage_data():
-        per_data = []
-        graph_list = ["per_Ns", "per_reads_host", "per_reads_virus", "per_unmapped"]
-        labels_map = {
-            field.property_name: field.label_name
-            for field in core.models.BioinfoAnalysisField.objects.filter(
-                property_name__in=graph_list
+        json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+            "bioinfo_percentage_data"
+        )
+        if json_data is None or json_data == {}:
+            result = (
+                dashboard.utils.generic_process_data.pre_proc_bioinfo_percentage_data()
             )
-        }
-        for graph in graph_list:
-            if core.models.BioinfoAnalysisValue.objects.filter(
-                bioinfo_analysis_fieldID__property_name__exact=graph
-            ).exists():
-                str_data = list(
-                    core.models.BioinfoAnalysisValue.objects.filter(
-                        bioinfo_analysis_fieldID__property_name__exact=graph
-                    ).values_list("value", flat=True)
+            if "ERROR" in result:
+                return result
+            json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                "bioinfo_percentage_data"
+            )
+
+        per_data = []
+        for label, values in json_data.items():
+            if not isinstance(values, (list, tuple)):
+                logger.warning(
+                    f"Skipping bioinfo percentage series '{label}' because it is not a list"
                 )
-
-                clean_values = []
-                for value in str_data:
-                    # Try direct float, then comma replacement
-                    try:
-                        v = float(value)
-                    except (ValueError, TypeError):
-                        try:
-                            v = float(str(value).replace(",", "."))
-                        except Exception:
-                            logger.warning(
-                                f"Invalid value encountered in '{graph}': '{value}' could not be converted to float"
-                            )
-                            continue
-                    # Normalize and filter range
-                    if v < 0:
-                        v = 0.0
-                    if v <= 100:
-                        clean_values.append(v)
-
-                per_data.append({labels_map.get(graph, graph): clean_values})
-
+                continue
+            per_data.append({label: list(values)})
         return per_data
 
     bioinfo = {}

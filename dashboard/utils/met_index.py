@@ -1,34 +1,36 @@
 # Generic imports
 import json
-from statistics import mean
 
 # Local imports
 import core.utils.bioinfo_analysis
-import core.utils.rest_api
 import core.utils.samples
 import core.utils.schema
 import dashboard.dashboard_config
+import dashboard.utils.generic_process_data
 import dashboard.utils.plotly
 from dashboard.models import GraphicJsonFile
 
 
-def _read_cached_bioinfo_util():
-    """
-    Returns the pre-baked JSON of bioinfo field usage,
-    or None if it does not yet exist.
-    """
+def _read_cached_graphic_json(graphic_name):
+    """Return the latest cached methodology JSON or None if missing."""
     try:
-        obj = GraphicJsonFile.objects.filter(
-            graphic_name="methodology_bioinfo_fields"
-        ).latest("creation_date")
-
+        obj = GraphicJsonFile.objects.filter(graphic_name=graphic_name).latest(
+            "creation_date"
+        )
         data = obj.graphic_data
         if isinstance(data, str):
             data = json.loads(data)
         return data
-
     except GraphicJsonFile.DoesNotExist:
         return None
+
+
+def _read_cached_bioinfo_util():
+    return _read_cached_graphic_json("methodology_bioinfo_fields")
+
+
+def _read_cached_lims_util():
+    return _read_cached_graphic_json("methodology_lims_fields")
 
 
 def schema_fields_utilization():
@@ -46,36 +48,23 @@ def schema_fields_utilization():
         "field_value": [],
         "percent": [],
     }
-    # get stats utilization fields from LIMS
-    lims_fields = core.utils.rest_api.get_stats_data({"sample_project_name": "Relecov"})
-    if "ERROR" in lims_fields:
-        util_data["ERROR"] = lims_fields["ERROR"]
-    else:
-        f_values = []
-        lims_field_display_map = (
-            core.utils.rest_api.get_sample_project_field_display_map("Relecov")
-        )
-        for value in lims_fields["fields_norm"].values():
-            f_values.append(value)
-
-        if len(f_values) > 1:
-            util_data["lims_f_values"] = float("%.1f" % (mean(f_values) * 100))
+    lims_util = _read_cached_lims_util()
+    if lims_util is None:
+        result = dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util()
+        if "ERROR" in result:
+            util_data["ERROR"] = result["ERROR"]
         else:
-            util_data["lims_f_values"] = 0
-        # Calculate empty fields and total fields
-        empty_fields = len(lims_fields["always_none"]) + len(lims_fields["never_used"])
-        total_fields = len(lims_fields["fields_norm"]) + empty_fields
-        util_data["summary"]["lab_values"] = [empty_fields, total_fields]
+            lims_util = _read_cached_lims_util()
 
-        # get the maximum to make the percentage of filled
-        max_value = max(set(lims_fields["fields_value"].values()))
-        for key, val in lims_fields["fields_value"].items():
-            util_data["field_detail_data"]["field_name"].append(
-                lims_field_display_map.get(key, key)
-            )
-            util_data["field_detail_data"]["field_value"].append(val)
-            util_data["field_detail_data"]["percent"].append(max_value)
-        util_data["num_lab_fields"] = len(lims_fields["fields_value"])
+    if lims_util is not None:
+        util_data["lims_f_values"] = lims_util.get("lims_f_values", 0)
+        util_data["summary"]["lab_values"] = lims_util.get(
+            "summary_lab_values", [0, 0]
+        )
+        util_data["field_detail_data"] = lims_util.get(
+            "field_detail_data", util_data["field_detail_data"]
+        )
+        util_data["num_lab_fields"] = lims_util.get("num_lab_fields", 0)
 
     # get fields utilization from bioinfo analysis
     bio_fields = (

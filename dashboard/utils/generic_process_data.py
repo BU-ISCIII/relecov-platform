@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime
 from collections import OrderedDict, Counter, defaultdict
+from statistics import mean
 from django.db.models import (
     F,
     Count,
@@ -403,6 +404,75 @@ def pre_proc_extraction_protocol_pcr_1():
     return {"SUCCESS": "Success"}
 
 
+def _pre_proc_simple_lims_counts(graphic_name, project_field, empty_label=None):
+    """Fetch and cache simple value->count stats from iSkyLIMS."""
+    lims_data = core.utils.rest_api.get_stats_data(
+        {
+            "sample_project_name": "Relecov",
+            "project_field": project_field,
+        }
+    )
+    if "ERROR" in lims_data:
+        return lims_data
+
+    cleaned_data = {}
+    for key, value in lims_data.items():
+        new_key = key
+        if empty_label is not None and (not key or str(key).strip() == ""):
+            new_key = empty_label
+        cleaned_data[new_key] = cleaned_data.get(new_key, 0) + value
+
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {"graphic_name": graphic_name, "graphic_data": cleaned_data}
+    )
+
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_nucleic_acid_extraction_protocol():
+    """Collect counts for nucleic acid extraction protocol for methodology."""
+    return _pre_proc_simple_lims_counts(
+        "nucleic_acid_extraction_protocol",
+        "nucleic_acid_extraction_protocol",
+        empty_label="Not Provided",
+    )
+
+
+def pre_proc_sequencing_instrument_platform():
+    """Collect counts for sequencing instrument platform for methodology."""
+    return _pre_proc_simple_lims_counts(
+        "sequencing_instrument_platform",
+        "sequencing_instrument_platform",
+        empty_label="Not Provided",
+    )
+
+
+def pre_proc_sequencing_instrument_model():
+    """Collect counts for sequencing instrument model for methodology."""
+    return _pre_proc_simple_lims_counts(
+        "sequencing_instrument_model",
+        "sequencing_instrument_model",
+        empty_label="Not Provided",
+    )
+
+
+def pre_proc_library_preparation_kit():
+    """Collect counts for library preparation kit for methodology."""
+    return _pre_proc_simple_lims_counts(
+        "library_preparation_kit",
+        "library_preparation_kit",
+        empty_label="Not Applicable",
+    )
+
+
+def pre_proc_read_length():
+    """Collect counts for read length for methodology."""
+    return _pre_proc_simple_lims_counts(
+        "read_length",
+        "read_length",
+    )
+
+
 # preprocessing data for Sequencing dashboard
 def pre_proc_library_kit_pcr_1():
     """Collect the cts values when using pcr 1 and per library preparation kit"""
@@ -543,6 +613,52 @@ def pre_proc_depth_sample_run():
         {
             "graphic_name": "depth_samples_in_run",
             "graphic_data": depth_sample_run,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_bioinfo_percentage_data():
+    """Cache percentage distributions used in methodology bioinfo ridge plot."""
+    graph_list = ["per_Ns", "per_reads_host", "per_reads_virus", "per_unmapped"]
+    labels_map = {
+        field.property_name: field.label_name
+        for field in core.models.BioinfoAnalysisField.objects.filter(
+            property_name__in=graph_list
+        )
+    }
+
+    percentage_data = OrderedDict()
+    rows = core.models.BioinfoAnalysisValue.objects.filter(
+        bioinfo_analysis_fieldID__property_name__in=graph_list
+    ).values_list(
+        "bioinfo_analysis_fieldID__property_name",
+        "value",
+    )
+
+    for graph in graph_list:
+        percentage_data[labels_map.get(graph, graph)] = []
+
+    for graph, value in rows:
+        try:
+            numeric_value = float(value)
+        except (ValueError, TypeError):
+            try:
+                numeric_value = float(str(value).replace(",", "."))
+            except Exception:
+                logger.warning(
+                    f"Invalid value encountered in '{graph}': '{value}' could not be converted to float"
+                )
+                continue
+        if numeric_value < 0:
+            numeric_value = 0.0
+        if numeric_value <= 100:
+            percentage_data[labels_map.get(graph, graph)].append(numeric_value)
+
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "bioinfo_percentage_data",
+            "graphic_data": percentage_data,
         }
     )
     return {"SUCCESS": "Success"}
@@ -977,6 +1093,48 @@ def pre_proc_intranet_ena_data():
         {
             "graphic_name": "intranet_ena_data",
             "graphic_data": ena_data,
+        }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_methodology_lims_fields_util():
+    """Cache methodology index LIMS utilization summary and detail data."""
+    lims_fields = core.utils.rest_api.get_stats_data({"sample_project_name": "Relecov"})
+    if "ERROR" in lims_fields:
+        return lims_fields
+
+    lims_field_display_map = core.utils.rest_api.get_sample_project_field_display_map(
+        "Relecov"
+    )
+    f_values = list(lims_fields["fields_norm"].values())
+    lims_f_values = float("%.1f" % (mean(f_values) * 100)) if len(f_values) > 1 else 0
+
+    empty_fields = len(lims_fields["always_none"]) + len(lims_fields["never_used"])
+    total_fields = len(lims_fields["fields_norm"]) + empty_fields
+    max_value = max(set(lims_fields["fields_value"].values()))
+
+    field_detail_data = {
+        "field_name": [],
+        "field_value": [],
+        "percent": [],
+    }
+    for key, val in lims_fields["fields_value"].items():
+        field_detail_data["field_name"].append(lims_field_display_map.get(key, key))
+        field_detail_data["field_value"].append(val)
+        field_detail_data["percent"].append(max_value)
+
+    util_data = {
+        "lims_f_values": lims_f_values,
+        "summary_lab_values": [empty_fields, total_fields],
+        "field_detail_data": field_detail_data,
+        "num_lab_fields": len(lims_fields["fields_value"]),
+    }
+
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": "methodology_lims_fields",
+            "graphic_data": util_data,
         }
     )
     return {"SUCCESS": "Success"}
