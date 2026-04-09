@@ -87,16 +87,32 @@ def sequencing_graphics():
         return data
 
     def fetch_sequencing_data(project_field, columns):
-        # get stats utilization fields from LIMS
-        lims_data = core.utils.rest_api.get_stats_data(
-            {
-                "sample_project_name": "Relecov",
-                "project_field": project_field,
-            }
+        json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+            project_field
         )
-        if "ERROR" in lims_data:
-            return lims_data
-        return pd.DataFrame(lims_data.items(), columns=columns)
+        if json_data is None or json_data == {}:
+            pre_proc_methods = {
+                "sequencing_instrument_platform": (
+                    dashboard.utils.generic_process_data.pre_proc_sequencing_instrument_platform
+                ),
+                "sequencing_instrument_model": (
+                    dashboard.utils.generic_process_data.pre_proc_sequencing_instrument_model
+                ),
+                "library_preparation_kit": (
+                    dashboard.utils.generic_process_data.pre_proc_library_preparation_kit
+                ),
+                "read_length": dashboard.utils.generic_process_data.pre_proc_read_length,
+            }
+            pre_proc_method = pre_proc_methods.get(project_field)
+            if pre_proc_method is None:
+                return {"ERROR": "pre-processing not defined"}
+            result = pre_proc_method()
+            if "ERROR" in result:
+                return result
+            json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+                project_field
+            )
+        return pd.DataFrame(json_data.items(), columns=columns)
 
     sequencing = {}
     inst_platform_df = fetch_sequencing_data(
