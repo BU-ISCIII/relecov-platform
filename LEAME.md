@@ -233,6 +233,8 @@ LOG_PATH='/var/log/apps/relecov-iskylims'  # obligatorio si LOG_TYPE='symbolic_l
 
 > Ejecuta los comandos desde la carpeta del proyecto correspondiente y con `install_settings.txt` ya configurado.
 
+La separación interna entre preparación de ficheros y bootstrap se usa ahora para las imágenes de contenedor. En bare-metal no cambian los comandos operativos: `--install` y `--upgrade` siguen ejecutando el flujo completo de dependencias, aplicación y base de datos.
+
 
 ## 6.1 Instalación *relecov-platform*
 

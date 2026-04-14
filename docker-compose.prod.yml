@@ -12,8 +12,8 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-      - /opt/relecov-platform/conf/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/relecov.conf:Z,ro
-      - relecov_apache_logs:/var/log/httpd:Z
+      - ${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/relecov.conf:Z,ro
+      - /var/log/local/apache:/var/log/httpd
       - relecov_static:/opt/relecov-platform/static:z,ro
       - relecov_documents:/opt/relecov-platform/documents:z,ro
       - iskylims_static:/opt/iskylims/static:z,ro
@@ -103,6 +103,5 @@ volumes:
   nextstrain_data:
   relecov_static:
   relecov_documents:
-  relecov_apache_logs:
   iskylims_documents:
   iskylims_static:

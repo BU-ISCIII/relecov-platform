@@ -10,7 +10,7 @@ RELECOV Platform deployment guide (containers and bare-metal), including iSkyLIM
     - [Local test stack](#local-test-stack)
     - [Production container stack](#production-container-stack)
       - [Persist logs/documents on the host](#persist-logsdocuments-on-the-host)
-      - [Apache reverse proxy (host)](#apache-reverse-proxy-host)
+      - [Apache reverse proxy (container) + Gunicorn](#apache-reverse-proxy-container--gunicorn)
     - [Upgrade docker deployment](#upgrade-docker-deployment)
   - [Bare-metal deployment (Ubuntu/CentOS)](#bare-metal-deployment-ubuntucentos)
     - [Install](#install)
@@ -101,6 +101,8 @@ bash container_install.sh --test --engine podman \
   2>&1 | tee relecov_test_install.log
 ```
 
+The container images now include the staged application trees for both `relecov-platform` and `relecov-iskylims`. Test containers can therefore be recreated or restarted without rerunning the file installation step; `container_install.sh` only runs the runtime bootstrap tasks inside each container.
+
 ### Production container stack
 
 1. Prepare production confs (separate for each service):
@@ -129,11 +131,15 @@ bash container_install.sh --engine podman \
 - iSkyLIMS: `http://<host>:8001`
 - Nextstrain: `http://<host>:8100`
 
+Production images now bake the staged Django application trees into the images themselves. Host reboots or container recreation no longer require rerunning the app installation step; `container_install.sh` only performs runtime bootstrap tasks such as migrations, optional scripts, superuser creation on first install, and `collectstatic`.
+
 #### Persist logs/documents on the host
 
 For production container deployments, keep these paths persistent:
 
 - Logs: `/var/log/local/apps/relecov-platform` -> `/opt/relecov-platform/logs`
+- Apache logs: `/var/log/local/apache` -> `/var/log/httpd`
+- Apache config: `${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf` -> `/etc/httpd/conf.d/relecov.conf`
 - Documents: named volume `relecov_documents` -> `/opt/relecov-platform/documents`
 - Static: `/opt/relecov-platform/static-host` -> `/opt/relecov-platform/static`
 
@@ -141,32 +147,19 @@ Prepare host directories and ownership:
 
 ```bash
 sudo mkdir -p /var/log/local/apps/relecov-platform
+sudo mkdir -p /var/log/local/apache
+sudo mkdir -p ${APP_INSTALL_PATH:-/opt/relecov-platform}/conf
 sudo mkdir -p /opt/relecov-platform/static-host
-sudo chown -R ${APP_UID:-1212}:${APP_GID:-1212} /var/log/local/apps/relecov-platform /opt/relecov-platform/static-host
+sudo chown -R ${APP_UID:-1212}:${APP_GID:-1212} /var/log/local/apps/relecov-platform /opt/relecov-platform/static-host ${APP_INSTALL_PATH:-/opt/relecov-platform}
 ```
 
-#### Apache reverse proxy (host)
+#### Apache reverse proxy (container) + Gunicorn
 
-For production, host Apache can proxy the platform container on `localhost:8000`.
+For production, the `app` container runs `gunicorn` and the `apache` service in `docker-compose.prod.yml` acts as the reverse proxy for RELECOV Platform, iSkyLIMS, and Nextstrain.
 
-You can use the existing Apache templates in this repository:
+During `container_install.sh`, the file `conf/relecov_apache_reverse_proxy.conf` is copied to `${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf` on the host before `compose up`. Runtime Apache logs are written to `/var/log/local/apache`.
 
-- Ubuntu/Debian: `conf/relecov_apache_ubuntu.conf`
-- CentOS/RHEL: `conf/relecov_apache_centos_redhat.conf`
-
-Copy and enable (adapt paths/domain names to your environment):
-
-```bash
-# Ubuntu/Debian
-sudo cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/relecov-platform.conf
-sudo a2ensite relecov-platform.conf
-sudo a2enmod proxy proxy_http headers rewrite
-sudo systemctl reload apache2
-
-# CentOS/RHEL
-sudo cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
-sudo systemctl reload httpd
-```
+If you need a different runtime root, export `APP_INSTALL_PATH` before running `container_install.sh`. The compose file already mounts the Apache config from `${APP_INSTALL_PATH}`.
 
 ### Upgrade docker deployment
 
@@ -181,6 +174,8 @@ bash container_install.sh --engine podman \
   --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
   2>&1 | tee relecov_prod_upgrade.log
 ```
+
+The upgrade path rebuilds/restarts the containers and runs `install.sh --bootstrap upgrade` inside each app container. The app files are already baked into the rebuilt images; the bootstrap phase applies migrations with `--fake-initial`, refreshes static files, and skips first-install setup.
 
 ## Bare-metal deployment (Ubuntu/CentOS)
 
@@ -201,6 +196,8 @@ bash install.sh --install full --conf conf/install_settings.txt
 cd ../relecov-iskylims
 bash install.sh --install full --conf conf/install_settings.txt
 ```
+
+The staged/bootstrap split added for container images is internal. Bare-metal commands do not change: `--install` and `--upgrade` still run the complete dependency, application, and database workflow shown here.
 
 ### Upgrade
 
