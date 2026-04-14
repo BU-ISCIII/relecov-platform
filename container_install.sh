@@ -130,6 +130,24 @@ compose_exec() {
     "${COMPOSE_CMD[@]}" "$@"
 }
 
+copy_with_podman_fallback() {
+    local src="$1"
+    local dst="$2"
+
+    if cp "$src" "$dst" 2>/dev/null; then
+        return 0
+    fi
+
+    if [ "$engine" = "podman" ]; then
+        if podman unshare cp "$src" "$dst"; then
+            return 0
+        fi
+    fi
+
+    echo "Failed to copy '$src' to '$dst'" >&2
+    return 1
+}
+
 # PARSE VARIABLE ARGUMENTS WITH getopts
 options=":d:g:c:s:j:a:m:b:f:e:vhntp"
 while getopts $options opt; do
@@ -636,7 +654,7 @@ platform_install_path="$(service_install_path "app")"
 if service_exists "apache"; then
     mkdir -p "$platform_install_path/conf" "$platform_install_path/logs/apache"
     if [ -f "$repo_root/conf/relecov_apache_reverse_proxy.conf" ]; then
-        cp "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
+        copy_with_podman_fallback "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
             "$platform_install_path/conf/relecov_apache_reverse_proxy.conf"
     fi
 fi
@@ -713,17 +731,17 @@ for target_service in "${install_services[@]}"; do
     fi
 
     if [ "$action" = "upgrade" ]; then
-        echo "Running install.sh upgrade in $target_service"
-        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --upgrade app --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
+        echo "Running install.sh bootstrap in $target_service (upgrade mode)"
+        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --bootstrap upgrade --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
     else
-        echo "Running install.sh install in $target_service"
-        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --install app --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
+        echo "Running install.sh bootstrap in $target_service (install mode)"
+        engine_exec exec -it "$target_container" bash -c "cd $target_repo_path && bash install.sh --bootstrap install --git_revision \"$git_revision\" --conf \"$service_install_conf\" --skip_apache_restart$script_args_before$script_args_after"
     fi
 
-    print_container_source_diagnostics "$target_service" "$target_container" "Container diagnostics after install.sh for $target_service:"
+    print_container_source_diagnostics "$target_service" "$target_container" "Container diagnostics after bootstrap for $target_service:"
 
     if ! engine_exec exec -it "$target_container" test -f "$target_install_path/manage.py"; then
-        echo "Error: $target_install_path/manage.py not found after install.sh for service $target_service. Showing logs:"
+        echo "Error: $target_install_path/manage.py not found after bootstrap for service $target_service. Showing logs:"
         engine_exec logs --tail 200 "$target_container"
         exit 1
     fi
