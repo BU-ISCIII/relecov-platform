@@ -17,6 +17,14 @@
     #sample_list th:first-child input {
       white-space: nowrap;
     }
+    #sample_list th:nth-child(2),
+    #sample_list td:nth-child(2) {
+      min-width: 135px;
+    }
+    #sample_list th:nth-child(2) .dt-column-title,
+    #sample_list th:nth-child(2) input {
+      white-space: nowrap;
+    }
     #sample_list th:last-child,
     #sample_list td:last-child {
       min-width: 260px;
@@ -106,8 +114,8 @@
                                                     <table id="sample_list" class="table table-striped table-bordered">
                                                         <colgroup>
                                                             <col style="width: 22%;">
-                                                            <col style="width: 17%;">
-                                                            <col style="width: 13%;">
+                                                            <col style="width: 22%;">
+                                                            <col style="width: 8%;">
                                                             <col>
                                                         </colgroup>
                                                         <thead>
