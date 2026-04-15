@@ -26,7 +26,6 @@ import core.utils.samples_map
 #  End of imports  received samples
 import time
 
-
 SEARCH_SAMPLE_COLUMNS = {
     0: "sequencing_id",
     1: "collection_date",
@@ -75,7 +74,10 @@ def _row_matches_search(row, global_search, column_filters):
     """Return True if the row matches the global and column-specific filters."""
     if global_search:
         normalized_global = global_search.lower()
-        if not any(normalized_global in str(row[field]).lower() for field in SEARCH_SAMPLE_COLUMNS.values()):
+        if not any(
+            normalized_global in str(row[field]).lower()
+            for field in SEARCH_SAMPLE_COLUMNS.values()
+        ):
             return False
 
     for field_name, search_value, exact_match in column_filters:
@@ -266,7 +268,8 @@ def search_sample_data(request):
     for index, field_name in SEARCH_SAMPLE_COLUMNS.items():
         search_value = _normalize_datatable_search_value(
             request.GET.get(f"columns[{index}][search][value]", ""),
-            request.GET.get(f"columns[{index}][search][regex]", "false").lower() == "true",
+            request.GET.get(f"columns[{index}][search][regex]", "false").lower()
+            == "true",
         )
         exact_match = index in (2, 3)
         column_filters.append((field_name, search_value, exact_match))
