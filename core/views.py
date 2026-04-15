@@ -2,10 +2,12 @@
 from datetime import datetime
 from collections import defaultdict, OrderedDict
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 
 # Local imports
+import core.models
 import core.utils.samples
 import core.utils.schema
 import core.utils.bioinfo_analysis
@@ -23,6 +25,80 @@ import core.utils.samples_map
 
 #  End of imports  received samples
 import time
+
+
+SEARCH_SAMPLE_COLUMNS = {
+    0: "sequencing_id",
+    1: "collection_date",
+    2: "lineage",
+    3: "collecting_institution",
+}
+
+
+def _get_search_sample_rows_for_user(user_obj):
+    """Return search rows or an error payload for the given user."""
+    if core.models.Sample.objects.count() == 0:
+        return {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED}
+
+    all_samples_summary = core.utils.samples.get_search_table_for_user(user_obj)
+    if isinstance(all_samples_summary, dict) and "ERROR" in all_samples_summary:
+        return all_samples_summary
+
+    if not all_samples_summary:
+        user_lab = core.utils.labs.get_lab_name_from_user(user_obj)
+        if not user_lab:
+            return {"ERROR": "You don't have a laboratory assigned to you yet"}
+        return {"ERROR": f"No samples found for your designated laboratory: {user_lab}"}
+
+    return [
+        {
+            "id": sample_pk,
+            "sequencing_id": sequencing_id,
+            "collection_date": collection_date,
+            "lineage": lineage,
+            "collecting_institution": collecting_institution,
+        }
+        for sample_pk, sequencing_id, collection_date, lineage, collecting_institution in all_samples_summary
+    ]
+
+
+def _normalize_datatable_search_value(value, regex=False):
+    """Normalize DataTables search values, removing anchors from exact-match regexes."""
+    if not value:
+        return ""
+    if regex and value.startswith("^") and value.endswith("$"):
+        value = value[1:-1]
+    return value.strip()
+
+
+def _row_matches_search(row, global_search, column_filters):
+    """Return True if the row matches the global and column-specific filters."""
+    if global_search:
+        normalized_global = global_search.lower()
+        if not any(normalized_global in str(row[field]).lower() for field in SEARCH_SAMPLE_COLUMNS.values()):
+            return False
+
+    for field_name, search_value, exact_match in column_filters:
+        if not search_value:
+            continue
+        candidate = str(row[field_name] or "")
+        if exact_match:
+            if candidate != search_value:
+                return False
+        elif search_value.lower() not in candidate.lower():
+            return False
+
+    return True
+
+
+def _get_sort_value(row, field_name):
+    """Get a stable sort key for search sample rows."""
+    value = row.get(field_name)
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.lower()
+    return value
 
 
 def index(request):
@@ -123,28 +199,109 @@ def schema_display(request, schema_id):
 @login_required
 def search_sample(request):
     """Search sample using the filter in the form"""
-    search_data = {}
-    if core.models.Sample.objects.count() == 0:
-        search_data["ERROR"] = core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED
+    sample_rows = _get_search_sample_rows_for_user(request.user)
+    if isinstance(sample_rows, dict) and "ERROR" in sample_rows:
         return render(
-            request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
+            request,
+            "core/searchSample.html",
+            {
+                "ERROR": sample_rows["ERROR"],
+                "lineage_options": [],
+                "collecting_institution_options": [],
+            },
         )
-    all_samples_summary = core.utils.samples.get_search_table_for_user(request.user)
-    if not all_samples_summary:
-        user_lab = core.utils.labs.get_lab_name_from_user(request.user)
-        if not user_lab:
-            search_data["ERROR"] = "You don't have a laboratory assigned to you yet"
-        else:
-            search_data["ERROR"] = (
-                f"No samples found for your designated laboratory: {user_lab}"
-            )
-        return render(
-            request, "core/searchSample.html", {"ERROR": search_data["ERROR"]}
-        )
+
+    lineage_options = sorted({row["lineage"] for row in sample_rows if row["lineage"]})
+    collecting_institution_options = sorted(
+        {
+            row["collecting_institution"]
+            for row in sample_rows
+            if row["collecting_institution"]
+        }
+    )
     return render(
         request,
         "core/searchSample.html",
-        {"search_data": search_data, "sample_summary": all_samples_summary},
+        {
+            "lineage_options": lineage_options,
+            "collecting_institution_options": collecting_institution_options,
+        },
+    )
+
+
+@login_required
+def search_sample_data(request):
+    """Return paginated sample browser data for DataTables server-side mode."""
+    sample_rows = _get_search_sample_rows_for_user(request.user)
+    if isinstance(sample_rows, dict) and "ERROR" in sample_rows:
+        return JsonResponse(
+            {
+                "draw": int(request.GET.get("draw", 0) or 0),
+                "recordsTotal": 0,
+                "recordsFiltered": 0,
+                "data": [],
+                "error": sample_rows["ERROR"],
+            }
+        )
+
+    try:
+        draw = int(request.GET.get("draw", 0) or 0)
+    except (TypeError, ValueError):
+        draw = 0
+    try:
+        start = max(int(request.GET.get("start", 0) or 0), 0)
+    except (TypeError, ValueError):
+        start = 0
+    try:
+        length = int(request.GET.get("length", 25) or 25)
+    except (TypeError, ValueError):
+        length = 25
+
+    global_search = _normalize_datatable_search_value(
+        request.GET.get("search[value]", ""),
+        request.GET.get("search[regex]", "false").lower() == "true",
+    ).lower()
+
+    column_filters = []
+    for index, field_name in SEARCH_SAMPLE_COLUMNS.items():
+        search_value = _normalize_datatable_search_value(
+            request.GET.get(f"columns[{index}][search][value]", ""),
+            request.GET.get(f"columns[{index}][search][regex]", "false").lower() == "true",
+        )
+        exact_match = index in (2, 3)
+        column_filters.append((field_name, search_value, exact_match))
+
+    filtered_rows = [
+        row
+        for row in sample_rows
+        if _row_matches_search(row, global_search, column_filters)
+    ]
+
+    order_column = request.GET.get("order[0][column]")
+    order_direction = request.GET.get("order[0][dir]", "asc")
+    if order_column is not None:
+        try:
+            order_column = int(order_column)
+        except (TypeError, ValueError):
+            order_column = None
+    field_name = SEARCH_SAMPLE_COLUMNS.get(order_column, "sequencing_id")
+    reverse_order = order_direction == "desc"
+    filtered_rows.sort(
+        key=lambda row: _get_sort_value(row, field_name), reverse=reverse_order
+    )
+
+    if length == -1:
+        paginated_rows = filtered_rows[start:]
+    else:
+        paginated_rows = filtered_rows[start : start + max(length, 0)]
+
+    return JsonResponse(
+        {
+            "draw": draw,
+            "recordsTotal": len(sample_rows),
+            "recordsFiltered": len(filtered_rows),
+            "data": paginated_rows,
+        }
     )
 
 
