@@ -50,9 +50,35 @@ if [ "$APP_MODE" = "dev" ]; then
 fi
 
 if command -v supercronic >/dev/null 2>&1; then
-    # Ensure django-crontab definitions are installed in user crontab first.
-    python "${APP_DIR}/manage.py" crontab add >/dev/null 2>&1 || true
-    crontab -l 2>/dev/null | sed '/^\s*#/d; /^\s*$/d' > "${CRON_FILE}" || true
+    python - <<'PY' > "${CRON_FILE}"
+import os
+import shlex
+import sys
+
+import django
+
+app_dir = os.environ.get("APP_INSTALL_PATH", "/opt/relecov-platform")
+project_module = os.environ.get("PROJECT_MODULE", "relecov_platform")
+sys.path.insert(0, app_dir)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"{project_module}.settings")
+django.setup()
+
+from django.conf import settings
+
+python_bin = os.path.join(app_dir, "virtualenv", "bin", "python")
+manage_py = os.path.join(app_dir, "manage.py")
+
+for job in getattr(settings, "CRONJOBS", []):
+    schedule, dotted_path = job[:2]
+    module_name, function_name = dotted_path.rsplit(".", 1)
+    python_code = f"import {module_name} as _m; _m.{function_name}()"
+    command = (
+        f"cd {shlex.quote(app_dir)} && "
+        f"{shlex.quote(python_bin)} {shlex.quote(manage_py)} "
+        f"shell -c {shlex.quote(python_code)}"
+    )
+    print(f"{schedule} {command}")
+PY
     if [ -s "${CRON_FILE}" ]; then
         safe_chmod 600 "${CRON_FILE}"
         : > "${CRON_LOG}"
