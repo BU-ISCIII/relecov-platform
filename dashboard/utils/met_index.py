@@ -71,7 +71,9 @@ def schema_fields_utilization():
     if bio_fields is None:
         result = dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util()
         if "ERROR" in result:
-            bio_fields = core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization()
+            bio_fields = (
+                core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization()
+            )
         else:
             bio_fields = (
                 _read_cached_bioinfo_util()
