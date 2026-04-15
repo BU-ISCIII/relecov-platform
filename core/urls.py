@@ -49,6 +49,11 @@ urlpatterns = [
     ),
     path("schemaHandling", core.views.schema_handling, name="schema_handling"),
     path("searchSample", core.views.search_sample, name="search_sample"),
+    path(
+        "searchSample/data",
+        core.views.search_sample_data,
+        name="search_sample_data",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

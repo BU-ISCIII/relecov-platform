@@ -8,6 +8,22 @@
       width: 100% !important;
       table-layout: auto;
     }
+    #sample_list th:first-child,
+    #sample_list td:first-child {
+      min-width: 210px;
+      white-space: nowrap;
+    }
+    #sample_list th:first-child .dt-column-title,
+    #sample_list th:first-child input {
+      white-space: nowrap;
+    }
+    #sample_list th:last-child,
+    #sample_list td:last-child {
+      min-width: 260px;
+    }
+    #sample_list thead tr.filter-row th:last-child select {
+      min-width: 220px;
+    }
     #sample_list a.sample-browser-link {
       color: var(--color-blue);
       font-weight: 500;
@@ -32,6 +48,8 @@
 
 {% block content %}
 {% include "core/cdnTableFunctionality.html" %}
+{{ lineage_options|json_script:"search-sample-lineage-options" }}
+{{ collecting_institution_options|json_script:"search-sample-institution-options" }}
 
 {% include "core/sideMenuFuncionality.html" %}
 <section class="hero-animated d-flex">
@@ -69,7 +87,7 @@
                                     </div> <!-- end card  -->
                                 </div> <!--// end col-sm-9 -->
                             {% endif %}
-                            {% if sample_summary %}
+                            {% if not ERROR %}
                                 <div id="sample_loading_msg" class="row justify-content-center">Loading available samples...</div>
                                 <script>
                                     const loadingMsg = document.getElementById('sample_loading_msg');
@@ -88,8 +106,8 @@
                                                     <table id="sample_list" class="table table-striped table-bordered">
                                                         <colgroup>
                                                             <col style="width: 22%;">
-                                                            <col>
-                                                            <col style="width: 18%;">
+                                                            <col style="width: 17%;">
+                                                            <col style="width: 13%;">
                                                             <col>
                                                         </colgroup>
                                                         <thead>
@@ -106,16 +124,7 @@
                                                                 <th></th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody>
-                                                            {% for pk, s_name, col_date, lineage, col_inst in sample_summary %}
-                                                                <tr>
-                                                                    <td><a class="sample-browser-link" href="sampleDisplay={{pk}}">{{s_name}}</a></td>
-                                                                    <td>{{col_date}}</td>
-                                                                    <td>{{lineage}}</td>
-                                                                    <td>{{col_inst}}</td>
-                                                                </tr>
-                                                            {% endfor %}
-                                                        </tbody>
+                                                        <tbody></tbody>
                                                     </table>
                                                 </div>
                                             </div>
@@ -124,16 +133,54 @@
                                 </div>
                                 <script type="text/javascript">
                                     $(document).ready(function() {
+                                        var lineageOptions = JSON.parse(document.getElementById('search-sample-lineage-options').textContent);
+                                        var institutionOptions = JSON.parse(document.getElementById('search-sample-institution-options').textContent);
+                                        var sampleUrlTemplate = "{% url 'sample_display' 0 %}";
+
+                                        function escapeHtml(value) {
+                                            return $('<div>').text(value == null ? '' : value).html();
+                                        }
+
                                         var table = $('#sample_list').DataTable({
+                                            processing: true,
+                                            serverSide: true,
                                             pageLength: 25,
                                             lengthMenu: [ [25, 50, 100, 200, -1], [25, 50, 100, 200, "All"] ],
                                             orderCellsTop: true,
                                             dom:
-                                                "<'row'<'col-sm-12 col-md-3'B><'col-md-3'l><'col-md-6'f>>" +
+                                                "<'row'<'col-md-3'l><'col-md-9'f>>" +
                                                 "<'row'<'col-sm-12'tr>>" +
                                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                                             responsive: true,
-                                            buttons: ['csv', 'excel'],
+                                            ajax: {
+                                                url: "{% url 'search_sample_data' %}",
+                                                dataSrc: function (json) {
+                                                    if (json.error) {
+                                                        $('#sample_loading_msg').hide();
+                                                        $('#sample_card').addClass('d-none');
+                                                        $('.row.justify-content-center').append(
+                                                            '<div class="col-sm-10"><div class="card border-danger mb-3"><div class="card-header text-center text-danger"><h3 style="text-align:center">Sample Browser is not available</h3></div><div class="card-body text-center"><br><p><strong>' + escapeHtml(json.error) + '</strong></p></div></div></div>'
+                                                        );
+                                                        return [];
+                                                    }
+                                                    return json.data || [];
+                                                }
+                                            },
+                                            columns: [
+                                                {
+                                                    data: 'sequencing_id',
+                                                    render: function (data, type, row) {
+                                                        if (type !== 'display') {
+                                                            return data;
+                                                        }
+                                                        var sampleUrl = sampleUrlTemplate.replace(/0$/, row.id);
+                                                        return '<a class="sample-browser-link" href="' + escapeHtml(sampleUrl) + '">' + escapeHtml(data) + '</a>';
+                                                    }
+                                                },
+                                                { data: 'collection_date' },
+                                                { data: 'lineage' },
+                                                { data: 'collecting_institution' }
+                                            ],
                                             initComplete: function () {
                                                 var api = this.api();
 
@@ -166,7 +213,8 @@
                                                             column.search(val ? '^' + val + '$' : '', true, false).draw();
                                                         });
 
-                                                    column.data().unique().sort().each(function (d) {
+                                                    var options = index === 2 ? lineageOptions : institutionOptions;
+                                                    options.forEach(function (d) {
                                                         select.append('<option value="' + d + '">' + d + '</option>')
                                                     });
                                                 });
