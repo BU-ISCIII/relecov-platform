@@ -67,10 +67,16 @@ def schema_fields_utilization():
         util_data["num_lab_fields"] = lims_util.get("num_lab_fields", 0)
 
     # get fields utilization from bioinfo analysis
-    bio_fields = (
-        _read_cached_bioinfo_util()
-        or core.utils.bioinfo_analysis.get_bioinfo_analyis_fields_utilization()
-    )
+    bio_fields = _read_cached_bioinfo_util()
+    if bio_fields is None:
+        result = dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util()
+        if "ERROR" in result:
+            bio_fields = core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization()
+        else:
+            bio_fields = (
+                _read_cached_bioinfo_util()
+                or core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization()
+            )
     # if return an empty value skip looking for data
     if not bool(bio_fields):
         util_data["ERROR_ANALYSIS"] = "Not Data to process"

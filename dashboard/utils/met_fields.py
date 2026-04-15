@@ -202,7 +202,9 @@ def create_utilization_graphic(lineage):
 
 def schema_fields_utilization():
     """ """
-    schema_fields = core.utils.bioinfo_analysis.get_bioinfo_analyis_fields_utilization()
+    schema_fields = (
+        core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization()
+    )
     for schema_name, fields in schema_fields.items():
         # import pdb; pdb.set_trace()
 
