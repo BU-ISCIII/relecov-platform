@@ -33,6 +33,25 @@ def remove_older_graphic_jsons(graphic_name, date):
     return
 
 
+def update_search_samples_summary():
+    """Update only the Sample Browser summary cache."""
+    graphic_name = "search_samples_summary_table"
+    dates = list(
+        dashboard.models.GraphicJsonFile.objects.filter(
+            graphic_name__exact=graphic_name
+        ).values_list("creation_date", flat=True)
+    )
+    if dates:
+        remove_older_graphic_jsons(graphic_name, max(dates))
+
+    print("Starting search_samples_summary update...")
+    print("Start timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+    print("Running pre_proc_search_samples_summary()")
+    dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
+    print("search_samples_summary update finished")
+    print("End timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+
+
 def update_graphic_json_data():
     """This function is called from crontab to update graphic json data.
     It also removes all the previous graphic jsons except for the last.
@@ -104,8 +123,6 @@ def update_graphic_json_data():
     dashboard.utils.generic_process_data.pre_proc_intranet_ena_data()
     print("Running pre_proc_methodology_lims_fields_util()")
     dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util()
-    print("Running pre_proc_search_samples_summary()")
-    dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
     print("Running pre_proc_bioinfo_fields_util()")
     dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util()
     uniq_chrom_id_list = [

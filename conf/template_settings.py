@@ -177,7 +177,16 @@ LOG_CRONTAB_FILE = os.path.join(BASE_DIR, "logs", "crontab.log")
 
 # Crontab settings
 CRONJOBS = [
-    ("0 0 * * 4", "dashboard.cron.update_graphic_json_data", ">>" + LOG_CRONTAB_FILE),
+    (
+        "0 0 * * *",
+        "dashboard.cron.update_search_samples_summary",
+        ">>" + LOG_CRONTAB_FILE,
+    ),
+    (
+        "10 0 1 * *",
+        "dashboard.cron.update_graphic_json_data",
+        ">>" + LOG_CRONTAB_FILE,
+    ),
 ]
 
 CRONTAB_COMMAND_SUFFIX = "2>&1"
