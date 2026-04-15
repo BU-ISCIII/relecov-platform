@@ -187,3 +187,13 @@ def get_bioinfo_analyis_fields_utilization(
         cache.set(cache_key, result, cache_seconds)
 
     return result
+
+
+def get_bioinfo_analysis_fields_utilization(*args, **kwargs):
+    """Compatibility wrapper with the corrected spelling.
+
+    Some callers use ``analysis`` instead of the historical ``analyis`` typo.
+    Keep both entrypoints valid so preprocessing code can build the cached
+    methodology payload instead of silently falling back to request-time work.
+    """
+    return get_bioinfo_analyis_fields_utilization(*args, **kwargs)
