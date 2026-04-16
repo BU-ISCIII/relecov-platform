@@ -497,30 +497,34 @@ def pre_proc_based_pairs_sequenced():
     pcr_ct_1_values = core.utils.rest_api.get_sample_parameter_data(
         {"sample_project_name": "Relecov", "parameter": "diagnostic_pcr_Ct_value_1"}
     )
-    samps_db = set(
-        x[0] for x in core.models.Sample.objects.all().values_list("sample_unique_id")
-    )
     if "ERROR" in pcr_ct_1_values:
         return pcr_ct_1_values
+    reads_rows = (
+        core.models.BioinfoAnalysisValue.objects.filter(
+            bioinfo_analysis_fieldID__property_name__exact="number_of_reads_sequenced",
+            sample__sample_unique_id__isnull=False,
+        )
+        .values_list("sample__sample_unique_id", "value", "pk")
+        .order_by("sample__sample_unique_id", "-pk")
+    )
+    # Keep only the latest recorded reads value per sample and avoid one query per row.
+    reads_by_sample = {}
+    for sample_name, reads_value, _pk in reads_rows:
+        if sample_name in reads_by_sample:
+            continue
+        try:
+            reads_by_sample[sample_name] = int(reads_value)
+        except (TypeError, ValueError):
+            continue
+
     for ct_value in pcr_ct_1_values:
         sample_name = ct_value["Sample name"]
-
-        if sample_name not in samps_db:
+        base_value_int = reads_by_sample.get(sample_name)
+        if base_value_int is None:
             continue
-
-        base_value_qs = core.models.BioinfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID__property_name__exact="number_of_reads_sequenced",
-            sample__sample_unique_id__exact=sample_name,
-        ).last()
-
-        if base_value_qs is None:
-            continue
-
-        base_value = base_value_qs.get_value()
         try:
             float_base_value = float(ct_value["diagnostic_pcr_Ct_value_1"])
-            base_value_int = int(base_value)
-        except ValueError:
+        except (TypeError, ValueError):
             continue
         if base_value_int not in based_pairs:
             based_pairs[base_value_int] = []
