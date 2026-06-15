@@ -12,10 +12,12 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-      - ${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/relecov.conf:Z,ro
-      - /var/log/local/apache:/var/log/httpd
-      - relecov_static:/opt/relecov-platform/static:z,ro
-      - relecov_documents:/opt/relecov-platform/documents:z,ro
+      - ${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/01-relecov.conf:Z,ro
+      - ${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_logs.conf:/etc/httpd/conf.d/00-logformat.conf:Z,ro
+      - ${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_server-status.conf:/etc/httpd/conf.d/02-server-status.conf:Z,ro
+      - ${APACHE_LOG_PATH:-/var/log/local/apache}:/var/log/httpd:Z
+      - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:z,ro
+      - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:z,ro
       - iskylims_static:/opt/iskylims/static:z,ro
       - iskylims_documents:/opt/iskylims/documents:z,ro
     networks:
@@ -51,9 +53,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - /var/log/local/apps/relecov-platform:/opt/relecov-platform/logs:Z
-      - relecov_documents:/opt/relecov-platform/documents:z
-      - relecov_static:/opt/relecov-platform/static:z
+      - ${PLATFORM_LOG_PATH:-/var/log/local/apps/relecov-platform}:${APP_INSTALL_PATH:-/opt/relecov-platform}/logs:Z
+      - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:z
+      - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
@@ -77,14 +79,18 @@ services:
     build:
       context: ../relecov-iskylims
       args:
-        INSTALL_TYPE: full
+        INSTALL_TYPE: ${ISKYLIMS_INSTALL_TYPE:-full}
         GIT_REVISION: ${ISKYLIMS_GIT_REVISION:-current}
+        INSTALL_CONF: ${ISKYLIMS_INSTALL_CONF:-conf/docker_production_settings.txt}
+        INSTALL_PATH: ${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}
+        APP_UID: ${APP_UID:-1212}
+        APP_GID: ${APP_GID:-1212}
     container_name: relecov_iskylims_app
     restart: unless-stopped
     expose:
       - "8001"
     volumes:
-      - /var/log/local/apps/relecov-iskylims:/opt/iskylims/logs:Z
+      - ${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}:/opt/iskylims/logs:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
       - iskylims_static:/opt/iskylims/static:z
