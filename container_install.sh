@@ -13,7 +13,7 @@ Usage : $0 [--demo_data] [--git_revision] [--compose_file] [--install_conf] [--a
     --compose_file      | Compose file to use (overrides default)
     --install_conf      | Settings file consumed during container image build (mandatory for production)
     --install_conf_map  | Service-specific settings file: service,path (can be repeated)
-    --action            | install (default) or upgrade, to control DB initialisation steps
+    --action            | install (default), upgrade, or fix-permissions
     --script            | Run a Django migration script after migrations (can be repeated)
     --script_before     | Run a Django migration script before migrations (can be repeated)
     --script_after      | Run a Django migration script after migrations (can be repeated)
@@ -31,6 +31,9 @@ Examples:
 
     Upgrade an existing production deployment using the same database:
     bash $0 --install_conf conf/my_prod_settings.txt --action upgrade
+
+    Repair production bind mount and volume permissions without rebuilding or bootstrapping:
+    bash $0 --install_conf conf/my_prod_settings.txt --action fix-permissions
 
     Install demo container system with local services
     bash $0 --test
@@ -148,6 +151,62 @@ copy_with_podman_fallback() {
     return 1
 }
 
+chmod_with_podman_fallback() {
+    local mode="$1"
+    shift
+
+    if chmod "$mode" "$@" 2>/dev/null; then
+        return 0
+    fi
+
+    if [ "$engine" = "podman" ]; then
+        if podman unshare chmod "$mode" "$@"; then
+            return 0
+        fi
+    fi
+
+    echo "Failed to chmod $mode: $*" >&2
+    return 1
+}
+
+chown_with_podman_fallback() {
+    local owner="$1"
+    shift
+
+    if chown -R "$owner" "$@" 2>/dev/null; then
+        return 0
+    fi
+
+    if [ "$engine" = "podman" ]; then
+        if podman unshare chown -R "$owner" "$@"; then
+            return 0
+        fi
+    fi
+
+    echo "Failed to chown $owner: $*" >&2
+    return 1
+}
+
+normalize_apache_server_name() {
+    local value="$1"
+
+    value="${value#http://}"
+    value="${value#https://}"
+    value="${value%%/*}"
+    value="${value%%:*}"
+
+    if [ -z "$value" ] || [ "$value" = "*" ]; then
+        value="localhost"
+    fi
+
+    echo "$value"
+}
+
+sed_replacement_escape() {
+    printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
+
 # PARSE VARIABLE ARGUMENTS WITH getopts
 options=":d:g:c:s:j:a:m:b:f:e:vhntp"
 while getopts $options opt; do
@@ -169,8 +228,8 @@ while getopts $options opt; do
             ;;
         a)
             action=$OPTARG
-            if [[ "$action" != "install" && "$action" != "upgrade" ]]; then
-                echo "Invalid action '$action'. Use install or upgrade."
+            if [[ "$action" != "install" && "$action" != "upgrade" && "$action" != "fix-permissions" ]]; then
+                echo "Invalid action '$action'. Use install, upgrade, or fix-permissions."
                 exit 1
             fi
             ;;
@@ -291,6 +350,108 @@ read_install_conf_value() {
     grep -E "^${key}=" "$file" | tail -n 1 | cut -d= -f2- | sed "s/^['\"]//;s/['\"]$//"
 }
 
+config_value_for_service() {
+    local svc="$1"
+    local key="$2"
+    local default_value="$3"
+    local env_value="${!key:-}"
+    local config_value=""
+    local conf_file="${install_conf_host_by_service[$svc]}"
+
+    if [ -n "$env_value" ]; then
+        echo "$env_value"
+        return 0
+    fi
+
+    if [ -n "$conf_file" ] && [ -f "$conf_file" ]; then
+        config_value="$(read_install_conf_value "$key" "$conf_file")"
+    fi
+
+    if [ -n "$config_value" ]; then
+        echo "$config_value"
+    else
+        echo "$default_value"
+    fi
+}
+
+render_apache_config() {
+    local src="$1"
+    local dst="$2"
+    local tmp_file=""
+
+    tmp_file="$(mktemp)"
+    sed \
+        -e "s|__RELECOV_PLATFORM_SERVER_NAME__|$(sed_replacement_escape "$apache_platform_server_name")|g" \
+        -e "s|__RELECOV_PLATFORM_LOG_NAME__|$(sed_replacement_escape "$apache_platform_log_name")|g" \
+        -e "s|__RELECOV_PLATFORM_INSTALL_PATH__|$(sed_replacement_escape "$platform_install_path")|g" \
+        -e "s|__RELECOV_PLATFORM_APP_PORT__|$(sed_replacement_escape "$app_port")|g" \
+        -e "s|__RELECOV_ISKYLIMS_SERVER_NAME__|$(sed_replacement_escape "$apache_iskylims_server_name")|g" \
+        -e "s|__RELECOV_ISKYLIMS_LOG_NAME__|$(sed_replacement_escape "$apache_iskylims_log_name")|g" \
+        -e "s|__RELECOV_ISKYLIMS_INSTALL_PATH__|/opt/iskylims|g" \
+        -e "s|__RELECOV_ISKYLIMS_APP_PORT__|$(sed_replacement_escape "$iskylims_port")|g" \
+        -e "s|__RELECOV_NEXTSTRAIN_SERVER_NAME__|$(sed_replacement_escape "$apache_nextstrain_server_name")|g" \
+        -e "s|__RELECOV_NEXTSTRAIN_LOG_NAME__|$(sed_replacement_escape "$apache_nextstrain_log_name")|g" \
+        -e "s|__RELECOV_NEXTSTRAIN_PORT__|$(sed_replacement_escape "$nextstrain_port")|g" \
+        -e "s|__RELECOV_FORWARDED_PROTO__|$(sed_replacement_escape "$apache_forwarded_proto")|g" \
+        -e "s|__RELECOV_FORWARDED_PORT__|$(sed_replacement_escape "$apache_forwarded_port")|g" \
+        -e "s|__GUNICORN_TIMEOUT__|$(sed_replacement_escape "$gunicorn_timeout")|g" \
+        -e "s|__SERVER_STATUS_SERVER_NAME__|$(sed_replacement_escape "$apache_status_server_name")|g" \
+        -e "s|__SERVER_STATUS_ALIASES__|$(sed_replacement_escape "$apache_status_aliases")|g" \
+        -e "s|__SERVER_STATUS_ALLOW_FROM__|$(sed_replacement_escape "$apache_status_allow_from")|g" \
+        "$src" > "$tmp_file"
+
+    if copy_with_podman_fallback "$tmp_file" "$dst"; then
+        if ! chmod_with_podman_fallback 0664 "$dst"; then
+            rm -f "$tmp_file"
+            return 1
+        fi
+        rm -f "$tmp_file"
+        return 0
+    fi
+
+    rm -f "$tmp_file"
+    return 1
+}
+
+write_compose_env_file() {
+    if [ "$mode" != "production" ]; then
+        return 0
+    fi
+
+    cat > "$compose_env_file" << EOF
+# Generated by container_install.sh.
+# Used by Docker Compose/Podman Compose for docker-compose.prod.yml interpolation.
+INSTALL_TYPE=dep
+GIT_REVISION=$git_revision
+INSTALL_CONF=${install_conf_container_by_service[app]}
+ISKYLIMS_INSTALL_CONF=${install_conf_container_by_service[iskylims_app]}
+ISKYLIMS_GIT_REVISION=$git_revision
+APP_INSTALL_PATH=$platform_install_path
+APACHE_CONF_PATH=$apache_conf_path
+APACHE_LOG_PATH=$apache_log_path
+PLATFORM_LOG_PATH=$platform_log_path
+ISKYLIMS_LOG_PATH=$iskylims_log_path
+APP_UID=$app_uid
+APP_GID=$app_gid
+APP_SHELL=$app_shell
+DB_CONN_MAX_AGE=$db_conn_max_age
+WEB_CONCURRENCY=$web_concurrency
+GUNICORN_THREADS=$gunicorn_threads
+GUNICORN_TIMEOUT=$gunicorn_timeout
+GUNICORN_KEEPALIVE=$gunicorn_keepalive
+EOF
+
+    echo "Wrote Compose environment file: $compose_env_file"
+}
+
+compose_with_env_exec() {
+    if [ "$mode" = "production" ] && [ -f "$compose_env_file" ]; then
+        compose_exec --env-file "$compose_env_file" "$@"
+    else
+        compose_exec "$@"
+    fi
+}
+
 default_service_install_conf() {
     case "$1" in
         iskylims_app) echo "conf/docker_test_settings.txt" ;;
@@ -403,6 +564,41 @@ done
 
 set_engine
 
+platform_install_path="$(service_install_path "app")"
+platform_host_install_conf_path="${install_conf_host_by_service[app]}"
+compose_env_file="$repo_root/.env.prod.file"
+
+config_apache_conf_path="$(read_install_conf_value "APACHE_CONF_PATH" "$platform_host_install_conf_path")"
+apache_conf_path="${APACHE_CONF_PATH:-${config_apache_conf_path:-$platform_install_path/conf}}"
+apache_log_path="${APACHE_LOG_PATH:-/var/log/local/apache}"
+platform_log_path="${PLATFORM_LOG_PATH:-/var/log/local/apps/relecov-platform}"
+iskylims_log_path="${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}"
+
+app_uid="$(config_value_for_service app APP_UID 1212)"
+app_gid="$(config_value_for_service app APP_GID 1212)"
+app_shell="$(config_value_for_service app APP_SHELL /sbin/nologin)"
+db_conn_max_age="$(config_value_for_service app DB_CONN_MAX_AGE 60)"
+web_concurrency="$(config_value_for_service app WEB_CONCURRENCY 2)"
+gunicorn_threads="$(config_value_for_service app GUNICORN_THREADS 2)"
+gunicorn_timeout="$(config_value_for_service app GUNICORN_TIMEOUT 120)"
+gunicorn_keepalive="$(config_value_for_service app GUNICORN_KEEPALIVE 5)"
+app_port="${APP_PORT:-8000}"
+iskylims_port="${ISKYLIMS_APP_PORT:-8001}"
+nextstrain_port="${NEXTSTRAIN_PORT:-8100}"
+
+config_dns_url="$(read_install_conf_value "DNS_URL" "$platform_host_install_conf_path")"
+apache_platform_server_name="$(normalize_apache_server_name "${RELECOV_PLATFORM_SERVER_NAME:-${PLATFORM_SERVER_NAME:-${config_dns_url:-relecov-platform.isciiides.es}}}")"
+apache_iskylims_server_name="$(normalize_apache_server_name "${RELECOV_ISKYLIMS_SERVER_NAME:-relecov-iskylims.isciiides.es}")"
+apache_nextstrain_server_name="$(normalize_apache_server_name "${RELECOV_NEXTSTRAIN_SERVER_NAME:-nextstrain.isciiides.es}")"
+apache_status_server_name="$(normalize_apache_server_name "${SERVER_STATUS_SERVER_NAME:-$apache_platform_server_name}")"
+apache_status_aliases="${SERVER_STATUS_ALIASES:-127.0.0.1 localhost}"
+apache_status_allow_from="${SERVER_STATUS_ALLOW_FROM:-127.0.0.1 localhost}"
+apache_forwarded_proto="${APACHE_FORWARDED_PROTO:-https}"
+apache_forwarded_port="${APACHE_FORWARDED_PORT:-443}"
+apache_platform_log_name="$(printf '%s' "$apache_platform_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
+apache_iskylims_log_name="$(printf '%s' "$apache_iskylims_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
+apache_nextstrain_log_name="$(printf '%s' "$apache_nextstrain_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
+
 # Check if a service exists in the compose file
 #
 # Parameters:
@@ -411,7 +607,7 @@ set_engine
 # Returns:
 #   0 if the service exists, 1 otherwise
 service_exists() {
-    compose_exec -f "$compose_file" config --services 2>/dev/null | grep -Fxq "$1"
+    compose_with_env_exec -f "$compose_file" config --services 2>/dev/null | grep -Fxq "$1"
 }
 
 # Return the name of the container for a given service name.
@@ -525,7 +721,7 @@ service_install_path() {
 }
 
 compose_service_image_id() {
-    compose_exec -f "$compose_file" images -q "$1" 2>/dev/null | tail -n 1
+    compose_with_env_exec -f "$compose_file" images -q "$1" 2>/dev/null | tail -n 1
 }
 
 print_local_source_diagnostics() {
@@ -614,6 +810,96 @@ print_container_source_diagnostics() {
     " || true
 }
 
+prepare_service_mount_permissions() {
+    local service_name="$1"
+    local service_container="$2"
+    local target_install_path="$(service_install_path "$service_name")"
+    local project_settings_path=""
+
+    if [ "$mode" != "production" ]; then
+        return 0
+    fi
+
+    case "$service_name" in
+        app) project_settings_path="$target_install_path/relecov_platform/settings.py" ;;
+        iskylims_app) project_settings_path="$target_install_path/iskylims/settings.py" ;;
+        *) project_settings_path="" ;;
+    esac
+
+    echo "Preparing writable mount permissions for $service_name..."
+    engine_exec exec --user 0 "$service_container" sh -lc "
+        set -e
+        mkdir -p '$target_install_path/logs' '$target_install_path/static' '$target_install_path/documents' '$target_install_path/cron' '$target_install_path/tmp'
+        chown -R '$app_uid:$app_gid' '$target_install_path/logs' '$target_install_path/static' '$target_install_path/documents' '$target_install_path/cron' '$target_install_path/tmp'
+        chmod -R u+rwX,g+rwX '$target_install_path/logs' '$target_install_path/static' '$target_install_path/documents'
+        chmod 700 '$target_install_path/cron' '$target_install_path/tmp'
+        if [ -n '$project_settings_path' ] && [ -f '$project_settings_path' ]; then
+            chown '$app_uid:$app_gid' '$project_settings_path'
+            chmod 0664 '$project_settings_path'
+        fi
+        chmod -R o+rX '$target_install_path/static'
+    "
+}
+
+prepare_host_bind_mount_permissions() {
+    if [ "$mode" != "production" ]; then
+        return 0
+    fi
+
+    local apache_conf_file
+
+    echo "Preparing host bind mount permissions..."
+    chmod_with_podman_fallback 0755 "$apache_conf_path"
+
+    chown_with_podman_fallback "$app_uid:$app_gid" "$platform_log_path"
+    chmod_with_podman_fallback 0775 "$platform_log_path"
+    chown_with_podman_fallback "$app_uid:$app_gid" "$iskylims_log_path"
+    chmod_with_podman_fallback 0775 "$iskylims_log_path"
+
+    # UBI httpd runs as uid 1001 and group 0. This keeps the Apache log bind
+    # writable without relying on Podman's :U ownership mutation.
+    chown_with_podman_fallback "1001:0" "$apache_log_path"
+    chmod_with_podman_fallback 0775 "$apache_log_path"
+
+    for apache_conf_file in \
+        "$apache_conf_path/relecov_apache_reverse_proxy.conf" \
+        "$apache_conf_path/relecov_apache_logs.conf" \
+        "$apache_conf_path/relecov_apache_server-status.conf"; do
+        if [ -f "$apache_conf_file" ]; then
+            chmod_with_podman_fallback 0664 "$apache_conf_file"
+        fi
+    done
+}
+
+prepare_apache_bind_mounts() {
+    if [ "$mode" != "production" ]; then
+        return 0
+    fi
+
+    if ! mkdir -p "$apache_conf_path" "$apache_log_path" "$platform_log_path" "$iskylims_log_path"; then
+        echo "Error: unable to create required host bind/log directories. Check APACHE_CONF_PATH and log directory permissions." >&2
+        exit 1
+    fi
+
+    if [ -f "$repo_root/conf/relecov_apache_reverse_proxy.conf" ]; then
+        render_apache_config \
+            "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
+            "$apache_conf_path/relecov_apache_reverse_proxy.conf"
+    fi
+    if [ -f "$repo_root/conf/relecov_apache_logs.conf" ]; then
+        render_apache_config \
+            "$repo_root/conf/relecov_apache_logs.conf" \
+            "$apache_conf_path/relecov_apache_logs.conf"
+    fi
+    if [ -f "$repo_root/conf/relecov_apache_server-status.conf" ]; then
+        render_apache_config \
+            "$repo_root/conf/relecov_apache_server-status.conf" \
+            "$apache_conf_path/relecov_apache_server-status.conf"
+    fi
+
+    prepare_host_bind_mount_permissions
+}
+
 # Remove stale test containers left over from previous runs.
 #
 # This function will only be executed in "test" mode when the engine is "podman".
@@ -649,15 +935,21 @@ cleanup_stale_test_containers() {
 
 cleanup_stale_test_containers
 
-echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep and GIT_REVISION=$git_revision..."
-platform_install_path="$(service_install_path "app")"
-if service_exists "apache"; then
-    mkdir -p "$platform_install_path/conf" "$platform_install_path/logs/apache"
-    if [ -f "$repo_root/conf/relecov_apache_reverse_proxy.conf" ]; then
-        copy_with_podman_fallback "$repo_root/conf/relecov_apache_reverse_proxy.conf" \
-            "$platform_install_path/conf/relecov_apache_reverse_proxy.conf"
-    fi
+prepare_apache_bind_mounts
+write_compose_env_file
+
+if [ "$action" = "fix-permissions" ]; then
+    echo "Repairing production container bind mount and volume permissions..."
+    for target_service in "${install_services[@]}"; do
+        if target_container="$(resolve_service_container "$target_service" 2>/dev/null)" && [ "$(engine_exec inspect -f '{{.State.Running}}' "$target_container" 2>/dev/null)" = "true" ]; then
+            prepare_service_mount_permissions "$target_service" "$target_container"
+        fi
+    done
+    echo "Done repairing host bind mounts and mounted app volumes."
+    exit 0
 fi
+
+echo "Deploying containers (compose file: $compose_file) with INSTALL_TYPE=dep and GIT_REVISION=$git_revision..."
 for target_service in "${install_services[@]}"; do
     if service_exists "$target_service"; then
         service_install_conf="${install_conf_container_by_service[$target_service]}"
@@ -666,25 +958,20 @@ for target_service in "${install_services[@]}"; do
         print_existing_artifact_diagnostics "$target_service"
         echo "Building $target_service with INSTALL_CONF=$service_install_conf"
         INSTALL_TYPE="dep" GIT_REVISION="$git_revision" INSTALL_CONF="$service_install_conf" APP_INSTALL_PATH="$target_install_path" \
-            compose_exec -f "$compose_file" build --no-cache \
+            compose_with_env_exec -f "$compose_file" build --no-cache \
             --build-arg INSTALL_TYPE="dep" \
             --build-arg GIT_REVISION="$git_revision" \
             --build-arg INSTALL_CONF="$service_install_conf" \
             --build-arg APP_INSTALL_PATH="$target_install_path" \
+            --build-arg INSTALL_PATH="$target_install_path" \
             "$target_service"
         print_service_image_after_build "$target_service"
     fi
 done
-APP_INSTALL_PATH="$platform_install_path" compose_exec -f "$compose_file" up -d
+APP_INSTALL_PATH="$platform_install_path" compose_with_env_exec -f "$compose_file" up -d
 
 echo "Waiting 20 seconds for starting database and web services..."
 sleep 20
-# Set uid and gid for app user in the container, to ensure runtime directories are created with correct ownership
-# If the user has specified custom values for APP_UID and APP_GID in env variables, these will be used
-# Otherwise, default to 1212 which is the value used in the Dockerfile.
-app_uid="${APP_UID:-1212}"
-app_gid="${APP_GID:-1212}"
-
 script_args_before=""
 if [ "$run_script_before" = true ]; then
     for val in "${migration_script_before[@]}"; do
@@ -711,8 +998,7 @@ for target_service in "${install_services[@]}"; do
     target_repo_path="$(service_repo_path "$target_service")"
     target_install_path="$(service_install_path "$target_service")"
 
-    echo "Ensuring runtime directories for $target_service are writable by ${app_uid}:${app_gid}"
-    engine_exec exec -u 0 -it "$target_container" sh -lc "mkdir -p ${target_install_path}/documents ${target_install_path}/logs ${target_install_path}/static ${target_install_path}/cron ${target_install_path}/tmp && chown -R ${app_uid}:${app_gid} ${target_install_path}/documents ${target_install_path}/logs ${target_install_path}/static ${target_install_path}/cron ${target_install_path}/tmp"
+    prepare_service_mount_permissions "$target_service" "$target_container"
 
     host_install_conf_path="${install_conf_host_by_service[$target_service]}"
     service_install_conf="${install_conf_container_by_service[$target_service]}"
