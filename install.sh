@@ -151,32 +151,53 @@ root_check(){
     fi
 }
 
+generate_django_secret_key(){
+    "$PYTHON_BIN_PATH" -c "import secrets; print(''.join(secrets.choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for _ in range(50)))"
+}
+
+sed_replacement_escape(){
+    printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
 # update_settings_and_urls: rewrite Django settings and urls with deployment values.
 update_settings_and_urls(){
     log "INFO" "Updating settings.py and urls.py with deployment values"
     local project_dir="$INSTALL_PATH/$PROJECT_NAME"
-    grep ^SECRET "$project_dir/settings.py" > ~/.secret
+    local secret_line=""
+    local tmp_settings=""
 
-    cp conf/template_settings.py "$project_dir/settings.py"
+    if [ -f "$project_dir/settings.py" ]; then
+        secret_line="$(grep -E "^SECRET_KEY[[:space:]]*=" "$project_dir/settings.py" | tail -n 1)"
+    fi
+    if [ -z "$secret_line" ] || [[ "$secret_line" =~ SECRET_KEY[[:space:]]*=[[:space:]]*SECRET ]]; then
+        secret_line="SECRET_KEY = '$(generate_django_secret_key)'"
+    fi
+
+    tmp_settings="$(mktemp)"
+    cp conf/template_settings.py "$tmp_settings"
     cp conf/urls.py "$project_dir"
     if [ -f conf/routing.py ]; then
         cp conf/routing.py "$project_dir"
     fi
-    
-    sed -i "/^SECRET/c\\$(cat ~/.secret)" "$project_dir/settings.py"
-    sed -i "s/djangouser/${DB_USER}/g" "$project_dir/settings.py"
-    sed -i "s/djangopass/${DB_PASS}/g" "$project_dir/settings.py"
-    sed -i "s/djangohost/${DB_SERVER_IP}/g" "$project_dir/settings.py"
-    sed -i "s/djangoport/${DB_PORT}/g" "$project_dir/settings.py"
-    sed -i "s/djangodbname/${DB_NAME}/g" "$project_dir/settings.py"
 
-    sed -i "s/emailhostserver/${EMAIL_HOST_SERVER}/g" "$project_dir/settings.py"
-    sed -i "s/emailport/${EMAIL_PORT}/g" "$project_dir/settings.py"
-    sed -i "s/emailhostuser/${EMAIL_HOST_USER}/g" "$project_dir/settings.py"
-    sed -i "s/emailhostpassword/${EMAIL_HOST_PASSWORD}/g" "$project_dir/settings.py"
-    sed -i "s/emailhosttls/${EMAIL_USE_TLS}/g" "$project_dir/settings.py"
-    sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" "$project_dir/settings.py"
-    sed -i "s/localhost/${DNS_URL}/g" "$project_dir/settings.py"
+    sed -i \
+        -e "s|^SECRET_KEY.*|$(sed_replacement_escape "$secret_line")|" \
+        -e "s|djangouser|$(sed_replacement_escape "$DB_USER")|g" \
+        -e "s|djangopass|$(sed_replacement_escape "$DB_PASS")|g" \
+        -e "s|djangohost|$(sed_replacement_escape "$DB_SERVER_IP")|g" \
+        -e "s|djangoport|$(sed_replacement_escape "$DB_PORT")|g" \
+        -e "s|djangodbname|$(sed_replacement_escape "$DB_NAME")|g" \
+        -e "s|emailhostserver|$(sed_replacement_escape "$EMAIL_HOST_SERVER")|g" \
+        -e "s|emailport|$(sed_replacement_escape "$EMAIL_PORT")|g" \
+        -e "s|emailhostuser|$(sed_replacement_escape "$EMAIL_HOST_USER")|g" \
+        -e "s|emailhostpassword|$(sed_replacement_escape "$EMAIL_HOST_PASSWORD")|g" \
+        -e "s|emailhosttls|$(sed_replacement_escape "$EMAIL_USE_TLS")|g" \
+        -e "s|localserverip|$(sed_replacement_escape "$LOCAL_SERVER_IP")|g" \
+        -e "s|localhost|$(sed_replacement_escape "$DNS_URL")|g" \
+        "$tmp_settings"
+
+    cp "$tmp_settings" "$project_dir/settings.py"
+    rm -f "$tmp_settings"
 }
 
 # restore_git_ref: reset repository to branch/tag/commit active before script ran.
