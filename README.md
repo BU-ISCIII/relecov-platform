@@ -1,16 +1,20 @@
 # RELECOV Platform
 
-RELECOV Platform deployment guide (containers and bare-metal), including iSkyLIMS and Nextstrain integration.
+RELECOV Platform is the web application used to manage RELECOV metadata, validation, submissions, and integration workflows. The production container stack also includes iSkyLIMS for wet-lab/LIMS workflows, Nextstrain for dataset visualization, and an Apache reverse proxy that fronts the services.
 
 - [RELECOV Platform](#relecov-platform)
+  - [Infrastructure overview](#infrastructure-overview)
   - [Get the code (required)](#get-the-code-required)
   - [Choose your path](#choose-your-path)
   - [Minimum requirements](#minimum-requirements)
   - [Docker deployment](#docker-deployment)
     - [Local test stack](#local-test-stack)
     - [Production container stack](#production-container-stack)
+      - [Service layout](#service-layout)
+      - [Production configuration files](#production-configuration-files)
       - [Persist logs/documents on the host](#persist-logsdocuments-on-the-host)
       - [Apache reverse proxy (container) + Gunicorn](#apache-reverse-proxy-container--gunicorn)
+      - [Manage containers after installation](#manage-containers-after-installation)
     - [Upgrade docker deployment](#upgrade-docker-deployment)
   - [Bare-metal deployment (Ubuntu/CentOS)](#bare-metal-deployment-ubuntucentos)
     - [Install](#install)
@@ -23,199 +27,335 @@ RELECOV Platform deployment guide (containers and bare-metal), including iSkyLIM
   - [Post-install configuration](#post-install-configuration)
     - [RELECOV Platform](#relecov-platform-1)
     - [iSkyLIMS](#iskylims)
+    - [Nextstrain](#nextstrain)
     - [Smoke test](#smoke-test)
-  - [Developer workflow](#developer-workflow)
-    - [Migrations](#migrations)
+  - [Developer notes](#developer-notes)
+    - [Django migrations workflow](#django-migrations-workflow)
     - [Container-based development loop](#container-based-development-loop)
     - [Persistent host paths](#persistent-host-paths)
     - [Useful diagnostics](#useful-diagnostics)
 
+For problems or bug reports, open an issue in the project repository.
+
+## Infrastructure overview
+
+The integrated container stack is designed to run the RELECOV Platform application together with the services it depends on operationally:
+
+- **RELECOV Platform**: Django/Gunicorn application, default runtime path `/opt/relecov-platform`, internal port `8000`.
+- **iSkyLIMS**: Django/Gunicorn LIMS application checked out next to this repository as `../relecov-iskylims`, default runtime path `/opt/iskylims`, internal port `8001`.
+- **Nextstrain**: `nextstrain/base` container running `nextstrain view`, internal port `8100`.
+- **Apache**: UBI httpd container that reverse-proxies external traffic to the three services and serves static/documents volumes.
+- **External database**: production deployments use existing MySQL/MariaDB databases configured in each service install config.
+
+```mermaid
+flowchart LR
+    user[Users / institutional proxy] --> apache[Apache reverse proxy<br/>relecov_apache:8081]
+
+    apache --> platform[RELECOV Platform<br/>relecov_app:8000]
+    apache --> iskylims[iSkyLIMS<br/>relecov_iskylims_app:8001]
+    apache --> nextstrain[Nextstrain<br/>relecov_nextstrain:8100]
+
+    platform --> platform_db[(RELECOV DB)]
+    iskylims --> iskylims_db[(iSkyLIMS DB)]
+
+    platform --> platform_static[relecov_static<br/>volume]
+    platform --> platform_docs[relecov_documents<br/>volume]
+    iskylims --> iskylims_static[iskylims_static<br/>volume]
+    iskylims --> iskylims_docs[iskylims_documents<br/>volume]
+    nextstrain --> nextstrain_data[nextstrain_data<br/>volume]
+
+    apache --> apache_logs[APACHE_LOG_PATH<br/>/var/log/local/apache/]
+    platform --> platform_logs[PLATFORM_LOG_PATH<br/>/var/log/local/apps/relecov-platform/]
+    iskylims --> iskylims_logs[ISKYLIMS_LOG_PATH<br/>/var/log/local/apps/relecov-iskylims/]
+
+    class platform_static,platform_docs,iskylims_static,iskylims_docs,nextstrain_data,apache_logs,platform_logs,iskylims_logs volume
+    classDef volume fill:#eef5ff,stroke:#4c78a8,stroke-dasharray: 4 3
+```
+
 ## Get the code (required)
 
+All integrated container commands assume `relecov-platform` and `relecov-iskylims` are checked out side-by-side:
+
 ```bash
-git clone https://github.com/bu-isciii/relecov-platform.git
+git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+git clone https://github.com/BU-ISCIII/iskylims.git relecov-iskylims
 cd relecov-platform
 ```
 
-iSkyLIMS is required for the integrated platform stack:
+Expected layout:
 
-```bash
-cd ..
-git clone https://github.com/bu-isciii/iskylims.git relecov-iskylims
+```text
+relecov-platform-all/
+|-- relecov-platform/
+`-- relecov-iskylims/
 ```
 
 ## Choose your path
 
-- Docker (test): full local stack for validation.
-- Docker (production): app + iSkyLIMS + Nextstrain containers pointing to your production DB.
-- Bare-metal: install directly on the host using `install.sh`.
+- **Docker (local test)**: starts a MySQL test database, RELECOV Platform, iSkyLIMS, and Nextstrain.
+- **Docker (production container stack)**: deploys RELECOV Platform, iSkyLIMS, Nextstrain, and Apache containers against external production databases.
+- **Bare-metal**: installs or upgrades the RELECOV Platform application directly on a host with `install.sh`; iSkyLIMS must be installed separately from its own repository.
 
 ## Minimum requirements
 
-Baseline software (minimum recommended):
+Container deployment requirements:
 
-- MySQL 8.0+ or MariaDB 10.4+
-- Git 2.34+
-- Python 3.11+
-- Apache HTTP Server 2.4+ (for reverse proxy on production)
-- Docker Engine + Compose v2, or Podman 4.9+ + `podman-compose`
-- `tar`, `rsync`, `wget`, `curl`
+- Docker Engine + Docker Compose v2, or Podman + `podman-compose`
+- git >= 2.34
+- Side-by-side `relecov-platform` and `relecov-iskylims` checkouts
+- For production containers: access to external MySQL/MariaDB databases for both RELECOV Platform and iSkyLIMS
+- Host directories and permissions for logs and Apache config, described in [Persist logs/documents on the host](#persist-logsdocuments-on-the-host)
 
-Notes:
+Bare-metal deployment requirements:
 
-- This guide does not cover MySQL installation itself, only DB/user/grant creation and operational tasks.
-- For container deployments with external DB, ensure network connectivity from containers to DB host/port.
-- For Podman, prefer `host.containers.internal` in DB host settings.
+- sudo privileges for dependency installation
+- MySQL >= 8.0 or MariaDB > 10.4
+- Apache >= 2.4
+- git >= 2.34
+- Python >= 3.11
+- `rsync`, `wget`, `curl`, `tar`
+- `lsb_release` package:
+  - RedHat/CentOS: `yum install redhat-lsb-core`
+  - Ubuntu: `apt install lsb-core lsb-release`
 
 ## Docker deployment
 
-Prerequisites:
-
-- Docker Compose v2 or Podman + podman-compose.
-- Both repositories checked out side-by-side:
-  - `relecov-platform`
-  - `relecov-iskylims`
-
 ### Local test stack
 
-Runs:
+The local test stack starts:
 
 - `relecov_test_db` (MySQL)
 - `relecov_test_app` (RELECOV Platform)
 - `relecov_test_iskylims_app` (iSkyLIMS)
 - `relecov_test_nextstrain` (Nextstrain viewer)
 
-Basic test install:
+Run the default test deployment:
 
 ```bash
-cd relecov-platform
+bash container_install.sh --test 2>&1 | tee relecov_test_install.log
+```
+
+Use Podman explicitly:
+
+```bash
 bash container_install.sh --test --engine podman 2>&1 | tee relecov_test_install.log
 ```
 
-Per-service conf mapping (recommended):
+The test compose file publishes the application ports directly:
+
+- RELECOV Platform: `http://localhost:8000`
+- iSkyLIMS: `http://localhost:8001`
+- Nextstrain: `http://localhost:8100`
+
+Useful options:
+
+- `--git_revision current` to build from the copied local working tree without checking out a branch in-container.
+- `--skip_test_data` to skip loading test fixtures.
+- `--script`, `--script_before`, and `--script_after` to run Django migration scripts through `install.sh`.
+- `--install_conf_map service,path` to pass service-specific settings files.
+
+Example with explicit service config mapping:
 
 ```bash
 bash container_install.sh --test --engine podman \
-  --install_conf_map app,conf/docker_test_platform_settings.txt \
-  --install_conf_map iskylims_app,conf/docker_test_iskylims_settings.txt \
+  --install_conf_map app,conf/docker_test_settings.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_test_settings.txt \
   2>&1 | tee relecov_test_install.log
 ```
 
-The container images now include the staged application trees for both `relecov-platform` and `relecov-iskylims`. Test containers can therefore be recreated or restarted without rerunning the file installation step; `container_install.sh` only runs the runtime bootstrap tasks inside each container.
-
 ### Production container stack
 
-1. Prepare production confs (separate for each service):
+Production deployment uses `docker-compose.prod.yml` by default. It runs:
+
+- `relecov_apache`
+- `relecov_app`
+- `relecov_iskylims_app`
+- `relecov_nextstrain`
+
+The application containers are built with staged application trees baked into the image. Host reboots or container recreation do not require rerunning app file installation; `container_install.sh` runs runtime bootstrap tasks such as migrations, optional scripts, superuser creation on first install, and static collection.
+
+#### Service layout
+
+The production compose file exposes only Apache on the host:
+
+- Host port `8081` -> Apache container port `8081`
+- RELECOV Platform is internal on service `app:8000`
+- iSkyLIMS is internal on service alias `iskylimsapp:8001`
+- Nextstrain is internal on service `nextstrain:8100`
+
+Access normally goes through the Apache virtual hosts rendered from `conf/relecov_apache_reverse_proxy.conf`. The default service names are:
+
+- RELECOV Platform: `RELECOV_PLATFORM_SERVER_NAME`, or `DNS_URL` from the platform install config, or `relecov-platform.isciiides.es`
+- iSkyLIMS: `RELECOV_ISKYLIMS_SERVER_NAME`, default `relecov-iskylims.isciiides.es`
+- Nextstrain: `RELECOV_NEXTSTRAIN_SERVER_NAME`, default `nextstrain.isciiides.es`
+
+#### Production configuration files
+
+Prepare one config per Django service:
 
 ```bash
 cp conf/docker_production_settings.txt conf/docker_production_platform_settings.txt
 cp ../relecov-iskylims/conf/docker_production_settings.txt ../relecov-iskylims/conf/docker_production_iskylims_settings.txt
 ```
 
-2. Edit both files with your production DB/network values.
+Edit both files with the correct database, email, DNS, and local server values.
 
-3. Deploy:
+Deploy:
 
 ```bash
-cd relecov-platform
 bash container_install.sh --engine podman \
   --action install \
   --install_conf_map app,conf/docker_production_platform_settings.txt \
   --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
-  2>&1 | tee relecov_prod_install.log
+  2>&1 | tee relecov_prod_install_$(date +%Y%m%d_%H%M%S).log
 ```
 
-4. Endpoints:
+Use Docker instead of Podman by omitting `--engine podman` or passing `--engine docker`.
 
-- RELECOV Platform: `http://<host>:8000`
-- iSkyLIMS: `http://<host>:8001`
-- Nextstrain: `http://<host>:8100`
+Container build/runtime values are configured through the selected install configs and environment. Important production variables:
 
-Production images now bake the staged Django application trees into the images themselves. Host reboots or container recreation no longer require rerunning the app installation step; `container_install.sh` only performs runtime bootstrap tasks such as migrations, optional scripts, superuser creation on first install, and `collectstatic`.
+- `APP_INSTALL_PATH`: platform runtime install root. Default: `/opt/relecov-platform`.
+- `APACHE_CONF_PATH`: host directory for rendered Apache config files. Default: `${APP_INSTALL_PATH}/conf`.
+- `APACHE_LOG_PATH`: host directory mounted as `/var/log/httpd` in Apache. Default: `/var/log/local/apache`.
+- `PLATFORM_LOG_PATH`: host directory mounted as platform logs. Default: `/var/log/local/apps/relecov-platform`.
+- `ISKYLIMS_LOG_PATH`: host directory mounted as iSkyLIMS logs. Default: `/var/log/local/apps/relecov-iskylims`.
+- `RELECOV_PLATFORM_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, `RELECOV_NEXTSTRAIN_SERVER_NAME`: Apache virtual host names.
+- `SERVER_STATUS_SERVER_NAME`, `SERVER_STATUS_ALIASES`, `SERVER_STATUS_ALLOW_FROM`: Apache `/server-status` rendering values.
+- `APP_UID` / `APP_GID`: runtime UID/GID for Django containers. Default: `1212:1212`.
+- `WEB_CONCURRENCY`, `GUNICORN_THREADS`, `GUNICORN_TIMEOUT`, `GUNICORN_KEEPALIVE`: Gunicorn tuning values.
+
+During production install/upgrade, `container_install.sh` writes `.env.prod.file` in the repository root. This file is ignored by git and used by Compose for variable interpolation in `docker-compose.prod.yml`.
 
 #### Persist logs/documents on the host
 
-For production container deployments, keep these paths persistent:
+Production persistence layout:
 
-- Logs: `/var/log/local/apps/relecov-platform` -> `/opt/relecov-platform/logs`
-- Apache logs: `/var/log/local/apache` -> `/var/log/httpd`
-- Apache config: `${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf` -> `/etc/httpd/conf.d/relecov.conf`
-- Documents: named volume `relecov_documents` -> `/opt/relecov-platform/documents`
-- Static: `/opt/relecov-platform/static-host` -> `/opt/relecov-platform/static`
+- `${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_reverse_proxy.conf` -> `/etc/httpd/conf.d/01-relecov.conf`
+- `${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_logs.conf` -> `/etc/httpd/conf.d/00-logformat.conf`
+- `${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_server-status.conf` -> `/etc/httpd/conf.d/02-server-status.conf`
+- `${APACHE_LOG_PATH:-/var/log/local/apache}` -> `/var/log/httpd`
+- `${PLATFORM_LOG_PATH:-/var/log/local/apps/relecov-platform}` -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/logs`
+- `${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}` -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs`
+- `relecov_documents` named volume -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/documents`
+- `relecov_static` named volume -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/static`
+- `iskylims_documents` named volume -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/documents`
+- `iskylims_static` named volume -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/static`
+- `nextstrain_data` named volume -> `/data` in the Nextstrain container
 
-Prepare host directories and ownership:
+`container_install.sh` creates and fixes permissions for the standard host log/config paths. For locked-down hosts, pre-create them:
 
 ```bash
-sudo mkdir -p /var/log/local/apps/relecov-platform
+sudo mkdir -p /opt/relecov-platform/conf
 sudo mkdir -p /var/log/local/apache
-sudo mkdir -p ${APP_INSTALL_PATH:-/opt/relecov-platform}/conf
-sudo mkdir -p /opt/relecov-platform/static-host
-sudo chown -R ${APP_UID:-1212}:${APP_GID:-1212} /var/log/local/apps/relecov-platform /opt/relecov-platform/static-host ${APP_INSTALL_PATH:-/opt/relecov-platform}
+sudo mkdir -p /var/log/local/apps/relecov-platform
+sudo mkdir -p /var/log/local/apps/relecov-iskylims
+sudo chown -R "$USER:$USER" /opt/relecov-platform/conf /var/log/local/apache /var/log/local/apps
+```
+
+For rootless Podman, the installer uses `podman unshare` fallback operations where normal `chmod`/`chown` cannot adjust rootless container ownership.
+
+To repair host bind mounts and mounted app volumes without rebuilding:
+
+```bash
+bash container_install.sh --engine podman \
+  --action fix-permissions \
+  --install_conf_map app,conf/docker_production_platform_settings.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt
 ```
 
 #### Apache reverse proxy (container) + Gunicorn
 
-For production, the `app` container runs `gunicorn` and the `apache` service in `docker-compose.prod.yml` acts as the reverse proxy for RELECOV Platform, iSkyLIMS, and Nextstrain.
+In production:
 
-During `container_install.sh`, the file `conf/relecov_apache_reverse_proxy.conf` is copied to `${APP_INSTALL_PATH:-/opt/relecov-platform}/conf/relecov_apache_reverse_proxy.conf` on the host before `compose up`. Runtime Apache logs are written to `/var/log/local/apache`.
+- `relecov_app` runs RELECOV Platform with Gunicorn.
+- `relecov_iskylims_app` runs iSkyLIMS with Gunicorn.
+- `relecov_nextstrain` runs `nextstrain view /data`.
+- `relecov_apache` reverse-proxies external requests and serves static/document volumes.
 
-If you need a different runtime root, export `APP_INSTALL_PATH` before running `container_install.sh`. The compose file already mounts the Apache config from `${APP_INSTALL_PATH}`.
+Apache config files are rendered from:
+
+- `conf/relecov_apache_reverse_proxy.conf`
+- `conf/relecov_apache_logs.conf`
+- `conf/relecov_apache_server-status.conf`
+
+The rendered files are copied to `APACHE_CONF_PATH` before Compose starts the Apache container. Runtime Apache logs are written to `APACHE_LOG_PATH`.
+
+If Apache is behind an institutional TLS proxy, keep the defaults:
+
+- `APACHE_FORWARDED_PROTO=https`
+- `APACHE_FORWARDED_PORT=443`
+
+For a plain HTTP-only deployment, override them before running the installer:
+
+```bash
+APACHE_FORWARDED_PROTO=http APACHE_FORWARDED_PORT=8081 bash container_install.sh ...
+```
+
+#### Manage containers after installation
+
+Docker:
+
+```bash
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs --tail 200 apache
+docker compose -f docker-compose.prod.yml logs --tail 200 app
+docker compose -f docker-compose.prod.yml logs --tail 200 iskylims_app
+docker compose -f docker-compose.prod.yml logs --tail 200 nextstrain
+```
+
+Podman:
+
+```bash
+podman ps -a
+podman logs --tail 200 relecov_apache
+podman logs --tail 200 relecov_app
+podman logs --tail 200 relecov_iskylims_app
+podman logs --tail 200 relecov_nextstrain
+```
 
 ### Upgrade docker deployment
 
-Use `upgrade` when DB schema/data already exist.
-> IMPORTANT:Before upgrading, perform backups from [Backups](#backups).
+Use `upgrade` when databases and volumes already exist.
+
+Before upgrading, perform backups from [Backups](#backups).
 
 ```bash
-cd relecov-platform
 bash container_install.sh --engine podman \
   --action upgrade \
   --install_conf_map app,conf/docker_production_platform_settings.txt \
   --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
-  2>&1 | tee relecov_prod_upgrade.log
+  2>&1 | tee relecov_prod_upgrade_$(date +%Y%m%d_%H%M%S).log
 ```
 
-The upgrade path rebuilds/restarts the containers and runs `install.sh --bootstrap upgrade` inside each app container. The app files are already baked into the rebuilt images; the bootstrap phase applies migrations with `--fake-initial`, refreshes static files, and skips first-install setup.
+The upgrade path rebuilds/restarts the containers and runs `install.sh --bootstrap upgrade` inside each Django service container. The bootstrap phase applies migrations with `--fake-initial`, refreshes static files, and skips first-install test/demo data.
 
 ## Bare-metal deployment (Ubuntu/CentOS)
 
 ### Install
 
 1. Prepare DB/users/grants from [Database creation, users and grants](#database-creation-users-and-grants).
-2. Edit config files:
-
-- `relecov-platform/conf/install_settings.txt`
-- `relecov-iskylims/conf/install_settings.txt`
-
-3. Install dependencies + app (needs root):
+2. Edit `conf/install_settings.txt` or copy `conf/template_install_settings.txt` to a site-specific config.
+3. Run the installer:
 
 ```bash
-cd relecov-platform
-bash install.sh --install full --conf conf/install_settings.txt
-
-cd ../relecov-iskylims
 bash install.sh --install full --conf conf/install_settings.txt
 ```
 
-The staged/bootstrap split added for container images is internal. Bare-metal commands do not change: `--install` and `--upgrade` still run the complete dependency, application, and database workflow shown here.
+iSkyLIMS is a separate application. For bare-metal deployments, install it from `../relecov-iskylims` using its README and `install.sh`.
 
 ### Upgrade
 
-```bash
-cd relecov-platform
-bash install.sh --upgrade app --conf conf/install_settings.txt
+Before upgrading, perform backups from [Backups](#backups).
 
-cd ../relecov-iskylims
+```bash
 bash install.sh --upgrade app --conf conf/install_settings.txt
 ```
-
-Before upgrading, perform backups from [Backups](#backups).
 
 ## Common operations (Docker + bare-metal)
 
 ### Database creation, users and grants
 
-Run as MySQL root:
+Run as MySQL/MariaDB root and adapt names/passwords to your deployment:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS relecov_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -252,44 +392,51 @@ mysqldump -h <db_host> -P <db_port> -u relecov -p relecov_dev > relecov_dev_$(da
 mysqldump -h <db_host> -P <db_port> -u relecovlims -p iskylims_rel_dev > iskylims_rel_dev_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-RELECOV logs (host bind path used by production compose):
+Host logs:
 
 ```bash
-tar -czf relecov_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apps/relecov-platform .
+tar -czf relecov_platform_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apps/relecov-platform .
+tar -czf relecov_iskylims_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apps/relecov-iskylims .
+tar -czf relecov_apache_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apache .
 ```
 
-Docker/Podman named volumes (documents + nextstrain datasets):
+Named volumes:
 
 ```bash
-# podman (replace with docker if needed)
 podman run --rm -v relecov_documents:/from -v "$PWD":/to alpine \
   tar -czf /to/relecov_documents_$(date +%Y%m%d_%H%M%S).tgz -C /from .
+
+podman run --rm -v iskylims_documents:/from -v "$PWD":/to alpine \
+  tar -czf /to/iskylims_documents_$(date +%Y%m%d_%H%M%S).tgz -C /from .
 
 podman run --rm -v nextstrain_data:/from -v "$PWD":/to alpine \
   tar -czf /to/nextstrain_data_$(date +%Y%m%d_%H%M%S).tgz -C /from .
 ```
 
-Suggested backup order before any risky change:
+Suggested backup order before risky changes:
 
-1. DB dumps.
-2. Documents volume.
+1. Database dumps.
+2. Documents volumes.
 3. Nextstrain datasets volume.
 4. Logs archive.
 
 ### Restore / rollback
 
-Restore DB:
+Restore databases:
 
 ```bash
 mysql -h <db_host> -P <db_port> -u relecov -p relecov_dev < relecov_dev_YYYYMMDD_HHMMSS.sql
 mysql -h <db_host> -P <db_port> -u relecovlims -p iskylims_rel_dev < iskylims_rel_dev_YYYYMMDD_HHMMSS.sql
 ```
 
-Restore volumes:
+Restore named volumes:
 
 ```bash
 podman run --rm -v relecov_documents:/to -v "$PWD":/from alpine \
   sh -lc "cd /to && tar -xzf /from/relecov_documents_YYYYMMDD_HHMMSS.tgz"
+
+podman run --rm -v iskylims_documents:/to -v "$PWD":/from alpine \
+  sh -lc "cd /to && tar -xzf /from/iskylims_documents_YYYYMMDD_HHMMSS.tgz"
 
 podman run --rm -v nextstrain_data:/to -v "$PWD":/from alpine \
   sh -lc "cd /to && tar -xzf /from/nextstrain_data_YYYYMMDD_HHMMSS.tgz"
@@ -298,8 +445,10 @@ podman run --rm -v nextstrain_data:/to -v "$PWD":/from alpine \
 Restore logs archive:
 
 ```bash
-sudo mkdir -p /var/log/local/apps/relecov-platform
-sudo tar -xzf relecov_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apps/relecov-platform
+sudo mkdir -p /var/log/local/apps/relecov-platform /var/log/local/apps/relecov-iskylims /var/log/local/apache
+sudo tar -xzf relecov_platform_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apps/relecov-platform
+sudo tar -xzf relecov_iskylims_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apps/relecov-iskylims
+sudo tar -xzf relecov_apache_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apache
 ```
 
 ### What to do if something fails
@@ -308,9 +457,17 @@ Quick checks:
 
 ```bash
 podman ps -a
+podman logs --tail 200 relecov_apache
 podman logs --tail 200 relecov_app
 podman logs --tail 200 relecov_iskylims_app
 podman logs --tail 200 relecov_nextstrain
+```
+
+Check Django from inside the app containers:
+
+```bash
+podman exec -it relecov_app python /opt/relecov-platform/manage.py check
+podman exec -it relecov_iskylims_app python /opt/iskylims/manage.py check
 ```
 
 If deployment is broken after migration or bad data load, rollback using [Restore / rollback](#restore--rollback).
@@ -320,14 +477,12 @@ If deployment is broken after migration or bad data load, rollback using [Restor
 ### RELECOV Platform
 
 1. Create the admin/superuser if not already created.
-2. Load RELECOV schema:
-in `Configuration -> SchemaHandling`, upload the latest `relecov_schema.json`:
-`https://raw.githubusercontent.com/BU-ISCIII/relecov-tools/main/relecov_tools/schema/relecov_schema.json`
-3. Load annotation GFF:
-in `Configuration -> Annotation`, upload:
-`conf/NC_045512.2.gff`
-4. iSkyLIMS endpoint verification:
-in `/admin/core/configsetting/`, ensure `ISKYLIMS_SERVER` points to your iSkyLIMS service (for example `relecov-lims` in test, or your production hostname).
+2. Load RELECOV schema in `Configuration -> SchemaHandling`, using the latest `relecov_schema.json`:
+   `https://raw.githubusercontent.com/BU-ISCIII/relecov-tools/main/relecov_tools/schema/relecov_schema.json`
+3. Load annotation GFF in `Configuration -> Annotation`:
+   `conf/NC_045512.2.gff`
+4. Verify the iSkyLIMS endpoint in `/admin/core/configsetting/`.
+   For containers, point `ISKYLIMS_SERVER` to the iSkyLIMS service DNS name reachable from the platform container, for example `http://iskylimsapp:8001` or the Apache virtual host URL used in production.
 
 ### iSkyLIMS
 
@@ -351,47 +506,69 @@ python manage.py dumpdata --indent 2 core.SampleProjects > ~/relecov_iskylims_te
 Then configure RELECOV in iSkyLIMS:
 
 1. Create `relecovbot` in `/admin/auth/user/` and assign required permissions/groups for your integration flows.
-2. Go to WetLab (`/wetlab`) and open:
-`PARAMETERS SETTINGS -> Define Sample projects`.
-3. If the project does not exist, create one including `RELECOV` in the name and set the manager (for example `isabel.cuesta` in your environment).
-4. In that RELECOV project:
-`Define fields -> Load batch`, then set:
-- `upload schema`: `relecov_schema.json`
-- `Property where to fetch fields`: `classification`
-- select classifications to import:
-  - Database Identifiers
-  - Files info
-  - Host information
-  - Pathogen diagnostic testing
-  - Sample collection and processing
-  - Sequencing
+2. Go to WetLab (`/wetlab`) and open `PARAMETERS SETTINGS -> Define Sample projects`.
+3. If the project does not exist, create one including `RELECOV` in the name and set the manager.
+4. In that RELECOV project, open `Define fields -> Load batch`, then set:
+   - `upload schema`: `relecov_schema.json`
+   - `Property where to fetch fields`: `classification`
+   - select classifications to import:
+     - Database Identifiers
+     - Files info
+     - Host information
+     - Pathogen diagnostic testing
+     - Sample collection and processing
+     - Sequencing
 5. Configure ontology mapping in `/admin/core/ontologymap/`:
-- `lab_request` -> `GENEPIO:0001153` (submitting_institution)
-- `species` -> `GENEPIO:0001386` (Organism)
-- `sample_name` -> `GENEPIO:0001123` (sequencing_sample_id)
-- `sample_entry_date` -> `NCIT:C93644` (received_date)
-- `collection_sample_date` -> `GENEPIO:0001174` (sample_collection_date)
-6. Define species in:
-`PARAMETERS SETTINGS -> Initial Settings -> Define new Specie`.
-Add all enum values used by your schema for `Organism` (or the ontology-mapped equivalent), for example:
-- Severe acute respiratory syndrome coronavirus 2
-- Respiratory syncytial virus
-- Influenza virus
+   - `lab_request` -> `GENEPIO:0001153` (submitting_institution)
+   - `species` -> `GENEPIO:0001386` (Organism)
+   - `sample_name` -> `GENEPIO:0001123` (sequencing_sample_id)
+   - `sample_entry_date` -> `NCIT:C93644` (received_date)
+   - `collection_sample_date` -> `GENEPIO:0001174` (sample_collection_date)
+6. Define species in `PARAMETERS SETTINGS -> Initial Settings -> Define new Specie`.
+   Add all enum values used by your schema for `Organism`, for example:
+   - Severe acute respiratory syndrome coronavirus 2
+   - Respiratory syncytial virus
+   - Influenza virus
 7. Ensure `wetlab` app assignment is enabled for the related flow.
+
+### Nextstrain
+
+The production stack runs:
+
+```bash
+nextstrain view /data --port 8100 --host 0.0.0.0
+```
+
+Datasets must be present in the `nextstrain_data` named volume, mounted as `/data` inside the container. Copy or generate the expected Auspice dataset files into that volume before exposing the service to users.
+
+Example copy using a temporary container:
+
+```bash
+podman run --rm -v nextstrain_data:/data -v "$PWD":/src alpine \
+  sh -lc "cp -r /src/nextstrain-data/* /data/"
+```
 
 ### Smoke test
 
-Recommended endpoint checks:
+Production checks through Apache depend on your virtual host names. Examples:
 
 ```bash
-curl -I http://<host>:8000
-curl -I http://<host>:8001
-curl -I http://<host>:8100
+curl -I -H "Host: relecov-platform.isciiides.es" http://<host>:8081
+curl -I -H "Host: relecov-iskylims.isciiides.es" http://<host>:8081
+curl -I -H "Host: nextstrain.isciiides.es" http://<host>:8081
 ```
 
-## Developer workflow
+Direct container-level checks:
 
-### Migrations
+```bash
+podman exec -it relecov_app python /opt/relecov-platform/manage.py check
+podman exec -it relecov_iskylims_app python /opt/iskylims/manage.py check
+podman logs --tail 100 relecov_nextstrain
+```
+
+## Developer notes
+
+### Django migrations workflow
 
 Create and review migrations locally, then commit migration files:
 
@@ -422,11 +599,3 @@ podman-compose -f docker-compose.test.yml up -d
 ### Persistent host paths
 
 See [Persist logs/documents on the host](#persist-logsdocuments-on-the-host) in the production deployment section.
-
-### Useful diagnostics
-
-```bash
-podman exec -it relecov_test_app python /opt/relecov-platform/manage.py check
-podman exec -it relecov_test_iskylims_app python /opt/iskylims/manage.py check
-podman volume ls | grep -E 'relecov|nextstrain'
-```
