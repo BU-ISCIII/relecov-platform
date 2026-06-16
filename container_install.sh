@@ -387,7 +387,7 @@ render_apache_config() {
         -e "s|__RELECOV_PLATFORM_APP_PORT__|$(sed_replacement_escape "$app_port")|g" \
         -e "s|__RELECOV_ISKYLIMS_SERVER_NAME__|$(sed_replacement_escape "$apache_iskylims_server_name")|g" \
         -e "s|__RELECOV_ISKYLIMS_LOG_NAME__|$(sed_replacement_escape "$apache_iskylims_log_name")|g" \
-        -e "s|__RELECOV_ISKYLIMS_INSTALL_PATH__|/opt/iskylims|g" \
+        -e "s|__RELECOV_ISKYLIMS_INSTALL_PATH__|$(sed_replacement_escape "$iskylims_install_path")|g" \
         -e "s|__RELECOV_ISKYLIMS_APP_PORT__|$(sed_replacement_escape "$iskylims_port")|g" \
         -e "s|__RELECOV_NEXTSTRAIN_SERVER_NAME__|$(sed_replacement_escape "$apache_nextstrain_server_name")|g" \
         -e "s|__RELECOV_NEXTSTRAIN_LOG_NAME__|$(sed_replacement_escape "$apache_nextstrain_log_name")|g" \
@@ -434,11 +434,24 @@ ISKYLIMS_LOG_PATH=$iskylims_log_path
 APP_UID=$app_uid
 APP_GID=$app_gid
 APP_SHELL=$app_shell
+APP_PORT=$app_port
+ISKYLIMS_APP_PORT=$iskylims_port
+ISKYLIMS_INSTALL_PATH=$iskylims_install_path
+NEXTSTRAIN_PORT=$nextstrain_port
+DJANGO_DEBUG=$django_debug
 DB_CONN_MAX_AGE=$db_conn_max_age
 WEB_CONCURRENCY=$web_concurrency
 GUNICORN_THREADS=$gunicorn_threads
 GUNICORN_TIMEOUT=$gunicorn_timeout
 GUNICORN_KEEPALIVE=$gunicorn_keepalive
+RELECOV_PLATFORM_SERVER_NAME=$apache_platform_server_name
+RELECOV_ISKYLIMS_SERVER_NAME=$apache_iskylims_server_name
+RELECOV_NEXTSTRAIN_SERVER_NAME=$apache_nextstrain_server_name
+SERVER_STATUS_SERVER_NAME=$apache_status_server_name
+SERVER_STATUS_ALIASES=$apache_status_aliases
+SERVER_STATUS_ALLOW_FROM=$apache_status_allow_from
+APACHE_FORWARDED_PROTO=$apache_forwarded_proto
+APACHE_FORWARDED_PORT=$apache_forwarded_port
 EOF
 
     echo "Wrote Compose environment file: $compose_env_file"
@@ -528,7 +541,10 @@ prepare_service_conf() {
             fi
             ;;
         iskylims_app)
-            install_path_by_service["$svc"]="/opt/iskylims"
+            install_path_by_service["$svc"]="${ISKYLIMS_INSTALL_PATH:-$(read_install_conf_value "INSTALL_PATH" "$host_path")}"
+            if [ -z "${install_path_by_service[$svc]}" ]; then
+                install_path_by_service["$svc"]="/opt/iskylims"
+            fi
             ;;
     esac
 }
@@ -570,31 +586,41 @@ compose_env_file="$repo_root/.env.prod.file"
 
 config_apache_conf_path="$(read_install_conf_value "APACHE_CONF_PATH" "$platform_host_install_conf_path")"
 apache_conf_path="${APACHE_CONF_PATH:-${config_apache_conf_path:-$platform_install_path/conf}}"
-apache_log_path="${APACHE_LOG_PATH:-/var/log/local/apache}"
-platform_log_path="${PLATFORM_LOG_PATH:-/var/log/local/apps/relecov-platform}"
-iskylims_log_path="${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}"
+apache_log_path="$(config_value_for_service app APACHE_LOG_PATH /var/log/local/apache)"
+platform_log_path="$(config_value_for_service app PLATFORM_LOG_PATH /var/log/local/apps/relecov-platform)"
+iskylims_log_path="$(config_value_for_service app ISKYLIMS_LOG_PATH /var/log/local/apps/relecov-iskylims)"
 
 app_uid="$(config_value_for_service app APP_UID 1212)"
 app_gid="$(config_value_for_service app APP_GID 1212)"
 app_shell="$(config_value_for_service app APP_SHELL /sbin/nologin)"
+app_port="$(config_value_for_service app APP_PORT 8000)"
+iskylims_port="$(config_value_for_service app ISKYLIMS_APP_PORT 8001)"
+iskylims_install_path="$(service_install_path "iskylims_app")"
+nextstrain_port="$(config_value_for_service app NEXTSTRAIN_PORT 8100)"
+django_debug="$(config_value_for_service app DJANGO_DEBUG false)"
 db_conn_max_age="$(config_value_for_service app DB_CONN_MAX_AGE 60)"
 web_concurrency="$(config_value_for_service app WEB_CONCURRENCY 2)"
 gunicorn_threads="$(config_value_for_service app GUNICORN_THREADS 2)"
 gunicorn_timeout="$(config_value_for_service app GUNICORN_TIMEOUT 120)"
 gunicorn_keepalive="$(config_value_for_service app GUNICORN_KEEPALIVE 5)"
-app_port="${APP_PORT:-8000}"
-iskylims_port="${ISKYLIMS_APP_PORT:-8001}"
-nextstrain_port="${NEXTSTRAIN_PORT:-8100}"
 
 config_dns_url="$(read_install_conf_value "DNS_URL" "$platform_host_install_conf_path")"
-apache_platform_server_name="$(normalize_apache_server_name "${RELECOV_PLATFORM_SERVER_NAME:-${PLATFORM_SERVER_NAME:-${config_dns_url:-relecov-platform.isciiides.es}}}")"
-apache_iskylims_server_name="$(normalize_apache_server_name "${RELECOV_ISKYLIMS_SERVER_NAME:-relecov-iskylims.isciiides.es}")"
-apache_nextstrain_server_name="$(normalize_apache_server_name "${RELECOV_NEXTSTRAIN_SERVER_NAME:-nextstrain.isciiides.es}")"
-apache_status_server_name="$(normalize_apache_server_name "${SERVER_STATUS_SERVER_NAME:-$apache_platform_server_name}")"
-apache_status_aliases="${SERVER_STATUS_ALIASES:-127.0.0.1 localhost}"
-apache_status_allow_from="${SERVER_STATUS_ALLOW_FROM:-127.0.0.1 localhost}"
-apache_forwarded_proto="${APACHE_FORWARDED_PROTO:-https}"
-apache_forwarded_port="${APACHE_FORWARDED_PORT:-443}"
+config_platform_server_name="$(config_value_for_service app RELECOV_PLATFORM_SERVER_NAME "")"
+if [ -z "$config_platform_server_name" ]; then
+    config_platform_server_name="${PLATFORM_SERVER_NAME:-${config_dns_url:-relecov-platform.isciiides.es}}"
+fi
+apache_platform_server_name="$(normalize_apache_server_name "${RELECOV_PLATFORM_SERVER_NAME:-$config_platform_server_name}")"
+apache_iskylims_server_name="$(normalize_apache_server_name "$(config_value_for_service app RELECOV_ISKYLIMS_SERVER_NAME relecov-iskylims.isciiides.es)")"
+apache_nextstrain_server_name="$(normalize_apache_server_name "$(config_value_for_service app RELECOV_NEXTSTRAIN_SERVER_NAME nextstrain.isciiides.es)")"
+config_status_server_name="$(config_value_for_service app SERVER_STATUS_SERVER_NAME "")"
+if [ -z "$config_status_server_name" ]; then
+    config_status_server_name="$apache_platform_server_name"
+fi
+apache_status_server_name="$(normalize_apache_server_name "${SERVER_STATUS_SERVER_NAME:-$config_status_server_name}")"
+apache_status_aliases="$(config_value_for_service app SERVER_STATUS_ALIASES "127.0.0.1 localhost")"
+apache_status_allow_from="$(config_value_for_service app SERVER_STATUS_ALLOW_FROM "127.0.0.1 localhost")"
+apache_forwarded_proto="$(config_value_for_service app APACHE_FORWARDED_PROTO https)"
+apache_forwarded_port="$(config_value_for_service app APACHE_FORWARDED_PORT 443)"
 apache_platform_log_name="$(printf '%s' "$apache_platform_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
 apache_iskylims_log_name="$(printf '%s' "$apache_iskylims_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
 apache_nextstrain_log_name="$(printf '%s' "$apache_nextstrain_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
