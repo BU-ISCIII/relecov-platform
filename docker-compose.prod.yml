@@ -8,7 +8,7 @@ services:
       - nextstrain
       - iskylims_app
     ports:
-      - "8090:8080"
+      - "8081:8081"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
@@ -18,8 +18,8 @@ services:
       - ${APACHE_LOG_PATH:-/var/log/local/apache}:/var/log/httpd:Z
       - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:z,ro
       - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:z,ro
-      - iskylims_static:/opt/iskylims/static:z,ro
-      - iskylims_documents:/opt/iskylims/documents:z,ro
+      - iskylims_static:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/static:z,ro
+      - iskylims_documents:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/documents:z,ro
     networks:
       - relecov_net
 
@@ -37,12 +37,12 @@ services:
     container_name: relecov_app
     restart: unless-stopped
     expose:
-      - "8000"
+      - "${APP_PORT:-8000}"
     environment:
       DJANGO_SETTINGS_MODULE: relecov_platform.settings
-      DJANGO_DEBUG: "false"
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
       APP_MODE: prod
-      APP_PORT: 8000
+      APP_PORT: ${APP_PORT:-8000}
       DB_CONN_MAX_AGE: ${DB_CONN_MAX_AGE:-60}
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
       GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
@@ -65,13 +65,13 @@ services:
     image: docker.io/nextstrain/base:latest
     container_name: relecov_nextstrain
     restart: unless-stopped
-    command: ["nextstrain", "view", "/data", "--port", "8100", "--host", "0.0.0.0"]
+    command: ["nextstrain", "view", "/data", "--port", "${NEXTSTRAIN_PORT:-8100}", "--host", "0.0.0.0"]
     volumes:
       - nextstrain_data:/data
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     expose:
-      - "8100"
+      - "${NEXTSTRAIN_PORT:-8100}"
     networks:
       - relecov_net
 
@@ -85,16 +85,17 @@ services:
         INSTALL_PATH: ${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}
         APP_UID: ${APP_UID:-1212}
         APP_GID: ${APP_GID:-1212}
+        APP_SHELL: ${APP_SHELL:-/sbin/nologin}
     container_name: relecov_iskylims_app
     restart: unless-stopped
     expose:
-      - "8001"
+      - "${ISKYLIMS_APP_PORT:-8001}"
     volumes:
-      - ${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}:/opt/iskylims/logs:Z
+      - ${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-      - iskylims_static:/opt/iskylims/static:z
-      - iskylims_documents:/opt/iskylims/documents:z
+      - iskylims_static:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/static:z
+      - iskylims_documents:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/documents:z
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

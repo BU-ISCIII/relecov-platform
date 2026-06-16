@@ -34,18 +34,21 @@ services:
         INSTALL_TYPE: ${ISKYLIMS_INSTALL_TYPE:-dep}
         GIT_REVISION: ${ISKYLIMS_GIT_REVISION:-main}
         INSTALL_CONF: ${ISKYLIMS_INSTALL_CONF:-conf/docker_test_settings.txt}
+        INSTALL_PATH: ${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}
         APP_UID: ${APP_UID:-1212}
         APP_GID: ${APP_GID:-1212}
+        APP_SHELL: ${APP_SHELL:-/bin/bash}
     container_name: relecov_test_iskylims_app
     restart: unless-stopped
     environment:
       APP_MODE: dev
-      APP_PORT: 8001
+      APP_PORT: ${ISKYLIMS_APP_PORT:-8001}
+      INSTALL_PATH: ${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "8001:8001"
+      - "${ISKYLIMS_APP_PORT:-8001}:${ISKYLIMS_APP_PORT:-8001}"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
@@ -64,22 +67,25 @@ services:
         INSTALL_CONF: ${INSTALL_CONF:-conf/docker_test_settings.txt}
         APP_UID: ${APP_UID:-1212}
         APP_GID: ${APP_GID:-1212}
+        APP_SHELL: ${APP_SHELL:-/bin/bash}
+        APP_INSTALL_PATH: ${APP_INSTALL_PATH:-/opt/relecov-platform}
     container_name: relecov_test_app
     restart: unless-stopped
     environment:
       APP_MODE: dev
-      APP_PORT: 8000
+      APP_PORT: ${APP_PORT:-8000}
+      APP_INSTALL_PATH: ${APP_INSTALL_PATH:-/opt/relecov-platform}
     depends_on:
       db:
         condition: service_healthy
       iskylims_app:
         condition: service_started
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
     volumes:
-      - relecov_test_logs:/opt/relecov-platform/logs
-      - relecov_test_documents:/opt/relecov-platform/documents
-      - relecov_test_static:/opt/relecov-platform/static
+      - relecov_test_logs:${APP_INSTALL_PATH:-/opt/relecov-platform}/logs
+      - relecov_test_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents
+      - relecov_test_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     extra_hosts:
@@ -91,13 +97,13 @@ services:
     image: docker.io/nextstrain/base:latest
     container_name: relecov_test_nextstrain
     restart: unless-stopped
-    command: ["nextstrain", "view", "/data", "--port", "8100", "--host", "0.0.0.0"]
+    command: ["nextstrain", "view", "/data", "--port", "${NEXTSTRAIN_PORT:-8100}", "--host", "0.0.0.0"]
     volumes:
       - relecov_test_nextstrain_data:/data
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     ports:
-      - "8100:8100"
+      - "${NEXTSTRAIN_PORT:-8100}:${NEXTSTRAIN_PORT:-8100}"
     networks:
       - relecov_test_net
 
