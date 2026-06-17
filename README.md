@@ -31,9 +31,8 @@ RELECOV Platform is the web application used to manage RELECOV metadata, validat
     - [Smoke test](#smoke-test)
   - [Developer notes](#developer-notes)
     - [Django migrations workflow](#django-migrations-workflow)
-    - [Container-based development loop](#container-based-development-loop)
     - [Persistent host paths](#persistent-host-paths)
-    - [Useful diagnostics](#useful-diagnostics)
+    - [Configure Apache server](#configure-apache-server)
 
 For problems or bug reports, open an issue in the project repository.
 
@@ -293,25 +292,33 @@ APACHE_FORWARDED_PROTO=http APACHE_FORWARDED_PORT=8081 bash container_install.sh
 
 #### Manage containers after installation
 
+After a production install, use the generated `.env.prod.file` whenever you run Compose directly. This keeps install paths, log paths, UID/GID values, ports, server names, and Gunicorn settings aligned with the values rendered by `container_install.sh`.
+
 Docker:
 
 ```bash
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs --tail 200 apache
-docker compose -f docker-compose.prod.yml logs --tail 200 app
-docker compose -f docker-compose.prod.yml logs --tail 200 iskylims_app
-docker compose -f docker-compose.prod.yml logs --tail 200 nextstrain
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml ps
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 apache
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 app
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 iskylims_app
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 nextstrain
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml restart app
+docker compose --env-file .env.prod.file -f docker-compose.prod.yml up -d
 ```
 
 Podman:
 
 ```bash
-podman ps -a
-podman logs --tail 200 relecov_apache
-podman logs --tail 200 relecov_app
-podman logs --tail 200 relecov_iskylims_app
-podman logs --tail 200 relecov_nextstrain
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml ps
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 apache
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 app
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 iskylims_app
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 nextstrain
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml restart app
+podman compose --env-file .env.prod.file -f docker-compose.prod.yml up -d
 ```
+
+If you edit container runtime values in the install config, rerun `container_install.sh` with the same `--install_conf_map` values so `.env.prod.file` and the running containers are regenerated consistently.
 
 ### Upgrade docker deployment
 
@@ -570,32 +577,63 @@ podman logs --tail 100 relecov_nextstrain
 
 ### Django migrations workflow
 
-Create and review migrations locally, then commit migration files:
+Migrations are committed to the repo. Do not run `makemigrations` during install/upgrade.
 
-```bash
-cd /opt/relecov-platform
-source virtualenv/bin/activate
+Baseline + upgrade flow for new releases:
 
-python manage.py makemigrations core dashboard
-python manage.py migrate --noinput
-python manage.py showmigrations core dashboard
-```
-
-Do not rely on runtime auto-generation of migrations in production.
-
-### Container-based development loop
-
-```bash
-# bring stack down (keep volumes)
-podman-compose -f docker-compose.test.yml down
-
-# rebuild changed services
-podman-compose -f docker-compose.test.yml build app iskylims_app
-
-# start again
-podman-compose -f docker-compose.test.yml up -d
-```
+1. Generate baseline migrations from the last stable tag.
+2. Commit the baseline migrations.
+3. Generate new migrations on the development branch for schema changes and commit them.
+4. Upgrades run `migrate --fake-initial` once to align existing tables, then `migrate` to apply the new migration files.
 
 ### Persistent host paths
 
 See [Persist logs/documents on the host](#persist-logsdocuments-on-the-host) in the production deployment section.
+
+### Configure Apache server
+
+These steps apply to bare-metal Apache installations. Docker production deployments use the `apache` container described above and do not require copying configs into `/etc/apache2` or `/etc/httpd`.
+
+Copy the Apache configuration file according to your distribution inside the Apache configuration directory and rename it to `relecov-platform.conf`.
+
+Typical config locations:
+
+- Ubuntu/Debian: `/etc/apache2/sites-available/relecov-platform.conf` (enable with `a2ensite`)
+- CentOS/RHEL: `/etc/httpd/conf.d/relecov-platform.conf`
+
+Suggested steps (host Apache as reverse proxy):
+
+1. Copy the example config:
+
+    ```bash
+    sudo cp conf/relecov_apache_ubuntu.conf /etc/apache2/sites-available/relecov-platform.conf
+    # CentOS/RHEL:
+    # sudo cp conf/relecov_apache_centos_redhat.conf /etc/httpd/conf.d/relecov-platform.conf
+    ```
+
+2. Edit the config:
+
+    - Set `ServerName`
+    - Ensure the WSGI paths point to the selected RELECOV Platform install path
+    - Ensure `Alias /static/` points to the selected static directory
+
+3. Create the static folder on the host:
+
+    ```bash
+    sudo mkdir -p /opt/relecov-platform/static
+    ```
+
+4. Enable required modules (Ubuntu/Debian):
+
+    ```bash
+    sudo a2enmod wsgi headers
+    sudo a2ensite relecov-platform.conf
+    ```
+
+5. Reload Apache:
+
+    ```bash
+    sudo systemctl reload apache2
+    # CentOS/RHEL:
+    # sudo systemctl reload httpd
+    ```
