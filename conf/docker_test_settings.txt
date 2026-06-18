@@ -7,16 +7,16 @@ MIGRATION_MODULES='core dashboard django_plotly_dash'
 
 ### Container runtime settings
 # Host directory for Apache bind-mounted configuration files.
-# Leave empty to use ${INSTALL_PATH}/conf as the host bind source.
-# Set this to a writable host path for rootless or hardened deployments.
-# Example: APACHE_CONF_PATH='/srv/containers/bind/relecov-platform/apache_conf'
+# Production deployments use /srv/containers/bind/relecov-platform/relecov_apache_conf.
 APACHE_CONF_PATH=''
+# Production deployments bind mount settings.py from a writable host path.
+DJANGO_SETTINGS_PATH=''
 # Host directory for Apache logs.
 APACHE_LOG_PATH='/var/log/local/apache'
 # Host directory for RELECOV Platform application logs.
-PLATFORM_LOG_PATH='/var/log/local/apps/relecov-platform'
+PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 # Host directory for iSkyLIMS application logs when using the integrated stack.
-ISKYLIMS_LOG_PATH='/var/log/local/apps/relecov-iskylims'
+ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
 # Apache virtual host names rendered into the container reverse proxy config.
 RELECOV_PLATFORM_SERVER_NAME=''
 RELECOV_ISKYLIMS_SERVER_NAME='relecov-iskylims.isciiides.es'

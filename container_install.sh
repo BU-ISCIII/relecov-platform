@@ -24,16 +24,16 @@ Usage : $0 [--demo_data] [--git_revision] [--compose_file] [--install_conf] [--a
 
 Examples:
     Deploy production container pointing to an external DB/Samba:
-    bash $0 --install_conf conf/my_prod_settings.txt
+    bash $0 --install_conf conf/my_prod_settings_relecov.txt
 
     Deploy production with per-service settings:
-    bash $0 --install_conf_map app,conf/docker_production_platform_settings.txt --install_conf_map iskylims_app,conf/docker_production_iskylims_settings.txt
+    bash $0 --install_conf_map app,conf/my_prod_settings_relecov.txt --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt
 
     Upgrade an existing production deployment using the same database:
-    bash $0 --install_conf conf/my_prod_settings.txt --action upgrade
+    bash $0 --install_conf conf/my_prod_settings_relecov.txt --action upgrade
 
     Repair production bind mount and volume permissions without rebuilding or bootstrapping:
-    bash $0 --install_conf conf/my_prod_settings.txt --action fix-permissions
+    bash $0 --install_conf conf/my_prod_settings_relecov.txt --action fix-permissions
 
     Install demo container system with local services
     bash $0 --test
@@ -204,6 +204,106 @@ normalize_apache_server_name() {
 
 sed_replacement_escape() {
     printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
+generate_django_secret_key() {
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "import secrets; print(''.join(secrets.choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for _ in range(50)))"
+    else
+        LC_ALL=C tr -dc 'A-Za-z0-9!@#$%^&*(-_=+)' < /dev/urandom | head -c 50
+        printf "\n"
+    fi
+}
+
+normalize_settings_bind_path() {
+    local value="$1"
+
+    if [ -z "$value" ]; then
+        echo "/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py"
+        return 0
+    fi
+
+    if [ -d "$value" ] || [[ "$value" = */ ]] || [[ "$value" != *.py ]]; then
+        echo "${value%/}/settings.py"
+        return 0
+    fi
+
+    echo "$value"
+}
+
+render_django_settings_file() {
+    local settings_path="$1"
+    local secret_line=""
+    local tmp_file=""
+    local db_user db_pass db_name db_host db_port
+    local email_host email_port email_user email_pass email_tls
+    local local_server_ip dns_url
+
+    if [ -f "$settings_path" ]; then
+        secret_line="$(grep -E "^SECRET_KEY[[:space:]]*=" "$settings_path" | tail -n 1)"
+    fi
+    if [ -z "$secret_line" ] || [[ "$secret_line" =~ SECRET_KEY[[:space:]]*=[[:space:]]*SECRET ]]; then
+        secret_line="SECRET_KEY = '$(generate_django_secret_key)'"
+    fi
+
+    db_user="$(read_install_conf_value DB_USER "$platform_host_install_conf_path")"
+    db_pass="$(read_install_conf_value DB_PASS "$platform_host_install_conf_path")"
+    db_name="$(read_install_conf_value DB_NAME "$platform_host_install_conf_path")"
+    db_host="$(read_install_conf_value DB_SERVER_IP "$platform_host_install_conf_path")"
+    db_port="$(read_install_conf_value DB_PORT "$platform_host_install_conf_path")"
+    email_host="$(read_install_conf_value EMAIL_HOST_SERVER "$platform_host_install_conf_path")"
+    email_port="$(read_install_conf_value EMAIL_PORT "$platform_host_install_conf_path")"
+    email_user="$(read_install_conf_value EMAIL_HOST_USER "$platform_host_install_conf_path")"
+    email_pass="$(read_install_conf_value EMAIL_HOST_PASSWORD "$platform_host_install_conf_path")"
+    email_tls="$(read_install_conf_value EMAIL_USE_TLS "$platform_host_install_conf_path")"
+    local_server_ip="$(read_install_conf_value LOCAL_SERVER_IP "$platform_host_install_conf_path")"
+    dns_url="$(read_install_conf_value DNS_URL "$platform_host_install_conf_path")"
+
+    tmp_file="$(mktemp)"
+    cp "$repo_root/conf/template_settings.py" "$tmp_file"
+    sed -i \
+        -e "s|^SECRET_KEY.*|$(sed_replacement_escape "$secret_line")|" \
+        -e "s|djangouser|$(sed_replacement_escape "$db_user")|g" \
+        -e "s|djangopass|$(sed_replacement_escape "$db_pass")|g" \
+        -e "s|djangohost|$(sed_replacement_escape "$db_host")|g" \
+        -e "s|djangoport|$(sed_replacement_escape "$db_port")|g" \
+        -e "s|djangodbname|$(sed_replacement_escape "$db_name")|g" \
+        -e "s|emailhostserver|$(sed_replacement_escape "$email_host")|g" \
+        -e "s|emailport|$(sed_replacement_escape "$email_port")|g" \
+        -e "s|emailhostuser|$(sed_replacement_escape "$email_user")|g" \
+        -e "s|emailhostpassword|$(sed_replacement_escape "$email_pass")|g" \
+        -e "s|emailhosttls|$(sed_replacement_escape "$email_tls")|g" \
+        -e "s|localserverip|$(sed_replacement_escape "$local_server_ip")|g" \
+        -e "s|localhost|$(sed_replacement_escape "$dns_url")|g" \
+        "$tmp_file"
+
+    if copy_with_podman_fallback "$tmp_file" "$settings_path"; then
+        chmod_with_podman_fallback 0664 "$settings_path"
+        rm -f "$tmp_file"
+        return 0
+    fi
+
+    rm -f "$tmp_file"
+    return 1
+}
+
+prepare_django_settings_bind_mount() {
+    local settings_path="$1"
+
+    if [ "$mode" != "production" ]; then
+        return 0
+    fi
+
+    if [ -d "$settings_path" ]; then
+        echo "DJANGO_SETTINGS_PATH must resolve to a file path, but '$settings_path' is a directory." >&2
+        return 1
+    fi
+
+    mkdir -p "$(dirname "$settings_path")"
+    if [ ! -f "$settings_path" ] || grep -Eq "SECRET_KEY[[:space:]]*=[[:space:]]*SECRET|emailhosttls|djangouser|djangopass|djangohost|djangodbname" "$settings_path"; then
+        render_django_settings_file "$settings_path"
+    fi
+    chmod_with_podman_fallback 0664 "$settings_path"
 }
 
 
@@ -428,6 +528,7 @@ ISKYLIMS_INSTALL_CONF=${install_conf_container_by_service[iskylims_app]}
 ISKYLIMS_GIT_REVISION=$git_revision
 APP_INSTALL_PATH=$platform_install_path
 APACHE_CONF_PATH=$apache_conf_path
+DJANGO_SETTINGS_PATH=$django_settings_path
 APACHE_LOG_PATH=$apache_log_path
 PLATFORM_LOG_PATH=$platform_log_path
 ISKYLIMS_LOG_PATH=$iskylims_log_path
@@ -585,10 +686,12 @@ platform_host_install_conf_path="${install_conf_host_by_service[app]}"
 compose_env_file="$repo_root/.env.prod.file"
 
 config_apache_conf_path="$(read_install_conf_value "APACHE_CONF_PATH" "$platform_host_install_conf_path")"
-apache_conf_path="${APACHE_CONF_PATH:-${config_apache_conf_path:-$platform_install_path/conf}}"
+apache_conf_path="${APACHE_CONF_PATH:-${config_apache_conf_path:-/srv/containers/bind/relecov-platform/relecov_apache_conf}}"
+config_django_settings_path="$(read_install_conf_value "DJANGO_SETTINGS_PATH" "$platform_host_install_conf_path")"
+django_settings_path="$(normalize_settings_bind_path "${DJANGO_SETTINGS_PATH:-${config_django_settings_path:-}}")"
 apache_log_path="$(config_value_for_service app APACHE_LOG_PATH /var/log/local/apache)"
-platform_log_path="$(config_value_for_service app PLATFORM_LOG_PATH /var/log/local/apps/relecov-platform)"
-iskylims_log_path="$(config_value_for_service app ISKYLIMS_LOG_PATH /var/log/local/apps/relecov-iskylims)"
+platform_log_path="$(config_value_for_service app PLATFORM_LOG_PATH /var/log/local/relecov-platform/apps)"
+iskylims_log_path="$(config_value_for_service app ISKYLIMS_LOG_PATH /var/log/local/relecov-iskylims/apps)"
 
 app_uid="$(config_value_for_service app APP_UID 1212)"
 app_gid="$(config_value_for_service app APP_GID 1212)"
@@ -619,8 +722,8 @@ fi
 apache_status_server_name="$(normalize_apache_server_name "${SERVER_STATUS_SERVER_NAME:-$config_status_server_name}")"
 apache_status_aliases="$(config_value_for_service app SERVER_STATUS_ALIASES "127.0.0.1 localhost")"
 apache_status_allow_from="$(config_value_for_service app SERVER_STATUS_ALLOW_FROM "127.0.0.1 localhost")"
-apache_forwarded_proto="$(config_value_for_service app APACHE_FORWARDED_PROTO https)"
-apache_forwarded_port="$(config_value_for_service app APACHE_FORWARDED_PORT 443)"
+apache_forwarded_proto="$(config_value_for_service app APACHE_FORWARDED_PROTO http)"
+apache_forwarded_port="$(config_value_for_service app APACHE_FORWARDED_PORT 8081)"
 apache_platform_log_name="$(printf '%s' "$apache_platform_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
 apache_iskylims_log_name="$(printf '%s' "$apache_iskylims_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
 apache_nextstrain_log_name="$(printf '%s' "$apache_nextstrain_server_name" | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
@@ -873,9 +976,17 @@ prepare_host_bind_mount_permissions() {
     fi
 
     local apache_conf_file
+    local django_settings_dir
 
     echo "Preparing host bind mount permissions..."
     chmod_with_podman_fallback 0755 "$apache_conf_path"
+
+    if [ -f "$django_settings_path" ]; then
+        django_settings_dir="$(dirname "$django_settings_path")"
+        chmod_with_podman_fallback 0755 "$django_settings_dir"
+        chown_with_podman_fallback "$app_uid:$app_gid" "$django_settings_path"
+        chmod_with_podman_fallback 0664 "$django_settings_path"
+    fi
 
     chown_with_podman_fallback "$app_uid:$app_gid" "$platform_log_path"
     chmod_with_podman_fallback 0775 "$platform_log_path"
@@ -902,7 +1013,7 @@ prepare_apache_bind_mounts() {
         return 0
     fi
 
-    if ! mkdir -p "$apache_conf_path" "$apache_log_path" "$platform_log_path" "$iskylims_log_path"; then
+    if ! mkdir -p "$apache_conf_path" "$(dirname "$django_settings_path")" "$apache_log_path" "$platform_log_path" "$iskylims_log_path"; then
         echo "Error: unable to create required host bind/log directories. Check APACHE_CONF_PATH and log directory permissions." >&2
         exit 1
     fi
@@ -961,6 +1072,7 @@ cleanup_stale_test_containers() {
 
 cleanup_stale_test_containers
 
+prepare_django_settings_bind_mount "$django_settings_path"
 prepare_apache_bind_mounts
 write_compose_env_file
 
