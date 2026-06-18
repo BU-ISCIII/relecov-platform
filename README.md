@@ -64,8 +64,8 @@ flowchart LR
     nextstrain --> nextstrain_data[nextstrain_data<br/>volume]
 
     apache --> apache_logs[APACHE_LOG_PATH<br/>/var/log/local/apache/]
-    platform --> platform_logs[PLATFORM_LOG_PATH<br/>/var/log/local/apps/relecov-platform/]
-    iskylims --> iskylims_logs[ISKYLIMS_LOG_PATH<br/>/var/log/local/apps/relecov-iskylims/]
+    platform --> platform_logs[PLATFORM_LOG_PATH<br/>/var/log/local/relecov-platform/apps/]
+    iskylims --> iskylims_logs[ISKYLIMS_LOG_PATH<br/>/var/log/local/relecov-iskylims/apps/]
 
     class platform_static,platform_docs,iskylims_static,iskylims_docs,nextstrain_data,apache_logs,platform_logs,iskylims_logs volume
     classDef volume fill:#eef5ff,stroke:#4c78a8,stroke-dasharray: 4 3
@@ -193,8 +193,8 @@ Access normally goes through the Apache virtual hosts rendered from `conf/releco
 Prepare one config per Django service:
 
 ```bash
-cp conf/docker_production_settings.txt conf/docker_production_platform_settings.txt
-cp ../relecov-iskylims/conf/docker_production_settings.txt ../relecov-iskylims/conf/docker_production_iskylims_settings.txt
+cp conf/docker_production_settings.txt conf/my_prod_settings_relecov.txt
+cp ../relecov-iskylims/conf/docker_production_settings.txt ../relecov-iskylims/conf/my_prod_settings_iskylims.txt
 ```
 
 Edit both files with the correct database, email, DNS, and local server values.
@@ -204,8 +204,8 @@ Deploy:
 ```bash
 bash container_install.sh --engine podman \
   --action install \
-  --install_conf_map app,conf/docker_production_platform_settings.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
+  --install_conf_map app,conf/my_prod_settings_relecov.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt \
   2>&1 | tee relecov_prod_install_$(date +%Y%m%d_%H%M%S).log
 ```
 
@@ -214,10 +214,11 @@ Use Docker instead of Podman by omitting `--engine podman` or passing `--engine 
 Container build/runtime values are configured through the selected install configs and environment. Important production variables:
 
 - `APP_INSTALL_PATH`: platform runtime install root. Default: `/opt/relecov-platform`.
-- `APACHE_CONF_PATH`: host directory for rendered Apache config files. Default: `${APP_INSTALL_PATH}/conf`.
+- `APACHE_CONF_PATH`: host directory for rendered Apache config files. Default: `/srv/containers/bind/relecov-platform/relecov_apache_conf`.
+- `DJANGO_SETTINGS_PATH`: host file bind-mounted as `${APP_INSTALL_PATH}/relecov_platform/settings.py`. Default: `/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py`.
 - `APACHE_LOG_PATH`: host directory mounted as `/var/log/httpd` in Apache. Default: `/var/log/local/apache`.
-- `PLATFORM_LOG_PATH`: host directory mounted as platform logs. Default: `/var/log/local/apps/relecov-platform`.
-- `ISKYLIMS_LOG_PATH`: host directory mounted as iSkyLIMS logs. Default: `/var/log/local/apps/relecov-iskylims`.
+- `PLATFORM_LOG_PATH`: host directory mounted as platform logs. Default: `/var/log/local/relecov-platform/apps`.
+- `ISKYLIMS_LOG_PATH`: host directory mounted as iSkyLIMS logs. Default: `/var/log/local/relecov-iskylims/apps`.
 - `RELECOV_PLATFORM_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, `RELECOV_NEXTSTRAIN_SERVER_NAME`: Apache virtual host names.
 - `SERVER_STATUS_SERVER_NAME`, `SERVER_STATUS_ALIASES`, `SERVER_STATUS_ALLOW_FROM`: Apache `/server-status` rendering values.
 - `APP_UID` / `APP_GID`: runtime UID/GID for Django containers. Default: `1212:1212`.
@@ -229,12 +230,13 @@ During production install/upgrade, `container_install.sh` writes `.env.prod.file
 
 Production persistence layout:
 
-- `${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_reverse_proxy.conf` -> `/etc/httpd/conf.d/01-relecov.conf`
-- `${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_logs.conf` -> `/etc/httpd/conf.d/00-logformat.conf`
-- `${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_server-status.conf` -> `/etc/httpd/conf.d/02-server-status.conf`
+- `${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_reverse_proxy.conf` -> `/etc/httpd/conf.d/01-relecov.conf`
+- `${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_logs.conf` -> `/etc/httpd/conf.d/00-logformat.conf`
+- `${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_server-status.conf` -> `/etc/httpd/conf.d/02-server-status.conf`
+- `${DJANGO_SETTINGS_PATH:-/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py}` -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/relecov_platform/settings.py`
 - `${APACHE_LOG_PATH:-/var/log/local/apache}` -> `/var/log/httpd`
-- `${PLATFORM_LOG_PATH:-/var/log/local/apps/relecov-platform}` -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/logs`
-- `${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}` -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs`
+- `${PLATFORM_LOG_PATH:-/var/log/local/relecov-platform/apps}` -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/logs`
+- `${ISKYLIMS_LOG_PATH:-/var/log/local/relecov-iskylims/apps}` -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs`
 - `relecov_documents` named volume -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/documents`
 - `relecov_static` named volume -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/static`
 - `iskylims_documents` named volume -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/documents`
@@ -244,11 +246,12 @@ Production persistence layout:
 `container_install.sh` creates and fixes permissions for the standard host log/config paths. For locked-down hosts, pre-create them:
 
 ```bash
-sudo mkdir -p /opt/relecov-platform/conf
+sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_apache_conf
+sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_django_setting
 sudo mkdir -p /var/log/local/apache
-sudo mkdir -p /var/log/local/apps/relecov-platform
-sudo mkdir -p /var/log/local/apps/relecov-iskylims
-sudo chown -R "$USER:$USER" /opt/relecov-platform/conf /var/log/local/apache /var/log/local/apps
+sudo mkdir -p /var/log/local/relecov-platform/apps
+sudo mkdir -p /var/log/local/relecov-iskylims/apps
+sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_apache_conf /srv/containers/bind/relecov-platform/relecov_django_setting /var/log/local/apache /var/log/local/relecov-platform /var/log/local/relecov-iskylims
 ```
 
 For rootless Podman, the installer uses `podman unshare` fallback operations where normal `chmod`/`chown` cannot adjust rootless container ownership.
@@ -258,8 +261,8 @@ To repair host bind mounts and mounted app volumes without rebuilding:
 ```bash
 bash container_install.sh --engine podman \
   --action fix-permissions \
-  --install_conf_map app,conf/docker_production_platform_settings.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt
+  --install_conf_map app,conf/my_prod_settings_relecov.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt
 ```
 
 #### Apache reverse proxy (container) + Gunicorn
@@ -279,15 +282,11 @@ Apache config files are rendered from:
 
 The rendered files are copied to `APACHE_CONF_PATH` before Compose starts the Apache container. Runtime Apache logs are written to `APACHE_LOG_PATH`.
 
-If Apache is behind an institutional TLS proxy, keep the defaults:
-
-- `APACHE_FORWARDED_PROTO=https`
-- `APACHE_FORWARDED_PORT=443`
-
-For a plain HTTP-only deployment, override them before running the installer:
+Both settings files define the forwarded scheme and port. The integrated `relecov_apache` proxy reads the RELECOV Platform values; standalone iSkyLIMS reads the iSkyLIMS values:
 
 ```bash
-APACHE_FORWARDED_PROTO=http APACHE_FORWARDED_PORT=8081 bash container_install.sh ...
+APACHE_FORWARDED_PROTO='http'
+APACHE_FORWARDED_PORT='8081'
 ```
 
 #### Manage containers after installation
@@ -329,8 +328,8 @@ Before upgrading, perform backups from [Backups](#backups).
 ```bash
 bash container_install.sh --engine podman \
   --action upgrade \
-  --install_conf_map app,conf/docker_production_platform_settings.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/conf/docker_production_iskylims_settings.txt \
+  --install_conf_map app,conf/my_prod_settings_relecov.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt \
   2>&1 | tee relecov_prod_upgrade_$(date +%Y%m%d_%H%M%S).log
 ```
 
@@ -402,8 +401,8 @@ mysqldump -h <db_host> -P <db_port> -u relecovlims -p iskylims_rel_dev > iskylim
 Host logs:
 
 ```bash
-tar -czf relecov_platform_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apps/relecov-platform .
-tar -czf relecov_iskylims_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apps/relecov-iskylims .
+tar -czf relecov_platform_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/relecov-platform/apps .
+tar -czf relecov_iskylims_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/relecov-iskylims/apps .
 tar -czf relecov_apache_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apache .
 ```
 
@@ -452,9 +451,9 @@ podman run --rm -v nextstrain_data:/to -v "$PWD":/from alpine \
 Restore logs archive:
 
 ```bash
-sudo mkdir -p /var/log/local/apps/relecov-platform /var/log/local/apps/relecov-iskylims /var/log/local/apache
-sudo tar -xzf relecov_platform_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apps/relecov-platform
-sudo tar -xzf relecov_iskylims_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apps/relecov-iskylims
+sudo mkdir -p /var/log/local/relecov-platform/apps /var/log/local/relecov-iskylims/apps /var/log/local/apache
+sudo tar -xzf relecov_platform_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/relecov-platform/apps
+sudo tar -xzf relecov_iskylims_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/relecov-iskylims/apps
 sudo tar -xzf relecov_apache_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apache
 ```
 
