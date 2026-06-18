@@ -9,6 +9,7 @@ migrations/
 virtualenv/
 manage.py
 install_settings.txt
+my_prod_settings*.txt
 relecov_platform/
 documents/
 initial_settings.txt
