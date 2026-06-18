@@ -689,7 +689,7 @@ config_apache_conf_path="$(read_install_conf_value "APACHE_CONF_PATH" "$platform
 apache_conf_path="${APACHE_CONF_PATH:-${config_apache_conf_path:-/srv/containers/bind/relecov-platform/relecov_apache_conf}}"
 config_django_settings_path="$(read_install_conf_value "DJANGO_SETTINGS_PATH" "$platform_host_install_conf_path")"
 django_settings_path="$(normalize_settings_bind_path "${DJANGO_SETTINGS_PATH:-${config_django_settings_path:-}}")"
-apache_log_path="$(config_value_for_service app APACHE_LOG_PATH /var/log/local/apache)"
+apache_log_path="$(config_value_for_service app APACHE_LOG_PATH /var/log/local/relecov-platform/apache)"
 platform_log_path="$(config_value_for_service app PLATFORM_LOG_PATH /var/log/local/relecov-platform/apps)"
 iskylims_log_path="$(config_value_for_service app ISKYLIMS_LOG_PATH /var/log/local/relecov-iskylims/apps)"
 
