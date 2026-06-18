@@ -63,7 +63,7 @@ flowchart LR
     iskylims --> iskylims_docs[iskylims_documents<br/>volume]
     nextstrain --> nextstrain_data[nextstrain_data<br/>volume]
 
-    apache --> apache_logs[APACHE_LOG_PATH<br/>/var/log/local/apache/]
+    apache --> apache_logs[APACHE_LOG_PATH<br/>/var/log/local/relecov-platform/apache/]
     platform --> platform_logs[PLATFORM_LOG_PATH<br/>/var/log/local/relecov-platform/apps/]
     iskylims --> iskylims_logs[ISKYLIMS_LOG_PATH<br/>/var/log/local/relecov-iskylims/apps/]
 
@@ -216,7 +216,7 @@ Container build/runtime values are configured through the selected install confi
 - `APP_INSTALL_PATH`: platform runtime install root. Default: `/opt/relecov-platform`.
 - `APACHE_CONF_PATH`: host directory for rendered Apache config files. Default: `/srv/containers/bind/relecov-platform/relecov_apache_conf`.
 - `DJANGO_SETTINGS_PATH`: host file bind-mounted as `${APP_INSTALL_PATH}/relecov_platform/settings.py`. Default: `/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py`.
-- `APACHE_LOG_PATH`: host directory mounted as `/var/log/httpd` in Apache. Default: `/var/log/local/apache`.
+- `APACHE_LOG_PATH`: host directory mounted as `/var/log/httpd` in Apache. Default: `/var/log/local/relecov-platform/apache`.
 - `PLATFORM_LOG_PATH`: host directory mounted as platform logs. Default: `/var/log/local/relecov-platform/apps`.
 - `ISKYLIMS_LOG_PATH`: host directory mounted as iSkyLIMS logs. Default: `/var/log/local/relecov-iskylims/apps`.
 - `RELECOV_PLATFORM_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, `RELECOV_NEXTSTRAIN_SERVER_NAME`: Apache virtual host names.
@@ -234,7 +234,7 @@ Production persistence layout:
 - `${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_logs.conf` -> `/etc/httpd/conf.d/00-logformat.conf`
 - `${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_server-status.conf` -> `/etc/httpd/conf.d/02-server-status.conf`
 - `${DJANGO_SETTINGS_PATH:-/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py}` -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/relecov_platform/settings.py`
-- `${APACHE_LOG_PATH:-/var/log/local/apache}` -> `/var/log/httpd`
+- `${APACHE_LOG_PATH:-/var/log/local/relecov-platform/apache}` -> `/var/log/httpd`
 - `${PLATFORM_LOG_PATH:-/var/log/local/relecov-platform/apps}` -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/logs`
 - `${ISKYLIMS_LOG_PATH:-/var/log/local/relecov-iskylims/apps}` -> `${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs`
 - `relecov_documents` named volume -> `${APP_INSTALL_PATH:-/opt/relecov-platform}/documents`
@@ -248,10 +248,10 @@ Production persistence layout:
 ```bash
 sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_apache_conf
 sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo mkdir -p /var/log/local/apache
+sudo mkdir -p /var/log/local/relecov-platform/apache
 sudo mkdir -p /var/log/local/relecov-platform/apps
 sudo mkdir -p /var/log/local/relecov-iskylims/apps
-sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_apache_conf /srv/containers/bind/relecov-platform/relecov_django_setting /var/log/local/apache /var/log/local/relecov-platform /var/log/local/relecov-iskylims
+sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_apache_conf /srv/containers/bind/relecov-platform/relecov_django_setting /var/log/local/relecov-platform /var/log/local/relecov-iskylims
 ```
 
 For rootless Podman, the installer uses `podman unshare` fallback operations where normal `chmod`/`chown` cannot adjust rootless container ownership.
@@ -403,7 +403,7 @@ Host logs:
 ```bash
 tar -czf relecov_platform_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/relecov-platform/apps .
 tar -czf relecov_iskylims_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/relecov-iskylims/apps .
-tar -czf relecov_apache_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/apache .
+tar -czf relecov_apache_logs_$(date +%Y%m%d_%H%M%S).tgz -C /var/log/local/relecov-platform/apache .
 ```
 
 Named volumes:
@@ -451,10 +451,10 @@ podman run --rm -v nextstrain_data:/to -v "$PWD":/from alpine \
 Restore logs archive:
 
 ```bash
-sudo mkdir -p /var/log/local/relecov-platform/apps /var/log/local/relecov-iskylims/apps /var/log/local/apache
+sudo mkdir -p /var/log/local/relecov-platform/apps /var/log/local/relecov-platform/apache /var/log/local/relecov-iskylims/apps
 sudo tar -xzf relecov_platform_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/relecov-platform/apps
 sudo tar -xzf relecov_iskylims_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/relecov-iskylims/apps
-sudo tar -xzf relecov_apache_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/apache
+sudo tar -xzf relecov_apache_logs_YYYYMMDD_HHMMSS.tgz -C /var/log/local/relecov-platform/apache
 ```
 
 ### What to do if something fails

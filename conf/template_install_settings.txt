@@ -12,7 +12,7 @@ APACHE_CONF_PATH='/srv/containers/bind/relecov-platform/relecov_apache_conf'
 # Host path for the bind-mounted Django settings.py.
 DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py'
 # Host directory for Apache logs.
-APACHE_LOG_PATH='/var/log/local/apache'
+APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
 # Host directory for RELECOV Platform application logs.
 PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 # Host directory for iSkyLIMS application logs when using the integrated stack.

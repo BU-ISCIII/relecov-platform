@@ -12,7 +12,7 @@ APACHE_CONF_PATH=''
 # Production deployments bind mount settings.py from a writable host path.
 DJANGO_SETTINGS_PATH=''
 # Host directory for Apache logs.
-APACHE_LOG_PATH='/var/log/local/apache'
+APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
 # Host directory for RELECOV Platform application logs.
 PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 # Host directory for iSkyLIMS application logs when using the integrated stack.

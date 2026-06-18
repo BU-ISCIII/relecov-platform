@@ -73,13 +73,13 @@ Crear rutas de bind mounts para configuracion Apache y logs:
 ```bash
 sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_apache_conf
 sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo mkdir -p /var/log/local/apache
+sudo mkdir -p /var/log/local/relecov-platform/apache
 sudo mkdir -p /var/log/local/relecov-platform/apps
 sudo mkdir -p /var/log/local/relecov-iskylims/apps
 
 sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_apache_conf
 sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo chown -R "$USER:$USER" /var/log/local/apache
+sudo chown -R "$USER:$USER" /var/log/local/relecov-platform
 sudo chown -R "$USER:$USER" /var/log/local/relecov-platform
 sudo chown -R "$USER:$USER" /var/log/local/relecov-iskylims
 ```
@@ -234,7 +234,7 @@ Valores principales:
 INSTALL_PATH='/opt/relecov-platform'
 APACHE_CONF_PATH='/srv/containers/bind/relecov-platform/relecov_apache_conf'
 DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py'
-APACHE_LOG_PATH='/var/log/local/apache'
+APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
 PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
 APACHE_FORWARDED_PROTO='http'
