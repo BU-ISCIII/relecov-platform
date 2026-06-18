@@ -12,9 +12,9 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-      - ${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/01-relecov.conf:Z,ro
-      - ${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_logs.conf:/etc/httpd/conf.d/00-logformat.conf:Z,ro
-      - ${APACHE_CONF_PATH:-/opt/relecov-platform/conf}/relecov_apache_server-status.conf:/etc/httpd/conf.d/02-server-status.conf:Z,ro
+      - ${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_reverse_proxy.conf:/etc/httpd/conf.d/01-relecov.conf:Z,ro
+      - ${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_logs.conf:/etc/httpd/conf.d/00-logformat.conf:Z,ro
+      - ${APACHE_CONF_PATH:-/srv/containers/bind/relecov-platform/relecov_apache_conf}/relecov_apache_server-status.conf:/etc/httpd/conf.d/02-server-status.conf:Z,ro
       - ${APACHE_LOG_PATH:-/var/log/local/apache}:/var/log/httpd:Z
       - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:z,ro
       - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:z,ro
@@ -53,7 +53,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ${PLATFORM_LOG_PATH:-/var/log/local/apps/relecov-platform}:${APP_INSTALL_PATH:-/opt/relecov-platform}/logs:Z
+      - ${PLATFORM_LOG_PATH:-/var/log/local/relecov-platform/apps}:${APP_INSTALL_PATH:-/opt/relecov-platform}/logs:Z
+      - ${DJANGO_SETTINGS_PATH:-/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py}:${APP_INSTALL_PATH:-/opt/relecov-platform}/relecov_platform/settings.py:Z
       - relecov_documents:${APP_INSTALL_PATH:-/opt/relecov-platform}/documents:z
       - relecov_static:${APP_INSTALL_PATH:-/opt/relecov-platform}/static:z
       - /etc/localtime:/etc/localtime:ro
@@ -91,7 +92,7 @@ services:
     expose:
       - "${ISKYLIMS_APP_PORT:-8001}"
     volumes:
-      - ${ISKYLIMS_LOG_PATH:-/var/log/local/apps/relecov-iskylims}:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs:Z
+      - ${ISKYLIMS_LOG_PATH:-/var/log/local/relecov-iskylims/apps}:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/logs:Z
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
       - iskylims_static:${ISKYLIMS_INSTALL_PATH:-/opt/iskylims}/static:z
