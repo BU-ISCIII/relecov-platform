@@ -30,9 +30,9 @@ RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.isciiides.es'
 SERVER_STATUS_SERVER_NAME=''
 SERVER_STATUS_ALIASES='127.0.0.1 localhost'
 SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
-# Forwarded headers set by Apache for the HTTP endpoint exposed on port 8081.
-APACHE_FORWARDED_PROTO='http'
-APACHE_FORWARDED_PORT='8081'
+# Forwarded headers set by Apache in production.
+APACHE_FORWARDED_PROTO='https'
+APACHE_FORWARDED_PORT='443'
 # UID/GID for the non-root relecov-platform user inside the app container.
 APP_UID='1212'
 APP_GID='1212'
