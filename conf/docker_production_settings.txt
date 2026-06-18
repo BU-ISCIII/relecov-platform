@@ -15,33 +15,42 @@ MIGRATION_MODULES='core dashboard django_plotly_dash'
 APACHE_CONF_PATH='/srv/containers/bind/relecov-platform/relecov_apache_conf'
 # Host path for the bind-mounted Django settings.py.
 DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py'
+
 # Host directory for Apache logs.
 APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
 # Host directory for RELECOV Platform application logs.
 PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 # Host directory for iSkyLIMS application logs when using the integrated stack.
 ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
+
 # Apache virtual host names rendered into the container reverse proxy config.
 # Leave RELECOV_PLATFORM_SERVER_NAME empty to use DNS_URL.
 RELECOV_PLATFORM_SERVER_NAME=''
 RELECOV_ISKYLIMS_SERVER_NAME='relecov-iskylims.isciiides.es'
 RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.isciiides.es'
+
 # Apache server-status virtual host and access control.
+# Leave SERVER_STATUS_SERVER_NAME empty to use DNS_URL. Normally use vm hostname.
 SERVER_STATUS_SERVER_NAME=''
 SERVER_STATUS_ALIASES='127.0.0.1 localhost'
 SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
+
 # Forwarded headers set by Apache in production.
 APACHE_FORWARDED_PROTO='https'
 APACHE_FORWARDED_PORT='443'
+
 # UID/GID for the non-root relecov-platform user inside the app container.
 APP_UID='1212'
 APP_GID='1212'
+
 # Shell assigned to the container runtime user during image build.
 APP_SHELL='/sbin/nologin'
+
 # Internal app ports used by Gunicorn/Nextstrain.
 APP_PORT='8000'
 ISKYLIMS_APP_PORT='8001'
 NEXTSTRAIN_PORT='8100'
+
 # Django production debug flag. Keep disabled in production.
 DJANGO_DEBUG='false'
 # Django persistent database connection lifetime in seconds.
