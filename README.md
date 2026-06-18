@@ -285,8 +285,8 @@ The rendered files are copied to `APACHE_CONF_PATH` before Compose starts the Ap
 Both settings files define the forwarded scheme and port. The integrated `relecov_apache` proxy reads the RELECOV Platform values; standalone iSkyLIMS reads the iSkyLIMS values:
 
 ```bash
-APACHE_FORWARDED_PROTO='http'
-APACHE_FORWARDED_PORT='8081'
+APACHE_FORWARDED_PROTO='https'
+APACHE_FORWARDED_PORT='443'
 ```
 
 #### Manage containers after installation
