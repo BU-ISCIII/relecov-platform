@@ -681,7 +681,7 @@ done
 
 set_engine
 
-platform_install_path="$(service_install_path "app")"
+platform_install_path="${install_path_by_service[app]:-/opt/relecov-platform}"
 platform_host_install_conf_path="${install_conf_host_by_service[app]}"
 compose_env_file="$repo_root/.env.prod.file"
 
@@ -698,7 +698,7 @@ app_gid="$(config_value_for_service app APP_GID 1212)"
 app_shell="$(config_value_for_service app APP_SHELL /sbin/nologin)"
 app_port="$(config_value_for_service app APP_PORT 8000)"
 iskylims_port="$(config_value_for_service app ISKYLIMS_APP_PORT 8001)"
-iskylims_install_path="$(service_install_path "iskylims_app")"
+iskylims_install_path="${install_path_by_service[iskylims_app]:-/opt/iskylims}"
 nextstrain_port="$(config_value_for_service app NEXTSTRAIN_PORT 8100)"
 django_debug="$(config_value_for_service app DJANGO_DEBUG false)"
 db_conn_max_age="$(config_value_for_service app DB_CONN_MAX_AGE 60)"
