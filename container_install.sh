@@ -447,7 +447,7 @@ trap cleanup_temp_confs EXIT
 read_install_conf_value() {
     local key="$1"
     local file="$2"
-    grep -E "^${key}=" "$file" | tail -n 1 | cut -d= -f2- | sed "s/^['\"]//;s/['\"]$//"
+    grep -E "^${key}=" "$file" | tail -n 1 | cut -d= -f2- | sed -E "s/'[[:space:]]+#.*$/'/;s/^['\"]//;s/['\"]$//"
 }
 
 config_value_for_service() {
