@@ -20,17 +20,19 @@ Los ejemplos usan Podman rootless. Si se usa Docker, sustituir `--engine podman`
 
 ## Indice
 
-- [Requisitos minimos del host](#requisitos-minimos-del-host)
-- [Clonar repositorios](#clonar-repositorios)
-- [Preparar directorios del host](#preparar-directorios-del-host)
-- [Preparar ficheros recibidos de desarrollo](#preparar-ficheros-recibidos-de-desarrollo)
-- [Crear bases de datos de produccion e importar dumps](#crear-bases-de-datos-de-produccion-e-importar-dumps)
-- [Crear volumenes e importar documentos y Nextstrain](#crear-volumenes-e-importar-documentos-y-nextstrain)
-- [Configurar produccion](#configurar-produccion)
-- [Instalar contenedores](#instalar-contenedores)
-- [Reparar permisos](#reparar-permisos)
-- [Comprobaciones](#comprobaciones)
-- [Operaciones utiles](#operaciones-utiles)
+- [Instalacion de RELECOV Platform en produccion con Podman rootless](#instalacion-de-relecov-platform-en-produccion-con-podman-rootless)
+  - [Indice](#indice)
+  - [Requisitos minimos del host](#requisitos-minimos-del-host)
+  - [Clonar repositorios](#clonar-repositorios)
+  - [Preparar directorios del host](#preparar-directorios-del-host)
+  - [Preparar ficheros recibidos de desarrollo](#preparar-ficheros-recibidos-de-desarrollo)
+  - [Crear bases de datos de produccion e importar dumps](#crear-bases-de-datos-de-produccion-e-importar-dumps)
+  - [Crear volumenes e importar documentos y Nextstrain](#crear-volumenes-e-importar-documentos-y-nextstrain)
+  - [Configurar produccion](#configurar-produccion)
+  - [Instalar contenedores](#instalar-contenedores)
+  - [Reparar permisos](#reparar-permisos)
+  - [Comprobaciones](#comprobaciones)
+  - [Operaciones utiles](#operaciones-utiles)
 
 ## Requisitos minimos del host
 
@@ -49,8 +51,8 @@ No ejecutar `container_install.sh` con `sudo`. El usuario que ejecuta Podman deb
 Los dos repositorios deben quedar al mismo nivel:
 
 ```bash
-mkdir -p ~/relecov-prod
-cd ~/relecov-prod
+mkdir -p /opt/containers_apps/relecov-platform-all
+cd /opt/containers_apps/relecov-platform-all
 
 git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
 git clone https://github.com/BU-ISCIII/iskylims.git relecov-iskylims
@@ -59,10 +61,10 @@ git clone https://github.com/BU-ISCIII/iskylims.git relecov-iskylims
 Actualizar codigo si los repositorios ya existen:
 
 ```bash
-cd ~/relecov-prod/relecov-platform
+cd /opt/containers_apps/relecov-platform-all/relecov-platform
 git pull
 
-cd ~/relecov-prod/relecov-iskylims
+cd /opt/containers_apps/relecov-platform-all/relecov-iskylims
 git pull
 ```
 
@@ -77,11 +79,17 @@ sudo mkdir -p /var/log/local/relecov-platform/apache
 sudo mkdir -p /var/log/local/relecov-platform/apps
 sudo mkdir -p /var/log/local/relecov-iskylims/apps
 
-sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_apache_conf
-sudo chown -R "$USER:$USER" /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo chown -R "$USER:$USER" /var/log/local/relecov-platform
-sudo chown -R "$USER:$USER" /var/log/local/relecov-platform
-sudo chown -R "$USER:$USER" /var/log/local/relecov-iskylims
+sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /srv/containers/bind/relecov-platform/relecov_apache_conf
+sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /srv/containers/bind/relecov-platform/relecov_django_setting
+sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /var/log/local/relecov-platform
+sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /var/log/local/relecov-platform
+sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /var/log/local/relecov-iskylims
+
+sudo chown -R "bioinfo:bioinfo" /srv/containers/bind/relecov-platform/relecov_apache_conf
+sudo chown -R "bioinfo:bioinfo" /srv/containers/bind/relecov-platform/relecov_django_setting
+sudo chown -R "bioinfo:bioinfo" /var/log/local/relecov-platform
+sudo chown -R "bioinfo:bioinfo" /var/log/local/relecov-platform
+sudo chown -R "bioinfo:bioinfo" /var/log/local/relecov-iskylims
 ```
 
 Si la infraestructura usa rutas distintas, reflejarlas despues en `APACHE_CONF_PATH`, `APACHE_LOG_PATH`, `PLATFORM_LOG_PATH` e `ISKYLIMS_LOG_PATH`.
@@ -91,17 +99,17 @@ Si la infraestructura usa rutas distintas, reflejarlas despues en `APACHE_CONF_P
 Ejemplo de carpeta de entrada:
 
 ```bash
-mkdir -p ~/relecov-prod/input
+mkdir -p /opt/containers_apps/relecov-platform-all/input
 ```
 
 Copiar ahi estos ficheros, ajustando nombres si hace falta:
 
 ```text
-~/relecov-prod/input/relecov_platform_dev.sql
-~/relecov-prod/input/relecov_iskylims_dev.sql
-~/relecov-prod/input/relecov_platform_documents.tar
-~/relecov-prod/input/relecov_iskylims_documents.tar
-~/relecov-prod/input/nextstrain_data.tar
+/opt/containers_apps/relecov-platform-all/input/relecov_platform_dev.sql
+/opt/containers_apps/relecov-platform-all/input/relecov_iskylims_dev.sql
+/opt/containers_apps/relecov-platform-all/input/relecov_platform_documents.tar
+/opt/containers_apps/relecov-platform-all/input/relecov_iskylims_documents.tar
+/opt/containers_apps/relecov-platform-all/input/nextstrain_data.tar
 ```
 
 ## Crear bases de datos de produccion e importar dumps
@@ -136,10 +144,10 @@ Importar dumps de desarrollo:
 
 ```bash
 mysql --user="$APP_DB_USER" --password --host="$DB_HOST" --port="$DB_PORT" "$PLATFORM_DB" \
-  < ~/relecov-prod/input/relecov_platform_dev.sql
+  < /opt/containers_apps/relecov-platform-all/input/relecov_platform_dev.sql
 
 mysql --user="$APP_DB_USER" --password --host="$DB_HOST" --port="$DB_PORT" "$ISKYLIMS_DB" \
-  < ~/relecov-prod/input/relecov_iskylims_dev.sql
+  < /opt/containers_apps/relecov-platform-all/input/relecov_iskylims_dev.sql
 ```
 
 ## Crear volumenes e importar documentos y Nextstrain
@@ -200,9 +208,9 @@ tar -cf nextstrain_data.tar -C /ruta/nextstrain_data .
 Importar los `.tar`:
 
 ```bash
-podman volume import relecov_relecov_documents ~/relecov-prod/input/relecov_platform_documents.tar
-podman volume import relecov_iskylims_documents ~/relecov-prod/input/relecov_iskylims_documents.tar
-podman volume import relecov_nextstrain_data ~/relecov-prod/input/nextstrain_data.tar
+podman volume import relecov_relecov_documents /opt/containers_apps/relecov-platform-all/input/relecov_platform_documents.tar
+podman volume import relecov_iskylims_documents /opt/containers_apps/relecov-platform-all/input/relecov_iskylims_documents.tar
+podman volume import relecov_nextstrain_data /opt/containers_apps/relecov-platform-all/input/nextstrain_data.tar
 ```
 
 Si el compose se ejecuto sin `COMPOSE_PROJECT_NAME=relecov`, revisar los nombres reales:
@@ -216,7 +224,7 @@ podman volume ls
 Crear ficheros de configuracion:
 
 ```bash
-cd ~/relecov-prod/relecov-platform
+cd /opt/containers_apps/relecov-platform-all/relecov-platform
 
 cp conf/docker_production_settings.txt conf/my_prod_settings_relecov.txt
 cp ../relecov-iskylims/conf/docker_production_settings.txt ../relecov-iskylims/conf/my_prod_settings_iskylims.txt
@@ -300,13 +308,14 @@ EMAIL_USE_TLS='False'
 Ejecutar desde `relecov-platform`:
 
 ```bash
-cd ~/relecov-prod/relecov-platform
+cd /opt/containers_apps/relecov-platform/relecov-platform
 export COMPOSE_PROJECT_NAME=relecov
 
 bash container_install.sh --engine podman \
-  --action install \
-  --install_conf_map app,conf/my_prod_settings_relecov.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt \
+  --action upgrade \
+  --git_revision develop \
+  --install_conf_map app,my_prod_settings_relecov.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/my_prod_settings_iskylims.txt \
   2>&1 | tee relecov_prod_install_$(date +%Y%m%d_%H%M%S).log
 ```
 
@@ -325,7 +334,7 @@ El instalador:
 Ejecutar si se han importado volumenes, cambiado propietarios, recreado contenedores manualmente o cambiado `APP_UID` / `APP_GID`:
 
 ```bash
-cd ~/relecov-prod/relecov-platform
+cd /opt/containers_apps/relecov-platform-all/relecov-platform
 export COMPOSE_PROJECT_NAME=relecov
 
 bash container_install.sh --engine podman \
@@ -350,7 +359,7 @@ bash container_install.sh --engine podman \
 Estado de contenedores:
 
 ```bash
-cd ~/relecov-prod/relecov-platform
+cd /opt/containers_apps/relecov-platform-all/relecov-platform
 export COMPOSE_PROJECT_NAME=relecov
 
 podman compose --env-file .env.prod.file -f docker-compose.prod.yml ps
