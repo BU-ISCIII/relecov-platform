@@ -339,8 +339,8 @@ export COMPOSE_PROJECT_NAME=relecov
 
 bash container_install.sh --engine podman \
   --action fix-permissions \
-  --install_conf_map app,conf/my_prod_settings_relecov.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt
+  --install_conf_map app,my_prod_settings_relecov.txt \
+  --install_conf_map iskylims_app,../relecov-iskylims/my_prod_settings_iskylims.txt
 ```
 
 Si los contenedores no estaban arrancados, arrancar y repetir para reparar tambien los volumenes montados:
