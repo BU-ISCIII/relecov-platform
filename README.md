@@ -177,7 +177,7 @@ The application containers are built with staged application trees baked into th
 
 The production compose file exposes only Apache on the host:
 
-- Host port `8081` -> Apache container port `8081`
+- Host port `APACHE_HOST_PORT` (default `8090`) -> Apache container port `8081`
 - RELECOV Platform is internal on service `app:8000`
 - iSkyLIMS is internal on service alias `iskylimsapp:8001`
 - Nextstrain is internal on service `nextstrain:8100`
@@ -559,9 +559,9 @@ podman run --rm -v nextstrain_data:/data -v "$PWD":/src alpine \
 Production checks through Apache depend on your virtual host names. Examples:
 
 ```bash
-curl -I -H "Host: relecov-platform.isciiides.es" http://<host>:8081
-curl -I -H "Host: relecov-iskylims.isciiides.es" http://<host>:8081
-curl -I -H "Host: nextstrain.isciiides.es" http://<host>:8081
+curl -I -H "Host: relecov-platform.isciiides.es" http://<host>:8090
+curl -I -H "Host: relecov-iskylims.isciiides.es" http://<host>:8090
+curl -I -H "Host: nextstrain.isciiides.es" http://<host>:8090
 ```
 
 Direct container-level checks:

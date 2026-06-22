@@ -39,6 +39,10 @@ SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
 APACHE_FORWARDED_PROTO='https'
 APACHE_FORWARDED_PORT='443'
 
+# Host port published for the Apache reverse proxy. Apache listens on 8081
+# inside the container.
+APACHE_HOST_PORT='8090'
+
 # UID/GID for the non-root relecov-platform user inside the app container.
 APP_UID='1212'
 APP_GID='1212'

@@ -28,6 +28,8 @@ SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
 # Forwarded headers set by Apache. Keep http/8081 for local non-TLS testing.
 APACHE_FORWARDED_PROTO='http'
 APACHE_FORWARDED_PORT='8081'
+# Production compose host port (unused by docker-compose.test.yml).
+APACHE_HOST_PORT='8090'
 # UID/GID for the non-root relecov-platform user inside the app container.
 APP_UID='1212'
 APP_GID='1212'
