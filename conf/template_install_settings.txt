@@ -28,6 +28,8 @@ SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
 # Forwarded headers set by Apache in production.
 APACHE_FORWARDED_PROTO='https'
 APACHE_FORWARDED_PORT='443'
+# Host port published for Apache; its container port remains 8081.
+APACHE_HOST_PORT='8090'
 # UID/GID for the non-root relecov-platform user inside the app container.
 APP_UID='1212'
 APP_GID='1212'

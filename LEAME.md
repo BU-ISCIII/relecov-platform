@@ -247,6 +247,7 @@ PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
 APACHE_FORWARDED_PROTO='https'
 APACHE_FORWARDED_PORT='443'
+APACHE_HOST_PORT='8090'
 
 APP_UID='1212'
 APP_GID='1212'
@@ -384,9 +385,9 @@ podman exec -it relecov_iskylims_app python /opt/iskylims/manage.py check
 Checks por Apache:
 
 ```bash
-curl -I -H "Host: relecov-platform.isciiides.es" http://<host>:8081
-curl -I -H "Host: relecov-iskylims.isciiides.es" http://<host>:8081
-curl -I -H "Host: nextstrain.isciiides.es" http://<host>:8081
+curl -I -H "Host: relecov-platform.isciiides.es" http://<host>:8090
+curl -I -H "Host: relecov-iskylims.isciiides.es" http://<host>:8090
+curl -I -H "Host: nextstrain.isciiides.es" http://<host>:8090
 ```
 
 ## Operaciones utiles
