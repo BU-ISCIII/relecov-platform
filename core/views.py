@@ -241,9 +241,13 @@ def search_sample_data(request):
     """Return paginated sample browser data for DataTables server-side mode."""
     sample_rows = _get_search_sample_rows_for_user(request.user)
     if isinstance(sample_rows, dict) and "ERROR" in sample_rows:
+        try:
+            draw = int(request.GET.get("draw", 0) or 0)
+        except (TypeError, ValueError):
+            draw = 0
         return JsonResponse(
             {
-                "draw": int(request.GET.get("draw", 0) or 0),
+                "draw": draw,
                 "recordsTotal": 0,
                 "recordsFiltered": 0,
                 "data": [],
