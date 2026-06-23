@@ -975,7 +975,7 @@ def update_state(request):
             )
 
         sample_serializer = core.api.serializers.UpdateStateSampleSerializer(
-            sample_obj, data=s_data
+            sample_obj, data=s_data, partial=True
         )
         if not sample_serializer.is_valid():
             return Response(
