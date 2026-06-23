@@ -220,6 +220,8 @@ Container build/runtime values are configured through the selected install confi
 - `PLATFORM_LOG_PATH`: host directory mounted as platform logs. Default: `/var/log/local/relecov-platform/apps`.
 - `ISKYLIMS_LOG_PATH`: host directory mounted as iSkyLIMS logs. Default: `/var/log/local/relecov-iskylims/apps`.
 - `RELECOV_PLATFORM_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, `RELECOV_NEXTSTRAIN_SERVER_NAME`: Apache virtual host names.
+- `MAPBOX_ACCESS_TOKEN`: public Mapbox token compiled into the Auspice browser bundle. Configure URL restrictions for the deployed Nextstrain hostname and keep the value in the private production install configuration rather than committing it.
+- `MAPBOX_STYLE_OWNER`, `MAPBOX_STYLE_ID`: Mapbox style used by Auspice. Defaults to the existing `mapbox/light-v11` style.
 - `SERVER_STATUS_SERVER_NAME`, `SERVER_STATUS_ALIASES`, `SERVER_STATUS_ALLOW_FROM`: Apache `/server-status` rendering values.
 - `APP_UID` / `APP_GID`: runtime UID/GID for Django containers. Default: `1212:1212`.
 - `WEB_CONCURRENCY`, `GUNICORN_THREADS`, `GUNICORN_TIMEOUT`, `GUNICORN_KEEPALIVE`: Gunicorn tuning values.
@@ -539,11 +541,20 @@ Then configure RELECOV in iSkyLIMS:
 
 ### Nextstrain
 
-The production stack runs:
+The production stack builds a customised Auspice frontend on top of the
+official `nextstrain/base` image. Set a public, URL-restricted Mapbox token in
+the private production install configuration:
 
 ```bash
-nextstrain view /data --port 8100 --host 0.0.0.0
+MAPBOX_ACCESS_TOKEN='pk.…'
+MAPBOX_STYLE_OWNER='mapbox'
+MAPBOX_STYLE_ID='light-v11'
 ```
+
+`container_install.sh` copies these values into the git-ignored
+`.env.prod.file`. Compose passes them as build arguments to
+`nextstrain/Dockerfile`, which runs `auspice build --extend` and serves the
+result with `auspice view`.
 
 Datasets must be present in the `nextstrain_data` named volume, mounted as `/data` inside the container. Copy or generate the expected Auspice dataset files into that volume before exposing the service to users.
 

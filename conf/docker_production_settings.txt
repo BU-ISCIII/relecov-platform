@@ -54,6 +54,11 @@ APP_SHELL='/sbin/nologin'
 APP_PORT='8000'
 ISKYLIMS_APP_PORT='8001'
 NEXTSTRAIN_PORT='8100'
+# Public browser token used to compile the Auspice map tile URL.
+# Restrict this token in Mapbox to the deployed Nextstrain hostname.
+MAPBOX_ACCESS_TOKEN=''
+MAPBOX_STYLE_OWNER='mapbox'
+MAPBOX_STYLE_ID='light-v11'
 
 # Django production debug flag. Keep disabled in production.
 DJANGO_DEBUG='false'
