@@ -66,7 +66,7 @@ services:
     build:
       context: ./nextstrain
       args:
-        MAPBOX_ACCESS_TOKEN: "${MAPBOX_ACCESS_TOKEN:?Set MAPBOX_ACCESS_TOKEN in the production install configuration}"
+        MAPBOX_ACCESS_TOKEN: "${MAPBOX_ACCESS_TOKEN:-pk.REPLACE_WITH_MAPBOX_PUBLIC_TOKEN}"
         MAPBOX_STYLE_OWNER: "${MAPBOX_STYLE_OWNER:-mapbox}"
         MAPBOX_STYLE_ID: "${MAPBOX_STYLE_ID:-light-v11}"
     container_name: relecov_nextstrain
