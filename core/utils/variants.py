@@ -44,7 +44,7 @@ def get_sample_in_variant_list(chromosome_obj):
             variantID_id__chromosomeID_id=chromosome_obj
         ).order_by("-sampleID_id")
         for v_in_sample_obj in v_in_sample_objs:
-            v_in_sample.append(v_in_sample_obj.get_unique_id())
+            v_in_sample.append(v_in_sample_obj.get_sample_unique_id())
     return v_in_sample
 
 
