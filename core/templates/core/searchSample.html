@@ -217,8 +217,10 @@
                                                             event.stopPropagation();
                                                         })
                                                         .on('change', function () {
-                                                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                                            column.search(val ? '^' + val + '$' : '', true, false).draw();
+                                                            // The server already applies an exact literal match to
+                                                            // select filters, so do not convert values such as XFG.3
+                                                            // into escaped regular expressions.
+                                                            column.search($(this).val(), false, false).draw();
                                                         });
 
                                                     var options = index === 2 ? lineageOptions : institutionOptions;
