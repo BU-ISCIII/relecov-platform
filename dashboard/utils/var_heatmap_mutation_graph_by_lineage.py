@@ -96,8 +96,8 @@ def empty_heatmap_figure():
         title="No mutation data available",
         yaxis={"title": "Samples"},
         xaxis={"title": "Mutations", "tickangle": 45},
-        layout_coloraxis_showscale=True,
-        layout_showlegend=False,
+        coloraxis_showscale=True,
+        showlegend=False,
     )
     return fig
 
@@ -128,7 +128,7 @@ def get_figure(data: pd.DataFrame, sample_ids: list, genes: list):
         color_continuous_scale="RdYlGn",
         range_color=[0, 1],
     )
-    fig.update(layout_coloraxis_showscale=True, layout_showlegend=False)
+    fig.update_layout(coloraxis_showscale=True, showlegend=False)
     fig.update_layout(
         yaxis={"title": "Samples"},
         xaxis={"title": "Mutations", "tickangle": 45},
