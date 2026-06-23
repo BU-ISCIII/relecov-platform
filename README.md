@@ -618,6 +618,20 @@ or `ERROR`). Output produced inside successful tests is suppressed and shown
 only when a test fails. The test configuration does not connect to MySQL,
 iSkyLIMS, or external APIs.
 
+To measure application coverage using the repository's `.coveragerc`:
+
+```bash
+coverage run -m django test core dashboard --settings=tests.settings --buffer
+coverage report
+coverage html
+```
+
+The coverage configuration excludes migrations, admin registration, Dash app
+registration, cron entry points, and the test files themselves. These are
+framework/infrastructure wiring rather than application behavior. Branch
+coverage is enabled by default, so the report measures both executed lines and
+decision paths.
+
 ### Django migrations workflow
 
 Migrations are committed to the repo. Do not run `makemigrations` during install/upgrade.
