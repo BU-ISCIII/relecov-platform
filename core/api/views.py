@@ -13,6 +13,7 @@ from drf_spectacular.utils import (
     OpenApiExample,
     inline_serializer,
     OpenApiResponse,
+    OpenApiParameter
 )
 from rest_framework import serializers
 from django.http import QueryDict
@@ -1013,7 +1014,40 @@ def update_state(request):
         status=status.HTTP_400_BAD_REQUEST,
     )
 
-
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="sequencing_sample_id",
+            type=str,
+            required=True,
+            description="Sequencing sample ID",
+        ),
+        OpenApiParameter(
+            name="collecting_lab_sample_id",
+            type=str,
+            required=True,
+            description="Collecting laboratory sample ID",
+        ),
+        OpenApiParameter(
+            name="submitting_institution",
+            type=str,
+            required=True,
+            description="Submitting institution",
+        ),
+        OpenApiParameter(
+            name="collecting_institution",
+            type=str,
+            required=True,
+            description="Collecting institution name",
+        ),
+        OpenApiParameter(
+            name="collecting_institution_code_1",
+            type=str,
+            required=False,
+            description="Collecting institution code",
+        ),
+    ],
+)
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(["GET"])
