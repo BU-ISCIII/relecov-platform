@@ -3,6 +3,7 @@ import pandas as pd
 
 # Local imports
 import dashboard.dashboard_config
+import dashboard.utils.generic_process_data
 import dashboard.utils.plotly
 import dashboard.utils.generic_graphic_data
 
