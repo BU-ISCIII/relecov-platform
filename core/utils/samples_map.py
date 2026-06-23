@@ -3,16 +3,16 @@ import os
 
 import folium
 import pandas as pd
+from django.conf import settings
 
 # Local imports
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
-from relecov_platform import settings as relecov_platform_settings
 
 
 def build_samples_received_map_html():
     geojson_file = os.path.join(
-        relecov_platform_settings.STATIC_ROOT,
+        settings.STATIC_ROOT,
         "dashboard",
         "custom",
         "map",
@@ -89,11 +89,15 @@ def build_samples_received_map_html():
         ),
     ).add_to(m)
 
-    m.get_root().html.add_child(folium.Element("""
+    m.get_root().html.add_child(
+        folium.Element(
+            """
     <style>
         .leaflet-interactive:focus { outline: none !important; box-shadow: none !important; }
     </style>
-    """))
+    """
+        )
+    )
 
     return m.get_root().render()
 

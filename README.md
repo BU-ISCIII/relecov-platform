@@ -30,6 +30,7 @@ RELECOV Platform is the web application used to manage RELECOV metadata, validat
     - [Nextstrain](#nextstrain)
     - [Smoke test](#smoke-test)
   - [Developer notes](#developer-notes)
+    - [Run tests](#run-tests)
     - [Django migrations workflow](#django-migrations-workflow)
     - [Persistent host paths](#persistent-host-paths)
     - [Configure Apache server](#configure-apache-server)
@@ -584,6 +585,38 @@ podman logs --tail 100 relecov_nextstrain
 ```
 
 ## Developer notes
+
+### Run tests
+
+The project's pinned NumPy and pandas versions do not support Python 3.14.
+Use the same Python 3.11 series as the application container and create a
+dedicated environment from the repository root:
+
+```bash
+micromamba create -f conf/test-environment.yml
+micromamba activate relecov-platform-test
+```
+
+Alternatively, in an existing Python 3.11 environment:
+
+```bash
+python -m pip install -r conf/requirements.txt
+```
+
+Tests use the same pinned dependencies as production. Consequently, local
+installation also requires the system development packages needed by
+`mod-wsgi` and `mysqlclient`.
+
+Run the suite with the lightweight SQLite settings:
+
+```bash
+DJANGO_SETTINGS_MODULE=tests.settings python -m django test core dashboard --verbosity 2 --buffer
+```
+
+This prints every descriptive test name followed by its result (`ok`, `FAIL`,
+or `ERROR`). Output produced inside successful tests is suppressed and shown
+only when a test fails. The test configuration does not connect to MySQL,
+iSkyLIMS, or external APIs.
 
 ### Django migrations workflow
 

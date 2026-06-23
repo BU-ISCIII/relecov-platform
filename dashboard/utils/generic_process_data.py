@@ -5,6 +5,7 @@ import logging
 from datetime import datetime
 from collections import OrderedDict, Counter, defaultdict
 from statistics import mean
+from django.conf import settings
 from django.db.models import (
     F,
     Count,
@@ -30,8 +31,6 @@ import core.utils.lab_catalog
 import dashboard.models
 import dashboard.dashboard_config
 import core.config
-
-from relecov_platform import settings as relecov_platform_settings
 
 import time
 
@@ -670,7 +669,7 @@ def pre_proc_bioinfo_percentage_data():
 
 def pre_proc_samples_received_map():
     geojson_file = os.path.join(
-        relecov_platform_settings.STATIC_ROOT,
+        settings.STATIC_ROOT,
         "dashboard",
         "custom",
         "map",
