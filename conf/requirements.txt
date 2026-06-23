@@ -3,7 +3,7 @@ channels-redis==4.2.0
 cryptography==48.0.1
 dash==3.1.1
 dash-bio==1.0.2
-dash-bootstrap-components==1.7.1
+dash-bootstrap-components==1.6.0
 dash-daq==0.6.0
 Django==5.2.15
 django-cleanup==9.0.0
