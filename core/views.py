@@ -1,6 +1,7 @@
 # Generic imports
 from datetime import datetime
 from collections import defaultdict, OrderedDict
+import re
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -62,11 +63,15 @@ def _get_search_sample_rows_for_user(user_obj):
 
 
 def _normalize_datatable_search_value(value, regex=False):
-    """Normalize DataTables search values, removing anchors from exact-match regexes."""
+    """Normalize DataTables search values, including escaped exact-match regexes."""
     if not value:
         return ""
     if regex and value.startswith("^") and value.endswith("$"):
         value = value[1:-1]
+        # DataTables' escapeRegex() prefixes regex metacharacters with a
+        # backslash. The server performs a literal exact match, so restore the
+        # original option value before comparing it with the sample data.
+        value = re.sub(r"\\([.*+?^${}()|[\]\\/-])", r"\1", value)
     return value.strip()
 
 
