@@ -24,7 +24,7 @@ class Profile(models.Model):
 
     def get_lab_name(self):
         # Mapped to submitting_institution field in Sample model
-        return "%s" % (self.laboratory)
+        return self.laboratory or ""
 
     def _resolve_lab_code(self):
         """Return the `lab_code_1` associated with the laboratory name."""
