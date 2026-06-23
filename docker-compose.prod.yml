@@ -63,10 +63,17 @@ services:
       - relecov_net
 
   nextstrain:
-    image: docker.io/nextstrain/base:latest
+    build:
+      context: ./nextstrain
+      args:
+        MAPBOX_ACCESS_TOKEN: "${MAPBOX_ACCESS_TOKEN:?Set MAPBOX_ACCESS_TOKEN in the production install configuration}"
+        MAPBOX_STYLE_OWNER: "${MAPBOX_STYLE_OWNER:-mapbox}"
+        MAPBOX_STYLE_ID: "${MAPBOX_STYLE_ID:-light-v11}"
     container_name: relecov_nextstrain
     restart: unless-stopped
-    command: ["nextstrain", "view", "/data", "--port", "${NEXTSTRAIN_PORT:-8100}", "--host", "0.0.0.0"]
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${NEXTSTRAIN_PORT:-8100}"
     volumes:
       - nextstrain_data:/data
       - /etc/localtime:/etc/localtime:ro
