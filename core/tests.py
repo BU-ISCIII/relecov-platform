@@ -1623,10 +1623,7 @@ class SampleUtilityBranchTests(SimpleTestCase):
         self.assertIn(["Sample Name", "SEQ-1"], result["iskylims_basic"])
         self.assertEqual(result["iskylims_p_data"], [["Protocol", "Amplicon"]])
         self.assertEqual(
-            [
-                mock_call.args[0]
-                for mock_call in get_sample_information.call_args_list
-            ],
+            [mock_call.args[0] for mock_call in get_sample_information.call_args_list],
             ["RL-AAA-0001", "SEQ-1"],
         )
 
