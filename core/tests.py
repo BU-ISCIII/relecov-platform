@@ -1,10 +1,9 @@
 import json
 import os
 import tempfile
-from collections import OrderedDict
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call, mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -780,7 +779,7 @@ class SchemaUtilityMockedBranchTests(SimpleTestCase):
         self.assertTrue(created_data["required"])
         self.assertTrue(created_data["options"])
         self.assertEqual(
-            [call.args[0] for call in create_option.call_args_list],
+            [mock_call.args[0] for mock_call in create_option.call_args_list],
             [
                 {"enum": "Alpha", "ontology": "ONT:1", "propertyID": new_property},
                 {"enum": "Beta", "ontology": None, "propertyID": new_property},
@@ -1624,7 +1623,10 @@ class SampleUtilityBranchTests(SimpleTestCase):
         self.assertIn(["Sample Name", "SEQ-1"], result["iskylims_basic"])
         self.assertEqual(result["iskylims_p_data"], [["Protocol", "Amplicon"]])
         self.assertEqual(
-            [call.args[0] for call in get_sample_information.call_args_list],
+            [
+                mock_call.args[0]
+                for mock_call in get_sample_information.call_args_list
+            ],
             ["RL-AAA-0001", "SEQ-1"],
         )
 
@@ -3281,7 +3283,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(
-            [call.args[0] for call in sample.update_state.call_args_list],
+            [mock_call.args[0] for mock_call in sample.update_state.call_args_list],
             ["Ena", "Gisaid"],
         )
         self.assertEqual(store_public.call_count, 2)
