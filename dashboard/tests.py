@@ -1,4 +1,5 @@
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock, mock_open, patch
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -15,10 +16,8 @@ import dashboard.utils.met_index
 import dashboard.utils.met_sample_preprocessing
 import dashboard.utils.met_sequencing
 import dashboard.utils.plotly
-import dashboard.utils.var_heatmap_mutation_graph_by_lineage
 import dashboard.utils.var_lineage_variation_over_time_graph
 import dashboard.utils.var_needle_mutation_graph_by_lineage
-import dashboard.utils.var_samples_received_over_time_pie
 import dashboard.views
 
 
@@ -106,21 +105,728 @@ class DashboardDataPreparationTests(SimpleTestCase):
         self.assertEqual(list(figure.data[0].y), [4, 4])
         self.assertEqual(list(figure.data[1].y), [75.0, 25.0])
 
-    def test_received_sample_dataframes_are_sorted_by_count(self):
-        data = {
-            "region": {"Madrid": 7, "Canarias": 2},
-            "laboratory": {"Lab B": 9, "Lab A": 1},
+class GenericProcessDataTests(SimpleTestCase):
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data")
+    def test_simple_lims_counts_normalizes_empty_keys_and_caches_result(
+        self, get_stats, create_cache
+    ):
+        get_stats.return_value = {"": 2, None: 3, "Illumina": 4}
+
+        result = (
+            dashboard.utils.generic_process_data._pre_proc_simple_lims_counts(
+                "instrument", "sequencing_instrument", empty_label="Not Provided"
+            )
+        )
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        create_cache.assert_called_once_with(
+            {
+                "graphic_name": "instrument",
+                "graphic_data": {"Not Provided": 5, "Illumina": 4},
+            }
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data",
+        return_value={"ERROR": "iSkyLIMS unavailable"},
+    )
+    def test_simple_lims_counts_returns_external_error_without_caching(
+        self, _get_stats, create_cache
+    ):
+        result = (
+            dashboard.utils.generic_process_data._pre_proc_simple_lims_counts(
+                "instrument", "sequencing_instrument"
+            )
+        )
+
+        self.assertEqual(result, {"ERROR": "iSkyLIMS unavailable"})
+        create_cache.assert_not_called()
+
+    @patch(
+        "dashboard.utils.generic_process_data._pre_proc_simple_lims_counts",
+        return_value={"SUCCESS": "Success"},
+    )
+    def test_methodology_lims_count_wrappers_use_expected_fields(self, preprocess):
+        functions = [
+            (
+                dashboard.utils.generic_process_data.pre_proc_nucleic_acid_extraction_protocol,
+                (
+                    "nucleic_acid_extraction_protocol",
+                    "nucleic_acid_extraction_protocol",
+                ),
+                {"empty_label": "Not Provided"},
+            ),
+            (
+                dashboard.utils.generic_process_data.pre_proc_sequencing_instrument_platform,
+                (
+                    "sequencing_instrument_platform",
+                    "sequencing_instrument_platform",
+                ),
+                {"empty_label": "Not Provided"},
+            ),
+            (
+                dashboard.utils.generic_process_data.pre_proc_sequencing_instrument_model,
+                (
+                    "sequencing_instrument_model",
+                    "sequencing_instrument_model",
+                ),
+                {"empty_label": "Not Provided"},
+            ),
+            (
+                dashboard.utils.generic_process_data.pre_proc_library_preparation_kit,
+                ("library_preparation_kit", "library_preparation_kit"),
+                {"empty_label": "Not Applicable"},
+            ),
+            (
+                dashboard.utils.generic_process_data.pre_proc_read_length,
+                ("read_length", "read_length"),
+                {},
+            ),
+        ]
+
+        for function, args, kwargs in functions:
+            with self.subTest(function=function.__name__):
+                function()
+                preprocess.assert_called_with(*args, **kwargs)
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data")
+    def test_pcr_preprocessing_functions_cache_cleaned_or_raw_lims_data(
+        self, get_stats, create_cache
+    ):
+        get_stats.side_effect = [
+            {"": {"20": 1}, "Swab": {"22": 2}},
+            {None: {"18": 3}, "Protocol A": {"19": 4}},
+            {"Kit A": {"20": 5}},
+        ]
+
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_specimen_source_pcr_1(),
+            {"SUCCESS": "Success"},
+        )
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_extraction_protocol_pcr_1(),
+            {"SUCCESS": "Success"},
+        )
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_library_kit_pcr_1(),
+            {"SUCCESS": "Success"},
+        )
+
+        payloads = [call.args[0] for call in create_cache.call_args_list]
+        self.assertEqual(
+            payloads[0],
+            {
+                "graphic_name": "specimen_source_pcr_1",
+                "graphic_data": {"Not Provided": {"20": 1}, "Swab": {"22": 2}},
+            },
+        )
+        self.assertEqual(
+            payloads[1],
+            {
+                "graphic_name": "extraction_protocol_pcr_1",
+                "graphic_data": {
+                    "Not Provided": {"18": 3},
+                    "Protocol A": {"19": 4},
+                },
+            },
+        )
+        self.assertEqual(
+            payloads[2],
+            {
+                "graphic_name": "library_kit_pcr_1",
+                "graphic_data": {"Kit A": {"20": 5}},
+            },
+        )
+
+    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data")
+    def test_pcr_preprocessing_functions_return_lims_errors(self, get_stats):
+        get_stats.return_value = {"ERROR": "iSkyLIMS unavailable"}
+
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_specimen_source_pcr_1(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_extraction_protocol_pcr_1(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_library_kit_pcr_1(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.Sample.objects.filter"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.LineageValues.objects.filter"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.fetch_samples_on_condition"
+    )
+    def test_variant_graphic_groups_collection_dates_and_filters_rare_variants(
+        self,
+        fetch_samples,
+        filter_lineages,
+        filter_samples,
+        create_cache,
+    ):
+        fetch_samples.return_value = {
+            "data": [
+                {"Sample Name": "S1", "collection_sample_date": "2024-01-01"},
+                {"Sample Name": "S2", "collection_sample_date": "2024-01-01"},
+                {"Sample Name": "S3", "collection_sample_date": None},
+            ]
+        }
+        lineage_query = MagicMock()
+        lineage_query.exclude.return_value.values_list.return_value.distinct.return_value = [
+            "Variant A",
+            None,
+        ]
+        filter_lineages.return_value = lineage_query
+
+        sample_query = MagicMock()
+        sample_query.values.return_value.annotate.side_effect = [
+            [{"lineage_values__value": "Variant A", "count": 10}],
+            [],
+        ]
+        filter_samples.return_value = sample_query
+
+        result = dashboard.utils.generic_process_data.pre_proc_variant_graphic()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0],
+            {
+                "graphic_name": "variant_graphic_data",
+                "graphic_data": {
+                    "Collection date": ["2024-01-01"],
+                    "Lineage": ["Variant A"],
+                    "samples": [10],
+                },
+            },
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.fetch_samples_on_condition",
+        return_value={"ERROR": "iSkyLIMS unavailable"},
+    )
+    def test_variant_graphic_returns_lims_error(self, _fetch_samples):
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_variant_graphic(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
+    )
+    def test_depth_variants_ignores_invalid_values_and_groups_valid_rows(
+        self, filter_values, create_cache
+    ):
+        depth_query = MagicMock()
+        depth_query.values.return_value = [
+            {"sample__sample_fingerprint": "S1", "value": "10.5"},
+            {"sample__sample_fingerprint": "S2", "value": "Not Provided"},
+        ]
+        variant_query = MagicMock()
+        variant_query.values.return_value = [
+            {"sample__sample_fingerprint": "S1", "value": "3"},
+            {"sample__sample_fingerprint": "S1", "value": None},
+            {"sample__sample_fingerprint": "S2", "value": "4"},
+        ]
+        filter_values.side_effect = [depth_query, variant_query]
+
+        result = dashboard.utils.generic_process_data.pre_proc_depth_variants()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        create_cache.assert_called_once_with(
+            {
+                "graphic_name": "depth_variant_consensus",
+                "graphic_data": {10.5: [3]},
+            }
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
+    )
+    def test_depth_sample_run_groups_valid_lims_values(
+        self, filter_values, get_parameters, create_cache
+    ):
+        query = MagicMock()
+        query.values.return_value = [
+            {"sample__sample_unique_id": "S1", "value": "20"},
+            {"sample__sample_unique_id": "S2", "value": "bad"},
+        ]
+        filter_values.return_value = query
+        get_parameters.return_value = [
+            {"Sample name": "S1", "number_of_samples_in_run": "12"},
+            {"Sample name": "S2", "number_of_samples_in_run": "invalid"},
+            {"Sample name": "missing", "number_of_samples_in_run": "3"},
+        ]
+
+        result = dashboard.utils.generic_process_data.pre_proc_depth_sample_run()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        create_cache.assert_called_once_with(
+            {
+                "graphic_name": "depth_samples_in_run",
+                "graphic_data": {20.0: [12]},
+            }
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data"
+    )
+    def test_based_pairs_sequenced_uses_latest_valid_reads_per_sample(
+        self, get_parameters, filter_values, create_cache
+    ):
+        get_parameters.return_value = [
+            {"Sample name": "S1", "diagnostic_pcr_Ct_value_1": "22.5"},
+            {"Sample name": "S2", "diagnostic_pcr_Ct_value_1": "30"},
+            {"Sample name": "S3", "diagnostic_pcr_Ct_value_1": "bad"},
+        ]
+        values_query = MagicMock()
+        values_query.values_list.return_value.order_by.return_value = [
+            ("S1", "1000", 3),
+            ("S1", "900", 2),
+            ("S2", "invalid", 1),
+            ("S3", "500", 4),
+        ]
+        filter_values.return_value = values_query
+
+        result = dashboard.utils.generic_process_data.pre_proc_based_pairs_sequenced()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        create_cache.assert_called_once_with(
+            {
+                "graphic_name": "ct_number_of_base_pairs_sequenced",
+                "graphic_data": {1000: [22.5]},
+            }
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data",
+        return_value={"ERROR": "iSkyLIMS unavailable"},
+    )
+    def test_based_pairs_sequenced_returns_lims_error(self, _get_parameters):
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_based_pairs_sequenced(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
+    )
+    def test_depth_sample_run_handles_empty_database_and_lims_error(
+        self, filter_values, get_parameters
+    ):
+        empty_query = MagicMock()
+        empty_query.values.return_value = []
+        filter_values.return_value = empty_query
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_depth_sample_run(),
+            {"ERROR": "No data"},
+        )
+
+        populated_query = MagicMock()
+        populated_query.values.return_value = [
+            {"sample__sample_unique_id": "S1", "value": "20"}
+        ]
+        filter_values.return_value = populated_query
+        get_parameters.return_value = {"ERROR": "iSkyLIMS unavailable"}
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_depth_sample_run(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisField.objects.filter"
+    )
+    def test_bioinfo_percentage_data_clamps_and_filters_values(
+        self, filter_fields, filter_values, create_cache
+    ):
+        filter_fields.return_value = [
+            SimpleNamespace(property_name="per_Ns", label_name="Ns"),
+            SimpleNamespace(property_name="per_reads_host", label_name="Host"),
+        ]
+        query = MagicMock()
+        query.values_list.return_value = [
+            ("per_Ns", "-2"),
+            ("per_Ns", "12,5"),
+            ("per_Ns", "invalid"),
+            ("per_reads_host", "101"),
+        ]
+        filter_values.return_value = query
+
+        result = dashboard.utils.generic_process_data.pre_proc_bioinfo_percentage_data()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        cached = create_cache.call_args.args[0]["graphic_data"]
+        self.assertEqual(cached["Ns"], [0.0, 12.5])
+        self.assertEqual(cached["Host"], [])
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.json.load")
+    @patch("builtins.open", new_callable=mock_open)
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_summarize_data"
+    )
+    def test_samples_received_map_matches_regions_and_defaults_missing_counts(
+        self, summarize, _open, load_json, create_cache
+    ):
+        summarize.return_value = {"region": {"Madrid": 7}}
+        load_json.return_value = {
+            "features": [
+                {"properties": {"name": "Madrid", "cartodb_id": 1}},
+                {"properties": {"name": "Canarias", "cartodb_id": 2}},
+            ]
         }
 
-        regions = dashboard.utils.var_samples_received_over_time_pie.create_samples_per_ccaa_dataframe(
-            data
-        )
-        laboratories = dashboard.utils.var_samples_received_over_time_pie.create_samples_per_laboratory_dataframe(
-            data
+        result = dashboard.utils.generic_process_data.pre_proc_samples_received_map()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0]["graphic_data"],
+            {
+                "ccaa_id": [1, 2],
+                "ccaa_name": ["Madrid", "Canarias"],
+                "samples": [7, "0"],
+            },
         )
 
-        self.assertEqual(regions["CCAA_NAME"].tolist(), ["Canarias", "Madrid"])
-        self.assertEqual(laboratories["LABORATORY_NAME"].tolist(), ["Lab A", "Lab B"])
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data")
+    def test_host_info_combines_gender_and_age_sources(self, get_stats, create_cache):
+        get_stats.side_effect = [
+            {"Male": 2, "": 1},
+            {"Male": {"20": 2}, "": {"30": 1}},
+            {"Male": {"12": 1}, "": {"24": 1}},
+            {"20": 2, "-5": 1},
+            {"12": 1, "invalid": 3},
+        ]
+
+        result = dashboard.utils.generic_process_data.pre_proc_host_info()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        cached = create_cache.call_args.args[0]["graphic_data"]
+        self.assertEqual(cached["gender_values"], [2, 1])
+        self.assertIn("Not Provided", cached["gender_data"])
+        self.assertEqual(cached["invalid_data"]["invalid_age_data"], 1)
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.fetch_samples_on_condition"
+    )
+    def test_samples_per_date_fills_missing_weeks(self, fetch_samples, create_cache):
+        fetch_samples.return_value = {
+            "data": [
+                {"Sample Name": "S1", "collection_sample_date": "2024-01-01"},
+                {"Sample Name": "S2", "collection_sample_date": "2024-01-15"},
+                {"Sample Name": "S3", "collection_sample_date": None},
+            ]
+        }
+
+        result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0]["graphic_data"],
+            {
+                "2024-W01": 1,
+                "2024-W02": 0,
+                "2024-W03": 1,
+            },
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_summarize_data"
+    )
+    def test_received_sample_summaries_cache_laboratory_and_region_axes(
+        self, summarize, create_cache
+    ):
+        summarize.return_value = {
+            "laboratory": {"Lab A": 2},
+            "region": {"Madrid": 3},
+        }
+
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_samples_received_per_lab(),
+            {"SUCCESS": "Success"},
+        )
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_samples_received_per_ccaa(),
+            {"SUCCESS": "Success"},
+        )
+
+        payloads = [call.args[0] for call in create_cache.call_args_list]
+        self.assertEqual(payloads[0]["graphic_data"], {"x": ["Lab A"], "y": [2]})
+        self.assertEqual(payloads[1]["graphic_data"], {"x": ["Madrid"], "y": [3]})
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.public_db.get_public_accession_from_sample_lab"
+    )
+    def test_public_accessions_are_grouped_by_laboratory(
+        self, get_accessions, create_cache
+    ):
+        get_accessions.side_effect = [
+            [("Lab A", "G1", "S1"), ("Lab A", "G2", "S2")],
+            [("Lab B", "E1", "S3")],
+        ]
+
+        dashboard.utils.generic_process_data.pre_proc_intranet_gisaid_data()
+        dashboard.utils.generic_process_data.pre_proc_intranet_ena_data()
+
+        payloads = [call.args[0] for call in create_cache.call_args_list]
+        self.assertEqual(
+            payloads[0]["graphic_data"]["Lab A"],
+            [("G1", "S1"), ("G2", "S2")],
+        )
+        self.assertEqual(payloads[1]["graphic_data"]["Lab B"], [("E1", "S3")])
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_project_field_display_map",
+        return_value={"field_a": "Field A"},
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data")
+    def test_methodology_lims_utilization_builds_summary_and_detail(
+        self, get_stats, _display_map, create_cache
+    ):
+        get_stats.return_value = {
+            "fields_norm": {"field_a": 0.5, "field_b": 1.0},
+            "always_none": ["field_c"],
+            "never_used": ["field_d"],
+            "fields_value": {"field_a": 2, "field_b": 4},
+        }
+
+        result = (
+            dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util()
+        )
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        cached = create_cache.call_args.args[0]["graphic_data"]
+        self.assertEqual(cached["lims_f_values"], 75.0)
+        self.assertEqual(cached["summary_lab_values"], [2, 4])
+        self.assertEqual(
+            cached["field_detail_data"]["field_name"],
+            ["Field A", "field_b"],
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization",
+        return_value={"fields_value": {"field": 2}},
+    )
+    def test_bioinfo_utilization_is_cached_without_using_stale_cache(
+        self, utilization, create_cache
+    ):
+        result = dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        utilization.assert_called_once_with(use_cache=False)
+        create_cache.assert_called_once_with(
+            {
+                "graphic_name": "methodology_bioinfo_fields",
+                "graphic_data": {"fields_value": {"field": 2}},
+            }
+        )
+
+
+class NeedleMutationGraphTests(SimpleTestCase):
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.dashboard.utils.generic_process_data.pre_proc_variations_per_lineage",
+        return_value={"SUCCESS": "Success"},
+    )
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_variant_data_preprocesses_missing_cache_then_reads_refreshed_data(
+        self, get_cache, preprocess
+    ):
+        get_cache.side_effect = [
+            None,
+            {
+                "BA.2": {"SamplesWithLineage": 1, "x": [10]},
+                "XFG.3": {"SamplesWithLineage": 2, "x": [20]},
+            },
+        ]
+
+        data, lineage, samples = (
+            dashboard.utils.var_needle_mutation_graph_by_lineage.get_variant_data_from_lineages(
+                graphic_name="variations_per_lineage",
+                chromosome="NC_045512",
+            )
+        )
+
+        preprocess.assert_called_once_with("NC_045512")
+        self.assertEqual(lineage, "BA.2")
+        self.assertEqual(samples, 1)
+        self.assertEqual(data["x"], [10])
+
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.dashboard.utils.generic_process_data.pre_proc_variations_per_lineage",
+        return_value={"SUCCESS": "Success"},
+    )
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.dashboard.utils.generic_graphic_data.get_graphic_json_data",
+        return_value=None,
+    )
+    def test_variant_data_returns_empty_tuple_when_preprocess_does_not_create_cache(
+        self, _cache, _preprocess
+    ):
+        self.assertEqual(
+            dashboard.utils.var_needle_mutation_graph_by_lineage.get_variant_data_from_lineages(
+                graphic_name="variations_per_lineage"
+            ),
+            (None, None, None),
+        )
+
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.get_variant_data_from_lineages"
+    )
+    def test_needle_figure_builds_domains_mutation_traces_and_rangeslider(
+        self, get_data
+    ):
+        get_data.return_value = (
+            {
+                "SamplesWithLineage": 3,
+                "x": ["10", "20", "40"],
+                "y": [0.2, 0.8, 0.5],
+                "mutationGroups": ["missense_variant", None, "unknown_effect"],
+                "domains": [
+                    {"name": "S", "coord": "1-30"},
+                    {"name": "N", "coord": "31-60"},
+                ],
+            },
+            "XFG.3",
+            3,
+        )
+
+        figure, markdown = (
+            dashboard.utils.var_needle_mutation_graph_by_lineage.build_needle_plot_figure(
+                "XFG.3",
+                toggle_rangeslider=["on"],
+                relayout_data={"xaxis.range": [0, 25]},
+            )
+        )
+
+        self.assertEqual(markdown, "Showing mutations for 3 samples")
+        self.assertTrue(figure.layout.xaxis.rangeslider.visible)
+        self.assertEqual(list(figure.layout.xaxis.range), [0, 25])
+        self.assertEqual(
+            [trace.name for trace in figure.data],
+            [
+                "missense_variant",
+                "missense_variant",
+                "Unknown",
+                "Unknown",
+            ],
+        )
+        self.assertEqual(len(figure.layout.shapes), 3)
+        self.assertEqual(figure.layout.updatemenus[0].buttons[0].label, "All")
+
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.get_variant_data_from_lineages"
+    )
+    def test_needle_figure_uses_data_range_when_relayout_is_absent(self, get_data):
+        get_data.return_value = (
+            {
+                "SamplesWithLineage": 1,
+                "x": ["50"],
+                "y": [0.4],
+                "mutationGroups": ["synonymous_variant"],
+                "domains": [{"name": "S", "coord": "1-100"}],
+            },
+            "XFG.3",
+            1,
+        )
+
+        figure, _markdown = (
+            dashboard.utils.var_needle_mutation_graph_by_lineage.build_needle_plot_figure(
+                "XFG.3"
+            )
+        )
+
+        self.assertEqual(list(figure.layout.xaxis.range), [50, 50])
+        self.assertEqual(figure.data[1].name, "synonymous_variant")
+
+    def test_needle_plot_graph_initial_arguments_handle_empty_and_success(self):
+        self.assertEqual(
+            dashboard.utils.var_needle_mutation_graph_by_lineage.create_needle_plot_graph_mutation_by_lineage(
+                ["XFG.3"],
+                "XFG.3",
+                None,
+                0,
+            ),
+            {"ERROR": "No lineage mutation data available"},
+        )
+        self.assertEqual(
+            dashboard.utils.var_needle_mutation_graph_by_lineage.create_needle_plot_graph_mutation_by_lineage(
+                ["XFG.3"],
+                "XFG.3",
+                {"x": [1]},
+                2,
+            ),
+            {
+                "needleplot-select-lineage": {
+                    "options": [{"label": "XFG.3", "value": "XFG.3"}],
+                    "value": "XFG.3",
+                },
+                "toggle-rangeslider": {"value": ["on"]},
+            },
+        )
 
 
 class MethodologyDashboardTests(SimpleTestCase):
@@ -467,19 +1173,6 @@ class DashboardViewTests(SimpleTestCase):
 
     @patch("dashboard.views.render")
     @patch(
-        "dashboard.views.dashboard.utils.var_molecule3D_bn_graph.create_model3D_bn"
-    )
-    def test_spike_mutations_builds_model_before_rendering(self, create_model, render):
-        dashboard.views.spike_mutations_3d(self.request)
-
-        create_model.assert_called_once_with()
-        render.assert_called_once_with(
-            self.request,
-            "dashboard/variantSpikeMutations3D.html",
-        )
-
-    @patch("dashboard.views.render")
-    @patch(
         "dashboard.views.dashboard.utils.met_index.index_dash_fields",
         return_value={"progress": "complete"},
     )
@@ -537,99 +1230,6 @@ class DashboardViewTests(SimpleTestCase):
             "dashboard/methodologyBioinfo.html",
             {"bioinfo": {"pipeline": "viralrecon"}},
         )
-
-    @patch("dashboard.views.render")
-    @patch(
-        "dashboard.views.core.utils.variants.get_all_chromosome_objs",
-        return_value=None,
-    )
-    def test_heatmap_view_reports_missing_chromosome(self, _chromosomes, render):
-        dashboard.views.variants_mutations_in_lineages_heatmap(self.request)
-
-        render.assert_called_once_with(
-            self.request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ERROR": core.config.ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE},
-        )
-
-    @patch("dashboard.views.render")
-    @patch(
-        "dashboard.views.core.utils.variants.get_gene_list",
-        return_value=[],
-    )
-    @patch(
-        "dashboard.views.core.utils.variants.get_all_chromosome_objs",
-        return_value=[object()],
-    )
-    def test_heatmap_view_reports_missing_genes(
-        self,
-        _chromosomes,
-        _genes,
-        render,
-    ):
-        dashboard.views.variants_mutations_in_lineages_heatmap(self.request)
-
-        render.assert_called_once_with(
-            self.request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ERROR": core.config.ERROR_GENE_NOT_DEFINED_IN_DATABASE},
-        )
-
-    @patch("dashboard.views.render")
-    @patch(
-        "dashboard.views.core.utils.variants.get_sample_in_variant_list",
-        return_value=[],
-    )
-    @patch(
-        "dashboard.views.core.utils.variants.get_gene_list",
-        return_value=["S"],
-    )
-    @patch(
-        "dashboard.views.core.utils.variants.get_all_chromosome_objs",
-        return_value=[object()],
-    )
-    def test_heatmap_view_reports_missing_variant_samples(
-        self,
-        _chromosomes,
-        _genes,
-        _samples,
-        render,
-    ):
-        dashboard.views.variants_mutations_in_lineages_heatmap(self.request)
-
-        render.assert_called_once_with(
-            self.request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ERROR": core.config.ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED},
-        )
-
-    @patch("dashboard.views.render")
-    @patch(
-        "dashboard.views.core.utils.variants.get_sample_in_variant_list",
-        return_value=["SAMPLE-1"],
-    )
-    @patch(
-        "dashboard.views.core.utils.variants.get_gene_list",
-        return_value=["S"],
-    )
-    @patch(
-        "dashboard.views.core.utils.variants.get_all_chromosome_objs",
-        return_value=[object()],
-    )
-    def test_heatmap_view_renders_when_required_data_exists(
-        self,
-        _chromosomes,
-        _genes,
-        _samples,
-        render,
-    ):
-        dashboard.views.variants_mutations_in_lineages_heatmap(self.request)
-
-        render.assert_called_once_with(
-            self.request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-        )
-
 
 class LineageGraphicLoadingTests(SimpleTestCase):
     @patch(
@@ -834,71 +1434,6 @@ class PlotlyUtilityBranchTests(SimpleTestCase):
 
 
 class VariantDashboardFigureTests(SimpleTestCase):
-    def test_heatmap_default_options_handle_missing_chromosome(self):
-        with patch(
-            "dashboard.utils.var_heatmap_mutation_graph_by_lineage.core.utils.variants.get_default_chromosome",
-            return_value=None,
-        ):
-            samples, genes = (
-                dashboard.utils.var_heatmap_mutation_graph_by_lineage.get_default_sample_and_gene_options()
-            )
-
-        self.assertEqual(samples, [])
-        self.assertEqual(genes, [])
-
-    def test_heatmap_returns_empty_and_populated_figures(self):
-        empty = (
-            dashboard.utils.var_heatmap_mutation_graph_by_lineage.get_figure(
-                pd.DataFrame(),
-                [],
-                [],
-            )
-        )
-        populated = (
-            dashboard.utils.var_heatmap_mutation_graph_by_lineage.get_figure(
-                pd.DataFrame(
-                    {
-                        "SAMPLE": ["S1", "S2"],
-                        "POS": [100, 200],
-                        "MUTATION": ["N501Y", "D614G"],
-                        "AF": [0.8, 0.4],
-                        "EFFECT": ["missense", "missense"],
-                        "GENE": ["S", "S"],
-                        "LINEAGE": ["XFG.3", "JN.1"],
-                    }
-                ),
-                ["S1", "S2"],
-                ["S"],
-            )
-        )
-
-        self.assertEqual(empty.layout.title.text, "No mutation data available")
-        self.assertEqual(populated.layout.yaxis.title.text, "Samples")
-        self.assertEqual(populated.layout.xaxis.title.text, "Mutations")
-        self.assertEqual(populated.data[0].z.shape, (2, 2))
-
-    @patch(
-        "dashboard.utils.var_heatmap_mutation_graph_by_lineage.create_dataframe",
-        return_value=pd.DataFrame(
-            {"SAMPLE": ["S1"], "GENE": ["S"], "POS": [1], "MUTATION": ["M"]}
-        ),
-    )
-    @patch(
-        "dashboard.utils.var_heatmap_mutation_graph_by_lineage.get_default_sample_and_gene_options",
-        return_value=(["fallback-sample"], ["fallback-gene"]),
-    )
-    def test_heatmap_options_prefer_values_from_dataframe(
-        self,
-        _defaults,
-        _dataframe,
-    ):
-        samples, genes = (
-            dashboard.utils.var_heatmap_mutation_graph_by_lineage.get_heatmap_options()
-        )
-
-        self.assertEqual(samples, ["S1"])
-        self.assertEqual(genes, ["S"])
-
     def test_needle_initial_arguments_and_empty_figure_are_descriptive(self):
         arguments = (
             dashboard.utils.var_needle_mutation_graph_by_lineage.build_needle_plot_initial_arguments(
