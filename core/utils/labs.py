@@ -38,14 +38,6 @@ def get_lab_name_from_user(user_obj):
         return ""
 
 
-def get_collecting_insts_from_user(user_obj):
-    """Get a list of collecting institutions associated to the given
-    laboratory (submitting_institution)
-    """
-    available_samples = core.utils.samples.get_available_samples_for_user(user_obj)
-    return available_samples.values_list("collecting_institution", flat=True).distinct()
-
-
 def get_lab_codes_from_user(user_obj):
     """Return the set of lab_code_1 values associated with the user's profile."""
 

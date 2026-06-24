@@ -1,5 +1,4 @@
 # Generic imports
-import inspect
 from datetime import datetime
 from collections import defaultdict
 
@@ -7,17 +6,6 @@ from collections import defaultdict
 import core.models
 import dashboard.models
 import dashboard.utils.generic_process_data
-
-
-def get_top_level_function_names(module):
-    # Get a list of all functions in the module
-    functions = inspect.getmembers(module, inspect.isfunction)
-    # Extract only the top-level methods, excluding inner methods
-    return [
-        func[0]
-        for func in functions
-        if func[1].__module__ == dashboard.utils.generic_process_data.__name__
-    ]
 
 
 def remove_older_graphic_jsons(graphic_name, date):
