@@ -8,30 +8,6 @@ import dashboard.utils.var_lineage_variation_over_time_graph
 APP_NAME = "variationLineageOverTime"
 
 
-def _build_empty_figure():
-    data_df = (
-        dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
-    )
-    if isinstance(data_df, dict) and "ERROR" in data_df:
-        return dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
-            dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
-                data_df
-            )
-        )
-    if data_df.empty:
-        return dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
-            dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
-                data_df
-            )
-        )
-    df_full = dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
-        data_df
-    )
-    return dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
-        df_full
-    )
-
-
 def register():
     data_df = (
         dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
