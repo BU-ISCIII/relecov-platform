@@ -13,7 +13,7 @@ from drf_spectacular.utils import (
     OpenApiExample,
     inline_serializer,
     OpenApiResponse,
-    OpenApiParameter
+    OpenApiParameter,
 )
 from rest_framework import serializers
 from django.http import QueryDict
@@ -1013,6 +1013,7 @@ def update_state(request):
         {"ERROR": "Invalid request method, use PUT", "message": "", "data": {}},
         status=status.HTTP_400_BAD_REQUEST,
     )
+
 
 @extend_schema(
     parameters=[
