@@ -1118,6 +1118,48 @@ class NeedleMutationGraphTests(SimpleTestCase):
         self.assertEqual(list(figure.layout.xaxis.range), [50, 50])
         self.assertEqual(figure.data[1].name, "synonymous_variant")
 
+    @patch(
+        "dashboard.utils.var_needle_mutation_graph_by_lineage.get_variant_data_from_lineages"
+    )
+    def test_needle_figure_merges_domain_case_variants(self, get_data):
+        get_data.return_value = (
+            {
+                "SamplesWithLineage": 1,
+                "x": ["100"],
+                "y": [0.4],
+                "mutationGroups": ["synonymous_variant"],
+                "domains": [
+                    {"name": "orf1ab", "coord": "1-200"},
+                    {"name": "ORF1ab", "coord": "1-200"},
+                    {"name": "s", "coord": "201-300"},
+                    {"name": "S", "coord": "201-300"},
+                ],
+            },
+            "XFG.3",
+            1,
+        )
+
+        figure, _markdown = (
+            dashboard.utils.var_needle_mutation_graph_by_lineage.build_needle_plot_figure(
+                "XFG.3"
+            )
+        )
+
+        button_labels = [
+            button.label for button in figure.layout.updatemenus[0].buttons
+        ]
+        annotation_texts = [
+            annotation.text for annotation in figure.layout.annotations
+        ]
+
+        self.assertEqual(button_labels, ["All", "ORF1ab", "S"])
+        self.assertEqual(annotation_texts.count("ORF1ab"), 1)
+        self.assertEqual(annotation_texts.count("S"), 1)
+        self.assertNotIn("orf1ab", annotation_texts)
+        self.assertNotIn("s", annotation_texts)
+        self.assertEqual(figure.layout.shapes[0].fillcolor, "#1f77b4")
+        self.assertEqual(figure.layout.shapes[1].fillcolor, "#ff7f0e")
+
     def test_needle_plot_graph_initial_arguments_handle_empty_and_success(self):
         self.assertEqual(
             dashboard.utils.var_needle_mutation_graph_by_lineage.create_needle_plot_graph_mutation_by_lineage(

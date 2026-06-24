@@ -8,6 +8,39 @@ import dashboard.utils.generic_process_data
 APP_NAME = "needlePlotMutationByLineage"
 
 
+def _domain_name_key(name):
+    if isinstance(name, str):
+        return name.casefold()
+    return name
+
+
+def _should_replace_domain_label(current_name, candidate_name):
+    if not isinstance(current_name, str) or not isinstance(candidate_name, str):
+        return False
+    return current_name.islower() and not candidate_name.islower()
+
+
+def _normalize_domains(domains):
+    normalized_domains = []
+    domain_indices = {}
+    for domain in domains:
+        normalized_domain = dict(domain)
+        domain_key = (
+            _domain_name_key(normalized_domain.get("name")),
+            normalized_domain.get("coord"),
+        )
+        if domain_key in domain_indices:
+            existing_domain = normalized_domains[domain_indices[domain_key]]
+            if _should_replace_domain_label(
+                existing_domain.get("name"), normalized_domain.get("name")
+            ):
+                existing_domain["name"] = normalized_domain.get("name")
+            continue
+        domain_indices[domain_key] = len(normalized_domains)
+        normalized_domains.append(normalized_domain)
+    return normalized_domains
+
+
 def get_variant_data_from_lineages(graphic_name=None, lineage=None, chromosome=None):
     json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(graphic_name)
 
@@ -66,16 +99,16 @@ def build_needle_plot_figure(
     markdown_text = f"Showing mutations for {n_samples} samples"
     domain_color_map = {
         "orf1ab": "#1f77b4",
-        "S": "#ff7f0e",
-        "ORF3a": "#2ca02c",
-        "E": "#d62728",
-        "M": "#9467bd",
-        "ORF6": "#8c564b",
-        "ORF7a": "#e377c2",
-        "ORF7b": "#7f7f7f",
-        "ORF8": "#bcbd22",
-        "N": "#17becf",
-        "ORF10": "#ffbb78",
+        "s": "#ff7f0e",
+        "orf3a": "#2ca02c",
+        "e": "#d62728",
+        "m": "#9467bd",
+        "orf6": "#8c564b",
+        "orf7a": "#e377c2",
+        "orf7b": "#7f7f7f",
+        "orf8": "#bcbd22",
+        "n": "#17becf",
+        "orf10": "#ffbb78",
     }
     mutation_color_map = {
         "missense_variant": "#E6194B",
@@ -113,13 +146,12 @@ def build_needle_plot_figure(
     x_range = max_x - min_x if max_x > min_x else 1
     max_pos = 0
     used_annotations = []
-    all_max_x = max([int(x["coord"].split("-")[1]) for x in mdata["domains"]])
+    domains = _normalize_domains(mdata["domains"])
+    all_max_x = max([int(x["coord"].split("-")[1]) for x in domains])
     domain_selectors = [
         dict(label="All", method="relayout", args=[{"xaxis.range": [0, all_max_x]}])
     ]
-    sorted_domains = sorted(
-        mdata["domains"], key=lambda x: int(x["coord"].split("-")[0])
-    )
+    sorted_domains = sorted(domains, key=lambda x: int(x["coord"].split("-")[0]))
     for domain in sorted_domains:
         start, end = map(int, domain["coord"].split("-"))
         domain_selectors.append(
@@ -136,7 +168,9 @@ def build_needle_plot_figure(
             x1=end,
             y0=0,
             y1=-0.12,
-            fillcolor=domain_color_map.get(domain["name"], "lightgray"),
+            fillcolor=domain_color_map.get(
+                _domain_name_key(domain["name"]), "lightgray"
+            ),
             opacity=0.3,
             layer="below",
             line=dict(width=0),
