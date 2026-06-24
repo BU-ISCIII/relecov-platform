@@ -404,17 +404,6 @@ def fancy_gauge_graphic(value):
     return render_to_string("core/gauge_component.html", {"value": value})
 
 
-def perc_gauge_graphic(values):
-    data = {}
-    if values["received"] == 0:
-        data["value"] = 0
-    else:
-        x = values["analized"] / values["received"] * 100
-        data["value"] = float("{:.2f}".format(x))
-    gauge_graph = core.utils.plotly_graphics.gauge_graphic(data)
-    return gauge_graph
-
-
 def delete_temporary_sample_table(user_obj):
     """Set for all samples in the temporary table for the user that are sent
     to folder to start the process for validatation
@@ -743,28 +732,6 @@ def get_search_table_for_user(user_obj):
     return table_data
 
 
-# FIXME: If no lab name is assigned to the user, display a custom error screen.
-#        The error occurs when lab_name is 'None' after accessing to intranet.
-def get_sample_per_date_per_lab(lab_name):
-    """Get the historic of submitted sample, creating a dictionary with dates
-    and number of samples
-    """
-    samples_per_date = OrderedDict()
-
-    s_dates = (
-        core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
-        .values_list("collecting_date", flat=True)
-        .distinct()
-        .order_by("collecting_date")
-    )
-    for s_date in s_dates:
-        date = datetime.strftime(s_date, "%Y-W%V")
-        samples_per_date[date] = core.models.Sample.objects.filter(
-            submitting_institution__iexact=lab_name, collecting_date=s_date
-        ).count()
-    return samples_per_date
-
-
 def get_sample_objs_per_lab(lab_name):
     """Get all sample instance for the lab who the user is responsible"""
     return core.models.Sample.objects.filter(submitting_institution__iexact=lab_name)
@@ -813,15 +780,6 @@ def join_sample_and_batch(b_data, user_obj, schema_obj):
         join_data.append(row_data)
 
     return join_data
-
-
-def get_all_submitting_insts():
-    """Function to get all lab/submitting_institutions in an ordered list"""
-    return list(
-        core.models.Sample.objects.values_list("submitting_institution", flat=True)
-        .distinct()
-        .order_by("submitting_institution")
-    )
 
 
 def get_all_collecting_insts():

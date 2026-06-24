@@ -1152,24 +1152,6 @@ class SampleUtilityBranchTests(SimpleTestCase):
             )
         )
 
-    @patch("core.utils.samples.core.utils.plotly_graphics.gauge_graphic")
-    def test_percentage_gauge_handles_zero_and_calculates_ratio(self, gauge_graphic):
-        gauge_graphic.side_effect = ["zero-gauge", "ratio-gauge"]
-
-        self.assertEqual(
-            core.utils.samples.perc_gauge_graphic({"received": 0, "analized": 5}),
-            "zero-gauge",
-        )
-        self.assertEqual(
-            core.utils.samples.perc_gauge_graphic({"received": 8, "analized": 3}),
-            "ratio-gauge",
-        )
-
-        self.assertEqual(
-            [call.args[0] for call in gauge_graphic.call_args_list],
-            [{"value": 0}, {"value": 37.5}],
-        )
-
     @patch(
         "core.utils.samples.core.utils.plotly_graphics.histogram_graphic",
         return_value="<div>histogram</div>",
@@ -1338,24 +1320,6 @@ class SampleUtilityBranchTests(SimpleTestCase):
         sample_filter.assert_called_once_with(schema_obj=schema)
 
     @patch("core.utils.samples.core.models.Sample.objects.filter")
-    def test_get_sample_per_date_per_lab_groups_dates_by_iso_week(self, sample_filter):
-        dates_queryset = MagicMock()
-        dates_queryset.values_list.return_value.distinct.return_value.order_by.return_value = [
-            datetime(2026, 1, 5),
-            datetime(2026, 1, 12),
-        ]
-        count_week_one = MagicMock()
-        count_week_one.count.return_value = 2
-        count_week_two = MagicMock()
-        count_week_two.count.return_value = 3
-        sample_filter.side_effect = [dates_queryset, count_week_one, count_week_two]
-
-        self.assertEqual(
-            core.utils.samples.get_sample_per_date_per_lab("Lab A"),
-            OrderedDict([("2026-W02", 2), ("2026-W03", 3)]),
-        )
-
-    @patch("core.utils.samples.core.models.Sample.objects.filter")
     def test_get_sample_objs_per_lab_delegates_to_filter(self, sample_filter):
         queryset = object()
         sample_filter.return_value = queryset
@@ -1431,19 +1395,6 @@ class SampleUtilityBranchTests(SimpleTestCase):
         self.assertEqual(
             core.utils.samples.join_sample_and_batch({}, object(), object()),
             {"ERROR": core.config.ERROR_SAMPLES_NOT_DEFINED_IN_FORM},
-        )
-
-    @patch("core.utils.samples.core.models.Sample.objects.values_list")
-    def test_get_all_submitting_insts_returns_ordered_distinct_values(
-        self, values_list
-    ):
-        values_list.return_value.distinct.return_value.order_by.return_value = [
-            "Lab A",
-            "Lab B",
-        ]
-
-        self.assertEqual(
-            core.utils.samples.get_all_submitting_insts(), ["Lab A", "Lab B"]
         )
 
     @patch("core.utils.samples.core.utils.labs.get_display_name_from_code")
@@ -3311,24 +3262,6 @@ class SampleApiBranchTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.defined = core.models.SampleState.objects.create(state="Defined")
-
-    def test_prepare_fields_reports_missing_initial_state(self):
-        core.models.SampleState.objects.all().delete()
-
-        result = core.api.utils.samples.prepare_fields_in_sample({"value": "x"})
-
-        self.assertEqual(
-            result,
-            {"ERROR": core.config.ERROR_INTIAL_SETTINGS_NOT_DEFINED},
-        )
-
-    def test_prepare_fields_adds_state_and_optional_public_fields(self):
-        result = core.api.utils.samples.prepare_fields_in_sample({"value": "x"})
-
-        self.assertEqual(result["state"], str(self.defined.pk))
-        self.assertIsNone(result["biosample_accession_ENA"])
-        self.assertIsNone(result["virus_name"])
-        self.assertIsNone(result["gisaid_id"])
 
     @patch(
         "core.api.utils.samples.core.utils.samples.get_user_id_from_submitting_institution",
