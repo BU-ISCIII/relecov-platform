@@ -2,8 +2,6 @@
 from plotly.offline import plot
 import plotly.graph_objects as go
 import plotly.express as px
-import plotly.figure_factory as ff
-from django.template.loader import render_to_string
 
 COLOR_PALETTE = [
     "#448873",
@@ -147,46 +145,6 @@ def gauge_graphic(data):
     )
     graph.update_layout(margin=dict(t=20, b=10, l=20, r=30))
     plot_div = plot(graph, output_type="div", config={"displaylogo": False})
-    return plot_div
-
-
-# New gauge in html #
-def gauge_component(value):
-    return render_to_string("core/components/gauge_component.html", {"value": value})
-
-
-# FIXME: This function es never called within the platform
-def bullet_graphic(value, title):
-    point = str(value)
-    top_value = int(value)
-    data = [
-        {
-            "label": "Upload %",
-            "range": [40, 70, 100],
-            "performance": [40, top_value],
-            "point": [point],
-        }
-    ]
-
-    measure_colors = ["rgb(68, 107, 162)", "rgb(0, 153, 0)"]
-    fig = ff.create_bullet(
-        data,
-        titles="label",
-        title=title,
-        markers="point",
-        measures="performance",
-        ranges="range",
-        orientation="v",
-        measure_colors=measure_colors,
-        margin=dict(
-            t=25,
-            r=0,
-            b=0,
-            l=0,
-        ),
-    )
-    fig.update_layout(height=450, width=330)
-    plot_div = plot(fig, output_type="div")
     return plot_div
 
 
