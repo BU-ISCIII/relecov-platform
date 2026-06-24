@@ -2,7 +2,6 @@
 import pandas
 
 # Local imports
-import core.utils.rest_api
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
 import dashboard.utils.plotly
@@ -57,44 +56,22 @@ def sample_processing_graphics():
         return data
 
     def fetch_data(project_field, columns):
-        if "," in project_field:
-            # get stats utilization fields from LIMS for paired aggregations
-            lims_data = core.utils.rest_api.get_stats_data(
-                {
-                    "sample_project_name": "Relecov",
-                    "project_field": project_field,
-                }
-            )
-            if "ERROR" in lims_data:
-                return lims_data
-            data = []
-            for key, values in lims_data.items():
-                tmp_data = []
-                for str_val, numbers in values.items():
-                    try:
-                        float_val = float(str_val)
-                    except ValueError:
-                        continue
-                    tmp_data += [float_val] * numbers
-                data.append({key: tmp_data})
-            return data
-        else:
+        json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
+            project_field
+        )
+        if json_data is None:
+            if project_field == "nucleic_acid_extraction_protocol":
+                result = (
+                    dashboard.utils.generic_process_data.pre_proc_nucleic_acid_extraction_protocol()
+                )
+            else:
+                return {"ERROR": "pre-processing not defined"}
+            if "ERROR" in result:
+                return result
             json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
                 project_field
             )
-            if json_data is None:
-                if project_field == "nucleic_acid_extraction_protocol":
-                    result = (
-                        dashboard.utils.generic_process_data.pre_proc_nucleic_acid_extraction_protocol()
-                    )
-                else:
-                    return {"ERROR": "pre-processing not defined"}
-                if "ERROR" in result:
-                    return result
-                json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
-                    project_field
-                )
-            return pandas.DataFrame(json_data.items(), columns=columns)
+        return pandas.DataFrame(json_data.items(), columns=columns)
 
     sample_processing = {}
 
