@@ -1,9 +1,5 @@
 # Generic imports
-import dash_bootstrap_components as dbc
-import dash_daq as daq
 import plotly.graph_objects as go
-from dash import html, dcc
-from django_plotly_dash import DjangoDash
 from plotly.offline import plot
 from ridgeplot import ridgeplot
 import numpy as np
@@ -100,59 +96,10 @@ def format_labels(labels, wrap=None, truncate=None, separator="..."):
     return formatted_labels, hover_labels
 
 
-def graph_gauge_percent_values(app_name, value, label, size=180):
-    """Create Dashboard application for showing a gauge graphic for the
-    percentage  values
-    """
-    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
-    graph = go.Figure(
-        go.Indicator(
-            mode="gauge+number",
-            value=value,
-            number={"suffix": "%"},
-            domain={"x": [0, 1], "y": [0, 1]},
-            title={"text": label, "font": {"size": 18}},
-            gauge={"axis": {"range": [None, 100]}},
-        )
-    )
-    graph.update_layout(margin=dict(t=10, b=0, l=30, r=30), height=250)
-    app.layout = html.Div(
-        [
-            dcc.Graph(
-                figure=graph,
-                config={"displayModeBar": False},
-                style={"width": "100%", "height": "250px"},
-            ),
-        ],
-        style={"width": "100%", "height": "250px"},
-    )
-
-
 def progress_bar(app_name, value, label):
     """Renderiza una barra de progreso HTML en vez de un gauge."""
     return render_to_string(
         "dashboard/progress_bar.html", {"value": value, "label": label}
-    )
-
-
-def graph_gauge_value(app_name, value, label, size=180, color="#33bbff"):
-    """Create Dashboard application for showing a gauge graphic for the
-    unused fields
-    """
-    app = DjangoDash(app_name, external_stylesheets=[dbc.themes.BOOTSTRAP])
-    app.layout = html.Div(
-        daq.Gauge(
-            showCurrentValue=True,
-            color=color,
-            id="n_used_fields",
-            label={"label": label, "style": {"font-size": "1.40rem", "color": "green"}},
-            labelPosition="bottom",
-            value=value,
-            max=((value // 10) + 1) * 10,
-            min=0,
-            size=size,
-        ),
-        style={"bottom": 0, "pading-bottom": "30%"},
     )
 
 

@@ -129,40 +129,6 @@ def create_or_get_effect_obj(effect_value, cache=None):
     return {"ERROR": core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}
 
 
-def delete_created_variancs(v_in_sample_list, v_an_list):
-    for item in v_in_sample_list:
-        item.delete()
-    for item in v_an_list:
-        item.delete()
-    return
-
-
-def store_variant_annotation(v_ann_data, cache=None):
-    v_ann_serializer = core.api.serializers.CreateVariantAnnotationSerializer(
-        data=v_ann_data
-    )
-    if not v_ann_serializer.is_valid():
-        return {"ERROR": core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}
-    v_ann_obj = v_ann_serializer.save()
-    if cache:
-        cache.cache_annotation(
-            v_ann_data.get("hgvs_c"),
-            v_ann_data.get("hgvs_p"),
-            v_ann_data.get("hgvs_p_1_letter"),
-        )
-    return v_ann_obj
-
-
-def store_variant_in_sample(v_data):
-    v_in_sample_serializer = core.api.serializers.CreateVariantInSampleSerializer(
-        data=v_data
-    )
-    if not v_in_sample_serializer.is_valid():
-        return {"ERROR": core.config.ERROR_UNABLE_TO_STORE_IN_DATABASE}
-    v_obj = v_in_sample_serializer.save()
-    return v_obj
-
-
 def get_variant_id(data, cache=None):
     """look out for the necessary reference ids to create the variance instance"""
     chromosome = data["chromosome"]

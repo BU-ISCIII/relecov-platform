@@ -7,24 +7,6 @@ import core.utils.samples
 import core.config
 
 
-def prepare_fields_in_sample(s_data):
-    """Add sample state and set to None GISAID and ENA if not set"""
-    if not core.models.SampleState.objects.filter(state__exact="Defined").exists():
-        return {"ERROR": core.config.ERROR_INTIAL_SETTINGS_NOT_DEFINED}
-    s_data["state"] = (
-        core.models.SampleState.objects.filter(state__exact="Defined")
-        .last()
-        .get_state_id()
-    )
-    if "biosample_accession_ENA" not in s_data:
-        s_data["biosample_accession_ENA"] = None
-    if "virus_name" not in s_data:
-        s_data["virus_name"] = None
-    if "gisaid_id" not in s_data:
-        s_data["gisaid_id"] = None
-    return s_data
-
-
 def split_sample_data(data):
     """Split the json request into dictionnaries with the right fields"""
     ALIASES = {
