@@ -140,6 +140,7 @@ class DashboardDataPreparationTests(SimpleTestCase):
 
         self.assertEqual(list(figure.data[0].y), [2, 5])
 
+
 class GenericProcessDataTests(SimpleTestCase):
     @patch(
         "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
@@ -150,10 +151,8 @@ class GenericProcessDataTests(SimpleTestCase):
     ):
         get_stats.return_value = {"": 2, None: 3, "Illumina": 4}
 
-        result = (
-            dashboard.utils.generic_process_data._pre_proc_simple_lims_counts(
-                "instrument", "sequencing_instrument", empty_label="Not Provided"
-            )
+        result = dashboard.utils.generic_process_data._pre_proc_simple_lims_counts(
+            "instrument", "sequencing_instrument", empty_label="Not Provided"
         )
 
         self.assertEqual(result, {"SUCCESS": "Success"})
@@ -174,10 +173,8 @@ class GenericProcessDataTests(SimpleTestCase):
     def test_simple_lims_counts_returns_external_error_without_caching(
         self, _get_stats, create_cache
     ):
-        result = (
-            dashboard.utils.generic_process_data._pre_proc_simple_lims_counts(
-                "instrument", "sequencing_instrument"
-            )
+        result = dashboard.utils.generic_process_data._pre_proc_simple_lims_counts(
+            "instrument", "sequencing_instrument"
         )
 
         self.assertEqual(result, {"ERROR": "iSkyLIMS unavailable"})
@@ -302,9 +299,7 @@ class GenericProcessDataTests(SimpleTestCase):
     @patch(
         "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
     )
-    @patch(
-        "dashboard.utils.generic_process_data.core.models.Sample.objects.filter"
-    )
+    @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.filter")
     @patch(
         "dashboard.utils.generic_process_data.core.models.LineageValues.objects.filter"
     )
@@ -603,7 +598,9 @@ class GenericProcessDataTests(SimpleTestCase):
             ]
         }
 
-        result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
+        result = (
+            dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
+        )
 
         self.assertEqual(result, {"SUCCESS": "Success"})
         self.assertEqual(
@@ -721,7 +718,9 @@ class GenericProcessDataTests(SimpleTestCase):
     @patch(
         "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
     )
-    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data")
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data"
+    )
     @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.all")
     @patch(
         "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
@@ -793,7 +792,9 @@ class GenericProcessDataTests(SimpleTestCase):
     @patch(
         "dashboard.utils.generic_process_data.core.models.VariantInSample.objects.filter"
     )
-    @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.prefetch_related")
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.Sample.objects.prefetch_related"
+    )
     @patch(
         "dashboard.utils.generic_process_data.core.models.LineageValues.objects.filter"
     )
@@ -812,14 +813,10 @@ class GenericProcessDataTests(SimpleTestCase):
         lineage_queryset.values_list.return_value.distinct.return_value = ["XFG.3"]
         lineage_filter.return_value = lineage_queryset
         sample_a = SimpleNamespace(
-            lineage_values=SimpleNamespace(
-                all=lambda: [SimpleNamespace(value="XFG.3")]
-            )
+            lineage_values=SimpleNamespace(all=lambda: [SimpleNamespace(value="XFG.3")])
         )
         sample_b = SimpleNamespace(
-            lineage_values=SimpleNamespace(
-                all=lambda: [SimpleNamespace(value="XFG.3")]
-            )
+            lineage_values=SimpleNamespace(all=lambda: [SimpleNamespace(value="XFG.3")])
         )
         prefetch_samples.return_value = [sample_a, sample_b]
         variants_query = MagicMock()
@@ -857,14 +854,21 @@ class GenericProcessDataTests(SimpleTestCase):
     @patch(
         "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
     )
-    @patch("dashboard.utils.generic_process_data.core.utils.lab_catalog.ensure_lab_display")
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.lab_catalog.ensure_lab_display"
+    )
     @patch("dashboard.utils.generic_process_data.core.utils.lab_catalog.get_lab_code")
     @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.filter")
     @patch(
         "dashboard.utils.generic_process_data.core.utils.rest_api.fetch_samples_on_condition"
     )
     def test_samples_per_date_detailed_fills_week_range_and_lab_display(
-        self, fetch_samples, sample_filter, get_lab_code, ensure_lab_display, create_cache
+        self,
+        fetch_samples,
+        sample_filter,
+        get_lab_code,
+        ensure_lab_display,
+        create_cache,
     ):
         fetch_samples.return_value = {
             "data": [
@@ -1182,9 +1186,7 @@ class NeedleMutationGraphTests(SimpleTestCase):
         button_labels = [
             button.label for button in figure.layout.updatemenus[0].buttons
         ]
-        annotation_texts = [
-            annotation.text for annotation in figure.layout.annotations
-        ]
+        annotation_texts = [annotation.text for annotation in figure.layout.annotations]
 
         self.assertEqual(button_labels, ["All", "ORF1ab", "S"])
         self.assertEqual(annotation_texts.count("ORF1ab"), 1)
@@ -1785,6 +1787,7 @@ class DashboardViewTests(SimpleTestCase):
             {"bioinfo": {"pipeline": "viralrecon"}},
         )
 
+
 class LineageGraphicLoadingTests(SimpleTestCase):
     @patch(
         "dashboard.utils.var_lineage_variation_over_time_graph.dashboard.utils.generic_graphic_data.get_graphic_json_data",
@@ -1897,9 +1900,7 @@ class PlotlyUtilityBranchTests(SimpleTestCase):
 
     def test_sample_variant_figure_returns_empty_state_without_mutations(self):
         empty = core.utils.plotly_graphics.build_sample_variant_figure({})
-        no_positions = core.utils.plotly_graphics.build_sample_variant_figure(
-            {"x": []}
-        )
+        no_positions = core.utils.plotly_graphics.build_sample_variant_figure({"x": []})
 
         self.assertEqual(
             empty.layout.title.text,
@@ -2010,11 +2011,9 @@ class PlotlyUtilityBranchTests(SimpleTestCase):
 
 class VariantDashboardFigureTests(SimpleTestCase):
     def test_needle_initial_arguments_and_empty_figure_are_descriptive(self):
-        arguments = (
-            dashboard.utils.var_needle_mutation_graph_by_lineage.build_needle_plot_initial_arguments(
-                ["JN.1", "XFG.3"],
-                "XFG.3",
-            )
+        arguments = dashboard.utils.var_needle_mutation_graph_by_lineage.build_needle_plot_initial_arguments(
+            ["JN.1", "XFG.3"],
+            "XFG.3",
         )
         empty = (
             dashboard.utils.var_needle_mutation_graph_by_lineage.empty_needle_plot_figure()
@@ -2175,9 +2174,7 @@ class BioinfoMethodologyTests(SimpleTestCase):
         "dashboard.utils.met_bioinfo.dashboard.utils.plotly.box_plot_graphic_bins",
         return_value="<div>box</div>",
     )
-    @patch(
-        "dashboard.utils.met_bioinfo.dashboard.utils.plotly.ridge_plot_graphic"
-    )
+    @patch("dashboard.utils.met_bioinfo.dashboard.utils.plotly.ridge_plot_graphic")
     @patch(
         "dashboard.utils.met_bioinfo.dashboard.utils.generic_graphic_data.get_graphic_json_data"
     )
@@ -2188,9 +2185,7 @@ class BioinfoMethodologyTests(SimpleTestCase):
         _box,
     ):
         cached.side_effect = lambda name: (
-            {"Empty": []}
-            if name == "bioinfo_percentage_data"
-            else {"10": [1, 2]}
+            {"Empty": []} if name == "bioinfo_percentage_data" else {"10": [1, 2]}
         )
 
         result = dashboard.utils.met_bioinfo.bioinfo_graphics()
