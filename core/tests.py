@@ -4,7 +4,7 @@ import tempfile
 from collections import OrderedDict
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, call, mock_open, patch
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -141,6 +141,36 @@ class GenericFunctionTests(SimpleTestCase):
 
         self.assertEqual(weeks, ["2026-01-05", "2026-01-12", "2026-01-19"])
 
+    def test_week_generation_can_return_datetime_objects(self):
+        start = datetime(2026, 1, 5)
+        middle = datetime(2026, 1, 12)
+        end = datetime(2026, 1, 19)
+
+        self.assertEqual(
+            core.utils.generic_functions.list_all_possible_weeks(start, end),
+            [start, middle, end],
+        )
+
+    @patch("core.utils.generic_functions.FileSystemStorage")
+    @patch("core.utils.generic_functions.time.strftime", return_value="20260624-120000")
+    def test_store_file_adds_timestamp_and_saves_to_requested_folder(
+        self, _strftime, storage_class
+    ):
+        uploaded = SimpleNamespace(name="metadata.xlsx")
+
+        result = core.utils.generic_functions.store_file(uploaded, "uploads")
+
+        self.assertEqual(result, os.path.join("uploads", "metadata_20260624-120000.xlsx"))
+        storage_class.return_value.save.assert_called_once_with(result, uploaded)
+
+    def test_user_role_returns_none_without_known_groups(self):
+        user = SimpleNamespace(
+            groups=SimpleNamespace(values_list=lambda *args, **kwargs: [])
+        )
+
+        self.assertIsNone(core.utils.generic_functions.get_user_role(user))
+        self.assertIsNone(core.utils.generic_functions.get_user_lab_field(user))
+
     def test_unique_sample_id_rolls_over_number_and_letters(self):
         self.assertEqual(
             core.utils.samples.increase_unique_value("RLCV-AAA-9999"),
@@ -179,6 +209,27 @@ class LabCatalogTests(SimpleTestCase):
             core.utils.lab_catalog.ensure_lab_display("UNKNOWN"),
             "UNKNOWN",
         )
+
+    @patch("core.utils.lab_catalog.get_lab_name", return_value="Catalog Hospital")
+    def test_display_prefers_catalog_name(self, get_lab_name):
+        self.assertEqual(
+            core.utils.lab_catalog.ensure_lab_display("LAB-01", "Legacy Hospital"),
+            "Catalog Hospital",
+        )
+        get_lab_name.assert_called_once_with("LAB-01")
+
+    def test_resolve_catalog_uses_importlib_resources_path(self):
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
+            catalog_path = handle.name
+
+        self.addCleanup(os.unlink, catalog_path)
+        files_ref = MagicMock()
+        files_ref.joinpath.return_value = catalog_path
+        with patch.dict(os.environ, {}, clear=True), patch(
+            "core.utils.lab_catalog.resources.files",
+            return_value=files_ref,
+        ):
+            self.assertEqual(str(core.utils.lab_catalog._resolve_catalog_path()), catalog_path)
 
     def test_load_catalog_from_environment_path_skips_entries_without_code(self):
         payload = {
@@ -219,6 +270,44 @@ class LabCatalogTests(SimpleTestCase):
 
             with self.assertRaises(core.utils.lab_catalog.LabCatalogError):
                 core.utils.lab_catalog.get_catalog()
+
+    def test_load_catalog_rejects_payload_without_codes(self):
+        payload = {
+            "one": {"collecting_institution": "No Code Hospital"},
+            "two": {"collecting_institution_code_1": "   "},
+        }
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
+            json.dump(payload, handle)
+            catalog_path = handle.name
+
+        self.addCleanup(os.unlink, catalog_path)
+        with patch.dict(
+            os.environ, {"LABORATORY_ADDRESS_JSON": catalog_path}, clear=False
+        ):
+            core.utils.lab_catalog._load_catalog.cache_clear()
+
+            with self.assertRaises(core.utils.lab_catalog.LabCatalogError):
+                core.utils.lab_catalog.get_catalog()
+
+    @patch("core.utils.lab_catalog._load_catalog")
+    def test_lab_catalog_handles_empty_code_name_and_fallbacks(self, load_catalog):
+        load_catalog.return_value = {
+            "LAB-01": {"collecting_institution": ""},
+            "LAB-02": {"collecting_institution": "Hospital B"},
+        }
+        core.utils.lab_catalog._build_name_index.cache_clear()
+
+        self.assertIsNone(core.utils.lab_catalog.get_lab_entry(""))
+        self.assertEqual(
+            core.utils.lab_catalog.get_lab_name("LAB-01", default="Fallback"),
+            "Fallback",
+        )
+        self.assertIsNone(core.utils.lab_catalog.get_lab_code(""))
+        self.assertIsNone(core.utils.lab_catalog.get_lab_code("Missing"))
+        self.assertEqual(
+            core.utils.lab_catalog.ensure_lab_display("", "Legacy Hospital"),
+            "Legacy Hospital",
+        )
 
 
 class PlotlyDashGraphicTests(SimpleTestCase):
@@ -905,6 +994,17 @@ class SampleUtilityBranchTests(SimpleTestCase):
             result, {"ERROR": core.config.ERROR_ISKYLIMS_NOT_REACHEABLE}
         )
 
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    def test_create_form_for_batch_returns_iskylims_error_payload(self, get_fields):
+        get_fields.return_value = {"ERROR": "iSkyLIMS unavailable"}
+
+        result = core.utils.samples.create_form_for_batch(
+            schema_obj=SimpleNamespace(get_schema_name=lambda: "covid"),
+            user_obj=SimpleNamespace(username="alice"),
+        )
+
+        self.assertEqual(result, {"ERROR": "iSkyLIMS unavailable"})
+
     @patch("core.utils.samples.core.utils.rest_api.get_sample_project_fields_data")
     @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
     @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
@@ -995,6 +1095,34 @@ class SampleUtilityBranchTests(SimpleTestCase):
         self.assertEqual(
             result,
             {"ERROR": core.config.ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED},
+        )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    @patch("core.utils.samples.core.models.SchemaProperties.objects.filter")
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    def test_create_form_for_sample_reports_unreachable_or_raw_iskylims_error(
+        self, metadata_filter, schema_filter, get_fields
+    ):
+        metadata_queryset = MagicMock()
+        metadata_queryset.exists.return_value = True
+        metadata_filter.return_value = metadata_queryset
+        schema_filter.return_value = []
+
+        get_fields.side_effect = AttributeError
+        self.assertEqual(
+            core.utils.samples.create_form_for_sample(
+                SimpleNamespace(get_schema_name=lambda: "schema covid")
+            ),
+            {"ERROR": core.config.ERROR_ISKYLIMS_NOT_REACHEABLE},
+        )
+
+        get_fields.side_effect = None
+        get_fields.return_value = {"ERROR": "upstream unavailable"}
+        self.assertEqual(
+            core.utils.samples.create_form_for_sample(
+                SimpleNamespace(get_schema_name=lambda: "schema covid")
+            ),
+            {"ERROR": "upstream unavailable"},
         )
 
     @patch("core.utils.samples.core.utils.rest_api.get_sample_project_fields_data")
@@ -1209,6 +1337,74 @@ class SampleUtilityBranchTests(SimpleTestCase):
             },
         )
 
+    def test_create_dash_bar_for_each_lab_normalizes_explicit_options_and_columns(self):
+        result = core.utils.samples.create_dash_bar_for_each_lab(
+            [
+                {
+                    "iso_yearweek": "2026-W01",
+                    "num_samples": 4,
+                    "legacy_collecting_institution": "Legacy A",
+                }
+            ],
+            labs_list=[
+                {"value": "LAB-01", "label": "Catalog Hospital"},
+                {"value": "LAB-01", "label": "Duplicate"},
+                "Fallback Hospital",
+            ],
+        )
+
+        self.assertEqual(
+            result["select_collecting_inst"],
+            {
+                "options": [
+                    {"label": "Catalog Hospital", "value": "LAB-01"},
+                    {"label": "Fallback Hospital", "value": "Fallback Hospital"},
+                ],
+                "value": "LAB-01",
+            },
+        )
+        self.assertEqual(
+            result["sample_per_lab_data"]["data"][0]["collecting_institution"],
+            "Legacy A",
+        )
+        self.assertIsNone(result["sample_per_lab_data"]["data"][0]["lab_code_1"])
+
+    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.filter")
+    def test_delete_temporary_sample_table_deletes_only_when_rows_exist(
+        self, temp_filter
+    ):
+        existing = MagicMock()
+        existing.exists.return_value = True
+        missing = MagicMock()
+        missing.exists.return_value = False
+        temp_filter.side_effect = [existing, existing, missing]
+
+        self.assertTrue(core.utils.samples.delete_temporary_sample_table("alice"))
+        existing.delete.assert_called_once_with()
+        self.assertTrue(core.utils.samples.delete_temporary_sample_table("alice"))
+
+    @patch("core.utils.samples.core.models.DateUpdateState.objects.filter")
+    @patch("core.utils.samples.core.models.core.models.Sample.objects.filter")
+    def test_get_lab_last_actions_filters_known_states_for_one_lab(
+        self, sample_filter, state_filter
+    ):
+        sample = object()
+        sample_filter.return_value.last.return_value = sample
+        defined = MagicMock()
+        defined.get_state_name.return_value = "Defined"
+        defined.get_date.return_value = "2026-01-01"
+        ignored = MagicMock()
+        ignored.get_state_name.return_value = "Ignored"
+        ignored.get_date.return_value = "2026-01-02"
+        state_filter.return_value = [defined, ignored]
+
+        self.assertEqual(
+            core.utils.samples.get_lab_last_actions("Lab A"),
+            {"Defined": "2026-01-01"},
+        )
+        sample_filter.assert_called_once_with(submitting_institution__iexact="Lab A")
+        state_filter.assert_called_once_with(sampleID=sample)
+
     @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
     @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
     def test_sample_dates_cache_miss_runs_preprocessing(
@@ -1234,6 +1430,20 @@ class SampleUtilityBranchTests(SimpleTestCase):
         self.assertEqual(
             core.utils.samples.get_sample_per_date_per_all_lab(detailed=True),
             {"ERROR": "cache failed"},
+        )
+        preprocess.assert_called_once_with(detailed=True)
+
+    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
+    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    def test_detailed_sample_dates_cache_miss_runs_preprocessing_success(
+        self, get_graphic_json_data, preprocess
+    ):
+        get_graphic_json_data.side_effect = [None, [{"lab": "LAB", "week": "2026-W01"}]]
+        preprocess.return_value = {"SUCCESS": "Success"}
+
+        self.assertEqual(
+            core.utils.samples.get_sample_per_date_per_all_lab(detailed=True),
+            [{"lab": "LAB", "week": "2026-W01"}],
         )
         preprocess.assert_called_once_with(detailed=True)
 
@@ -1307,6 +1517,100 @@ class SampleUtilityBranchTests(SimpleTestCase):
             core.utils.samples.get_sample_display_data(404, SimpleNamespace()),
             {"ERROR": core.config.ERROR_SAMPLE_DOES_NOT_EXIST},
         )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_field_display_map")
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_information")
+    @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
+    @patch("core.utils.samples.core.utils.labs.get_lab_codes_from_user")
+    @patch("core.utils.samples.core.utils.generic_functions.get_user_lab_field")
+    @patch("core.utils.samples.core.utils.generic_functions.get_user_role")
+    @patch("core.utils.samples.Group.objects.get")
+    @patch("core.utils.samples.core.models.DateUpdateState.objects.filter")
+    @patch("core.utils.samples.get_sample_obj_from_id")
+    def test_get_sample_display_data_allows_collector_and_uses_legacy_iskylims_fallback(
+        self,
+        get_sample,
+        state_filter,
+        group_get,
+        get_role,
+        get_lab_field,
+        get_lab_codes,
+        get_lab_name,
+        get_sample_information,
+        get_display_map,
+    ):
+        sample = MagicMock()
+        sample.lab_code_1 = "OTHER"
+        sample.collecting_institution = "Collector Lab"
+        sample.get_sample_name.return_value = "Displayed sample"
+        sample.get_sample_basic_data.return_value = ["basic"]
+        sample.get_fastq_data.return_value = ["fastq"]
+        sample.get_unique_id.return_value = "RL-AAA-0001"
+        sample.get_sequencing_sample_id.return_value = "SEQ-1"
+        get_sample.return_value = sample
+
+        group_get.return_value = object()
+        user = SimpleNamespace(
+            username="collector",
+            groups=SimpleNamespace(all=lambda: []),
+        )
+        get_role.return_value = "Collector"
+        get_lab_field.return_value = "collecting_institution"
+        get_lab_codes.return_value = []
+        get_lab_name.return_value = "collector lab"
+
+        state_filter.return_value.exists.return_value = False
+        get_sample_information.side_effect = [
+            {"ERROR": "not found by unique id"},
+            [
+                {
+                    "sample_project": "Project A",
+                    "Sample Name": "SEQ-1",
+                    "Project values": {"protocol": "Amplicon"},
+                }
+            ],
+        ]
+        get_display_map.return_value = {"protocol": "Protocol"}
+
+        result = core.utils.samples.get_sample_display_data(1, user)
+
+        self.assertEqual(result["sample_name"], "Displayed sample")
+        self.assertEqual(result["iskylims_project"], "Project A")
+        self.assertIn(["Sample Name", "SEQ-1"], result["iskylims_basic"])
+        self.assertEqual(result["iskylims_p_data"], [["Protocol", "Amplicon"]])
+        self.assertEqual(
+            [call.args[0] for call in get_sample_information.call_args_list],
+            ["RL-AAA-0001", "SEQ-1"],
+        )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_information")
+    @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
+    @patch("core.utils.samples.core.utils.generic_functions.get_user_lab_field")
+    @patch("core.utils.samples.core.utils.generic_functions.get_user_role")
+    @patch("core.utils.samples.Group.objects.get")
+    @patch("core.utils.samples.get_sample_obj_from_id")
+    def test_get_sample_display_data_rejects_non_collector_wrong_lab(
+        self,
+        get_sample,
+        group_get,
+        get_role,
+        get_lab_field,
+        get_lab_name,
+        get_sample_information,
+    ):
+        sample = SimpleNamespace(submitting_institution="Other Lab")
+        get_sample.return_value = sample
+        group_get.return_value = object()
+        get_role.return_value = "Submitter"
+        get_lab_field.return_value = "submitting_institution"
+        get_lab_name.return_value = "Submitter Lab"
+        user = SimpleNamespace(groups=SimpleNamespace(all=lambda: []))
+
+        self.assertEqual(
+            core.utils.samples.get_sample_display_data(1, user),
+            {"ERROR": core.config.ERROR_NOT_ALLOWED_TO_SEE_THE_SAMPLE},
+        )
+        get_sample_information.assert_not_called()
 
     @patch("core.utils.samples.core.models.Sample.objects.filter")
     def test_sample_count_and_object_count_helpers_delegate_to_manager(
@@ -1465,6 +1769,66 @@ class SampleUtilityBranchTests(SimpleTestCase):
 
         self.assertEqual(
             core.utils.samples.get_sample_pre_recorded(object()), ["SEQ-1", "SEQ-2"]
+        )
+
+    @patch("core.utils.samples.print")
+    @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
+    @patch("core.utils.samples.core.utils.labs.get_lab_codes_from_user")
+    @patch("core.utils.samples.core.utils.generic_functions.get_user_role")
+    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_search_samples_summary")
+    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    def test_search_table_for_user_preprocesses_cache_and_filters_collector_rows(
+        self,
+        get_graphic_json_data,
+        preprocess,
+        get_role,
+        get_lab_codes,
+        get_lab_name,
+        print_mock,
+    ):
+        cached_data = {
+            "Submitter A": {
+                "LAB-01": {
+                    "lab_code_1": "LAB-01",
+                    "collecting_institution": "Catalog A",
+                    "rows": [{"sample": "by-code"}],
+                },
+                "legacy": {
+                    "lab_code_1": None,
+                    "collecting_institution": "Collector Lab",
+                    "rows": [{"sample": "by-name"}],
+                },
+            }
+        }
+        get_graphic_json_data.side_effect = [None, cached_data]
+        preprocess.return_value = {"SUCCESS": "Success"}
+        get_role.return_value = "Collector"
+        get_lab_codes.return_value = {"LAB-01"}
+        get_lab_name.return_value = "collector lab"
+
+        result = core.utils.samples.get_search_table_for_user(
+            SimpleNamespace(username="collector")
+        )
+
+        self.assertEqual(result, [{"sample": "by-code"}, {"sample": "by-name"}])
+        preprocess.assert_called_once_with()
+        print_mock.assert_not_called()
+
+    @patch("core.utils.samples.print")
+    @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
+    @patch("core.utils.samples.core.utils.generic_functions.get_user_role")
+    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    def test_search_table_for_user_submitter_without_rows_logs_empty_result(
+        self, get_graphic_json_data, get_role, get_lab_name, print_mock
+    ):
+        get_graphic_json_data.return_value = {"Other Submitter": {}}
+        get_role.return_value = "Submitter"
+        get_lab_name.return_value = "Submitter A"
+        user = SimpleNamespace(username="submitter")
+
+        self.assertEqual(core.utils.samples.get_search_table_for_user(user), [])
+        print_mock.assert_called_once_with(
+            "Found no sample for user submitter in search_samples_summary"
         )
 
     def test_increase_unique_value_advances_middle_and_last_letters(self):
@@ -2385,6 +2749,75 @@ class LaboratoryUtilityTests(TestCase):
             "RelecovManager",
         )
 
+    def test_lab_contact_details_return_empty_without_lab_or_data(self):
+        user_without_lab = User.objects.create_user(username="lab-user-empty")
+
+        self.assertEqual(core.utils.labs.get_lab_contact_details(user_without_lab), "")
+
+        core.models.Profile.objects.filter(user=user_without_lab).update(
+            laboratory="Hospital A"
+        )
+        with patch(
+            "core.utils.labs.core.utils.rest_api.get_laboratory_data",
+            return_value={"data": {}},
+        ):
+            self.assertEqual(
+                core.utils.labs.get_lab_contact_details(user_without_lab),
+                "",
+            )
+
+    def test_lab_contact_details_and_updates_propagate_external_errors(self):
+        user = User.objects.create_user(username="lab-user-error")
+        core.models.Profile.objects.filter(user=user).update(laboratory="Hospital A")
+
+        with patch(
+            "core.utils.labs.core.utils.rest_api.get_laboratory_data",
+            return_value={"ERROR": "iSkyLIMS unavailable"},
+        ):
+            self.assertEqual(
+                core.utils.labs.get_lab_contact_details(user),
+                "iSkyLIMS unavailable",
+            )
+        with patch(
+            "core.utils.labs.core.utils.rest_api.set_laboratory_data",
+            return_value={"ERROR": "update failed"},
+        ):
+            self.assertEqual(
+                core.utils.labs.update_contact_lab({"lab_name": "Hospital A"}),
+                {"ERROR": "update failed"},
+            )
+
+    @patch("core.utils.labs.core.utils.rest_api.get_summarize_data")
+    def test_defined_labs_return_names_or_external_error(self, summarize):
+        summarize.side_effect = [
+            {"ERROR": "summary failed"},
+            {"laboratory": {"Lab A": {}, "Lab B": {}}},
+        ]
+
+        self.assertEqual(
+            core.utils.labs.get_all_defined_labs(),
+            {"ERROR": "summary failed"},
+        )
+        self.assertEqual(core.utils.labs.get_all_defined_labs(), ["Lab A", "Lab B"])
+
+    def test_lab_codes_and_display_name_handle_missing_values(self):
+        user = User.objects.create_user(username="lab-code-user")
+
+        self.assertEqual(core.utils.labs.get_lab_name_from_user(user), "")
+        self.assertEqual(core.utils.labs.get_lab_codes_from_user(user), [])
+        self.assertEqual(core.utils.labs.get_display_name_from_code(""), "")
+
+        core.models.Profile.objects.filter(user=user).update(code_id="LAB-01")
+        self.assertEqual(core.utils.labs.get_lab_codes_from_user(user), ["LAB-01"])
+        with patch(
+            "core.utils.labs.core.utils.lab_catalog.ensure_lab_display",
+            return_value="Catalog Hospital",
+        ):
+            self.assertEqual(
+                core.utils.labs.get_display_name_from_code("LAB-01"),
+                "Catalog Hospital",
+            )
+
 
 class AdditionalApiValidationTests(SimpleTestCase):
     def setUp(self):
@@ -2554,6 +2987,52 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["ERROR"], {"sequencing_sample_id": ["required"]})
 
+    @patch(
+        "core.api.views.core.api.serializers.CreateSampleSerializer"
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint"
+    )
+    @patch(
+        "core.api.views.core.utils.samples.build_sample_fingerprint",
+        return_value="fingerprint",
+    )
+    @patch(
+        "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_rejects_existing_fingerprint(
+        self,
+        get_schema,
+        _display,
+        _fingerprint,
+        found_sample,
+        serializer_class,
+    ):
+        get_schema.return_value = self.schema()
+        found_sample.return_value = self.sample()
+        serializer_class.return_value.data = {"sample_unique_id": "RL-API-1"}
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], "Sample already defined.")
+        self.assertEqual(response.data["data"], {"sample_unique_id": "RL-API-1"})
+
     @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
     @patch(
         "core.api.views.core.models.SampleState.objects.filter"
@@ -2624,6 +3103,216 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 206)
         self.assertEqual(response.data["message"], "Error processing ena data")
+
+    @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
+    @patch(
+        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
+    )
+    @patch(
+        "core.api.views.core.api.serializers.CreateSampleSerializer"
+    )
+    @patch("core.api.views.core.api.utils.samples.split_sample_data")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.utils.samples.build_sample_fingerprint",
+        return_value="fingerprint",
+    )
+    @patch(
+        "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_propagates_gisaid_storage_error(
+        self,
+        get_schema,
+        _display,
+        _fingerprint,
+        _found,
+        split_sample,
+        sample_serializer_class,
+        date_serializer_class,
+        store_public,
+    ):
+        get_schema.return_value = self.schema()
+        sample = self.sample()
+        split_sample.return_value = {
+            "sample": {"state": 1},
+            "ena": {},
+            "gisaid": {"gisaid_accession_id": "BAD-ID"},
+            "author": {},
+        }
+        sample_serializer = MagicMock()
+        sample_serializer.is_valid.return_value = True
+        sample_serializer.save.return_value = sample
+        sample_serializer_class.return_value = sample_serializer
+        date_serializer = MagicMock()
+        date_serializer.is_valid.return_value = True
+        date_serializer_class.return_value = date_serializer
+        store_public.return_value = {"ERROR": "GISAID failed"}
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["message"], "Error processing gisaid data")
+        self.assertEqual(
+            store_public.call_args.args[0]["gisaid_virus_name"],
+            "Not Provided",
+        )
+
+    @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
+    @patch("core.api.views.core.models.SampleState.objects.filter")
+    @patch(
+        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
+    )
+    @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
+    @patch("core.api.views.core.api.utils.samples.split_sample_data")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.utils.samples.build_sample_fingerprint",
+        return_value="fingerprint",
+    )
+    @patch(
+        "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_updates_ena_and_gisaid_states_for_valid_accessions(
+        self,
+        get_schema,
+        _display,
+        _fingerprint,
+        _found,
+        split_sample,
+        sample_serializer_class,
+        date_serializer_class,
+        state_filter,
+        store_public,
+    ):
+        get_schema.return_value = self.schema()
+        sample = self.sample()
+        split_sample.return_value = {
+            "sample": {"state": 1},
+            "ena": {"ena_sample_accession": "ERS1"},
+            "gisaid": {
+                "gisaid_accession_id": "EPI_ISL_123",
+                "gisaid_virus_name": "hCoV-19/example",
+            },
+            "author": {},
+        }
+        sample_serializer = MagicMock()
+        sample_serializer.is_valid.return_value = True
+        sample_serializer.save.return_value = sample
+        sample_serializer.data = {"sample_unique_id": "RL-API-1"}
+        sample_serializer_class.return_value = sample_serializer
+        date_serializer = MagicMock()
+        date_serializer.is_valid.return_value = True
+        date_serializer_class.return_value = date_serializer
+        state_filter.return_value.last.return_value.get_state_id.side_effect = [4, 5]
+        store_public.return_value = {"SUCCESS": "success"}
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(
+            [call.args[0] for call in sample.update_state.call_args_list],
+            ["Ena", "Gisaid"],
+        )
+        self.assertEqual(store_public.call_count, 2)
+        self.assertEqual(date_serializer.save.call_count, 3)
+
+    @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
+    @patch("core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer")
+    @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
+    @patch("core.api.views.core.api.utils.samples.split_sample_data")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.utils.samples.build_sample_fingerprint",
+        return_value="fingerprint",
+    )
+    @patch(
+        "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_propagates_author_storage_error(
+        self,
+        get_schema,
+        _display,
+        _fingerprint,
+        _found,
+        split_sample,
+        sample_serializer_class,
+        date_serializer_class,
+        store_public,
+    ):
+        get_schema.return_value = self.schema()
+        split_sample.return_value = {
+            "sample": {"state": 1},
+            "ena": {},
+            "gisaid": {},
+            "author": {"author_name": "Alice"},
+        }
+        sample_serializer = MagicMock()
+        sample_serializer.is_valid.return_value = True
+        sample_serializer.save.return_value = self.sample()
+        sample_serializer_class.return_value = sample_serializer
+        date_serializer = MagicMock()
+        date_serializer.is_valid.return_value = True
+        date_serializer_class.return_value = date_serializer
+        store_public.return_value = {"ERROR": "author failed"}
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {"ERROR": "author failed"})
 
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists",
@@ -3689,6 +4378,35 @@ class PublicDatabaseQueryIntegrationTests(TestCase):
         )
 
     @patch(
+        "core.utils.public_db.dashboard.utils.generic_process_data.pre_proc_intranet_ena_data",
+        return_value={"SUCCESS": "success"},
+    )
+    @patch(
+        "core.utils.public_db.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_preprocessed_ena_data_preprocesses_cache_miss_successfully(
+        self, cached, preprocess
+    ):
+        cached.side_effect = [None, {"uploaded": 4}]
+
+        self.assertEqual(
+            core.utils.public_db.get_preprocessed_ena_data(),
+            {"uploaded": 4},
+        )
+        preprocess.assert_called_once_with()
+
+    @patch(
+        "core.utils.public_db.core.utils.plotly_graphics.pie_graphic",
+        return_value="<div>pie</div>",
+    )
+    def test_percentage_graphic_builds_uploaded_pending_pie(self, pie_graphic):
+        self.assertEqual(
+            core.utils.public_db.percentage_graphic(10, 4, "GISAID"),
+            "<div>pie</div>",
+        )
+        pie_graphic.assert_called_once_with([4, 6], ["Upload", "Pending"], "GISAID")
+
+    @patch(
         "core.utils.public_db.dashboard.utils.generic_process_data.pre_proc_intranet_gisaid_data",
         return_value={"ERROR": "Unable to preprocess"},
     )
@@ -4084,6 +4802,80 @@ class VariantQueryUtilityIntegrationTests(TestCase):
             {},
         )
 
+    def test_variant_table_data_merges_multiple_annotation_values(self):
+        second_gene = core.models.Gene.objects.create(
+            user=self.user,
+            chromosomeID=self.chromosome,
+            gene_name="ORF1ab",
+            gene_start=266,
+            gene_end=21555,
+        )
+        second_effect = core.models.Effect.objects.create(effect="synonymous_variant")
+        core.models.VariantAnnotation.objects.create(
+            geneID_id=second_gene,
+            effectID_id=second_effect,
+            variantID_id=self.variant,
+            hgvs_c="c.23063A>T",
+            hgvs_p="p.N501Y",
+            hgvs_p_1_letter="Y",
+        )
+
+        result = core.utils.variants.get_variant_data_from_sample(self.sample.pk)
+
+        annotation_columns = result["variant_data"][0][-4:]
+        self.assertEqual(annotation_columns[1], "c.23063A>T")
+        self.assertIn(" - ", annotation_columns[0])
+        self.assertIn(" - ", annotation_columns[3])
+
+    @patch(
+        "core.utils.variants.core.utils.plotly_graphics.build_sample_variant_initial_arguments"
+    )
+    @patch("core.utils.variants.get_domains_and_coordenates", return_value=[])
+    def test_variant_graphic_handles_missing_first_annotation_chromosome(
+        self, _domains, build_arguments
+    ):
+        build_arguments.side_effect = lambda data: data
+        second_variant = core.models.Variant.objects.create(
+            chromosomeID_id=self.chromosome,
+            filterID_id=self.filter,
+            ref="G",
+            pos="23064",
+            alt="A",
+        )
+        core.models.VariantInSample.objects.create(
+            sampleID_id=self.sample,
+            variantID_id=second_variant,
+            bioinformatics_analysis_date="2026-06-23",
+            dp="120",
+            ref_dp="20",
+            alt_dp="100",
+            af=0.25,
+        )
+        first_annotation = MagicMock()
+        first_annotation.variantID_id = None
+        second_annotation = MagicMock()
+        second_annotation.variantID_id.chromosomeID_id = self.chromosome
+        first_filter = MagicMock()
+        first_filter.last.return_value = first_annotation
+        second_filter = MagicMock()
+        second_filter.last.return_value = second_annotation
+
+        with patch(
+            "core.utils.variants.core.models.VariantAnnotation.objects.filter"
+        ) as annotation_filter:
+            annotation_filter.side_effect = [
+                MagicMock(values_list=MagicMock(return_value=["effect"])),
+                first_filter,
+                second_filter,
+            ]
+
+            result = core.utils.variants.get_variant_graphic_from_sample(self.sample.pk)
+
+        self.assertEqual(result["x"], ["23063", "23064"])
+        self.assertEqual(result["y"], [0.83, 0.25])
+        self.assertEqual(result["mutationGroups"], ["effect"])
+        self.assertNotIn("v_id", result)
+
     def test_empty_reference_queries_return_none_or_empty_lists(self):
         core.models.VariantAnnotation.objects.all().delete()
         core.models.VariantInSample.objects.all().delete()
@@ -4115,6 +4907,42 @@ class SampleGraphicsBranchTests(SimpleTestCase):
 
         self.assertEqual(result, "<div>ccaa</div>")
         graphic.assert_called_once()
+
+    @patch(
+        "core.utils.samples_graphics.dashboard.utils.generic_process_data.pre_proc_samples_received_per_ccaa",
+        return_value={"ERROR": "No CCAA data"},
+    )
+    @patch(
+        "core.utils.samples_graphics.dashboard.utils.generic_graphic_data.get_graphic_json_data",
+        return_value=None,
+    )
+    def test_received_per_ccaa_propagates_preprocessing_error(
+        self, _cached, _preprocess
+    ):
+        self.assertEqual(
+            core.utils.samples_graphics.received_per_ccaa(),
+            {"ERROR": "No CCAA data"},
+        )
+
+    @patch(
+        "core.utils.samples_graphics.core.utils.plotly_graphics.bar_graphic",
+        return_value="<div>lab</div>",
+    )
+    @patch(
+        "core.utils.samples_graphics.dashboard.utils.generic_process_data.pre_proc_samples_received_per_lab",
+        return_value={"SUCCESS": "success"},
+    )
+    @patch(
+        "core.utils.samples_graphics.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_received_per_lab_preprocesses_cache_miss_successfully(
+        self, cached, preprocess, bar_graphic
+    ):
+        cached.side_effect = [None, {"x": ["Lab A"], "y": [3]}]
+
+        self.assertEqual(core.utils.samples_graphics.received_per_lab(), "<div>lab</div>")
+        preprocess.assert_called_once_with()
+        bar_graphic.assert_called_once()
 
     @patch(
         "core.utils.samples_graphics.dashboard.utils.generic_process_data.pre_proc_samples_received_per_lab",

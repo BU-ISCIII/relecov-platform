@@ -1910,6 +1910,27 @@ class PlotlyUtilityBranchTests(SimpleTestCase):
         self.assertEqual(box, "<div>plot</div>")
         self.assertEqual(binned, "<div>plot</div>")
 
+    @patch("dashboard.utils.plotly.plot", return_value="<div>ridge</div>")
+    @patch("dashboard.utils.plotly.ridgeplot")
+    def test_ridge_plot_builds_density_figure(self, ridgeplot, plot):
+        figure = go.Figure()
+        ridgeplot.return_value = figure
+
+        result = dashboard.utils.plotly.ridge_plot_graphic(
+            [{"Kit A": [20, 21], "Kit B": [30, 31]}],
+            {"title": "Ridge"},
+        )
+
+        self.assertEqual(result, "<div>ridge</div>")
+        ridgeplot.assert_called_once()
+        self.assertEqual(ridgeplot.call_args.kwargs["labels"], ["Kit A", "Kit B"])
+        plot.assert_called_once_with(
+            figure,
+            output_type="div",
+            include_plotlyjs=False,
+            config=dashboard.utils.plotly.PLOTLY_CONFIG,
+        )
+
 
 class VariantDashboardFigureTests(SimpleTestCase):
     def test_needle_initial_arguments_and_empty_figure_are_descriptive(self):
@@ -2100,6 +2121,63 @@ class BioinfoMethodologyTests(SimpleTestCase):
 
         self.assertNotIn("boxplot_comparation", result)
         ridge.assert_not_called()
+
+    @patch(
+        "dashboard.utils.met_bioinfo.dashboard.utils.generic_process_data.pre_proc_bioinfo_percentage_data",
+        return_value={"SUCCESS": "success"},
+    )
+    @patch(
+        "dashboard.utils.met_bioinfo.dashboard.utils.generic_process_data.pre_proc_depth_sample_run",
+        return_value={"SUCCESS": "success"},
+    )
+    @patch(
+        "dashboard.utils.met_bioinfo.dashboard.utils.generic_process_data.pre_proc_depth_variants",
+        return_value={"SUCCESS": "success"},
+    )
+    @patch(
+        "dashboard.utils.met_bioinfo.dashboard.utils.plotly.box_plot_graphic_bins",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_bioinfo.dashboard.utils.plotly.ridge_plot_graphic",
+        return_value="<div>ridge</div>",
+    )
+    @patch(
+        "dashboard.utils.met_bioinfo.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_bioinfo_graphics_preprocesses_missing_caches_successfully(
+        self,
+        cached,
+        ridge,
+        box,
+        preprocess_variants,
+        preprocess_sample_run,
+        preprocess_percentage,
+    ):
+        cached.side_effect = [
+            None,
+            {"Mapped reads": [90, 95]},
+            None,
+            {"10": [1, 3]},
+            None,
+            {"5": [2, 4]},
+        ]
+
+        result = dashboard.utils.met_bioinfo.bioinfo_graphics()
+
+        self.assertEqual(
+            result,
+            {
+                "boxplot_comparation": "<div>ridge</div>",
+                "depth_variants": "<div>box</div>",
+                "depth_sample_run": "<div>box</div>",
+            },
+        )
+        preprocess_percentage.assert_called_once_with()
+        preprocess_variants.assert_called_once_with()
+        preprocess_sample_run.assert_called_once_with()
+        ridge.assert_called_once()
+        self.assertEqual(box.call_count, 2)
 
 
 class HostMethodologyTests(SimpleTestCase):
@@ -2488,6 +2566,86 @@ class SequencingMethodologyTests(SimpleTestCase):
         self.assertEqual(bar.call_count, 4)
         self.assertEqual(box.call_count, 1)
         self.assertEqual(line.call_args.args[:2], ([1000], [25]))
+
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.generic_process_data.pre_proc_sequencing_instrument_model",
+        return_value={"SUCCESS": "success"},
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.plotly.line_graphic",
+        return_value="<div>line</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sequencing_graphics_preprocesses_missing_model_cache(
+        self,
+        cached,
+        _bar,
+        _box,
+        _line,
+        preprocess_model,
+    ):
+        def cache_lookup(graphic_name):
+            if graphic_name == "sequencing_instrument_model":
+                return cache_lookup.model_values.pop(0)
+            return self.cached_data(graphic_name)
+
+        cache_lookup.model_values = [None, {"MiSeq": 2}]
+        cached.side_effect = cache_lookup
+
+        result = dashboard.utils.met_sequencing.sequencing_graphics()
+
+        self.assertEqual(result["instrument_model"], "<div>bar</div>")
+        preprocess_model.assert_called_once_with()
+
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.generic_process_data.pre_proc_library_kit_pcr_1",
+        return_value={"ERROR": "No CT data"},
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.plotly.line_graphic",
+        return_value="<div>line</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sequencing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sequencing_graphics_passes_ct_preprocessing_error_to_box_plot(
+        self,
+        cached,
+        _bar,
+        box,
+        _line,
+        preprocess_library,
+    ):
+        def cache_lookup(graphic_name):
+            if graphic_name == "library_kit_pcr_1":
+                return None
+            return self.cached_data(graphic_name)
+
+        cached.side_effect = cache_lookup
+
+        result = dashboard.utils.met_sequencing.sequencing_graphics()
+
+        self.assertEqual(result["cts_library"], "<div>box</div>")
+        preprocess_library.assert_called_once_with()
+        self.assertEqual(box.call_args.args[0], {"ERROR": "No CT data"})
 
     @patch(
         "dashboard.utils.met_sequencing.dashboard.utils.generic_process_data.pre_proc_sequencing_instrument_platform",
