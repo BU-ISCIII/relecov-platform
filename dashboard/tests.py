@@ -1,3 +1,4 @@
+from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -683,6 +684,321 @@ class GenericProcessDataTests(SimpleTestCase):
             }
         )
 
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data")
+    @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.all")
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.BioinfoAnalysisValue.objects.filter"
+    )
+    def test_calculation_date_caches_valid_step_durations_only(
+        self, analysis_filter, sample_all, get_parameter_data, create_cache
+    ):
+        analysis_filter.return_value.values.return_value = [
+            {"sample__sample_unique_id": "S1", "value": "2024-01-10"},
+            {"sample__sample_unique_id": "S2", "value": "2018-01-01"},
+            {"sample__sample_unique_id": "S3", "value": "Not Provided"},
+        ]
+        sample_all.return_value.values.return_value = [
+            {
+                "sample_unique_id": "S1",
+                "sequencing_date": datetime(2024, 1, 5),
+            },
+            {
+                "sample_unique_id": "S2",
+                "sequencing_date": datetime(2024, 1, 5),
+            },
+            {
+                "sample_unique_id": "S3",
+                "sequencing_date": datetime(2024, 1, 5),
+            },
+        ]
+        get_parameter_data.side_effect = [
+            [
+                {"Sample Name": "S1", "collection_sample_date": "2024-01-01"},
+                {"Sample Name": "S2", "collection_sample_date": "2024-01-01"},
+                {"Sample Name": "S3", "collection_sample_date": "Not Provided"},
+            ],
+            [
+                {"Sample Name": "S1", "sample_entry_date": "2024-01-08"},
+                {"Sample Name": "S2", "sample_entry_date": "2024-01-08"},
+                {"Sample Name": "S3", "sample_entry_date": "2024-01-08"},
+            ],
+        ]
+
+        result = dashboard.utils.generic_process_data.pre_proc_calculation_date()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0],
+            {
+                "graphic_name": "calculation_date",
+                "graphic_data": {
+                    "Collection to sequencing": [4],
+                    "Sequencing to analysis": [5],
+                    "Sequencing to DB recording": [3, 3],
+                },
+            },
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.Prefetch",
+        side_effect=lambda *args, **kwargs: ("prefetch", args, kwargs),
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.variants.get_domains_and_coordenates",
+        return_value=[{"start": 1, "end": 10}],
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.VariantAnnotation.objects.filter"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.VariantInSample.objects.filter"
+    )
+    @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.prefetch_related")
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.LineageValues.objects.filter"
+    )
+    def test_variations_per_lineage_caches_common_variant_positions(
+        self,
+        lineage_filter,
+        prefetch_samples,
+        variant_filter,
+        annotation_filter,
+        _domains,
+        _prefetch,
+        create_cache,
+    ):
+        lineage_queryset = MagicMock()
+        lineage_queryset.exclude.return_value = lineage_queryset
+        lineage_queryset.values_list.return_value.distinct.return_value = ["XFG.3"]
+        lineage_filter.return_value = lineage_queryset
+        sample_a = SimpleNamespace(
+            lineage_values=SimpleNamespace(
+                all=lambda: [SimpleNamespace(value="XFG.3")]
+            )
+        )
+        sample_b = SimpleNamespace(
+            lineage_values=SimpleNamespace(
+                all=lambda: [SimpleNamespace(value="XFG.3")]
+            )
+        )
+        prefetch_samples.return_value = [sample_a, sample_b]
+        variants_query = MagicMock()
+        variants_query.values_list.return_value.distinct.return_value = [101, 999]
+        counts_query = MagicMock()
+        counts_query.values.return_value.annotate.return_value.annotate.return_value = [
+            {"variantID_id": 101, "sample_count": 2, "pos": 234}
+        ]
+        variant_filter.side_effect = [variants_query, counts_query]
+        annotation_filter.return_value.values_list.return_value.last.return_value = (
+            "missense"
+        )
+
+        result = dashboard.utils.generic_process_data.pre_proc_variations_per_lineage(
+            chromosome="NC_045512"
+        )
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0],
+            {
+                "graphic_name": "variations_per_lineage",
+                "graphic_data": {
+                    "XFG.3": {
+                        "x": [234],
+                        "y": [1.0],
+                        "mutationGroups": ["missense"],
+                        "domains": [{"start": 1, "end": 10}],
+                        "SamplesWithLineage": 2,
+                    }
+                },
+            },
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.lab_catalog.ensure_lab_display")
+    @patch("dashboard.utils.generic_process_data.core.utils.lab_catalog.get_lab_code")
+    @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.filter")
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.fetch_samples_on_condition"
+    )
+    def test_samples_per_date_detailed_fills_week_range_and_lab_display(
+        self, fetch_samples, sample_filter, get_lab_code, ensure_lab_display, create_cache
+    ):
+        fetch_samples.return_value = {
+            "data": [
+                {"Sample Name": "S1", "collection_sample_date": datetime(2024, 1, 1)},
+                {"Sample Name": "S2", "collection_sample_date": datetime(2024, 1, 15)},
+            ]
+        }
+        get_lab_code.return_value = "LAB-01"
+        ensure_lab_display.return_value = "Hospital A"
+        relevant_samples = MagicMock()
+        sample_filter.return_value.annotate.return_value = relevant_samples
+        valid_samples = MagicMock()
+        relevant_samples.exclude.return_value = valid_samples
+        valid_samples.filter.return_value = valid_samples
+        valid_samples.annotate.return_value.values.return_value.order_by.return_value.annotate.return_value = [
+            {
+                "submitting_institution": "Submitter A",
+                "lab_code_1": None,
+                "collecting_institution": "Legacy Hospital",
+                "iso_yearweek": "2024-W01",
+                "num_samples": 1,
+            },
+            {
+                "submitting_institution": "Submitter A",
+                "lab_code_1": None,
+                "collecting_institution": "Legacy Hospital",
+                "iso_yearweek": "2024-W03",
+                "num_samples": 2,
+            },
+        ]
+
+        result = dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(
+            detailed=True
+        )
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0]["graphic_data"],
+            [
+                {
+                    "submitting_institution": "Submitter A",
+                    "collecting_institution": "Hospital A",
+                    "lab_code_1": "LAB-01",
+                    "legacy_collecting_institution": "Legacy Hospital",
+                    "iso_yearweek": "2024-W01",
+                    "num_samples": 1,
+                },
+                {
+                    "submitting_institution": "Submitter A",
+                    "collecting_institution": "Hospital A",
+                    "lab_code_1": "LAB-01",
+                    "legacy_collecting_institution": "Legacy Hospital",
+                    "iso_yearweek": "2024-W02",
+                    "num_samples": 0,
+                },
+                {
+                    "submitting_institution": "Submitter A",
+                    "collecting_institution": "Hospital A",
+                    "lab_code_1": "LAB-01",
+                    "legacy_collecting_institution": "Legacy Hospital",
+                    "iso_yearweek": "2024-W03",
+                    "num_samples": 2,
+                },
+            ],
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch("dashboard.utils.generic_process_data.core.utils.lab_catalog.get_lab_code")
+    @patch("dashboard.utils.generic_process_data.core.models.Sample.objects.filter")
+    @patch(
+        "dashboard.utils.generic_process_data.core.models.LineageValues.objects.filter"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.fetch_samples_on_condition"
+    )
+    def test_search_samples_summary_groups_rows_by_submitter_and_lab(
+        self, fetch_samples, lineage_filter, sample_filter, get_lab_code, create_cache
+    ):
+        fetch_samples.return_value = {
+            "data": [
+                {"Sample Name": "S1", "collection_sample_date": "2024-01-01"},
+                {"Sample Name": "S2", "collection_sample_date": "2024-01-02"},
+                {"Sample Name": "MISSING", "collection_sample_date": "2024-01-03"},
+            ]
+        }
+        lineage_filter.return_value.select_related.return_value = object()
+        get_lab_code.return_value = "LAB-02"
+        sample_with_lineage = SimpleNamespace(
+            pk=1,
+            sample_unique_id="S1",
+            sequencing_sample_id="SEQ-1",
+            lab_code_1="LAB-01",
+            collecting_institution="Hospital A",
+            submitting_institution="Submitter A",
+            filt_lineages=[SimpleNamespace(value="XFG.3")],
+        )
+        sample_without_lineage = SimpleNamespace(
+            pk=2,
+            sample_unique_id="S2",
+            sequencing_sample_id="SEQ-2",
+            lab_code_1=None,
+            collecting_institution="Hospital B",
+            submitting_institution="Submitter A",
+            filt_lineages=[],
+        )
+        sample_filter.return_value.prefetch_related.return_value.order_by.return_value = [
+            sample_with_lineage,
+            sample_without_lineage,
+        ]
+
+        result = dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        self.assertEqual(
+            create_cache.call_args.args[0],
+            {
+                "graphic_name": "search_samples_summary_table",
+                "graphic_data": {
+                    "Submitter A": {
+                        "LAB-01": {
+                            "lab_code_1": "LAB-01",
+                            "collecting_institution": "Hospital A",
+                            "rows": [[1, "SEQ-1", "2024-01-01", "XFG.3", "Hospital A"]],
+                        },
+                        "LAB-02": {
+                            "lab_code_1": "LAB-02",
+                            "collecting_institution": "Hospital B",
+                            "rows": [
+                                [
+                                    2,
+                                    "SEQ-2",
+                                    "2024-01-02",
+                                    "Not Defined",
+                                    "Hospital B",
+                                ]
+                            ],
+                        },
+                    }
+                },
+            },
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_summarize_data",
+        return_value={"ERROR": "iSkyLIMS unavailable"},
+    )
+    def test_received_sample_summaries_return_lims_errors(self, _summarize):
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_samples_received_per_lab(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_samples_received_per_ccaa(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_stats_data",
+        return_value={"ERROR": "iSkyLIMS unavailable"},
+    )
+    def test_methodology_lims_utilization_returns_lims_error(self, _get_stats):
+        self.assertEqual(
+            dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util(),
+            {"ERROR": "iSkyLIMS unavailable"},
+        )
+
 
 class NeedleMutationGraphTests(SimpleTestCase):
     @patch(
@@ -830,6 +1146,114 @@ class NeedleMutationGraphTests(SimpleTestCase):
 
 
 class MethodologyDashboardTests(SimpleTestCase):
+    @patch("dashboard.utils.met_index.GraphicJsonFile.objects.filter")
+    def test_cached_graphic_json_reads_latest_string_payload_or_missing_cache(
+        self, graphic_filter
+    ):
+        graphic_filter.return_value.latest.return_value.graphic_data = '{"value": 3}'
+
+        self.assertEqual(
+            dashboard.utils.met_index._read_cached_graphic_json("cached"),
+            {"value": 3},
+        )
+
+        graphic_filter.return_value.latest.side_effect = (
+            dashboard.models.GraphicJsonFile.DoesNotExist
+        )
+        self.assertIsNone(
+            dashboard.utils.met_index._read_cached_graphic_json("missing")
+        )
+
+    @patch("dashboard.utils.met_index.core.utils.samples.get_samples_count")
+    @patch(
+        "dashboard.utils.met_index.core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization"
+    )
+    @patch(
+        "dashboard.utils.met_index.dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util"
+    )
+    @patch(
+        "dashboard.utils.met_index.dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util"
+    )
+    @patch("dashboard.utils.met_index._read_cached_bioinfo_util")
+    @patch("dashboard.utils.met_index._read_cached_lims_util")
+    @patch("dashboard.utils.met_index.core.utils.schema.get_default_schema")
+    def test_schema_utilization_preprocesses_missing_caches_and_falls_back_to_bioinfo(
+        self,
+        get_schema,
+        read_lims,
+        read_bioinfo,
+        preproc_lims,
+        preproc_bioinfo,
+        fallback_bioinfo,
+        get_samples_count,
+    ):
+        get_schema.return_value = object()
+        read_lims.side_effect = [
+            None,
+            {
+                "lims_f_values": 40,
+                "summary_lab_values": [2, 5],
+                "field_detail_data": {
+                    "field_name": ["Lab Field"],
+                    "field_value": [3],
+                    "percent": [5],
+                },
+                "num_lab_fields": 1,
+            },
+        ]
+        read_bioinfo.return_value = None
+        preproc_lims.return_value = {"SUCCESS": "Success"}
+        preproc_bioinfo.return_value = {"ERROR": "No cached bioinfo"}
+        fallback_bioinfo.return_value = {
+            "fields_value": {"Bio Field": 4},
+            "always_none": [],
+            "never_used": ["Unused"],
+            "fields_norm": ["Bio Field"],
+        }
+        get_samples_count.return_value = 2
+
+        result = dashboard.utils.met_index.schema_fields_utilization()
+
+        self.assertEqual(result["lims_f_values"], 40)
+        self.assertEqual(result["bio_f_values"], 200.0)
+        self.assertEqual(result["summary"]["lab_values"], [2, 5])
+        self.assertEqual(result["summary"]["bio_values"], [1, 2])
+        preproc_lims.assert_called_once_with()
+        preproc_bioinfo.assert_called_once_with()
+        fallback_bioinfo.assert_called_once_with()
+
+    @patch(
+        "dashboard.utils.met_index.dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util",
+        return_value={"SUCCESS": "Success"},
+    )
+    @patch(
+        "dashboard.utils.met_index.core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization",
+        return_value={},
+    )
+    @patch(
+        "dashboard.utils.met_index.dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util",
+        return_value={"ERROR": "iSkyLIMS unavailable"},
+    )
+    @patch("dashboard.utils.met_index._read_cached_bioinfo_util")
+    @patch("dashboard.utils.met_index._read_cached_lims_util", return_value=None)
+    @patch("dashboard.utils.met_index.core.utils.schema.get_default_schema")
+    def test_schema_utilization_reports_lims_error_and_empty_bioinfo_cache(
+        self,
+        get_schema,
+        _read_lims,
+        read_bioinfo,
+        _preproc_lims,
+        _fallback_bioinfo,
+        _preproc_bioinfo,
+    ):
+        get_schema.return_value = object()
+        read_bioinfo.side_effect = [None, {}]
+
+        result = dashboard.utils.met_index.schema_fields_utilization()
+
+        self.assertEqual(result["ERROR"], "iSkyLIMS unavailable")
+        self.assertEqual(result["ERROR_ANALYSIS"], "Not Data to process")
+
     @patch("dashboard.utils.met_index.core.utils.schema.get_default_schema")
     def test_schema_utilization_reports_missing_schema(self, get_schema):
         get_schema.return_value = None
@@ -987,6 +1411,60 @@ class MethodologyDashboardTests(SimpleTestCase):
         self.assertEqual(result["grouped_fields"], "lab-grouped")
         self.assertEqual(result["ERROR_ANALYSIS"], "No analysis data")
         self.assertEqual(result["progress_bars"], ["lims-progress"])
+
+    @patch("dashboard.utils.met_index.schema_fields_utilization")
+    def test_index_dashboard_returns_errors_when_lims_and_bioinfo_fail(
+        self, utilization
+    ):
+        utilization.return_value = {
+            "ERROR": "iSkyLIMS unavailable",
+            "ERROR_ANALYSIS": "No analysis data",
+        }
+
+        self.assertEqual(
+            dashboard.utils.met_index.index_dash_fields(),
+            {
+                "ERROR": "iSkyLIMS unavailable",
+                "ERROR_ANALYSIS": "No analysis data",
+            },
+        )
+
+    @patch(
+        "dashboard.utils.met_index.dashboard.utils.plotly.progress_bar",
+        side_effect=["lims-progress", "bio-progress"],
+    )
+    @patch(
+        "dashboard.utils.met_index.dashboard.utils.plotly.bar_graphic",
+        side_effect=["grouped", "detailed"],
+    )
+    @patch("dashboard.utils.met_index.schema_fields_utilization")
+    def test_index_dashboard_detailed_fields_allow_missing_lab_field_count(
+        self,
+        utilization,
+        bar,
+        progress,
+    ):
+        utilization.return_value = {
+            "summary": {
+                "group": ["Empty Fields", "Total Fields"],
+                "lab_values": [0, 0],
+                "bio_values": [1, 2],
+            },
+            "lims_f_values": 0,
+            "bio_f_values": 50,
+            "num_bio_fields": 1,
+            "field_detail_data": {
+                "field_name": ["Bio A"],
+                "field_value": [1],
+                "percent": [1],
+            },
+        }
+
+        result = dashboard.utils.met_index.index_dash_fields()
+
+        self.assertEqual(result["detailed_fields"], "detailed")
+        self.assertEqual(bar.call_args_list[-1].kwargs["options"]["colors"], None)
+        self.assertEqual(progress.call_count, 2)
 
 
 class GraphicCacheIntegrationTests(TestCase):
@@ -1770,6 +2248,187 @@ class SampleProcessingMethodologyTests(SimpleTestCase):
             dashboard.utils.met_sample_preprocessing.sample_processing_graphics(),
             {"ERROR": "No extraction data"},
         )
+
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_process_data.pre_proc_nucleic_acid_extraction_protocol",
+        return_value={"SUCCESS": "Success"},
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sample_processing_preprocesses_missing_nucleic_protocol_cache(
+        self,
+        cached,
+        preprocess,
+        bar,
+        _box,
+    ):
+        cached.side_effect = [
+            None,
+            {"": 1, "Kit A": 2},
+            self.cached_data("extraction_protocol_pcr_1"),
+            self.cached_data("specimen_source_pcr_1"),
+            self.cached_data("calculation_date"),
+        ]
+
+        result = dashboard.utils.met_sample_preprocessing.sample_processing_graphics()
+
+        self.assertEqual(result["nucleic_protocol"], "<div>bar</div>")
+        preprocess.assert_called_once_with()
+        protocol_df = bar.call_args.kwargs["data"]
+        self.assertEqual(
+            dict(zip(protocol_df["protocol"], protocol_df["number"])),
+            {"Kit A": 2, "Not Provided": 1},
+        )
+
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_process_data.pre_proc_extraction_protocol_pcr_1",
+        return_value={"ERROR": "No extraction Ct data"},
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sample_processing_passes_extraction_ct_preprocessing_error_to_box_plot(
+        self,
+        cached,
+        _preprocess,
+        _bar,
+        box,
+    ):
+        cached.side_effect = [
+            self.cached_data("nucleic_acid_extraction_protocol"),
+            None,
+            self.cached_data("specimen_source_pcr_1"),
+            self.cached_data("calculation_date"),
+        ]
+
+        result = dashboard.utils.met_sample_preprocessing.sample_processing_graphics()
+
+        self.assertEqual(result["cts_extraction"], "<div>box</div>")
+        self.assertEqual(
+            box.call_args_list[0].args[0],
+            {"ERROR": "No extraction Ct data"},
+        )
+
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_process_data.pre_proc_extraction_protocol_pcr_1",
+        return_value={"SUCCESS": "Success"},
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sample_processing_preprocesses_missing_ct_extraction_data(
+        self,
+        cached,
+        preprocess,
+        _bar,
+        box,
+    ):
+        cached.side_effect = [
+            self.cached_data("nucleic_acid_extraction_protocol"),
+            None,
+            {"Kit A": {"20": 2}},
+            self.cached_data("specimen_source_pcr_1"),
+            self.cached_data("calculation_date"),
+        ]
+
+        result = dashboard.utils.met_sample_preprocessing.sample_processing_graphics()
+
+        self.assertEqual(result["cts_extraction"], "<div>box</div>")
+        preprocess.assert_called_once_with()
+        self.assertEqual(box.call_count, 3)
+
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_process_data.pre_proc_specimen_source_pcr_1",
+        return_value={"ERROR": "No specimen data"},
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sample_processing_returns_specimen_preprocessing_error(
+        self,
+        cached,
+        _preprocess,
+        _bar,
+        box,
+    ):
+        cached.side_effect = [
+            self.cached_data("nucleic_acid_extraction_protocol"),
+            self.cached_data("extraction_protocol_pcr_1"),
+            None,
+            self.cached_data("calculation_date"),
+        ]
+
+        result = dashboard.utils.met_sample_preprocessing.sample_processing_graphics()
+
+        self.assertEqual(result["cts_specimen"], "<div>box</div>")
+        self.assertEqual(box.call_args_list[1].args[0], {"ERROR": "No specimen data"})
+
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.box_plot_graphic",
+        return_value="<div>box</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.plotly.bar_graphic",
+        return_value="<div>bar</div>",
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_process_data.pre_proc_calculation_date",
+        return_value={"ERROR": "No date data"},
+    )
+    @patch(
+        "dashboard.utils.met_sample_preprocessing.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_sample_processing_returns_calculation_date_preprocessing_error(
+        self,
+        cached,
+        _preprocess,
+        _bar,
+        box,
+    ):
+        cached.side_effect = [
+            self.cached_data("nucleic_acid_extraction_protocol"),
+            self.cached_data("extraction_protocol_pcr_1"),
+            self.cached_data("specimen_source_pcr_1"),
+            None,
+        ]
+
+        result = dashboard.utils.met_sample_preprocessing.sample_processing_graphics()
+
+        self.assertEqual(result["calculation_date"], "<div>box</div>")
+        self.assertEqual(box.call_args_list[-1].args[0], {"ERROR": "No date data"})
 
 
 class SequencingMethodologyTests(SimpleTestCase):
