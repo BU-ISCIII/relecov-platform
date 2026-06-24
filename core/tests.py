@@ -3,6 +3,7 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
 from django.contrib.auth.models import Group, User
 from django.db import IntegrityError
 from django.test import RequestFactory, SimpleTestCase, TestCase
@@ -21,6 +22,7 @@ import core.utils.generic_functions
 import core.utils.lab_catalog
 import core.utils.labs
 import core.utils.lineage
+import core.utils.plotly_dash_graphics
 import core.utils.public_db
 import core.utils.rest_api
 import core.utils.samples
@@ -29,6 +31,8 @@ import core.utils.schema
 import core.utils.variants
 from core.templatetags.user_groups import has_group
 from core.views import (
+    _get_search_sample_rows_for_user,
+    _get_sort_value,
     _normalize_datatable_search_value,
     _row_matches_search,
     search_sample_data,
@@ -168,6 +172,172 @@ class LabCatalogTests(SimpleTestCase):
         self.assertEqual(
             core.utils.lab_catalog.ensure_lab_display("UNKNOWN"),
             "UNKNOWN",
+        )
+
+
+class PlotlyDashGraphicTests(SimpleTestCase):
+    class FakeDashApp:
+        def __init__(self):
+            self.layout = None
+            self.callbacks = []
+
+        def callback(self, *args, **kwargs):
+            def decorator(function):
+                self.callbacks.append(function)
+                return function
+
+            return decorator
+
+    def build_app(self, options, data):
+        fake_app = self.FakeDashApp()
+        patcher = patch(
+            "core.utils.plotly_dash_graphics.DjangoDash",
+            return_value=fake_app,
+        )
+        with patcher as django_dash:
+            core.utils.plotly_dash_graphics.dash_bar_lab(options, data)
+        return fake_app, django_dash
+
+    def get_dropdown(self, fake_app):
+        return fake_app.layout.children[1].children[0]
+
+    def test_dash_bar_lab_normalizes_options_and_registers_layout(self):
+        data = pd.DataFrame(
+            {
+                "lab_code_1": ["LAB-01"],
+                "collecting_institution": ["Hospital A"],
+                "iso_yearweek": ["2024-W01"],
+                "num_samples": [1],
+            }
+        )
+
+        fake_app, django_dash = self.build_app(
+            [
+                {"label": "Hospital A", "value": "LAB-01"},
+                {"collecting_institution": "Hospital B", "lab_code_1": "LAB-02"},
+                {"legacy_name": "Legacy Hospital"},
+                {"value": ""},
+                {"label": "Duplicate Hospital A", "value": "LAB-01"},
+                "Free Text Hospital",
+            ],
+            data,
+        )
+
+        dropdown = self.get_dropdown(fake_app)
+        self.assertEqual(
+            dropdown.options,
+            [
+                {"label": "Hospital A", "value": "LAB-01"},
+                {"label": "Hospital B", "value": "LAB-02"},
+                {"label": "Legacy Hospital", "value": "Legacy Hospital"},
+                {"label": "Free Text Hospital", "value": "Free Text Hospital"},
+            ],
+        )
+        self.assertEqual(dropdown.value, "LAB-01")
+        self.assertEqual(len(fake_app.callbacks), 1)
+        django_dash.assert_called_once()
+
+    def test_dash_bar_lab_without_options_uses_no_default_value(self):
+        fake_app, _django_dash = self.build_app(
+            [],
+            pd.DataFrame(
+                {
+                    "lab_code_1": ["LAB-01"],
+                    "iso_yearweek": ["2024-W01"],
+                    "num_samples": [1],
+                }
+            ),
+        )
+
+        self.assertIsNone(self.get_dropdown(fake_app).value)
+
+    def test_dash_bar_callback_filters_by_lab_code_and_formats_sorted_weeks(self):
+        data = pd.DataFrame(
+            {
+                "lab_code_1": ["LAB-01", "LAB-01", "LAB-01", "LAB-02"],
+                "collecting_institution": [
+                    "Hospital A",
+                    "Hospital A",
+                    "Hospital A",
+                    "Hospital B",
+                ],
+                "legacy_collecting_institution": [
+                    "Legacy A",
+                    "Legacy A",
+                    "Legacy A",
+                    "Legacy B",
+                ],
+                "iso_yearweek": ["2024-W2", "2024-W1", "2024-W1", "2024-W3"],
+                "num_samples": ["5", "2", "99", "7"],
+            }
+        )
+        fake_app, _django_dash = self.build_app(
+            [{"label": "Hospital A", "value": "LAB-01"}],
+            data,
+        )
+
+        figure = fake_app.callbacks[0]("LAB-01")
+
+        self.assertEqual(list(figure.data[0].x), ["2024-W01", "2024-W02"])
+        self.assertEqual(list(figure.data[0].y), [2, 5])
+        self.assertEqual(figure.layout.title.text, "Registered samples over time")
+        self.assertEqual(figure.layout.xaxis.title.text, "Collecting date (ISOWeeks)")
+        self.assertEqual(figure.layout.yaxis.title.text, "Number of samples")
+
+    def test_dash_bar_callback_filters_by_fallback_lab_names(self):
+        data = pd.DataFrame(
+            {
+                "lab_code_1": [None, None, "LAB-02"],
+                "collecting_institution": ["Hospital A", "Hospital C", "Hospital B"],
+                "legacy_collecting_institution": ["Legacy A", "Legacy C", "Legacy B"],
+                "iso_yearweek": ["2024-W1", "2024-W2", "2024-W3"],
+                "num_samples": [4, 6, 8],
+            }
+        )
+        fake_app, _django_dash = self.build_app(
+            [{"label": "Hospital A", "value": "Hospital A"}],
+            data,
+        )
+
+        by_collecting_name = fake_app.callbacks[0]("Hospital A")
+        by_legacy_name = fake_app.callbacks[0]("Legacy C")
+
+        self.assertEqual(list(by_collecting_name.data[0].y), [4])
+        self.assertEqual(list(by_legacy_name.data[0].x), ["2024-W02"])
+        self.assertEqual(list(by_legacy_name.data[0].y), [6])
+
+    def test_dash_bar_callback_filters_when_only_collecting_institution_exists(self):
+        data = pd.DataFrame(
+            {
+                "collecting_institution": ["Hospital A", "Hospital B"],
+                "iso_yearweek": ["2024-W1", "2024-W2"],
+                "num_samples": [3, 9],
+            }
+        )
+        fake_app, _django_dash = self.build_app(["Hospital B"], data)
+
+        figure = fake_app.callbacks[0]("Hospital B")
+
+        self.assertEqual(list(figure.data[0].x), ["2024-W02"])
+        self.assertEqual(list(figure.data[0].y), [9])
+
+    def test_dash_bar_callback_handles_empty_selection_and_missing_data_columns(self):
+        data = pd.DataFrame(
+            {
+                "iso_yearweek": ["2024-W1"],
+                "num_samples": [3],
+            }
+        )
+        fake_app, _django_dash = self.build_app(["Hospital A"], data)
+
+        with self.assertRaises(core.utils.plotly_dash_graphics.PreventUpdate):
+            fake_app.callbacks[0](None)
+
+        figure = fake_app.callbacks[0]("Hospital A")
+
+        self.assertEqual(
+            figure.layout.title.text,
+            "No data available for the selected laboratory",
         )
 
 
@@ -982,6 +1152,777 @@ class AdditionalApiValidationTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("collecting_institution_code_1", response.data["ERROR"])
+
+
+class ApiViewBranchCoverageTests(SimpleTestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.user = SimpleNamespace(pk=1, is_authenticated=True)
+
+    def post(self, path, data):
+        request = self.factory.post(path, data, format="json")
+        force_authenticate(request, user=self.user)
+        return request
+
+    def put(self, path, data):
+        request = self.factory.put(path, data, format="json")
+        force_authenticate(request, user=self.user)
+        return request
+
+    def schema(self, schema_id=7):
+        schema = MagicMock()
+        schema.get_schema_id.return_value = schema_id
+        return schema
+
+    def sample(self):
+        sample = MagicMock()
+        sample.sample_unique_id = "RL-API-1"
+        sample.sequencing_sample_id = "SEQ-1"
+        sample.get_sample_id.return_value = 42
+        sample.get_sample_unique_id.return_value = "RL-API-1"
+        sample.get_sequencing_sample_id.return_value = "SEQ-1"
+        return sample
+
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_requires_resolvable_collecting_institution(
+        self, get_schema
+    ):
+        get_schema.return_value = self.schema()
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        with patch(
+            "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+            return_value="",
+        ):
+            response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("collecting_institution", response.data["ERROR"])
+
+    @patch(
+        "core.api.views.core.api.serializers.CreateSampleSerializer"
+    )
+    @patch("core.api.views.core.api.utils.samples.split_sample_data")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.utils.samples.build_sample_fingerprint",
+        return_value="fingerprint",
+    )
+    @patch(
+        "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_returns_serializer_validation_errors(
+        self,
+        get_schema,
+        _display,
+        _fingerprint,
+        _found,
+        split_sample,
+        serializer_class,
+    ):
+        get_schema.return_value = self.schema()
+        split_sample.return_value = {
+            "sample": {"state": 1},
+            "ena": {},
+            "gisaid": {},
+            "author": {},
+        }
+        serializer = MagicMock()
+        serializer.is_valid.return_value = False
+        serializer.errors = {"sequencing_sample_id": ["required"]}
+        serializer_class.return_value = serializer
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], {"sequencing_sample_id": ["required"]})
+
+    @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
+    @patch(
+        "core.api.views.core.models.SampleState.objects.filter"
+    )
+    @patch(
+        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
+    )
+    @patch(
+        "core.api.views.core.api.serializers.CreateSampleSerializer"
+    )
+    @patch("core.api.views.core.api.utils.samples.split_sample_data")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.utils.samples.build_sample_fingerprint",
+        return_value="fingerprint",
+    )
+    @patch(
+        "core.api.views.core.utils.lab_catalog.ensure_lab_display",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_sample_propagates_ena_storage_error(
+        self,
+        get_schema,
+        _display,
+        _fingerprint,
+        _found,
+        split_sample,
+        sample_serializer_class,
+        date_serializer_class,
+        _state_filter,
+        store_public,
+    ):
+        get_schema.return_value = self.schema()
+        sample = self.sample()
+        split_sample.return_value = {
+            "sample": {"state": 1},
+            "ena": {"ena_sample_accession": "ERS1"},
+            "gisaid": {},
+            "author": {},
+        }
+        sample_serializer = MagicMock()
+        sample_serializer.is_valid.return_value = True
+        sample_serializer.save.return_value = sample
+        sample_serializer_class.return_value = sample_serializer
+        date_serializer = MagicMock()
+        date_serializer.is_valid.return_value = True
+        date_serializer_class.return_value = date_serializer
+        store_public.return_value = {"ERROR": "ENA failed"}
+        request = self.post(
+            "/api/createSampleData",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "sequencing_sample_id": "SEQ-1",
+                "collecting_lab_sample_id": "COL-1",
+                "submitting_institution": "Submitter A",
+                "collecting_institution_code_1": "LAB-01",
+            },
+        )
+
+        response = core.api.views.create_sample_data(request)
+
+        self.assertEqual(response.status_code, 206)
+        self.assertEqual(response.data["message"], "Error processing ena data")
+
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists",
+        return_value=None,
+    )
+    def test_create_bioinfo_metadata_rejects_unknown_schema(self, _schema):
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {"schema_name": "missing", "schema_version": "0"},
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["ERROR"], "schema name and version is not defined"
+        )
+
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_bioinfo_metadata_requires_unique_sample_id(self, get_schema):
+        get_schema.return_value = self.schema()
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {"schema_name": "RELECOV", "schema_version": "1.0"},
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], core.config.ERROR_SAMPLE_NAME_NOT_INCLUDED)
+
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_bioinfo_metadata_rejects_unknown_sample(
+        self, get_schema, _sample
+    ):
+        get_schema.return_value = self.schema()
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "unique_sample_id": "RL-MISSING",
+            },
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], core.config.ERROR_SAMPLE_NOT_DEFINED)
+
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
+        return_value=["2024-01-01"],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_bioinfo_metadata_rejects_duplicate_analysis_date(
+        self, get_schema, get_sample, _defined
+    ):
+        get_schema.return_value = self.schema()
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {
+                "schema_name": "RELECOV",
+                "schema_version": "1.0",
+                "unique_sample_id": "RL-API-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["ERROR"], core.config.ERROR_ANALYSIS_ALREADY_DEFINED
+        )
+
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.split_bioinfo_data",
+        return_value={"ERROR": "split failed"},
+    )
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_bioinfo_metadata_propagates_split_errors(
+        self, get_schema, get_sample, _defined, _split
+    ):
+        get_schema.return_value = self.schema()
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {"unique_sample_id": "RL-API-1"},
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], "split failed")
+
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.store_bioinfo_data",
+        return_value={"ERROR": "store failed"},
+    )
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.split_bioinfo_data",
+        return_value={"analysis": {"value": 1}},
+    )
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_bioinfo_metadata_propagates_store_errors(
+        self, get_schema, get_sample, _defined, _split, _store
+    ):
+        get_schema.return_value = self.schema()
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {"unique_sample_id": "RL-API-1"},
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], "store failed")
+
+    @patch(
+        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
+    )
+    @patch("core.api.views.core.models.SampleState.objects.filter")
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.store_bioinfo_data",
+        return_value={"SUCCESS": "stored"},
+    )
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.split_bioinfo_data",
+        return_value={"analysis": {"value": 1}},
+    )
+    @patch(
+        "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
+    )
+    @patch(
+        "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
+    )
+    def test_create_bioinfo_metadata_success_updates_state_and_date(
+        self,
+        get_schema,
+        get_sample,
+        _defined,
+        _split,
+        _store,
+        state_filter,
+        date_serializer_class,
+    ):
+        sample = self.sample()
+        get_schema.return_value = self.schema()
+        get_sample.return_value = sample
+        state_filter.return_value.last.return_value.get_state_id.return_value = 3
+        date_serializer = MagicMock()
+        date_serializer.is_valid.return_value = True
+        date_serializer_class.return_value = date_serializer
+        request = self.post(
+            "/api/createBioinfoMetadata",
+            {
+                "unique_sample_id": "RL-API-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_bioinfo_metadata(request)
+
+        self.assertEqual(response.status_code, 201)
+        sample.update_state.assert_called_once_with("Bioinfo")
+        date_serializer.save.assert_called_once_with()
+        self.assertEqual(response.data["data"]["state"], "Bioinfo")
+
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id",
+        return_value=None,
+    )
+    def test_create_variant_data_rejects_unknown_unique_sample_id(self, _sample):
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "unique_sample_id": "RL-MISSING",
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("unique_sample_id", response.data["message"])
+
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id",
+        return_value=None,
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name",
+        return_value=None,
+    )
+    def test_create_variant_data_rejects_missing_sample_identifier(
+        self, _sample_name, _unique
+    ):
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "missing",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["message"], "Sample identifier not found in platform")
+
+    @patch("core.api.views.core.api.utils.variants.get_variant_analysis_defined")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
+    )
+    def test_create_variant_data_rejects_mismatched_identifiers(
+        self, get_unique, _defined
+    ):
+        sample = self.sample()
+        sample.sample_unique_id = "RL-API-1"
+        sample.sequencing_sample_id = "SEQ-1"
+        get_unique.return_value = sample
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "unique_sample_id": "RL-API-1",
+                "sample_name": "OTHER",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("does not match", response.data["message"])
+
+    @patch(
+        "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
+        return_value=["2024-01-01"],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_create_variant_data_rejects_duplicate_analysis_date(
+        self, get_sample, _defined
+    ):
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["ERROR"], core.config.ERROR_ANALYSIS_ALREADY_DEFINED
+        )
+
+    @patch(
+        "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_create_variant_data_requires_variants_key(self, get_sample, _defined):
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["ERROR"], core.config.ERROR_VARIANT_INFORMATION_NOT_DEFINED
+        )
+
+    @patch(
+        "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_create_variant_data_reports_unparseable_variant_string(
+        self, get_sample, _defined
+    ):
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+                "variants": "[",
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Unable to parse variants", response.data["ERROR"])
+
+    @patch(
+        "core.api.views.core.api.utils.variants.split_variant_data",
+        return_value={"ERROR": "bad variant"},
+    )
+    @patch(
+        "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_create_variant_data_propagates_split_errors(
+        self, get_sample, _defined, _split
+    ):
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+                "variants": [{}],
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], {"ERROR": "bad variant"})
+
+    @patch(
+        "core.api.views.core.api.utils.variants.split_variant_data",
+        return_value={
+            "variant_in_sample": {"variantID_id": "bad"},
+            "variant_ann": {},
+        },
+    )
+    @patch(
+        "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_create_variant_data_rejects_invalid_variant_id(
+        self, get_sample, _defined, _split
+    ):
+        get_sample.return_value = self.sample()
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+                "variants": [{}],
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid variantID_id", response.data["ERROR"])
+
+    @patch("core.api.views.core.api.utils.common_functions.update_change_state_date")
+    @patch("core.api.views.transaction.atomic")
+    @patch("core.api.views.core.models.SampleState.objects.filter")
+    @patch("core.api.views.core.models.VariantAnnotation")
+    @patch("core.api.views.core.models.VariantInSample")
+    @patch(
+        "core.api.views.core.api.utils.variants.variant_annotation_exists",
+        side_effect=[False, False],
+    )
+    @patch(
+        "core.api.views.core.api.utils.variants.split_variant_data"
+    )
+    @patch(
+        "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
+        return_value=[],
+    )
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_create_variant_data_success_flushes_deduplicated_annotations(
+        self,
+        get_sample,
+        _defined,
+        split_variant,
+        _annotation_exists,
+        variant_model,
+        annotation_model,
+        state_filter,
+        _atomic,
+        update_date,
+    ):
+        sample = self.sample()
+        get_sample.return_value = sample
+        split_variant.side_effect = [
+            {
+                "variant_in_sample": {"variantID_id": "10", "af": "0.8"},
+                "variant_ann": {
+                    "variantID_id": "10",
+                    "geneID_id": 1,
+                    "effectID_id": 2,
+                    "hgvs_c": "c.1A>T",
+                    "hgvs_p": "p.K1N",
+                    "hgvs_p_1_letter": "K1N",
+                },
+            },
+            {
+                "variant_in_sample": {"variantID_id": "10", "af": "0.7"},
+                "variant_ann": {
+                    "variantID_id": "10",
+                    "geneID_id": 1,
+                    "effectID_id": 2,
+                    "hgvs_c": "c.1A>T",
+                    "hgvs_p": "p.K1N",
+                    "hgvs_p_1_letter": "K1N",
+                },
+            },
+        ]
+        bulk_created_variants = []
+        bulk_created_annotations = []
+
+        def capture_bulk_created_variants(objects, **kwargs):
+            bulk_created_variants.append((list(objects), kwargs))
+
+        def capture_bulk_created_annotations(objects, **kwargs):
+            bulk_created_annotations.append((list(objects), kwargs))
+
+        variant_model.objects.bulk_create = MagicMock(
+            side_effect=capture_bulk_created_variants
+        )
+        annotation_model.objects.bulk_create = MagicMock(
+            side_effect=capture_bulk_created_annotations
+        )
+        variant_model.side_effect = ["variant-obj-1", "variant-obj-2"]
+        annotation_model.return_value = "annotation-obj"
+        state_filter.return_value.last.return_value.get_state_id.return_value = 5
+        request = self.post(
+            "/api/createVariantData",
+            {
+                "sample_name": "SEQ-1",
+                "bioinformatics_analysis_date": "2024-01-01",
+                "variants": [{}, {}],
+            },
+        )
+
+        response = core.api.views.create_variant_data(request)
+
+        self.assertEqual(response.status_code, 201)
+        variant_model.objects.bulk_create.assert_called_once()
+        annotation_model.objects.bulk_create.assert_called_once()
+        self.assertEqual(
+            bulk_created_variants,
+            [(["variant-obj-1", "variant-obj-2"], {"batch_size": 250})],
+        )
+        self.assertEqual(
+            bulk_created_annotations,
+            [(["annotation-obj"], {"batch_size": 250})],
+        )
+        sample.update_state.assert_called_once_with("Variant")
+        update_date.assert_called_once_with(42, 5)
+
+    @patch(
+        "core.api.views.core.api.serializers.UpdateStateSampleSerializer"
+    )
+    @patch("core.api.views.core.models.SampleState.objects.filter")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_update_state_returns_serializer_validation_error(
+        self, get_sample, state_filter, serializer_class
+    ):
+        get_sample.return_value = self.sample()
+        state_query = MagicMock()
+        state_query.exists.return_value = True
+        state_query.last.return_value.get_state_id.return_value = 2
+        state_filter.return_value = state_query
+        serializer = MagicMock()
+        serializer.is_valid.return_value = False
+        serializer.errors = {"state": ["invalid"]}
+        serializer_class.return_value = serializer
+        request = self.put(
+            "/api/updateState",
+            {"sample_name": "SEQ-1", "state": "Bioinfo"},
+        )
+
+        response = core.api.views.update_state(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], {"state": ["invalid"]})
+
+    @patch("core.api.views.core.api.utils.common_functions.update_change_state_date")
+    @patch(
+        "core.api.views.core.api.serializers.CreateErrorSerializer"
+    )
+    @patch("core.api.views.core.models.Error.objects.filter")
+    @patch(
+        "core.api.views.core.api.serializers.UpdateStateSampleSerializer"
+    )
+    @patch("core.api.views.core.models.SampleState.objects.filter")
+    @patch(
+        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
+    )
+    def test_update_state_error_state_validates_error_serializer(
+        self,
+        get_sample,
+        state_filter,
+        state_serializer_class,
+        error_filter,
+        error_serializer_class,
+        _update_date,
+    ):
+        get_sample.return_value = self.sample()
+        state_query = MagicMock()
+        state_query.exists.return_value = True
+        state_query.last.return_value.get_state_id.return_value = 9
+        state_filter.return_value = state_query
+        state_serializer = MagicMock()
+        state_serializer.is_valid.return_value = True
+        state_serializer_class.return_value = state_serializer
+        error_filter.return_value.last.return_value.get_error_id.return_value = 4
+        error_serializer = MagicMock()
+        error_serializer.is_valid.return_value = False
+        error_serializer.errors = {"error_type": ["invalid"]}
+        error_serializer_class.return_value = error_serializer
+        request = self.put(
+            "/api/updateState",
+            {
+                "sample_name": "SEQ-1",
+                "state": "Error",
+                "error_type": "Contamination",
+            },
+        )
+
+        response = core.api.views.update_state(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["ERROR"], {"error_type": ["invalid"]})
 
 
 class ApiCommonFunctionIntegrationTests(TestCase):
@@ -2392,6 +3333,1024 @@ class CoreViewBranchTests(SimpleTestCase):
         self.factory = RequestFactory()
         self.admin = SimpleNamespace(username="admin", is_authenticated=True)
         self.user = SimpleNamespace(username="user", is_authenticated=True)
+
+    @patch("core.views.core.utils.labs.get_lab_name_from_user")
+    @patch("core.views.core.utils.samples.get_search_table_for_user")
+    @patch("core.views.core.models.Sample.objects.count")
+    def test_search_rows_report_empty_database_and_user_lab_filters(
+        self, sample_count, get_table, get_lab
+    ):
+        sample_count.return_value = 0
+        self.assertEqual(
+            _get_search_sample_rows_for_user(self.user),
+            {"ERROR": core.config.ERROR_NOT_SAMPLES_HAVE_BEEN_DEFINED},
+        )
+
+        sample_count.return_value = 1
+        get_table.return_value = {"ERROR": "cache unavailable"}
+        self.assertEqual(
+            _get_search_sample_rows_for_user(self.user),
+            {"ERROR": "cache unavailable"},
+        )
+
+        get_table.return_value = []
+        get_lab.return_value = ""
+        self.assertEqual(
+            _get_search_sample_rows_for_user(self.user),
+            {"ERROR": "You don't have a laboratory assigned to you yet"},
+        )
+
+        get_lab.return_value = "Hospital A"
+        self.assertEqual(
+            _get_search_sample_rows_for_user(self.user),
+            {
+                "ERROR": (
+                    "No samples found for your designated laboratory: Hospital A"
+                )
+            },
+        )
+
+    @patch("core.views.core.utils.samples.get_search_table_for_user")
+    @patch("core.views.core.models.Sample.objects.count", return_value=2)
+    def test_search_rows_convert_tuple_summary_to_datatable_rows(
+        self, _sample_count, get_table
+    ):
+        get_table.return_value = [
+            (1, "SEQ-1", "2024-01-01", "XFG.3", "Hospital A")
+        ]
+
+        self.assertEqual(
+            _get_search_sample_rows_for_user(self.user),
+            [
+                {
+                    "id": 1,
+                    "sequencing_id": "SEQ-1",
+                    "collection_date": "2024-01-01",
+                    "lineage": "XFG.3",
+                    "collecting_institution": "Hospital A",
+                }
+            ],
+        )
+
+    def test_datatable_matching_and_sort_helpers_cover_negative_branches(self):
+        row = {
+            "sequencing_id": "SEQ-1",
+            "collection_date": "2024-01-01",
+            "lineage": "XFG.3",
+            "collecting_institution": None,
+        }
+
+        self.assertFalse(_row_matches_search(row, "missing", []))
+        self.assertFalse(
+            _row_matches_search(
+                row,
+                "",
+                [("lineage", "JN.1", True)],
+            )
+        )
+        self.assertFalse(
+            _row_matches_search(
+                row,
+                "",
+                [("sequencing_id", "SEQ-2", False)],
+            )
+        )
+        self.assertEqual(_get_sort_value({"field": None}, "field"), "")
+        self.assertEqual(_get_sort_value({"field": "ABC"}, "field"), "abc")
+        self.assertEqual(_get_sort_value({"field": 5}, "field"), 5)
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.generic_functions.get_configuration_value")
+    @patch("core.views.core.utils.samples.count_handled_samples")
+    def test_index_renders_sample_count_and_nextstrain_url(
+        self, count_samples, get_config, render
+    ):
+        request = self.factory.get("/")
+        count_samples.return_value = {"Defined": 10}
+        get_config.return_value = "https://nextstrain.example"
+
+        core.views.index(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/index.html",
+            {
+                "number_of_samples": {"Defined": 10},
+                "nextstrain_url": "https://nextstrain.example",
+            },
+        )
+
+    @patch("core.views.redirect")
+    def test_assign_samples_redirects_non_admin(self, redirect):
+        request = self.factory.get("/assignSamples")
+        request.user = self.user
+
+        core.views.assign_samples_to_user(request)
+
+        redirect.assert_called_once_with("/")
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.assign_samples_to_new_user")
+    def test_assign_samples_posts_assignment_for_admin(self, assign_samples, render):
+        request = self.factory.post(
+            "/assignSamples",
+            {"action": "assignSamples", "sample": "S1"},
+        )
+        request.user = self.admin
+        assign_samples.return_value = {"SUCCESS": "assigned"}
+
+        core.views.assign_samples_to_user(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/assignSamplesToUser.html",
+            {"SUCCESS": "assigned"},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.generic_functions.get_defined_users")
+    @patch("core.views.core.utils.labs.get_all_defined_labs")
+    def test_assign_samples_get_renders_labs_and_users(
+        self, get_labs, get_users, render
+    ):
+        request = self.factory.get("/assignSamples")
+        request.user = self.admin
+        get_labs.return_value = ["Lab A"]
+        get_users.return_value = ["alice"]
+
+        core.views.assign_samples_to_user(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/assignSamplesToUser.html",
+            {"lab_data": {"labs": ["Lab A"], "users": ["alice"]}},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.samples.get_sample_display_data",
+        return_value={"ERROR": "Not found"},
+    )
+    def test_sample_display_renders_error(self, _sample_data, render):
+        request = self.factory.get("/sampleDisplay=1")
+        request.user = self.user
+
+        core.views.sample_display(request, 1)
+
+        render.assert_called_once_with(
+            request,
+            "core/sampleDisplay.html",
+            {"ERROR": "Not found"},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.variants.get_variant_graphic_from_sample",
+        return_value="variant graphic",
+    )
+    @patch(
+        "core.views.core.utils.variants.get_variant_data_from_sample",
+        return_value={"heading": "Variants"},
+    )
+    @patch(
+        "core.views.core.utils.lineage.get_lineage_data_from_sample",
+        return_value={"lineage": "XFG.3"},
+    )
+    @patch(
+        "core.views.core.utils.bioinfo_analysis.get_bioinfo_analysis_data_from_sample",
+        return_value={"depth": 100},
+    )
+    @patch(
+        "core.views.core.utils.public_db.get_public_information_from_sample",
+        side_effect=[{"gisaid": "EPI"}, {"ena": "ERS"}],
+    )
+    @patch(
+        "core.views.core.utils.samples.get_sample_display_data",
+        return_value={"sample": "S1"},
+    )
+    def test_sample_display_enriches_successful_sample_context(
+        self,
+        _sample_data,
+        _public_data,
+        _bioinfo,
+        _lineage,
+        _variant,
+        _graphic,
+        render,
+    ):
+        request = self.factory.get("/sampleDisplay=1")
+        request.user = self.user
+
+        core.views.sample_display(request, 1)
+
+        context = render.call_args.args[2]["sample_data"]
+        self.assertEqual(context["gisaid"], {"gisaid": "EPI"})
+        self.assertEqual(context["ena"], {"ena": "ERS"})
+        self.assertEqual(context["lineage"], {"lineage": "XFG.3"})
+        self.assertEqual(context["graphic"], "variant graphic")
+
+    @patch("core.views.redirect")
+    def test_schema_views_redirect_non_admin_users(self, redirect):
+        request = self.factory.get("/schemaHandling")
+        request.user = self.user
+
+        core.views.schema_handling(request)
+        core.views.schema_display(request, 1)
+
+        self.assertEqual(redirect.call_count, 2)
+        redirect.assert_called_with("/")
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.get_schemas_loaded",
+        return_value=["schema-v1"],
+    )
+    def test_schema_handling_get_renders_loaded_schemas(self, _schemas, render):
+        request = self.factory.get("/schemaHandling")
+        request.user = self.admin
+
+        core.views.schema_handling(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/schemaHandling.html",
+            {"schemas": ["schema-v1"]},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.process_schema_file",
+        return_value={"ERROR": "Invalid schema"},
+    )
+    def test_schema_handling_upload_error(self, _process_schema, render):
+        request = self.factory.post(
+            "/schemaHandling",
+            {"action": "uploadSchema"},
+        )
+        request.user = self.admin
+        request.FILES["schemaFile"] = MagicMock()
+
+        core.views.schema_handling(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/schemaHandling.html",
+            {"ERROR": "Invalid schema"},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.get_schemas_loaded",
+        return_value=["schema-v1"],
+    )
+    @patch(
+        "core.views.core.utils.schema.process_schema_file",
+        return_value={"SUCCESS": "Schema loaded"},
+    )
+    def test_schema_handling_upload_success(self, _process_schema, _schemas, render):
+        request = self.factory.post(
+            "/schemaHandling",
+            {"action": "uploadSchema", "schemaDefault": "on"},
+        )
+        request.user = self.admin
+        request.FILES["schemaFile"] = MagicMock()
+
+        core.views.schema_handling(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/schemaHandling.html",
+            {"SUCCESS": "Schema loaded", "schemas": ["schema-v1"]},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.get_schema_display_data",
+        return_value={"schema": "v1"},
+    )
+    def test_schema_display_renders_schema_data(self, _schema_data, render):
+        request = self.factory.get("/schemaDisplay=1")
+        request.user = self.admin
+
+        core.views.schema_display(request, 1)
+
+        render.assert_called_once_with(
+            request,
+            "core/schemaDisplay.html",
+            {"schema_data": {"schema": "v1"}},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views._get_search_sample_rows_for_user",
+        return_value={"ERROR": "No samples"},
+    )
+    def test_search_sample_renders_error_and_empty_filter_options(
+        self, _rows, render
+    ):
+        request = self.factory.get("/searchSample")
+        request.user = self.user
+
+        core.views.search_sample(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/searchSample.html",
+            {
+                "ERROR": "No samples",
+                "lineage_options": [],
+                "collecting_institution_options": [],
+            },
+        )
+
+    @patch("core.views.render")
+    @patch("core.views._get_search_sample_rows_for_user")
+    def test_search_sample_renders_sorted_filter_options(self, get_rows, render):
+        request = self.factory.get("/searchSample")
+        request.user = self.user
+        get_rows.return_value = [
+            {
+                "lineage": "XFG.3",
+                "collecting_institution": "Hospital B",
+            },
+            {
+                "lineage": "JN.1",
+                "collecting_institution": "Hospital A",
+            },
+            {"lineage": "", "collecting_institution": ""},
+        ]
+
+        core.views.search_sample(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/searchSample.html",
+            {
+                "lineage_options": ["JN.1", "XFG.3"],
+                "collecting_institution_options": ["Hospital A", "Hospital B"],
+            },
+        )
+
+    @patch("core.views._get_search_sample_rows_for_user")
+    def test_search_sample_data_handles_invalid_pagination_and_all_rows(
+        self, get_rows
+    ):
+        get_rows.return_value = [
+            {
+                "id": 1,
+                "sequencing_id": "SEQ-1",
+                "collection_date": "2024-01-01",
+                "lineage": "XFG.3",
+                "collecting_institution": "Hospital A",
+            }
+        ]
+        request = self.factory.get(
+            "/searchSample/data",
+            {
+                "draw": "bad",
+                "start": "bad",
+                "length": "-1",
+                "order[0][column]": "bad",
+            },
+        )
+        request.user = self.user
+
+        response = core.views.search_sample_data(request)
+        payload = json.loads(response.content)
+
+        self.assertEqual(payload["draw"], 0)
+        self.assertEqual(payload["recordsFiltered"], 1)
+        self.assertEqual(payload["data"][0]["sequencing_id"], "SEQ-1")
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.store_fields_metadata_visualization",
+        return_value={"ERROR": "Select at least one field"},
+    )
+    @patch(
+        "core.views.core.utils.schema.get_fields_from_schema",
+        return_value=["field-a"],
+    )
+    @patch("core.views.core.utils.schema.get_schema_obj_from_id")
+    def test_metadata_visualization_select_fields_error(
+        self, _schema_obj, _fields, _store, render
+    ):
+        request = self.factory.post(
+            "/metadataVisualization",
+            {"action": "selectFields", "schemaID": "1"},
+        )
+        request.user = self.admin
+
+        core.views.metadata_visualization(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataVisualization.html",
+            {
+                "ERROR": {"ERROR": "Select at least one field"},
+                "m_visualization": ["field-a"],
+            },
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.store_fields_metadata_visualization",
+        return_value={"SUCCESS": "stored"},
+    )
+    def test_metadata_visualization_select_fields_success(self, _store, render):
+        request = self.factory.post(
+            "/metadataVisualization",
+            {"action": "selectFields", "schemaID": "1"},
+        )
+        request.user = self.admin
+
+        core.views.metadata_visualization(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataVisualization.html",
+            {"SUCCESS": {"SUCCESS": "stored"}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.schema.del_metadata_visualization")
+    def test_metadata_visualization_delete_fields(self, delete_fields, render):
+        request = self.factory.post(
+            "/metadataVisualization",
+            {"action": "deleteFields"},
+        )
+        request.user = self.admin
+
+        core.views.metadata_visualization(request)
+
+        delete_fields.assert_called_once_with()
+        render.assert_called_once_with(
+            request,
+            "core/metadataVisualization.html",
+            {"DELETE": "DELETE"},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.get_latest_schema",
+        return_value={"ERROR": "No schema"},
+    )
+    def test_metadata_visualization_get_reports_missing_schema(
+        self, _schema, render
+    ):
+        request = self.factory.get("/metadataVisualization")
+        request.user = self.admin
+
+        core.views.metadata_visualization(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataVisualization.html",
+            {"ERROR": "No schema"},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.fetch_info_meta_visualization",
+        return_value={"selected": ["field-a"]},
+    )
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_visualization_get_existing_selection(
+        self, _schema, _visualization, render
+    ):
+        request = self.factory.get("/metadataVisualization")
+        request.user = self.admin
+
+        core.views.metadata_visualization(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataVisualization.html",
+            {"data_visualization": {"selected": ["field-a"]}},
+        )
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.schema.get_fields_from_schema",
+        return_value=["field-a"],
+    )
+    @patch(
+        "core.views.core.utils.schema.fetch_info_meta_visualization",
+        return_value=[],
+    )
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_visualization_get_available_schema_fields(
+        self, _schema, _visualization, _fields, render
+    ):
+        request = self.factory.get("/metadataVisualization")
+        request.user = self.admin
+
+        core.views.metadata_visualization(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataVisualization.html",
+            {"m_visualization": ["field-a"]},
+        )
+
+    @patch("core.views.render")
+    def test_variants_renders_static_template(self, render):
+        request = self.factory.get("/variants")
+
+        core.views.variants(request)
+
+        render.assert_called_once_with(request, "core/variants.html", {})
+
+    @patch("core.views.render")
+    @patch(
+        "core.views.core.utils.samples.get_sample_per_date_per_all_lab",
+        return_value={"ERROR": "No preprocessed data"},
+    )
+    @patch("core.views.Group.objects.filter")
+    def test_intranet_renders_preprocessing_error(self, group_filter, _samples, render):
+        group_filter.return_value.last.return_value = object()
+        request = self.factory.get("/intranet")
+        request.user = SimpleNamespace(
+            username="collector",
+            is_authenticated=True,
+            groups=SimpleNamespace(all=lambda: []),
+        )
+
+        core.views.intranet(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/intranet.html",
+            {"ERROR": "No preprocessed data"},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.generic_functions.get_user_lab_field")
+    @patch("core.views.core.utils.labs.get_lab_codes_from_user", return_value=[])
+    @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Lab A")
+    @patch("core.views.core.utils.generic_functions.get_user_role", return_value="Collector")
+    @patch("core.views.core.utils.samples.get_sample_per_date_per_all_lab")
+    @patch("core.views.Group.objects.filter")
+    def test_intranet_non_manager_without_lab_field_returns_empty_context(
+        self,
+        group_filter,
+        get_samples,
+        _role,
+        _lab_name,
+        _lab_codes,
+        get_lab_field,
+        render,
+    ):
+        group_filter.return_value.last.return_value = object()
+        get_samples.return_value = [
+            {"iso_yearweek": "2024-W01", "num_samples": 2, "lab_code_1": "LAB-01"}
+        ]
+        get_lab_field.return_value = ""
+        request = self.factory.get("/intranet")
+        request.user = SimpleNamespace(
+            username="collector",
+            is_authenticated=True,
+            groups=SimpleNamespace(all=lambda: []),
+        )
+
+        core.views.intranet(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/intranet.html",
+            {"intra_data": {}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.public_db.percentage_graphic", return_value="percentage")
+    @patch("core.views.core.utils.public_db.get_preprocessed_ena_data")
+    @patch("core.views.core.utils.public_db.get_preprocessed_gisaid_data")
+    @patch("core.views.core.utils.samples.get_lab_last_actions", return_value=["action"])
+    @patch("core.views.core.utils.samples.create_dash_bar_for_each_lab", return_value="per-lab")
+    @patch("core.views.core.utils.samples.fancy_gauge_graphic", return_value="gauge")
+    @patch("core.views.core.utils.samples.create_date_sample_bar", return_value="bar")
+    @patch("core.views.core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab")
+    @patch("core.views.core.utils.samples.get_sample_objs_per_lab", return_value=[object(), object()])
+    @patch("core.views.core.utils.labs.get_display_name_from_code", return_value="Hospital A")
+    @patch("core.views.core.utils.generic_functions.get_user_lab_field", return_value="lab_code_1")
+    @patch("core.views.core.utils.labs.get_lab_codes_from_user", return_value=["LAB-01"])
+    @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Hospital A")
+    @patch("core.views.core.utils.generic_functions.get_user_role", return_value="Collector")
+    @patch("core.views.core.utils.samples.get_sample_per_date_per_all_lab")
+    @patch("core.views.Group.objects.filter")
+    def test_intranet_non_manager_builds_lab_context(
+        self,
+        group_filter,
+        get_samples,
+        _role,
+        _lab_name,
+        _lab_codes,
+        _lab_field,
+        _display_name,
+        _sample_objs,
+        analysis_stats,
+        _bar,
+        _gauge,
+        _per_lab,
+        _actions,
+        gisaid,
+        ena,
+        _percentage,
+        render,
+    ):
+        group_filter.return_value.last.return_value = object()
+        get_samples.return_value = [
+            {
+                "iso_yearweek": "2024-W01",
+                "num_samples": 2,
+                "lab_code_1": "LAB-01",
+                "collecting_institution": "Hospital A",
+                "legacy_collecting_institution": "Old Hospital A",
+                "submitting_institution": "Submitter",
+            },
+            {
+                "iso_yearweek": "2024-W02",
+                "num_samples": 3,
+                "lab_code_1": "LAB-02",
+                "collecting_institution": "Hospital B",
+                "legacy_collecting_institution": "Old Hospital B",
+                "submitting_institution": "Submitter",
+            },
+        ]
+        analysis_stats.return_value = {"analized": 1, "received": 2}
+        gisaid.return_value = {"Hospital A": [("G1",)]}
+        ena.return_value = {"Hospital A": [("E1",)]}
+        request = self.factory.get("/intranet")
+        request.user = SimpleNamespace(
+            username="collector",
+            is_authenticated=True,
+            groups=SimpleNamespace(all=lambda: []),
+        )
+
+        core.views.intranet(request)
+
+        intra_data = render.call_args.args[2]["intra_data"]
+        self.assertEqual(intra_data["lab"], "Hospital A")
+        self.assertEqual(intra_data["sample_bar_graph"], "bar")
+        self.assertEqual(intra_data["sample_gauge_graph"], "gauge")
+        self.assertFalse(intra_data["show_per_lab_dash"])
+        self.assertEqual(intra_data["gisaid_accession"], [("G1",)])
+        self.assertEqual(intra_data["ena_accession"], [("E1",)])
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.public_db.percentage_graphic", return_value="percentage")
+    @patch("core.views.core.utils.public_db.get_preprocessed_ena_data")
+    @patch("core.views.core.utils.public_db.get_preprocessed_gisaid_data")
+    @patch("core.views.core.utils.samples.get_lab_last_actions", return_value=["actions"])
+    @patch("core.views.core.utils.samples.create_dash_bar_for_each_lab", return_value="per-lab")
+    @patch("core.views.core.utils.samples.get_all_collecting_insts", return_value=[{"value": "LAB-01", "label": "Hospital A"}])
+    @patch("core.views.core.utils.samples.fancy_gauge_graphic", return_value="gauge")
+    @patch("core.views.core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab")
+    @patch("core.views.core.utils.samples.create_date_sample_bar", return_value="bar")
+    @patch("core.views.core.utils.samples.count_handled_samples", return_value={"Defined": 5})
+    @patch("core.views.core.utils.samples.get_sample_per_date_per_all_lab")
+    @patch("core.views.Group.objects.filter")
+    def test_intranet_manager_builds_global_context(
+        self,
+        group_filter,
+        get_samples,
+        _count,
+        _bar,
+        analysis_stats,
+        _gauge,
+        _all_labs,
+        _per_lab,
+        _actions,
+        gisaid,
+        ena,
+        _percentage,
+        render,
+    ):
+        manager_group = object()
+        group_filter.return_value.last.return_value = manager_group
+        get_samples.return_value = [
+            {
+                "iso_yearweek": "2018-W01",
+                "num_samples": 99,
+                "submitting_institution": "Old",
+            },
+            {
+                "iso_yearweek": "bad-week",
+                "num_samples": 99,
+                "submitting_institution": "Bad",
+            },
+            {
+                "iso_yearweek": "2024-W01",
+                "num_samples": 4,
+                "submitting_institution": "Submitter",
+                "collecting_institution": "Hospital A",
+            },
+        ]
+        analysis_stats.return_value = {"analized": 3, "received": 4}
+        gisaid.return_value = {"Lab A": [("G1",)]}
+        ena.return_value = {"Lab A": [("E1",)]}
+        request = self.factory.get("/intranet")
+        request.user = SimpleNamespace(
+            username="manager",
+            is_authenticated=True,
+            groups=SimpleNamespace(all=lambda: [manager_group]),
+        )
+
+        core.views.intranet(request)
+
+        manager_data = render.call_args.args[2]["manager_intra_data"]
+        self.assertEqual(manager_data["sample_bar_graph"], "bar")
+        self.assertEqual(manager_data["sample_gauge_graph"], "gauge")
+        self.assertEqual(manager_data["sample_per_lab_initial_arguments"], "per-lab")
+        self.assertEqual(manager_data["gisaid_accession"], [("Lab A", "G1")])
+        self.assertEqual(manager_data["ena_accession"], [("Lab A", "E1")])
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    @patch("core.views.core.utils.samples.save_excel_form_in_samba_folder")
+    def test_metadata_form_upload_file_records_submission(
+        self, save_file, _schema, render
+    ):
+        request = self.factory.post(
+            "/metadataForm",
+            {"action": "uploadMetadataFile"},
+        )
+        request.user = self.user
+        request.FILES["metadataFile"] = MagicMock()
+
+        core.views.metadata_form(request)
+
+        save_file.assert_called_once()
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"sample_recorded": {"ok": "OK"}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"form": "metadata"})
+    @patch("core.views.core.utils.samples.analyze_input_samples", return_value={})
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_define_samples_empty_analysis_returns_form(
+        self, _schema, _analyze, _form, render
+    ):
+        request = self.factory.post("/metadataForm", {"action": "defineSamples"})
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"m_form": {"form": "metadata"}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"form": "metadata"})
+    @patch(
+        "core.views.core.utils.samples.analyze_input_samples",
+        return_value={"s_incomplete": ["S1"]},
+    )
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_define_samples_renders_sample_issues(
+        self, _schema, _analyze, _form, render
+    ):
+        request = self.factory.post("/metadataForm", {"action": "defineSamples"})
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {
+                "sample_issues": {"s_incomplete": ["S1"]},
+                "m_form": {"form": "metadata"},
+            },
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.get_sample_pre_recorded", return_value=["S1"])
+    @patch("core.views.core.utils.samples.create_form_for_batch", return_value={"batch": "form"})
+    @patch("core.views.core.utils.samples.save_temp_sample_data", return_value={"saved": 1})
+    @patch(
+        "core.views.core.utils.samples.analyze_input_samples",
+        return_value={"save_samples": ["S1"]},
+    )
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_define_samples_success_builds_batch_form(
+        self, _schema, _analyze, _save_temp, _batch_form, _pre_recorded, render
+    ):
+        request = self.factory.post("/metadataForm", {"action": "defineSamples"})
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"m_batch_form": {"batch": "form"}, "sample_saved": {"saved": 1}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_form_for_batch", return_value={"batch": "form"})
+    @patch("core.views.core.utils.samples.get_sample_pre_recorded", return_value=["S1"])
+    @patch("core.views.core.utils.samples.check_if_empty_data", return_value=False)
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_define_batch_empty_keeps_batch_form(
+        self, _schema, _empty, _pre_recorded, _batch_form, render
+    ):
+        request = self.factory.post("/metadataForm", {"action": "defineBatch"})
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"m_batch_form": {"batch": "form"}, "sample_saved": ["S1"]},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.delete_temporary_sample_table")
+    @patch("core.views.core.utils.samples.write_form_data_to_excel")
+    @patch("core.views.core.utils.samples.join_sample_and_batch", return_value={"sample": "data"})
+    @patch("core.views.core.utils.samples.check_if_empty_data", return_value=True)
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_define_batch_success_writes_and_cleans_temp_data(
+        self,
+        _schema,
+        _empty,
+        join_data,
+        write_excel,
+        delete_temp,
+        render,
+    ):
+        request = self.factory.post("/metadataForm", {"action": "defineBatch"})
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        join_data.assert_called_once()
+        write_excel.assert_called_once_with({"sample": "data"}, self.user)
+        delete_temp.assert_called_once_with(self.user)
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"sample_recorded": {"ok": "OK"}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_form_for_batch", return_value={"batch": "form"})
+    @patch("core.views.core.utils.samples.get_sample_pre_recorded", return_value=["S1"])
+    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=True)
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_get_resumes_pending_batch(
+        self, _schema, _pending, _pre_recorded, _batch_form, render
+    ):
+        request = self.factory.get("/metadataForm")
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"m_batch_form": {"batch": "form"}, "sample_saved": ["S1"]},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"ERROR": "No schema"})
+    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=False)
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_get_renders_form_error(
+        self, _schema, _pending, _form, render
+    ):
+        request = self.factory.get("/metadataForm")
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"ERROR": "No schema"},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"lab_name": ""})
+    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=False)
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_get_requires_assigned_lab(
+        self, _schema, _pending, _form, render
+    ):
+        request = self.factory.get("/metadataForm")
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"ERROR": core.config.ERROR_USER_IS_NOT_ASSIGNED_TO_LAB},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"lab_name": "Lab A"})
+    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=False)
+    @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
+    def test_metadata_form_get_renders_metadata_form(
+        self, _schema, _pending, _form, render
+    ):
+        request = self.factory.get("/metadataForm")
+        request.user = self.user
+
+        core.views.metadata_form(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/metadataForm.html",
+            {"m_form": {"lab_name": "Lab A"}},
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Lab A")
+    @patch(
+        "core.views.core.utils.labs.get_lab_contact_details",
+        return_value={"ERROR": "Missing contact"},
+    )
+    def test_laboratory_contact_renders_missing_contact_error(
+        self, _contact, _lab_name, render
+    ):
+        request = self.factory.get("/laboratoryContact")
+        request.user = self.user
+
+        core.views.laboratory_contact(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/laboratoryContact.html",
+            {
+                "ERROR": "Missing contact : No contact data found for your laboratory Lab A",
+                "lab_data": {"error": "Missing contact"},
+            },
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.labs.update_contact_lab", return_value={"ERROR": "Invalid phone"})
+    @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Lab A")
+    @patch(
+        "core.views.core.utils.labs.get_lab_contact_details",
+        return_value={"Phone Number": "123", "Email": "old@example.org"},
+    )
+    def test_laboratory_contact_update_error(self, _contact, _lab_name, _update, render):
+        request = self.factory.post(
+            "/laboratoryContact",
+            {"action": "updateLabData", "phone_number": ""},
+        )
+        request.user = self.user
+
+        core.views.laboratory_contact(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/laboratoryContact.html",
+            {
+                "ERROR": "Invalid phone - Could not update your contact details",
+                "lab_data": {"phone_number": "123", "email": "old@example.org"},
+            },
+        )
+
+    @patch("core.views.render")
+    @patch("core.views.core.utils.labs.update_contact_lab", return_value=True)
+    @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Lab A")
+    @patch(
+        "core.views.core.utils.labs.get_lab_contact_details",
+        return_value={"Phone Number": "123", "Email": "old@example.org"},
+    )
+    def test_laboratory_contact_update_success_merges_posted_values(
+        self, _contact, _lab_name, _update, render
+    ):
+        request = self.factory.post(
+            "/laboratoryContact",
+            {
+                "action": "updateLabData",
+                "phone_number": "456",
+                "email": "",
+            },
+        )
+        request.user = self.user
+
+        core.views.laboratory_contact(request)
+
+        render.assert_called_once_with(
+            request,
+            "core/laboratoryContact.html",
+            {
+                "Success": "Success",
+                "lab_data": {"phone_number": "456", "email": "old@example.org"},
+            },
+        )
 
     @patch("core.views.render")
     def test_contact_renders_static_contact_information(self, render):
