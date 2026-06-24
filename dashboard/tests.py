@@ -106,6 +106,40 @@ class DashboardDataPreparationTests(SimpleTestCase):
         self.assertEqual(list(figure.data[0].y), [4, 4])
         self.assertEqual(list(figure.data[1].y), [75.0, 25.0])
 
+    def test_lineage_figure_accepts_manually_entered_us_dates(self):
+        data = pd.DataFrame(
+            {
+                "Lineage": ["XFG.3", "XFG.3"],
+                "Collection date": pd.to_datetime(["2026-01-05", "2026-01-12"]),
+                "samples": [2, 5],
+            }
+        )
+
+        figure = dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
+            data,
+            start_date="01/12/2026",
+            end_date="01/12/2026",
+        )
+
+        self.assertEqual(list(figure.data[0].y), [5])
+
+    def test_lineage_figure_empty_dates_use_full_range(self):
+        data = pd.DataFrame(
+            {
+                "Lineage": ["XFG.3", "XFG.3"],
+                "Collection date": pd.to_datetime(["2026-01-05", "2026-01-12"]),
+                "samples": [2, 5],
+            }
+        )
+
+        figure = dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
+            data,
+            start_date=None,
+            end_date=None,
+        )
+
+        self.assertEqual(list(figure.data[0].y), [2, 5])
+
 class GenericProcessDataTests(SimpleTestCase):
     @patch(
         "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
