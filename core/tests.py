@@ -1,11 +1,15 @@
 import json
+import os
+import tempfile
+from collections import OrderedDict
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pandas as pd
+import plotly.graph_objects as go
 from django.contrib.auth.models import Group, User
-from django.db import IntegrityError
+from django.db import DataError, IntegrityError
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -27,6 +31,7 @@ import core.utils.public_db
 import core.utils.rest_api
 import core.utils.samples
 import core.utils.samples_graphics
+import core.utils.samples_map
 import core.utils.schema
 import core.utils.variants
 from core.templatetags.user_groups import has_group
@@ -145,6 +150,7 @@ class GenericFunctionTests(SimpleTestCase):
 
 class LabCatalogTests(SimpleTestCase):
     def tearDown(self):
+        core.utils.lab_catalog._load_catalog.cache_clear()
         core.utils.lab_catalog._build_name_index.cache_clear()
 
     @patch("core.utils.lab_catalog._load_catalog")
@@ -173,6 +179,46 @@ class LabCatalogTests(SimpleTestCase):
             core.utils.lab_catalog.ensure_lab_display("UNKNOWN"),
             "UNKNOWN",
         )
+
+    def test_load_catalog_from_environment_path_skips_entries_without_code(self):
+        payload = {
+            "one": {
+                "collecting_institution_code_1": " LAB-01 ",
+                "collecting_institution": "Hospital A",
+            },
+            "two": {"collecting_institution": "No Code Hospital"},
+        }
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
+            json.dump(payload, handle)
+            catalog_path = handle.name
+
+        self.addCleanup(os.unlink, catalog_path)
+        with patch.dict(
+            os.environ, {"LABORATORY_ADDRESS_JSON": catalog_path}, clear=False
+        ):
+            core.utils.lab_catalog._load_catalog.cache_clear()
+            core.utils.lab_catalog._build_name_index.cache_clear()
+
+            self.assertEqual(
+                core.utils.lab_catalog.get_lab_name("LAB-01"),
+                "Hospital A",
+            )
+            self.assertIsNone(core.utils.lab_catalog.get_lab_entry("MISSING"))
+            self.assertEqual(
+                list(core.utils.lab_catalog.get_catalog().keys()),
+                ["LAB-01"],
+            )
+
+    def test_environment_catalog_path_must_exist(self):
+        with patch.dict(
+            os.environ,
+            {"LABORATORY_ADDRESS_JSON": "/tmp/relecov-missing-labs.json"},
+            clear=False,
+        ):
+            core.utils.lab_catalog._load_catalog.cache_clear()
+
+            with self.assertRaises(core.utils.lab_catalog.LabCatalogError):
+                core.utils.lab_catalog.get_catalog()
 
 
 class PlotlyDashGraphicTests(SimpleTestCase):
@@ -338,6 +384,1296 @@ class PlotlyDashGraphicTests(SimpleTestCase):
         self.assertEqual(
             figure.layout.title.text,
             "No data available for the selected laboratory",
+        )
+
+
+class PlotlyGraphicUtilityTests(SimpleTestCase):
+    @patch("core.utils.plotly_graphics.plot", return_value="<div>bar</div>")
+    def test_bar_graphic_builds_traces_and_applies_custom_axis(self, plot_mock):
+        data = pd.DataFrame(
+            {
+                "week": ["2026-W01", "2026-W02"],
+                "samples": [1, 200],
+                "processed": [2, 4],
+            }
+        )
+
+        result = core.utils.plotly_graphics.bar_graphic(
+            data,
+            ["week", "samples", "processed"],
+            ["Samples", "Processed"],
+            {"title": "Count"},
+            {
+                "title": "Weekly samples",
+                "height": 300,
+                "colors": ["red", "blue"],
+                "xaxis_tics": True,
+                "xaxis": {"tickangle": 0},
+            },
+        )
+
+        self.assertEqual(result, "<div>bar</div>")
+        figure = plot_mock.call_args.args[0]
+        self.assertEqual(len(figure.data), 2)
+        self.assertEqual(figure.data[0].name, "Samples")
+        self.assertEqual(figure.layout.yaxis.type, "log")
+        self.assertEqual(figure.layout.xaxis.tickangle, 0)
+
+    @patch("core.utils.plotly_graphics.plot", return_value="<div>line</div>")
+    def test_line_graphic_uses_default_color_and_optional_xaxis(self, plot_mock):
+        result = core.utils.plotly_graphics.line_graphic(
+            ["A", "B"],
+            [1, 2],
+            {
+                "height": 300,
+                "width": 400,
+                "x_title": "Week",
+                "y_title": "Samples",
+                "title": "Line",
+                "xaxis": {"tickangle": -30},
+            },
+        )
+
+        self.assertEqual(result, "<div>line</div>")
+        figure = plot_mock.call_args.args[0]
+        self.assertEqual(figure.data[0].line.color, core.utils.plotly_graphics.COLOR_PALETTE[1])
+        self.assertEqual(figure.layout.xaxis.tickangle, -30)
+
+    @patch("core.utils.plotly_graphics.plot", return_value="<div>hist</div>")
+    def test_histogram_graphic_applies_log_scale_for_large_range(self, plot_mock):
+        data = pd.DataFrame({"label": ["low", "high"], "count": [1, 1000]})
+
+        result = core.utils.plotly_graphics.histogram_graphic(
+            data,
+            ["label", "count"],
+            {"title": "Histogram", "width": 300},
+        )
+
+        self.assertEqual(result, "<div>hist</div>")
+        figure = plot_mock.call_args.args[0]
+        self.assertEqual(figure.layout.yaxis.type, "log")
+
+    @patch("core.utils.plotly_graphics.plot", return_value="<div>gauge</div>")
+    def test_gauge_and_pie_graphics_send_expected_figures_to_plot(self, plot_mock):
+        self.assertEqual(
+            core.utils.plotly_graphics.gauge_graphic({"value": 75}),
+            "<div>gauge</div>",
+        )
+        gauge_figure = plot_mock.call_args.args[0]
+        self.assertEqual(gauge_figure.data[0].value, 75)
+
+        plot_mock.return_value = "<div>pie</div>"
+        self.assertEqual(
+            core.utils.plotly_graphics.pie_graphic(
+                [2, 3], ["A", "B"], "Samples", show_legend=True
+            ),
+            "<div>pie</div>",
+        )
+        pie_figure = plot_mock.call_args.args[0]
+        self.assertTrue(pie_figure.layout.showlegend)
+        self.assertEqual(list(pie_figure.data[0].labels), ["A", "B"])
+
+    def test_sample_variant_argument_normalization_and_empty_figure(self):
+        self.assertEqual(
+            core.utils.plotly_graphics.build_sample_variant_initial_arguments(
+                {
+                    "x": ["10", None, "20"],
+                    "y": [0.5, 0.8],
+                    "mutationGroups": ["missense_variant"],
+                    "domains": [{"name": "S", "coord": "1-20"}],
+                }
+            ),
+            {
+                "mdata-store": {
+                    "data": {
+                        "x": [10, 20],
+                        "y": [0.5, 0.8],
+                        "mutationGroups": ["missense_variant"],
+                        "domains": [{"name": "S", "coord": "1-20"}],
+                    }
+                },
+                "toggle-rangeslider": {"value": ["on"]},
+                "previous-data": {"data": {"first_load": True}},
+            },
+        )
+
+        figure = core.utils.plotly_graphics.build_sample_variant_figure({})
+        self.assertEqual(
+            figure.layout.title.text,
+            "No variants available for the selected sample",
+        )
+
+    def test_sample_variant_figure_filters_relayout_range_and_unknown_groups(self):
+        figure = core.utils.plotly_graphics.build_sample_variant_figure(
+            {
+                "x": [10, 20, 30],
+                "y": [0.2, 0.8, 0.6],
+                "mutationGroups": ["missense_variant", "", "unknown_effect"],
+                "domains": [
+                    {"name": "S", "coord": "1-25"},
+                    {"name": "Custom", "coord": "26-40"},
+                ],
+            },
+            toggle_rangeslider=["on"],
+            relayout_data={"xaxis.range": [15, 35]},
+        )
+
+        marker_traces = [trace for trace in figure.data if trace.mode == "markers"]
+        self.assertEqual([trace.name for trace in marker_traces], ["Unknown", "unknown_effect"])
+        self.assertEqual(list(marker_traces[0].x), [20])
+        self.assertEqual(figure.layout.xaxis.range, (15, 35))
+        self.assertTrue(figure.layout.xaxis.rangeslider.visible)
+        self.assertEqual(len(figure.layout.shapes), 3)
+
+    def test_log_ydata_handles_all_zero_data_and_non_layout_objects(self):
+        figure = go.Figure()
+        self.assertIs(
+            core.utils.plotly_graphics.log_ydata_if_needed(figure, [0, 0]),
+            figure,
+        )
+        self.assertIsNone(figure.layout.yaxis.type)
+
+        class NoLayoutGraph:
+            def update_layout(self, **_kwargs):
+                raise TypeError("unsupported layout")
+
+        graph = NoLayoutGraph()
+        self.assertIs(
+            core.utils.plotly_graphics.log_ydata_if_needed(graph, [1, 1000]),
+            graph,
+        )
+
+
+class SchemaUtilityMockedBranchTests(SimpleTestCase):
+    @patch(
+        "core.utils.schema.core.utils.generic_functions.get_configuration_value",
+        return_value="FALSE",
+    )
+    def test_fields_template_returns_false_when_disabled(self, _get_config):
+        self.assertFalse(core.utils.schema.get_fields_if_template())
+
+    @patch(
+        "core.utils.schema.core.utils.generic_functions.get_configuration_value",
+        return_value="TRUE",
+    )
+    @patch("builtins.open", side_effect=OSError)
+    def test_fields_template_returns_false_when_file_missing(
+        self, _open_file, _get_config
+    ):
+        self.assertFalse(core.utils.schema.get_fields_if_template())
+
+    @patch(
+        "core.utils.schema.core.utils.generic_functions.get_configuration_value",
+        return_value="TRUE",
+    )
+    @patch("core.utils.schema.settings.BASE_DIR", "/project")
+    @patch("builtins.open", new_callable=mock_open, read_data="Field A\nField B\n")
+    def test_fields_template_reads_labels_from_config_file(
+        self, open_file, _get_config
+    ):
+        self.assertEqual(core.utils.schema.get_fields_if_template(), ["Field A", "Field B"])
+        open_file.assert_called_once_with(
+            os.path.join("/project", "conf", "template_for_metadata_form.txt"),
+            "r",
+        )
+
+    @patch("core.utils.schema.core.utils.generic_functions.store_file")
+    @patch("core.utils.schema.json.load", side_effect=json.decoder.JSONDecodeError("", "", 0))
+    def test_load_schema_reports_invalid_json_without_storing_file(
+        self, _json_load, store_file
+    ):
+        self.assertEqual(core.utils.schema.load_schema(MagicMock()), {"ERROR": core.config.ERROR_INVALID_JSON})
+        store_file.assert_not_called()
+
+    @patch(
+        "core.utils.schema.core.utils.generic_functions.store_file",
+        return_value="schemas/schema.json",
+    )
+    @patch("core.utils.schema.json.load", return_value={"title": "RELECOV"})
+    def test_load_schema_returns_payload_and_stored_filename(
+        self, _json_load, store_file
+    ):
+        json_file = MagicMock()
+
+        self.assertEqual(
+            core.utils.schema.load_schema(json_file),
+            {
+                "full_schema": {"title": "RELECOV"},
+                "file_name": "schemas/schema.json",
+            },
+        )
+        store_file.assert_called_once_with(json_file, core.config.SCHEMAS_UPLOAD_FOLDER)
+
+    @patch("core.utils.schema.get_schema_obj_from_id", return_value=object())
+    @patch("core.utils.schema.del_metadata_visualization")
+    @patch(
+        "core.utils.schema.core.models.MetadataVisualization.objects.create_metadata_visualization"
+    )
+    def test_store_fields_metadata_visualization_skips_blank_orders_and_counts_entries(
+        self, create_visualization, delete_visualization, _schema
+    ):
+        result = core.utils.schema.store_fields_metadata_visualization(
+            {
+                "schemaID": "7",
+                "table_data": json.dumps(
+                    [
+                        ["prop_a", "Label A", "", "true", "sample"],
+                        ["prop_b", "Label B", "2", "true", "batch"],
+                    ]
+                ),
+            }
+        )
+
+        self.assertEqual(result, {"SUCCESS": 1})
+        delete_visualization.assert_called_once_with()
+        create_visualization.assert_called_once()
+        self.assertEqual(
+            create_visualization.call_args.args[0]["property_name"],
+            "prop_b",
+        )
+
+    @patch("core.utils.schema.get_schema_obj_from_id", return_value=object())
+    @patch("core.utils.schema.del_metadata_visualization")
+    def test_store_fields_metadata_visualization_requires_selected_rows(
+        self, _delete_visualization, _schema
+    ):
+        self.assertEqual(
+            core.utils.schema.store_fields_metadata_visualization(
+                {
+                    "schemaID": "7",
+                    "table_data": json.dumps([["prop_a", "Label A", "", "true", "sample"]]),
+                }
+            ),
+            {"ERROR": core.config.NO_SELECTED_LABEL_WAS_DONE},
+        )
+
+    @patch("core.utils.schema.core.models.PropertyOptions.objects.create_property_options")
+    @patch("core.utils.schema.core.models.SchemaProperties.objects.create_new_property")
+    def test_store_schema_properties_marks_required_and_saves_enum_options(
+        self, create_property, create_option
+    ):
+        new_property = object()
+        create_property.return_value = new_property
+
+        result = core.utils.schema.store_schema_properties(
+            schema_obj=object(),
+            s_properties={
+                "field_a": {
+                    "label": "Field A",
+                    "enum": ["Alpha [ONT:1]", "Beta"],
+                }
+            },
+            required=["field_a"],
+        )
+
+        self.assertEqual(result, {"SUCCESS": ""})
+        created_data = create_property.call_args.args[0]
+        self.assertTrue(created_data["required"])
+        self.assertTrue(created_data["options"])
+        self.assertEqual(
+            [call.args[0] for call in create_option.call_args_list],
+            [
+                {"enum": "Alpha", "ontology": "ONT:1", "propertyID": new_property},
+                {"enum": "Beta", "ontology": None, "propertyID": new_property},
+            ],
+        )
+
+    @patch("core.utils.schema.core.models.PropertyOptions.objects.create_property_options")
+    @patch("core.utils.schema.core.models.SchemaProperties.objects.create_new_property")
+    def test_store_schema_properties_continues_after_property_or_option_errors(
+        self, create_property, create_option
+    ):
+        create_property.side_effect = [DataError("bad property"), object()]
+        create_option.side_effect = DataError("bad option")
+
+        result = core.utils.schema.store_schema_properties(
+            schema_obj=object(),
+            s_properties={
+                "bad_field": {"label": "Bad"},
+                "enum_field": {"label": "Enum", "enum": ["Value"]},
+            },
+            required=[],
+        )
+
+        self.assertEqual(result, {"SUCCESS": ""})
+        self.assertEqual(create_property.call_count, 2)
+        create_option.assert_called_once()
+
+    @patch("core.utils.schema.core.models.BioinfoAnalysisField.objects.create_or_get_field")
+    def test_store_bioinfo_fields_skips_sample_name_and_non_bioinformatic_classes(
+        self, create_field
+    ):
+        field = MagicMock()
+        create_field.return_value = field
+
+        result = core.utils.schema.store_bioinfo_fields(
+            schema_obj="schema",
+            s_properties={
+                "sample": {"sample_name": True, "label": "Sample"},
+                "host": {"classification": "Host", "label": "Host"},
+                "depth": {
+                    "classification": "Bioinformatic QC",
+                    "label": "Depth",
+                },
+            },
+        )
+
+        self.assertEqual(result, {"SUCCESS": ""})
+        create_field.assert_called_once_with(
+            {"property_name": "depth", "label_name": "Depth"}
+        )
+        field.schemaID.add.assert_called_once_with("schema")
+
+    @patch("core.utils.schema.core.models.PublicDatabaseFields.objects.create_new_field")
+    @patch("core.utils.schema.core.models.PublicDatabaseType.objects.filter")
+    @patch("core.utils.schema.core.models.PublicDatabaseType.objects.values_list")
+    def test_store_public_data_fields_uses_matching_database_type(
+        self, values_list, db_type_filter, create_field
+    ):
+        values_list.return_value.distinct.return_value = ["gisaid", "ena"]
+        db_type = object()
+        db_type_filter.return_value.last.return_value = db_type
+        field = MagicMock()
+        create_field.return_value = field
+
+        core.utils.schema.store_public_data_fields(
+            schema_obj="schema",
+            s_properties={
+                "gisaid_accession_id": {
+                    "classification": "Public databases",
+                    "label": "GISAID",
+                },
+                "host_field": {"classification": "Host", "label": "Host"},
+            },
+        )
+
+        create_field.assert_called_once_with(
+            {
+                "property_name": "gisaid_accession_id",
+                "label_name": "GISAID",
+                "database_type": db_type,
+            }
+        )
+        field.schemaID.add.assert_called_once_with("schema")
+
+
+class SampleUtilityBranchTests(SimpleTestCase):
+    @patch(
+        "core.utils.samples.core.utils.generic_functions.get_configuration_value",
+        return_value="ISCIII",
+    )
+    @patch(
+        "core.utils.samples.core.config.ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM",
+        ["GISAID id"],
+    )
+    @patch("core.utils.samples.core.models.core.models.Sample.objects.filter")
+    @patch("core.utils.samples.core.models.Profile.objects.filter")
+    def test_analyze_input_samples_groups_valid_existing_and_blank_rows(
+        self, profile_filter, sample_filter, _get_config
+    ):
+        profile_filter.return_value.last.return_value.get_lab_name.return_value = (
+            "Origin Lab"
+        )
+        sample_filter.return_value.exists.side_effect = [True, False]
+        heading = [
+            core.config.FIELD_FOR_GETTING_SAMPLE_ID,
+            "GISAID id",
+            "Required Field",
+        ]
+        request = SimpleNamespace(
+            user=SimpleNamespace(username="user"),
+            POST={
+                "heading": ",".join(heading),
+                "table_data": json.dumps(
+                    [
+                        ["", "", ""],
+                        ["SEQ-OLD", "", "present"],
+                        ["SEQ-NEW", "", "present"],
+                    ]
+                ),
+            },
+        )
+
+        result = core.utils.samples.analyze_input_samples(request)
+
+        self.assertEqual(result["s_already_record"], ["SEQ-OLD"])
+        self.assertEqual(
+            result["save_samples"],
+            [
+                {
+                    core.config.FIELD_FOR_GETTING_SAMPLE_ID: "SEQ-NEW",
+                    "GISAID id": "",
+                    "Required Field": "present",
+                    "Originating Laboratory": "Origin Lab",
+                    "Submitting Institution": "ISCIII",
+                }
+            ],
+        )
+
+    @patch(
+        "core.utils.samples.core.utils.generic_functions.get_configuration_value",
+        return_value="ISCIII",
+    )
+    @patch(
+        "core.utils.samples.core.config.ALLOWED_EMPTY_FIELDS_IN_METADATA_SAMPLE_FORM",
+        ["GISAID id"],
+    )
+    @patch("core.utils.samples.core.models.core.models.Sample.objects.filter")
+    @patch("core.utils.samples.core.models.Profile.objects.filter")
+    def test_analyze_input_samples_stops_on_required_empty_field(
+        self, profile_filter, sample_filter, _get_config
+    ):
+        profile_filter.return_value.last.return_value.get_lab_name.return_value = (
+            "Origin Lab"
+        )
+        sample_filter.return_value.exists.return_value = False
+        heading = [
+            core.config.FIELD_FOR_GETTING_SAMPLE_ID,
+            "GISAID id",
+            "Required Field",
+        ]
+        request = SimpleNamespace(
+            user=SimpleNamespace(username="user"),
+            POST={
+                "heading": ",".join(heading),
+                "table_data": json.dumps([["SEQ-1", "", ""]]),
+            },
+        )
+
+        result = core.utils.samples.analyze_input_samples(request)
+
+        self.assertEqual(result, {"s_incomplete": [["SEQ-1", "", ""]]})
+
+    @patch("core.utils.samples.core.models.core.models.Sample.objects.filter")
+    @patch("core.utils.samples.User.objects.filter")
+    def test_assign_samples_to_new_user_updates_existing_lab_samples(
+        self, user_filter, sample_filter
+    ):
+        user = SimpleNamespace(pk=7)
+        user_filter.return_value = [user]
+        sample_queryset = MagicMock()
+        sample_queryset.exists.return_value = True
+        sample_filter.return_value = sample_queryset
+
+        result = core.utils.samples.assign_samples_to_new_user(
+            {"userName": 7, "lab": "Lab A"}
+        )
+
+        self.assertEqual(result, {"Success": "Success"})
+        sample_queryset.update.assert_called_once_with(user=user)
+
+    @patch("core.utils.samples.core.models.core.models.Sample.objects.filter")
+    @patch("core.utils.samples.User.objects.filter", return_value=[object()])
+    def test_assign_samples_to_new_user_reports_lab_without_samples(
+        self, _user_filter, sample_filter
+    ):
+        sample_filter.return_value.exists.return_value = False
+
+        result = core.utils.samples.assign_samples_to_new_user(
+            {"userName": 7, "lab": "Missing Lab"}
+        )
+
+        self.assertIn("ERROR", result)
+        self.assertIn("Missing Lab", result["ERROR"])
+
+    @patch("core.utils.samples.core.models.BioinfoAnalysisValue.objects.filter")
+    @patch("core.utils.samples.core.models.DateUpdateState.objects.filter")
+    def test_count_handled_samples_fills_missing_states_and_bioinfo_runs(
+        self, state_filter, bioinfo_filter
+    ):
+        state_filter.return_value.values.return_value.annotate.return_value = [
+            {"stateID__state": "Defined", "count": 2},
+            {"stateID__state": "Gisaid", "count": 1},
+        ]
+        bioinfo_filter.return_value.count.return_value = 4
+
+        self.assertEqual(
+            core.utils.samples.count_handled_samples(),
+            {"Defined": 2, "Gisaid": 1, "Bioinfo": 4, "Ena": 0},
+        )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    def test_create_form_for_batch_reports_unreachable_iskylims(self, get_fields):
+        get_fields.side_effect = AttributeError
+
+        result = core.utils.samples.create_form_for_batch(
+            schema_obj=SimpleNamespace(get_schema_name=lambda: "schema covid"),
+            user_obj=SimpleNamespace(username="alice"),
+        )
+
+        self.assertEqual(
+            result, {"ERROR": core.config.ERROR_ISKYLIMS_NOT_REACHEABLE}
+        )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_fields_data")
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    def test_create_form_for_batch_requires_sample_metadata_fields(
+        self, metadata_filter, get_fields, get_project_fields
+    ):
+        get_fields.return_value = {}
+        get_project_fields.return_value = []
+        metadata_filter.return_value.exists.return_value = False
+
+        result = core.utils.samples.create_form_for_batch(
+            schema_obj=SimpleNamespace(get_schema_name=lambda: "schema covid"),
+            user_obj=SimpleNamespace(username="alice"),
+        )
+
+        self.assertEqual(
+            result,
+            {"ERROR": core.config.ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED},
+        )
+        get_project_fields.assert_called_once_with("covid")
+
+    @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_fields_data")
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    def test_create_form_for_batch_builds_project_field_options(
+        self, metadata_filter, get_fields, get_project_fields, get_lab_name
+    ):
+        get_fields.return_value = {}
+        get_project_fields.return_value = [
+            {
+                "sampleProjectFieldDescription": "Protocol",
+                "sampleProjectFieldType": "Options List",
+                "sampleProjectOptionList": [
+                    {"optionValue": "A"},
+                    {"optionValue": "B"},
+                ],
+            },
+            {
+                "sampleProjectFieldDescription": "Free text",
+                "sampleProjectFieldType": "Text",
+                "sampleProjectOptionList": [],
+            },
+        ]
+        sample_metadata_queryset = MagicMock()
+        sample_metadata_queryset.exists.return_value = True
+        batch_metadata_queryset = MagicMock()
+        batch_metadata_queryset.order_by.return_value = [
+            SimpleNamespace(get_label=lambda: "Protocol"),
+            SimpleNamespace(get_label=lambda: "Unknown"),
+        ]
+        metadata_filter.side_effect = [
+            sample_metadata_queryset,
+            batch_metadata_queryset,
+        ]
+        get_lab_name.return_value = "Lab A"
+
+        result = core.utils.samples.create_form_for_batch(
+            schema_obj=SimpleNamespace(get_schema_name=lambda: "schema covid"),
+            user_obj=SimpleNamespace(username="alice"),
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "fields": {
+                    "Protocol": {
+                        "format": "Options List",
+                        "options": ["A", "B"],
+                    },
+                    "Unknown": {},
+                },
+                "username": "alice",
+                "lab_name": "Lab A",
+            },
+        )
+
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    def test_create_form_for_sample_requires_sample_metadata_fields(
+        self, metadata_filter
+    ):
+        metadata_filter.return_value.exists.return_value = False
+
+        result = core.utils.samples.create_form_for_sample(
+            SimpleNamespace(get_schema_name=lambda: "schema covid")
+        )
+
+        self.assertEqual(
+            result,
+            {"ERROR": core.config.ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED},
+        )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_fields_data")
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    @patch("core.utils.samples.core.models.SchemaProperties.objects.filter")
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    def test_create_form_for_sample_reports_project_field_fetch_error(
+        self, metadata_filter, schema_filter, get_fields, get_project_fields
+    ):
+        metadata_queryset = MagicMock()
+        metadata_queryset.exists.return_value = True
+        metadata_queryset.order_by.return_value = []
+        metadata_filter.return_value = metadata_queryset
+        schema_filter.return_value = []
+        get_fields.return_value = {}
+        get_project_fields.return_value = {"ERROR": "unavailable"}
+
+        result = core.utils.samples.create_form_for_sample(
+            SimpleNamespace(get_schema_name=lambda: "schema covid")
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "ERROR": core.config.ERROR_UNABLE_FETCH_SAMPLE_PROJECT_FIELDS
+                + "for covid"
+            },
+        )
+
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_fields_data")
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
+    @patch("core.utils.samples.core.models.SchemaProperties.objects.filter")
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    def test_create_form_for_sample_maps_ontology_and_project_fields(
+        self, metadata_filter, schema_filter, get_fields, get_project_fields
+    ):
+        sample_metadata_queryset = MagicMock()
+        sample_metadata_queryset.exists.return_value = True
+        sample_metadata_queryset.order_by.return_value = [
+            SimpleNamespace(get_label=lambda: "Sample date"),
+            SimpleNamespace(get_label=lambda: "Specimen source"),
+            SimpleNamespace(get_label=lambda: "Originating Laboratory"),
+            SimpleNamespace(get_label=lambda: "Unknown"),
+        ]
+        metadata_filter.return_value = sample_metadata_queryset
+        schema_filter.return_value = [
+            SimpleNamespace(
+                get_ontology=lambda: "ONT:1",
+                get_label=lambda: "Sample date",
+                get_format=lambda: "text",
+            ),
+            SimpleNamespace(
+                get_ontology=lambda: "0",
+                get_label=lambda: "Ignored",
+                get_format=lambda: "text",
+            ),
+        ]
+        get_fields.return_value = {
+            "collection_date": {
+                "ontology": "ONT:1",
+                "field_name": "collection_date",
+                "options": ["2026-01-01"],
+            },
+            "unmapped": {"ontology": "MISSING", "field_name": "unmapped"},
+            "without_ontology": {"field_name": "ignored"},
+        }
+        get_project_fields.return_value = [
+            {
+                "sample_project_field_description": "Specimen source",
+                "sample_project_field_type": "Options List",
+                "sample_project_option_list": [{"option_value": "Swab"}],
+            }
+        ]
+
+        result = core.utils.samples.create_form_for_sample(
+            SimpleNamespace(get_schema_name=lambda: "schema covid")
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "heading": "Sample date,Specimen source,Unknown",
+                "data": {
+                    "Sample date": {
+                        "options": ["2026-01-01"],
+                        "format": "date",
+                    },
+                    "Specimen source": {
+                        "format": "Options List",
+                        "options": ["Swab"],
+                    },
+                    "Unknown": {},
+                },
+                "l_iskylims": "collection_date",
+                "l_metadata": "Sample date",
+            },
+        )
+
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.exists")
+    def test_create_metadata_form_requires_metadata_visualization(self, exists):
+        exists.return_value = False
+
+        result = core.utils.samples.create_metadata_form(
+            schema_obj=object(), user_obj=SimpleNamespace(username="alice")
+        )
+
+        self.assertEqual(
+            result,
+            {"ERROR": core.config.ERROR_FIELDS_FOR_METADATA_ARE_NOT_DEFINED},
+        )
+
+    @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
+    @patch("core.utils.samples.create_form_for_sample")
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.exists")
+    def test_create_metadata_form_returns_sample_error_or_full_form(
+        self, exists, create_form_for_sample, get_lab_name
+    ):
+        exists.return_value = True
+        create_form_for_sample.side_effect = [
+            {"ERROR": "sample form error"},
+            {"heading": "Sample", "data": {}},
+        ]
+        get_lab_name.return_value = "Lab A"
+        user = SimpleNamespace(username="alice")
+
+        self.assertEqual(
+            core.utils.samples.create_metadata_form(object(), user),
+            {"ERROR": "sample form error"},
+        )
+        self.assertEqual(
+            core.utils.samples.create_metadata_form(object(), user),
+            {
+                "sample": {"heading": "Sample", "data": {}},
+                "username": "alice",
+                "lab_name": "Lab A",
+            },
+        )
+
+    def test_check_if_empty_data_ignores_control_fields(self):
+        self.assertFalse(
+            core.utils.samples.check_if_empty_data(
+                {
+                    "csrfmiddlewaretoken": "token",
+                    "action": "submit",
+                    "field": "",
+                }
+            )
+        )
+        self.assertTrue(
+            core.utils.samples.check_if_empty_data(
+                {
+                    "csrfmiddlewaretoken": "token",
+                    "field": "value",
+                }
+            )
+        )
+
+    @patch("core.utils.samples.core.utils.plotly_graphics.gauge_graphic")
+    def test_percentage_gauge_handles_zero_and_calculates_ratio(self, gauge_graphic):
+        gauge_graphic.side_effect = ["zero-gauge", "ratio-gauge"]
+
+        self.assertEqual(
+            core.utils.samples.perc_gauge_graphic({"received": 0, "analized": 5}),
+            "zero-gauge",
+        )
+        self.assertEqual(
+            core.utils.samples.perc_gauge_graphic({"received": 8, "analized": 3}),
+            "ratio-gauge",
+        )
+
+        self.assertEqual(
+            [call.args[0] for call in gauge_graphic.call_args_list],
+            [{"value": 0}, {"value": 37.5}],
+        )
+
+    @patch(
+        "core.utils.samples.core.utils.plotly_graphics.histogram_graphic",
+        return_value="<div>histogram</div>",
+    )
+    def test_create_date_sample_bar_pads_single_digit_iso_weeks(self, histogram):
+        result = core.utils.samples.create_date_sample_bar(
+            {"2026-W1": 2, "2026-W10": 5},
+            {
+                "col_names": ["week", "samples"],
+                "options": {"title": "Samples"},
+            },
+        )
+
+        self.assertEqual(result, "<div>histogram</div>")
+        dataframe = histogram.call_args.args[0]
+        self.assertEqual(list(dataframe["week"]), ["2026-W01", "2026-W10"])
+
+    def test_create_dash_bar_for_each_lab_returns_none_without_data(self):
+        self.assertIsNone(core.utils.samples.create_dash_bar_for_each_lab([]))
+
+    @patch("core.utils.samples.core.utils.labs.get_display_name_from_code")
+    def test_create_dash_bar_for_each_lab_builds_options_from_data(
+        self, display_name
+    ):
+        display_name.side_effect = lambda code: {"LAB-01": "Catalog Hospital"}.get(
+            code, ""
+        )
+
+        result = core.utils.samples.create_dash_bar_for_each_lab(
+            [
+                {
+                    "lab_code_1": "LAB-01",
+                    "collecting_institution": None,
+                    "legacy_collecting_institution": "Legacy A",
+                    "iso_yearweek": "2026-W01",
+                    "num_samples": 4,
+                },
+                {
+                    "lab_code_1": None,
+                    "collecting_institution": "Legacy B",
+                    "iso_yearweek": "2026-W02",
+                    "num_samples": 2,
+                },
+            ]
+        )
+
+        self.assertEqual(
+            result["select_collecting_inst"],
+            {
+                "options": [
+                    {"label": "Catalog Hospital", "value": "LAB-01"},
+                    {"label": "Legacy B", "value": "Legacy B"},
+                ],
+                "value": "LAB-01",
+            },
+        )
+
+    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
+    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    def test_sample_dates_cache_miss_runs_preprocessing(
+        self, get_graphic_json_data, preprocess
+    ):
+        get_graphic_json_data.side_effect = [None, {"2026-W01": 2}]
+        preprocess.return_value = {"SUCCESS": "Success"}
+
+        self.assertEqual(
+            core.utils.samples.get_sample_per_date_per_all_lab(),
+            {"2026-W01": 2},
+        )
+        preprocess.assert_called_once_with()
+
+    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
+    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    def test_detailed_sample_dates_returns_preprocessing_error(
+        self, get_graphic_json_data, preprocess
+    ):
+        get_graphic_json_data.return_value = None
+        preprocess.return_value = {"ERROR": "cache failed"}
+
+        self.assertEqual(
+            core.utils.samples.get_sample_per_date_per_all_lab(detailed=True),
+            {"ERROR": "cache failed"},
+        )
+        preprocess.assert_called_once_with(detailed=True)
+
+    @patch("core.utils.samples.core.models.Sample.objects.filter")
+    def test_sample_object_lookup_helpers_return_last_match_or_none(self, sample_filter):
+        sample = object()
+        found = MagicMock()
+        found.exists.return_value = True
+        found.last.return_value = sample
+        missing = MagicMock()
+        missing.exists.return_value = False
+        sample_filter.side_effect = [found, found, found, found, found, missing]
+
+        self.assertIs(core.utils.samples.get_sample_obj_from_sample_name("SEQ-1"), sample)
+        self.assertIs(
+            core.utils.samples.get_sample_obj_from_unique_sample_id("RL-AAA-0001"),
+            sample,
+        )
+        self.assertIs(
+            core.utils.samples.get_sample_obj_from_fingerprint("fingerprint"),
+            sample,
+        )
+        self.assertIsNone(core.utils.samples.get_sample_obj_from_id(404))
+
+    @patch("core.utils.samples.core.models.PublicDatabaseValues.objects.filter")
+    def test_get_gisaid_info_returns_empty_values_when_public_db_value_missing(
+        self, value_filter
+    ):
+        fields = [MagicMock(), MagicMock()]
+        fields[0].get_label_name.return_value = "GISAID ID"
+        fields[1].get_label_name.return_value = "Virus name"
+        value_queryset_with_value = MagicMock()
+        value_queryset_with_value.exists.return_value = True
+        value_queryset_with_value.last.return_value.get_value.return_value = "EPI-1"
+        value_queryset_without_value = MagicMock()
+        value_queryset_without_value.exists.return_value = False
+        value_filter.side_effect = [value_queryset_with_value, value_queryset_without_value]
+
+        with patch(
+            "core.utils.samples.get_public_database_fields", return_value=fields
+        ):
+            result = core.utils.samples.get_gisaid_info(
+                sample_obj=object(), schema_obj=object()
+            )
+
+        self.assertEqual(result, [["GISAID ID", "EPI-1"], ["Virus name", ""]])
+
+    def test_get_gisaid_info_returns_empty_list_without_configured_fields(self):
+        with patch("core.utils.samples.get_public_database_fields", return_value=None):
+            self.assertEqual(core.utils.samples.get_gisaid_info(object(), object()), [])
+
+    @patch("core.utils.samples.core.models.PublicDatabaseFields.objects.filter")
+    def test_get_public_database_fields_returns_queryset_or_none(self, field_filter):
+        queryset = MagicMock()
+        queryset.exists.return_value = True
+        field_filter.return_value = queryset
+
+        self.assertIs(
+            core.utils.samples.get_public_database_fields(object(), "gisaid"),
+            queryset,
+        )
+
+        missing_queryset = MagicMock()
+        missing_queryset.exists.return_value = False
+        field_filter.return_value = missing_queryset
+        self.assertIsNone(core.utils.samples.get_public_database_fields(object(), "ena"))
+
+    @patch("core.utils.samples.get_sample_obj_from_id", return_value=None)
+    def test_get_sample_display_data_reports_missing_sample(self, _get_sample):
+        self.assertEqual(
+            core.utils.samples.get_sample_display_data(404, SimpleNamespace()),
+            {"ERROR": core.config.ERROR_SAMPLE_DOES_NOT_EXIST},
+        )
+
+    @patch("core.utils.samples.core.models.Sample.objects.filter")
+    def test_sample_count_and_object_count_helpers_delegate_to_manager(
+        self, sample_filter
+    ):
+        schema = object()
+        sample_filter.return_value.count.return_value = 6
+        with patch("core.utils.samples.core.models.Sample.objects.count", return_value=9):
+            self.assertEqual(core.utils.samples.get_samples_count_per_schema(schema), 6)
+            self.assertEqual(core.utils.samples.get_samples_count(), 9)
+        sample_filter.assert_called_once_with(schema_obj=schema)
+
+    @patch("core.utils.samples.core.models.Sample.objects.filter")
+    def test_get_sample_per_date_per_lab_groups_dates_by_iso_week(self, sample_filter):
+        dates_queryset = MagicMock()
+        dates_queryset.values_list.return_value.distinct.return_value.order_by.return_value = [
+            datetime(2026, 1, 5),
+            datetime(2026, 1, 12),
+        ]
+        count_week_one = MagicMock()
+        count_week_one.count.return_value = 2
+        count_week_two = MagicMock()
+        count_week_two.count.return_value = 3
+        sample_filter.side_effect = [dates_queryset, count_week_one, count_week_two]
+
+        self.assertEqual(
+            core.utils.samples.get_sample_per_date_per_lab("Lab A"),
+            OrderedDict([("2026-W02", 2), ("2026-W03", 3)]),
+        )
+
+    @patch("core.utils.samples.core.models.Sample.objects.filter")
+    def test_get_sample_objs_per_lab_delegates_to_filter(self, sample_filter):
+        queryset = object()
+        sample_filter.return_value = queryset
+
+        self.assertIs(core.utils.samples.get_sample_objs_per_lab("Lab A"), queryset)
+        sample_filter.assert_called_once_with(submitting_institution__iexact="Lab A")
+
+    @patch("core.utils.samples.core.models.Profile.objects.filter")
+    def test_get_user_id_from_submitting_institution_returns_user_or_none(
+        self, profile_filter
+    ):
+        found = MagicMock()
+        found.exists.return_value = True
+        found.last.return_value.user.pk = 42
+        missing = MagicMock()
+        missing.exists.return_value = False
+        profile_filter.side_effect = [found, found, missing]
+
+        self.assertEqual(
+            core.utils.samples.get_user_id_from_submitting_institution("Lab A"), 42
+        )
+        self.assertIsNone(
+            core.utils.samples.get_user_id_from_submitting_institution("Missing")
+        )
+
+    @patch("core.utils.samples.core.models.MetadataVisualization.objects.filter")
+    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.filter")
+    def test_join_sample_and_batch_merges_batch_and_temporary_values(
+        self, temp_filter, metadata_filter
+    ):
+        temp_queryset = MagicMock()
+        temp_queryset.exists.return_value = True
+        temp_one = MagicMock()
+        temp_one.get_sample_name.return_value = "SEQ-1"
+        temp_one.get_temp_values.return_value = {
+            core.config.FIELD_FOR_GETTING_SAMPLE_ID: "SEQ-1",
+            "Sample Field": "sample-value",
+        }
+        temp_queryset.__iter__.return_value = iter([temp_one])
+        temp_filter.return_value = temp_queryset
+        metadata_filter.return_value.order_by.return_value.values_list.return_value = [
+            core.config.FIELD_FOR_GETTING_SAMPLE_ID,
+            "Batch Field",
+            "Sample Field",
+            "Missing Field",
+        ]
+
+        result = core.utils.samples.join_sample_and_batch(
+            {"Batch Field": "batch-value"},
+            user_obj=object(),
+            schema_obj=object(),
+        )
+
+        self.assertEqual(
+            result,
+            [
+                [
+                    core.config.FIELD_FOR_GETTING_SAMPLE_ID,
+                    "Batch Field",
+                    "Sample Field",
+                    "Missing Field",
+                ],
+                ["SEQ-1", "batch-value", "sample-value", ""],
+            ],
+        )
+
+    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.filter")
+    def test_join_sample_and_batch_reports_missing_temporary_samples(
+        self, temp_filter
+    ):
+        temp_filter.return_value.exists.return_value = False
+
+        self.assertEqual(
+            core.utils.samples.join_sample_and_batch({}, object(), object()),
+            {"ERROR": core.config.ERROR_SAMPLES_NOT_DEFINED_IN_FORM},
+        )
+
+    @patch("core.utils.samples.core.models.Sample.objects.values_list")
+    def test_get_all_submitting_insts_returns_ordered_distinct_values(
+        self, values_list
+    ):
+        values_list.return_value.distinct.return_value.order_by.return_value = [
+            "Lab A",
+            "Lab B",
+        ]
+
+        self.assertEqual(
+            core.utils.samples.get_all_submitting_insts(), ["Lab A", "Lab B"]
+        )
+
+    @patch("core.utils.samples.core.utils.labs.get_display_name_from_code")
+    @patch("core.utils.samples.core.models.Sample.objects.order_by")
+    def test_get_all_collecting_insts_deduplicates_and_falls_back_to_legacy_name(
+        self, order_by, display_name
+    ):
+        order_by.return_value.values.return_value.distinct.return_value = [
+            {"lab_code_1": "LAB-01", "collecting_institution": "Legacy A"},
+            {"lab_code_1": "LAB-01", "collecting_institution": "Duplicate A"},
+            {"lab_code_1": None, "collecting_institution": "Legacy B"},
+            {"lab_code_1": None, "collecting_institution": ""},
+        ]
+        display_name.side_effect = lambda code: "Catalog A" if code == "LAB-01" else ""
+
+        self.assertEqual(
+            core.utils.samples.get_all_collecting_insts(),
+            [
+                {
+                    "value": "LAB-01",
+                    "label": "Catalog A",
+                    "lab_code_1": "LAB-01",
+                    "legacy_name": "Legacy A",
+                },
+                {
+                    "value": "Legacy B",
+                    "label": "Legacy B",
+                    "lab_code_1": None,
+                    "legacy_name": "Legacy B",
+                },
+            ],
+        )
+
+    @patch("core.utils.samples.core.models.Sample.objects.exists", return_value=False)
+    def test_get_all_received_samples_with_dates_returns_empty_without_samples(
+        self, _exists
+    ):
+        self.assertEqual(core.utils.samples.get_all_recieved_samples_with_dates(), [])
+
+    @patch("core.utils.samples.core.models.Sample.objects.exists", return_value=True)
+    @patch("core.utils.samples.core.models.Sample.objects.annotate")
+    def test_get_all_received_samples_with_dates_supports_daily_and_accumulated(
+        self, annotate, _exists
+    ):
+        annotate.return_value.values.return_value.annotate.return_value.order_by.return_value = [
+            {"date_only": datetime(2026, 1, 1).date(), "count": 2},
+            {"date_only": datetime(2026, 1, 2).date(), "count": 3},
+        ]
+
+        self.assertEqual(
+            core.utils.samples.get_all_recieved_samples_with_dates(),
+            [
+                {datetime(2026, 1, 1).date(): 2},
+                {datetime(2026, 1, 2).date(): 3},
+            ],
+        )
+        self.assertEqual(
+            core.utils.samples.get_all_recieved_samples_with_dates(accumulated=True),
+            [
+                {datetime(2026, 1, 1).date(): 2},
+                {datetime(2026, 1, 2).date(): 5},
+            ],
+        )
+
+    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.filter")
+    def test_get_sample_pre_recorded_returns_temporal_sample_ids(self, temp_filter):
+        temp_filter.return_value.values_list.return_value = ["SEQ-1", "SEQ-2"]
+
+        self.assertEqual(
+            core.utils.samples.get_sample_pre_recorded(object()), ["SEQ-1", "SEQ-2"]
+        )
+
+    def test_increase_unique_value_advances_middle_and_last_letters(self):
+        self.assertEqual(
+            core.utils.samples.increase_unique_value("RL-AAZ-9999"),
+            "RL-ABA-0001",
+        )
+        self.assertEqual(
+            core.utils.samples.increase_unique_value("RL-ABC-0009"),
+            "RL-ABC-0010",
+        )
+
+    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.filter")
+    def test_pending_samples_in_metadata_form_checks_temporal_storage(
+        self, temp_filter
+    ):
+        temp_filter.return_value.exists.side_effect = [True, False]
+
+        self.assertTrue(core.utils.samples.pending_samples_in_metadata_form(object()))
+        self.assertFalse(core.utils.samples.pending_samples_in_metadata_form(object()))
+
+    @patch("core.utils.samples.shutil.move")
+    @patch("core.utils.samples.FileSystemStorage")
+    @patch(
+        "core.utils.samples.core.utils.generic_functions.get_configuration_value",
+        return_value="/samba",
+    )
+    @patch("core.utils.samples.settings.MEDIA_ROOT", "/media")
+    def test_save_excel_form_in_samba_folder_saves_then_moves_file(
+        self, _get_config, storage_class, move
+    ):
+        core.utils.samples.save_excel_form_in_samba_folder(
+            SimpleNamespace(name="metadata.xlsx"), "alice"
+        )
+
+        storage_class.return_value.save.assert_called_once_with(
+            "alice_metadata.xlsx", SimpleNamespace(name="metadata.xlsx")
+        )
+        move.assert_called_once_with(
+            os.path.join("/media", "alice_metadata.xlsx"),
+            os.path.join("/samba", "alice_metadata.xlsx"),
+        )
+
+    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.save_temp_data")
+    def test_save_temp_sample_data_persists_each_field_with_user_and_sample_name(
+        self, save_temp_data
+    ):
+        user = SimpleNamespace(username="alice")
+
+        core.utils.samples.save_temp_sample_data(
+            [
+                {
+                    core.config.FIELD_FOR_GETTING_SAMPLE_ID: "SEQ-1",
+                    "Field A": "value-a",
+                }
+            ],
+            user,
+        )
+
+        self.assertEqual(save_temp_data.call_count, 2)
+        self.assertEqual(
+            save_temp_data.call_args_list[0].args[0],
+            {
+                "sample_name": "SEQ-1",
+                "field": core.config.FIELD_FOR_GETTING_SAMPLE_ID,
+                "value": "SEQ-1",
+                "user": user,
+            },
+        )
+
+    @patch("core.utils.samples.relecov_tools.utils.write_to_excel_file", create=True)
+    @patch("core.utils.samples.os.makedirs")
+    @patch(
+        "core.utils.samples.core.utils.generic_functions.get_configuration_value",
+        return_value="/samba",
+    )
+    def test_write_form_data_to_excel_creates_samba_folder_and_writes_file(
+        self, _get_config, makedirs, write_to_excel
+    ):
+        data = [["heading"], ["value"]]
+
+        core.utils.samples.write_form_data_to_excel(
+            data, SimpleNamespace(username="alice")
+        )
+
+        makedirs.assert_called_once_with("/samba", exist_ok=True)
+        write_to_excel.assert_called_once_with(
+            data,
+            os.path.join("/samba", "Metadata_lab_alice.xlsx"),
+            "METADATA_LAB",
+            {},
+        )
+
+
+class SamplesMapTests(SimpleTestCase):
+    @patch("core.utils.samples_map.folium.GeoJsonTooltip")
+    @patch("core.utils.samples_map.folium.Element", side_effect=lambda value: value)
+    @patch("core.utils.samples_map.folium.GeoJson")
+    @patch("core.utils.samples_map.folium.Choropleth")
+    @patch("core.utils.samples_map.folium.TileLayer")
+    @patch("core.utils.samples_map.folium.Map")
+    @patch("core.utils.samples_map.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch("core.utils.samples_map.json.load")
+    @patch("core.utils.samples_map.settings.STATIC_ROOT", "/tmp/static")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_build_samples_map_assigns_counts_to_geojson_features(
+        self,
+        _open_file,
+        load_json,
+        get_graphic_json_data,
+        map_class,
+        tile_layer,
+        choropleth,
+        geo_json,
+        _element,
+        _tooltip,
+    ):
+        counties = {
+            "features": [
+                {"properties": {"cartodb_id": 1, "name": "A"}},
+                {"properties": {"cartodb_id": 2, "name": "B"}},
+            ]
+        }
+        load_json.return_value = counties
+        get_graphic_json_data.return_value = [
+            {"ccaa_id": 1, "samples": "3"},
+            {"ccaa_id": 2, "samples": "bad"},
+        ]
+        fake_root = MagicMock()
+        fake_root.render.return_value = "<html>map</html>"
+        map_class.return_value.get_root.return_value = fake_root
+
+        result = core.utils.samples_map.build_samples_received_map_html()
+
+        self.assertEqual(result, "<html>map</html>")
+        self.assertEqual(
+            [feature["properties"]["samples"] for feature in counties["features"]],
+            [3, 0],
+        )
+        tile_layer.return_value.add_to.assert_called_once_with(map_class.return_value)
+        choropleth.return_value.add_to.assert_called_once_with(map_class.return_value)
+        geo_json.return_value.add_to.assert_called_once_with(map_class.return_value)
+
+    @patch(
+        "core.utils.samples_map.dashboard.utils.generic_process_data.pre_proc_samples_received_map",
+        return_value={"ERROR": "No data"},
+    )
+    @patch(
+        "core.utils.samples_map.dashboard.utils.generic_graphic_data.get_graphic_json_data",
+        return_value=None,
+    )
+    @patch("core.utils.samples_map.json.load", return_value={"features": []})
+    @patch("core.utils.samples_map.settings.STATIC_ROOT", "/tmp/static")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_create_samples_received_map_returns_preprocessing_error(
+        self, _open_file, _load_json, _get_graphic_json_data, _preprocess
+    ):
+        self.assertEqual(
+            core.utils.samples_map.create_samples_received_map(),
+            {"ERROR": "No data"},
         )
 
 
