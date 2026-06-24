@@ -79,7 +79,7 @@ def get_table_selection(df):
 
 
 def create_model3D_bn():
-    size = 400
+    size = (400, 400)
 
     app = DjangoDash("model3D_bn")
 
@@ -121,7 +121,6 @@ def create_model3D_bn():
                         modelData=data,
                         styles=styles,
                         selectionType="residue",
-                        # FIXME: this should be "size" not suscriptable size since it is a integer type object.
                         height=size[1],
                         width=size[0],
                         zoom={
@@ -148,11 +147,15 @@ def create_model3D_bn():
         prevent_initial_call=True,
     )
     def residue(selected_row):
+        if not selected_row:
+            return None, [], styles
+
         row = df.iloc[selected_row]
         row["positions"] = row["positions"].apply(
             lambda x: [float(x) for x in x.split(",")]
         )
-        atoms = df[df["residue_position"] == row["residue_position"].iloc[0]]
+        selected = row.iloc[0]
+        atoms = df[df["residue_position"] == selected["residue_position"]]
         list_atoms = atoms["serial"].tolist()
         new_atom_styles = []
         for a in range(len(styles)):
@@ -167,17 +170,20 @@ def create_model3D_bn():
 
         return [
             {
-                "sel": {"chain": row["chain"], "resi": row["residue_index"]},
+                "sel": {
+                    "chain": selected["chain"],
+                    "resi": selected["residue_index"],
+                },
                 "animationDuration": 1500,
                 "fixedPath": True,
             },
             [
                 {
-                    "text": "Residue Name: {}".format(row["residue_name"].values[0]),
+                    "text": "Residue Name: {}".format(selected["residue_name"]),
                     "position": {
-                        "x": row["positions"].values[0][0],
-                        "y": row["positions"].values[0][1],
-                        "z": row["positions"].values[0][2],
+                        "x": selected["positions"][0],
+                        "y": selected["positions"][1],
+                        "z": selected["positions"][2],
                     },
                 }
             ],

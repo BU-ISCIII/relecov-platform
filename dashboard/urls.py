@@ -41,11 +41,6 @@ urlpatterns = [
         name="mutations_in_lineage",
     ),
     path(
-        "variants/spikeMutations3d",
-        dashboard.views.spike_mutations_3d,
-        name="spike_mutations_3d",
-    ),
-    path(
         "variants/lineagesVoc",
         dashboard.views.lineages_voc,
         name="lineages_voc",

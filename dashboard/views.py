@@ -1,9 +1,7 @@
 # Generic imports
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 # Local imports
-import core.config
 import core.utils.lineage
 import core.utils.variants
 import dashboard.dashboard_config
@@ -13,12 +11,8 @@ import dashboard.utils.met_index
 import dashboard.utils.met_sample_preprocessing
 import dashboard.utils.met_sequencing
 import dashboard.utils.plotly
-import dashboard.utils.var_heatmap_mutation_graph_by_lineage
 import dashboard.utils.var_lineage_variation_over_time_graph
-import dashboard.utils.var_lineages_in_time
-import dashboard.utils.var_molecule3D_bn_graph
 import dashboard.utils.var_needle_mutation_graph_by_lineage
-import dashboard.utils.var_samples_received_over_time_pie
 
 
 def variants_index(request):
@@ -57,13 +51,6 @@ def mutations_in_lineage(request):
     )
 
 
-# FIXME: template html has bad ref in plotly_app. App name shoudl be replaced by 'model3D_bn'
-# FIXME: Couldn't find in variants dashboard a button or ref to acces this url
-def spike_mutations_3d(request):
-    dashboard.utils.var_molecule3D_bn_graph.create_model3D_bn()
-    return render(request, "dashboard/variantSpikeMutations3D.html")
-
-
 def lineages_voc(request):
     # Draw lineage based on time
     draw_lineages = {}
@@ -75,83 +62,6 @@ def lineages_voc(request):
         "dashboard/variantLineageVoc.html",
         {"draw_lineages": draw_lineages},
     )
-
-
-# FIXME: isn't called from urls.py and html template is not available.
-@login_required
-def samples_received_over_time_graph(request):
-    df = dashboard.utils.var_lineages_in_time.create_dataframe_from_json()
-    dashboard.utils.var_lineages_in_time.create_samples_over_time_graph(df)
-
-    return render(request, "dashboard/samplesReceivedOverTimeGraph.html")
-
-
-# FIXME: isn't called from urls.py and html template is not available.
-@login_required
-def samples_received_over_time_pie(request):
-    data = dashboard.utils.var_samples_received_over_time_pie.parse_json_file()
-    dashboard.utils.var_samples_received_over_time_pie.create_samples_received_over_time_per_ccaa_pieChart(
-        data
-    )
-    dashboard.utils.var_samples_received_over_time_pie.create_samples_received_over_time_per_laboratory_pieChart(
-        data
-    )
-
-    return render(request, "dashboard/samplesReceivedOverTimePie.html")
-
-
-# FIXME: isn't called from urls.py and html template is not available.
-@login_required
-def samples_received_over_time_pie_laboratory(request):
-    data = dashboard.utils.var_samples_received_over_time_pie.parse_json_file()
-    dashboard.utils.var_samples_received_over_time_pie.create_samples_received_over_time_per_ccaa_pieChart(
-        data
-    )
-    dashboard.utils.var_samples_received_over_time_pie.create_samples_received_over_time_per_laboratory_pieChart(
-        data
-    )
-
-    return render(request, "dashboard/samplesReceivedOverTimePieLaboratory.html")
-
-
-# FIXME: isn't called from urls.py and html template is not available.
-def variants_mutations_in_lineages_heatmap(request):
-    chromesome_objs = core.utils.variants.get_all_chromosome_objs()
-    if chromesome_objs is None:
-        return render(
-            request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ERROR": core.config.ERROR_CHROMOSOME_NOT_DEFINED_IN_DATABASE},
-        )
-    if len(chromesome_objs) > 1:
-        chromesome_list = []
-        for chromesome_obj in chromesome_objs:
-            chromesome_list.append(
-                [
-                    chromesome_objs.get_chromesome_id(),
-                    chromesome_objs.get_chromesome_name(),
-                ]
-            )
-        return render(
-            request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ORGANISM": chromesome_list},
-        )
-    gene_list = core.utils.variants.get_gene_list(chromesome_objs[0])
-    if len(gene_list) == 0:
-        return render(
-            request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ERROR": core.config.ERROR_GENE_NOT_DEFINED_IN_DATABASE},
-        )
-    sample_list = core.utils.variants.get_sample_in_variant_list(chromesome_objs[0])
-    if len(sample_list) == 0:
-        return render(
-            request,
-            "dashboard/variantsMutationsInLineagesHeatmap.html",
-            {"ERROR": core.config.ERROR_VARIANT_IN_SAMPLE_NOT_DEFINED},
-        )
-    return render(request, "dashboard/variantsMutationsInLineagesHeatmap.html")
 
 
 def methodology_index(request):
