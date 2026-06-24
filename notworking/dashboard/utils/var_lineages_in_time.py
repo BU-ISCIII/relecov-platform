@@ -94,10 +94,10 @@ def create_samples_over_time_graph(df):
     app.layout = create_samples_received_over_time(df)
 
     @app.callback(Output("graph-with-slider", "figure"), Input("date_slider", "value"))
-    def update_figure(selected_range):
+    def update_samples_in_time_figure(selected_range):
         # df = create_dataframe_from_database()
         df = create_dataframe_from_json()
-        create_samples_received_over_time(df)
+        return update_figure(df)
 
 
 def create_samples_received_over_time(df):
@@ -151,7 +151,7 @@ def create_samples_received_over_time(df):
 
 def update_figure(df):
     dates_unique = df["DATE"].unique()
-    number_of_samples_per_date = pd.DataFrame(df.DATE.value_counts())
+    number_of_samples_per_date = df["DATE"].value_counts().to_dict()
 
     # Create figure
     fig = go.Figure()
@@ -159,7 +159,7 @@ def update_figure(df):
     fig.add_trace(
         go.Bar(
             x=dates_unique,
-            y=number_of_samples_per_date["DATE"],
+            y=[number_of_samples_per_date[date] for date in dates_unique],
             name="Samples in time",
             marker_color="green",
             opacity=0.4,
@@ -171,7 +171,7 @@ def update_figure(df):
     fig.add_trace(
         go.Scatter(
             x=dates_unique,
-            y=number_of_samples_per_date["DATE"],
+            y=[number_of_samples_per_date[date] for date in dates_unique],
             mode="lines",
             line=dict(color="red"),
             name="Number of samples",
