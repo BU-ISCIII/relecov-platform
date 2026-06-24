@@ -160,7 +160,9 @@ class GenericFunctionTests(SimpleTestCase):
 
         result = core.utils.generic_functions.store_file(uploaded, "uploads")
 
-        self.assertEqual(result, os.path.join("uploads", "metadata_20260624-120000.xlsx"))
+        self.assertEqual(
+            result, os.path.join("uploads", "metadata_20260624-120000.xlsx")
+        )
         storage_class.return_value.save.assert_called_once_with(result, uploaded)
 
     def test_user_role_returns_none_without_known_groups(self):
@@ -229,7 +231,9 @@ class LabCatalogTests(SimpleTestCase):
             "core.utils.lab_catalog.resources.files",
             return_value=files_ref,
         ):
-            self.assertEqual(str(core.utils.lab_catalog._resolve_catalog_path()), catalog_path)
+            self.assertEqual(
+                str(core.utils.lab_catalog._resolve_catalog_path()), catalog_path
+            )
 
     def test_load_catalog_from_environment_path_skips_entries_without_code(self):
         payload = {
@@ -525,7 +529,9 @@ class PlotlyGraphicUtilityTests(SimpleTestCase):
 
         self.assertEqual(result, "<div>line</div>")
         figure = plot_mock.call_args.args[0]
-        self.assertEqual(figure.data[0].line.color, core.utils.plotly_graphics.COLOR_PALETTE[1])
+        self.assertEqual(
+            figure.data[0].line.color, core.utils.plotly_graphics.COLOR_PALETTE[1]
+        )
         self.assertEqual(figure.layout.xaxis.tickangle, -30)
 
     @patch("core.utils.plotly_graphics.plot", return_value="<div>hist</div>")
@@ -608,7 +614,9 @@ class PlotlyGraphicUtilityTests(SimpleTestCase):
         )
 
         marker_traces = [trace for trace in figure.data if trace.mode == "markers"]
-        self.assertEqual([trace.name for trace in marker_traces], ["Unknown", "unknown_effect"])
+        self.assertEqual(
+            [trace.name for trace in marker_traces], ["Unknown", "unknown_effect"]
+        )
         self.assertEqual(list(marker_traces[0].x), [20])
         self.assertEqual(figure.layout.xaxis.range, (15, 35))
         self.assertTrue(figure.layout.xaxis.rangeslider.visible)
@@ -660,18 +668,26 @@ class SchemaUtilityMockedBranchTests(SimpleTestCase):
     def test_fields_template_reads_labels_from_config_file(
         self, open_file, _get_config
     ):
-        self.assertEqual(core.utils.schema.get_fields_if_template(), ["Field A", "Field B"])
+        self.assertEqual(
+            core.utils.schema.get_fields_if_template(), ["Field A", "Field B"]
+        )
         open_file.assert_called_once_with(
             os.path.join("/project", "conf", "template_for_metadata_form.txt"),
             "r",
         )
 
     @patch("core.utils.schema.core.utils.generic_functions.store_file")
-    @patch("core.utils.schema.json.load", side_effect=json.decoder.JSONDecodeError("", "", 0))
+    @patch(
+        "core.utils.schema.json.load",
+        side_effect=json.decoder.JSONDecodeError("", "", 0),
+    )
     def test_load_schema_reports_invalid_json_without_storing_file(
         self, _json_load, store_file
     ):
-        self.assertEqual(core.utils.schema.load_schema(MagicMock()), {"ERROR": core.config.ERROR_INVALID_JSON})
+        self.assertEqual(
+            core.utils.schema.load_schema(MagicMock()),
+            {"ERROR": core.config.ERROR_INVALID_JSON},
+        )
         store_file.assert_not_called()
 
     @patch(
@@ -730,13 +746,17 @@ class SchemaUtilityMockedBranchTests(SimpleTestCase):
             core.utils.schema.store_fields_metadata_visualization(
                 {
                     "schemaID": "7",
-                    "table_data": json.dumps([["prop_a", "Label A", "", "true", "sample"]]),
+                    "table_data": json.dumps(
+                        [["prop_a", "Label A", "", "true", "sample"]]
+                    ),
                 }
             ),
             {"ERROR": core.config.NO_SELECTED_LABEL_WAS_DONE},
         )
 
-    @patch("core.utils.schema.core.models.PropertyOptions.objects.create_property_options")
+    @patch(
+        "core.utils.schema.core.models.PropertyOptions.objects.create_property_options"
+    )
     @patch("core.utils.schema.core.models.SchemaProperties.objects.create_new_property")
     def test_store_schema_properties_marks_required_and_saves_enum_options(
         self, create_property, create_option
@@ -767,7 +787,9 @@ class SchemaUtilityMockedBranchTests(SimpleTestCase):
             ],
         )
 
-    @patch("core.utils.schema.core.models.PropertyOptions.objects.create_property_options")
+    @patch(
+        "core.utils.schema.core.models.PropertyOptions.objects.create_property_options"
+    )
     @patch("core.utils.schema.core.models.SchemaProperties.objects.create_new_property")
     def test_store_schema_properties_continues_after_property_or_option_errors(
         self, create_property, create_option
@@ -788,7 +810,9 @@ class SchemaUtilityMockedBranchTests(SimpleTestCase):
         self.assertEqual(create_property.call_count, 2)
         create_option.assert_called_once()
 
-    @patch("core.utils.schema.core.models.BioinfoAnalysisField.objects.create_or_get_field")
+    @patch(
+        "core.utils.schema.core.models.BioinfoAnalysisField.objects.create_or_get_field"
+    )
     def test_store_bioinfo_fields_skips_sample_name_and_non_bioinformatic_classes(
         self, create_field
     ):
@@ -813,7 +837,9 @@ class SchemaUtilityMockedBranchTests(SimpleTestCase):
         )
         field.schemaID.add.assert_called_once_with("schema")
 
-    @patch("core.utils.schema.core.models.PublicDatabaseFields.objects.create_new_field")
+    @patch(
+        "core.utils.schema.core.models.PublicDatabaseFields.objects.create_new_field"
+    )
     @patch("core.utils.schema.core.models.PublicDatabaseType.objects.filter")
     @patch("core.utils.schema.core.models.PublicDatabaseType.objects.values_list")
     def test_store_public_data_fields_uses_matching_database_type(
@@ -990,9 +1016,7 @@ class SampleUtilityBranchTests(SimpleTestCase):
             user_obj=SimpleNamespace(username="alice"),
         )
 
-        self.assertEqual(
-            result, {"ERROR": core.config.ERROR_ISKYLIMS_NOT_REACHEABLE}
-        )
+        self.assertEqual(result, {"ERROR": core.config.ERROR_ISKYLIMS_NOT_REACHEABLE})
 
     @patch("core.utils.samples.core.utils.rest_api.get_sample_fields_data")
     def test_create_form_for_batch_returns_iskylims_error_payload(self, get_fields):
@@ -1301,9 +1325,7 @@ class SampleUtilityBranchTests(SimpleTestCase):
         self.assertIsNone(core.utils.samples.create_dash_bar_for_each_lab([]))
 
     @patch("core.utils.samples.core.utils.labs.get_display_name_from_code")
-    def test_create_dash_bar_for_each_lab_builds_options_from_data(
-        self, display_name
-    ):
+    def test_create_dash_bar_for_each_lab_builds_options_from_data(self, display_name):
         display_name.side_effect = lambda code: {"LAB-01": "Catalog Hospital"}.get(
             code, ""
         )
@@ -1405,8 +1427,12 @@ class SampleUtilityBranchTests(SimpleTestCase):
         sample_filter.assert_called_once_with(submitting_institution__iexact="Lab A")
         state_filter.assert_called_once_with(sampleID=sample)
 
-    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
-    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab"
+    )
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
     def test_sample_dates_cache_miss_runs_preprocessing(
         self, get_graphic_json_data, preprocess
     ):
@@ -1419,8 +1445,12 @@ class SampleUtilityBranchTests(SimpleTestCase):
         )
         preprocess.assert_called_once_with()
 
-    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
-    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab"
+    )
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
     def test_detailed_sample_dates_returns_preprocessing_error(
         self, get_graphic_json_data, preprocess
     ):
@@ -1433,8 +1463,12 @@ class SampleUtilityBranchTests(SimpleTestCase):
         )
         preprocess.assert_called_once_with(detailed=True)
 
-    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab")
-    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab"
+    )
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
     def test_detailed_sample_dates_cache_miss_runs_preprocessing_success(
         self, get_graphic_json_data, preprocess
     ):
@@ -1448,7 +1482,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
         preprocess.assert_called_once_with(detailed=True)
 
     @patch("core.utils.samples.core.models.Sample.objects.filter")
-    def test_sample_object_lookup_helpers_return_last_match_or_none(self, sample_filter):
+    def test_sample_object_lookup_helpers_return_last_match_or_none(
+        self, sample_filter
+    ):
         sample = object()
         found = MagicMock()
         found.exists.return_value = True
@@ -1457,7 +1493,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
         missing.exists.return_value = False
         sample_filter.side_effect = [found, found, found, found, found, missing]
 
-        self.assertIs(core.utils.samples.get_sample_obj_from_sample_name("SEQ-1"), sample)
+        self.assertIs(
+            core.utils.samples.get_sample_obj_from_sample_name("SEQ-1"), sample
+        )
         self.assertIs(
             core.utils.samples.get_sample_obj_from_unique_sample_id("RL-AAA-0001"),
             sample,
@@ -1480,7 +1518,10 @@ class SampleUtilityBranchTests(SimpleTestCase):
         value_queryset_with_value.last.return_value.get_value.return_value = "EPI-1"
         value_queryset_without_value = MagicMock()
         value_queryset_without_value.exists.return_value = False
-        value_filter.side_effect = [value_queryset_with_value, value_queryset_without_value]
+        value_filter.side_effect = [
+            value_queryset_with_value,
+            value_queryset_without_value,
+        ]
 
         with patch(
             "core.utils.samples.get_public_database_fields", return_value=fields
@@ -1509,7 +1550,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
         missing_queryset = MagicMock()
         missing_queryset.exists.return_value = False
         field_filter.return_value = missing_queryset
-        self.assertIsNone(core.utils.samples.get_public_database_fields(object(), "ena"))
+        self.assertIsNone(
+            core.utils.samples.get_public_database_fields(object(), "ena")
+        )
 
     @patch("core.utils.samples.get_sample_obj_from_id", return_value=None)
     def test_get_sample_display_data_reports_missing_sample(self, _get_sample):
@@ -1518,7 +1561,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
             {"ERROR": core.config.ERROR_SAMPLE_DOES_NOT_EXIST},
         )
 
-    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_field_display_map")
+    @patch(
+        "core.utils.samples.core.utils.rest_api.get_sample_project_field_display_map"
+    )
     @patch("core.utils.samples.core.utils.rest_api.get_sample_information")
     @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
     @patch("core.utils.samples.core.utils.labs.get_lab_codes_from_user")
@@ -1618,7 +1663,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
     ):
         schema = object()
         sample_filter.return_value.count.return_value = 6
-        with patch("core.utils.samples.core.models.Sample.objects.count", return_value=9):
+        with patch(
+            "core.utils.samples.core.models.Sample.objects.count", return_value=9
+        ):
             self.assertEqual(core.utils.samples.get_samples_count_per_schema(schema), 6)
             self.assertEqual(core.utils.samples.get_samples_count(), 9)
         sample_filter.assert_called_once_with(schema_obj=schema)
@@ -1691,9 +1738,7 @@ class SampleUtilityBranchTests(SimpleTestCase):
         )
 
     @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.filter")
-    def test_join_sample_and_batch_reports_missing_temporary_samples(
-        self, temp_filter
-    ):
+    def test_join_sample_and_batch_reports_missing_temporary_samples(self, temp_filter):
         temp_filter.return_value.exists.return_value = False
 
         self.assertEqual(
@@ -1775,8 +1820,12 @@ class SampleUtilityBranchTests(SimpleTestCase):
     @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
     @patch("core.utils.samples.core.utils.labs.get_lab_codes_from_user")
     @patch("core.utils.samples.core.utils.generic_functions.get_user_role")
-    @patch("core.utils.samples.dashboard.utils.generic_process_data.pre_proc_search_samples_summary")
-    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_process_data.pre_proc_search_samples_summary"
+    )
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
     def test_search_table_for_user_preprocesses_cache_and_filters_collector_rows(
         self,
         get_graphic_json_data,
@@ -1817,7 +1866,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
     @patch("core.utils.samples.print")
     @patch("core.utils.samples.core.utils.labs.get_lab_name_from_user")
     @patch("core.utils.samples.core.utils.generic_functions.get_user_role")
-    @patch("core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
     def test_search_table_for_user_submitter_without_rows_logs_empty_result(
         self, get_graphic_json_data, get_role, get_lab_name, print_mock
     ):
@@ -1872,7 +1923,9 @@ class SampleUtilityBranchTests(SimpleTestCase):
             os.path.join("/samba", "alice_metadata.xlsx"),
         )
 
-    @patch("core.utils.samples.core.models.TemporalSampleStorage.objects.save_temp_data")
+    @patch(
+        "core.utils.samples.core.models.TemporalSampleStorage.objects.save_temp_data"
+    )
     def test_save_temp_sample_data_persists_each_field_with_user_and_sample_name(
         self, save_temp_data
     ):
@@ -1930,7 +1983,9 @@ class SamplesMapTests(SimpleTestCase):
     @patch("core.utils.samples_map.folium.Choropleth")
     @patch("core.utils.samples_map.folium.TileLayer")
     @patch("core.utils.samples_map.folium.Map")
-    @patch("core.utils.samples_map.dashboard.utils.generic_graphic_data.get_graphic_json_data")
+    @patch(
+        "core.utils.samples_map.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
     @patch("core.utils.samples_map.json.load")
     @patch("core.utils.samples_map.settings.STATIC_ROOT", "/tmp/static")
     @patch("builtins.open", new_callable=mock_open)
@@ -2906,9 +2961,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
     )
-    def test_create_sample_requires_resolvable_collecting_institution(
-        self, get_schema
-    ):
+    def test_create_sample_requires_resolvable_collecting_institution(self, get_schema):
         get_schema.return_value = self.schema()
         request = self.post(
             "/api/createSampleData",
@@ -2931,9 +2984,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("collecting_institution", response.data["ERROR"])
 
-    @patch(
-        "core.api.views.core.api.serializers.CreateSampleSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
     @patch("core.api.views.core.api.utils.samples.split_sample_data")
     @patch(
         "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
@@ -2987,12 +3038,8 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["ERROR"], {"sequencing_sample_id": ["required"]})
 
-    @patch(
-        "core.api.views.core.api.serializers.CreateSampleSerializer"
-    )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint"
-    )
+    @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_fingerprint")
     @patch(
         "core.api.views.core.utils.samples.build_sample_fingerprint",
         return_value="fingerprint",
@@ -3034,15 +3081,9 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.data["data"], {"sample_unique_id": "RL-API-1"})
 
     @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
-    @patch(
-        "core.api.views.core.models.SampleState.objects.filter"
-    )
-    @patch(
-        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
-    )
-    @patch(
-        "core.api.views.core.api.serializers.CreateSampleSerializer"
-    )
+    @patch("core.api.views.core.models.SampleState.objects.filter")
+    @patch("core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer")
+    @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
     @patch("core.api.views.core.api.utils.samples.split_sample_data")
     @patch(
         "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
@@ -3105,12 +3146,8 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.data["message"], "Error processing ena data")
 
     @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
-    @patch(
-        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
-    )
-    @patch(
-        "core.api.views.core.api.serializers.CreateSampleSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer")
+    @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
     @patch("core.api.views.core.api.utils.samples.split_sample_data")
     @patch(
         "core.api.views.core.utils.samples.get_sample_obj_from_fingerprint",
@@ -3177,9 +3214,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
 
     @patch("core.api.views.core.api.utils.public_db.store_pub_databases_data")
     @patch("core.api.views.core.models.SampleState.objects.filter")
-    @patch(
-        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer")
     @patch("core.api.views.core.api.serializers.CreateSampleSerializer")
     @patch("core.api.views.core.api.utils.samples.split_sample_data")
     @patch(
@@ -3344,7 +3379,9 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         response = core.api.views.create_bioinfo_metadata(request)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["ERROR"], core.config.ERROR_SAMPLE_NAME_NOT_INCLUDED)
+        self.assertEqual(
+            response.data["ERROR"], core.config.ERROR_SAMPLE_NAME_NOT_INCLUDED
+        )
 
     @patch(
         "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id",
@@ -3353,9 +3390,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
     )
-    def test_create_bioinfo_metadata_rejects_unknown_sample(
-        self, get_schema, _sample
-    ):
+    def test_create_bioinfo_metadata_rejects_unknown_sample(self, get_schema, _sample):
         get_schema.return_value = self.schema()
         request = self.post(
             "/api/createBioinfoMetadata",
@@ -3375,9 +3410,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
         return_value=["2024-01-01"],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id")
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
     )
@@ -3411,9 +3444,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id")
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
     )
@@ -3444,9 +3475,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id")
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
     )
@@ -3465,9 +3494,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["ERROR"], "store failed")
 
-    @patch(
-        "core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.CreateDateAfterChangeStateSerializer")
     @patch("core.api.views.core.models.SampleState.objects.filter")
     @patch(
         "core.api.views.core.api.utils.bioinfo_metadata.store_bioinfo_data",
@@ -3481,9 +3508,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.bioinfo_metadata.get_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id")
     @patch(
         "core.api.views.core.api.utils.common_functions.get_schema_version_if_exists"
     )
@@ -3560,12 +3585,12 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         response = core.api.views.create_variant_data(request)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["message"], "Sample identifier not found in platform")
+        self.assertEqual(
+            response.data["message"], "Sample identifier not found in platform"
+        )
 
     @patch("core.api.views.core.api.utils.variants.get_variant_analysis_defined")
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_unique_sample_id")
     def test_create_variant_data_rejects_mismatched_identifiers(
         self, get_unique, _defined
     ):
@@ -3591,9 +3616,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
         return_value=["2024-01-01"],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_create_variant_data_rejects_duplicate_analysis_date(
         self, get_sample, _defined
     ):
@@ -3617,9 +3640,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_create_variant_data_requires_variants_key(self, get_sample, _defined):
         get_sample.return_value = self.sample()
         request = self.post(
@@ -3641,9 +3662,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_create_variant_data_reports_unparseable_variant_string(
         self, get_sample, _defined
     ):
@@ -3670,9 +3689,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_create_variant_data_propagates_split_errors(
         self, get_sample, _defined, _split
     ):
@@ -3702,9 +3719,7 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_create_variant_data_rejects_invalid_variant_id(
         self, get_sample, _defined, _split
     ):
@@ -3732,16 +3747,12 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         "core.api.views.core.api.utils.variants.variant_annotation_exists",
         side_effect=[False, False],
     )
-    @patch(
-        "core.api.views.core.api.utils.variants.split_variant_data"
-    )
+    @patch("core.api.views.core.api.utils.variants.split_variant_data")
     @patch(
         "core.api.views.core.api.utils.variants.get_variant_analysis_defined",
         return_value=[],
     )
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_create_variant_data_success_flushes_deduplicated_annotations(
         self,
         get_sample,
@@ -3823,13 +3834,9 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         sample.update_state.assert_called_once_with("Variant")
         update_date.assert_called_once_with(42, 5)
 
-    @patch(
-        "core.api.views.core.api.serializers.UpdateStateSampleSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.UpdateStateSampleSerializer")
     @patch("core.api.views.core.models.SampleState.objects.filter")
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_update_state_returns_serializer_validation_error(
         self, get_sample, state_filter, serializer_class
     ):
@@ -3853,17 +3860,11 @@ class ApiViewBranchCoverageTests(SimpleTestCase):
         self.assertEqual(response.data["ERROR"], {"state": ["invalid"]})
 
     @patch("core.api.views.core.api.utils.common_functions.update_change_state_date")
-    @patch(
-        "core.api.views.core.api.serializers.CreateErrorSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.CreateErrorSerializer")
     @patch("core.api.views.core.models.Error.objects.filter")
-    @patch(
-        "core.api.views.core.api.serializers.UpdateStateSampleSerializer"
-    )
+    @patch("core.api.views.core.api.serializers.UpdateStateSampleSerializer")
     @patch("core.api.views.core.models.SampleState.objects.filter")
-    @patch(
-        "core.api.views.core.utils.samples.get_sample_obj_from_sample_name"
-    )
+    @patch("core.api.views.core.utils.samples.get_sample_obj_from_sample_name")
     def test_update_state_error_state_validates_error_serializer(
         self,
         get_sample,
@@ -4340,7 +4341,9 @@ class PublicDatabaseQueryIntegrationTests(TestCase):
 
         self.assertEqual(len(global_values), 1)
         self.assertEqual(global_values[0][2], "EPI_ISL_123")
-        self.assertEqual(scoped_values, [(self.sample.sample_fingerprint, "EPI_ISL_123")])
+        self.assertEqual(
+            scoped_values, [(self.sample.sample_fingerprint, "EPI_ISL_123")]
+        )
 
     def test_public_information_returns_values_or_empty_list(self):
         self.assertEqual(
@@ -4494,9 +4497,7 @@ class BioinfoAnalysisUtilityIntegrationTests(TestCase):
             {"analized": 1, "received": 2},
         )
         self.assertEqual(
-            core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(
-                "Submitter A"
-            ),
+            core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab("Submitter A"),
             {"analized": 1, "received": 2},
         )
 
@@ -4518,11 +4519,9 @@ class BioinfoAnalysisUtilityIntegrationTests(TestCase):
         )
 
     def test_bioinfo_utilization_classifies_filled_empty_and_unused_fields(self):
-        result = (
-            core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization(
-                self.schema,
-                use_cache=False,
-            )
+        result = core.utils.bioinfo_analysis.get_bioinfo_analysis_fields_utilization(
+            self.schema,
+            use_cache=False,
         )
 
         self.assertEqual(result["fields_value"]["Depth"], 1)
@@ -4663,9 +4662,7 @@ class VariantQueryUtilityIntegrationTests(TestCase):
             submitting_institution="Submitter A",
             collecting_institution="Hospital A",
         )
-        cls.chromosome = core.models.Chromosome.objects.create(
-            chromosome="NC_045512.2"
-        )
+        cls.chromosome = core.models.Chromosome.objects.create(chromosome="NC_045512.2")
         cls.annotation = core.models.OrganismAnnotation.objects.create(
             user=cls.user,
             chromosomeID=cls.chromosome,
@@ -4940,7 +4937,9 @@ class SampleGraphicsBranchTests(SimpleTestCase):
     ):
         cached.side_effect = [None, {"x": ["Lab A"], "y": [3]}]
 
-        self.assertEqual(core.utils.samples_graphics.received_per_lab(), "<div>lab</div>")
+        self.assertEqual(
+            core.utils.samples_graphics.received_per_lab(), "<div>lab</div>"
+        )
         preprocess.assert_called_once_with()
         bar_graphic.assert_called_once()
 
@@ -5191,7 +5190,9 @@ class AdditionalSchemaBranchTests(TestCase):
 
 
 class GenericAndLaboratoryBranchTests(TestCase):
-    def test_configuration_and_defined_user_helpers_cover_empty_and_present_values(self):
+    def test_configuration_and_defined_user_helpers_cover_empty_and_present_values(
+        self,
+    ):
         self.assertEqual(
             core.utils.generic_functions.get_configuration_value("MISSING"),
             "False",
@@ -5213,7 +5214,10 @@ class GenericAndLaboratoryBranchTests(TestCase):
         )
         setting.set_configuration_value("updated")
         self.assertEqual(setting.get_configuration_value(), "updated")
-        self.assertNotIn(admin.pk, [item[0] for item in core.utils.generic_functions.get_defined_users()])
+        self.assertNotIn(
+            admin.pk,
+            [item[0] for item in core.utils.generic_functions.get_defined_users()],
+        )
 
     def test_user_lab_field_and_group_filter_cover_role_and_missing_group(self):
         user = User.objects.create_user(username="collector-filter")
@@ -5460,11 +5464,7 @@ class CoreViewBranchTests(SimpleTestCase):
         get_lab.return_value = "Hospital A"
         self.assertEqual(
             _get_search_sample_rows_for_user(self.user),
-            {
-                "ERROR": (
-                    "No samples found for your designated laboratory: Hospital A"
-                )
-            },
+            {"ERROR": ("No samples found for your designated laboratory: Hospital A")},
         )
 
     @patch("core.views.core.utils.samples.get_search_table_for_user")
@@ -5472,9 +5472,7 @@ class CoreViewBranchTests(SimpleTestCase):
     def test_search_rows_convert_tuple_summary_to_datatable_rows(
         self, _sample_count, get_table
     ):
-        get_table.return_value = [
-            (1, "SEQ-1", "2024-01-01", "XFG.3", "Hospital A")
-        ]
+        get_table.return_value = [(1, "SEQ-1", "2024-01-01", "XFG.3", "Hospital A")]
 
         self.assertEqual(
             _get_search_sample_rows_for_user(self.user),
@@ -5742,9 +5740,7 @@ class CoreViewBranchTests(SimpleTestCase):
         "core.views._get_search_sample_rows_for_user",
         return_value={"ERROR": "No samples"},
     )
-    def test_search_sample_renders_error_and_empty_filter_options(
-        self, _rows, render
-    ):
+    def test_search_sample_renders_error_and_empty_filter_options(self, _rows, render):
         request = self.factory.get("/searchSample")
         request.user = self.user
 
@@ -5789,9 +5785,7 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views._get_search_sample_rows_for_user")
-    def test_search_sample_data_handles_invalid_pagination_and_all_rows(
-        self, get_rows
-    ):
+    def test_search_sample_data_handles_invalid_pagination_and_all_rows(self, get_rows):
         get_rows.return_value = [
             {
                 "id": 1,
@@ -5892,9 +5886,7 @@ class CoreViewBranchTests(SimpleTestCase):
         "core.views.core.utils.schema.get_latest_schema",
         return_value={"ERROR": "No schema"},
     )
-    def test_metadata_visualization_get_reports_missing_schema(
-        self, _schema, render
-    ):
+    def test_metadata_visualization_get_reports_missing_schema(self, _schema, render):
         request = self.factory.get("/metadataVisualization")
         request.user = self.admin
 
@@ -5985,7 +5977,10 @@ class CoreViewBranchTests(SimpleTestCase):
     @patch("core.views.core.utils.generic_functions.get_user_lab_field")
     @patch("core.views.core.utils.labs.get_lab_codes_from_user", return_value=[])
     @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Lab A")
-    @patch("core.views.core.utils.generic_functions.get_user_role", return_value="Collector")
+    @patch(
+        "core.views.core.utils.generic_functions.get_user_role",
+        return_value="Collector",
+    )
     @patch("core.views.core.utils.samples.get_sample_per_date_per_all_lab")
     @patch("core.views.Group.objects.filter")
     def test_intranet_non_manager_without_lab_field_returns_empty_context(
@@ -6019,20 +6014,43 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.public_db.percentage_graphic", return_value="percentage")
+    @patch(
+        "core.views.core.utils.public_db.percentage_graphic", return_value="percentage"
+    )
     @patch("core.views.core.utils.public_db.get_preprocessed_ena_data")
     @patch("core.views.core.utils.public_db.get_preprocessed_gisaid_data")
-    @patch("core.views.core.utils.samples.get_lab_last_actions", return_value=["action"])
-    @patch("core.views.core.utils.samples.create_dash_bar_for_each_lab", return_value="per-lab")
+    @patch(
+        "core.views.core.utils.samples.get_lab_last_actions", return_value=["action"]
+    )
+    @patch(
+        "core.views.core.utils.samples.create_dash_bar_for_each_lab",
+        return_value="per-lab",
+    )
     @patch("core.views.core.utils.samples.fancy_gauge_graphic", return_value="gauge")
     @patch("core.views.core.utils.samples.create_date_sample_bar", return_value="bar")
     @patch("core.views.core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab")
-    @patch("core.views.core.utils.samples.get_sample_objs_per_lab", return_value=[object(), object()])
-    @patch("core.views.core.utils.labs.get_display_name_from_code", return_value="Hospital A")
-    @patch("core.views.core.utils.generic_functions.get_user_lab_field", return_value="lab_code_1")
-    @patch("core.views.core.utils.labs.get_lab_codes_from_user", return_value=["LAB-01"])
-    @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Hospital A")
-    @patch("core.views.core.utils.generic_functions.get_user_role", return_value="Collector")
+    @patch(
+        "core.views.core.utils.samples.get_sample_objs_per_lab",
+        return_value=[object(), object()],
+    )
+    @patch(
+        "core.views.core.utils.labs.get_display_name_from_code",
+        return_value="Hospital A",
+    )
+    @patch(
+        "core.views.core.utils.generic_functions.get_user_lab_field",
+        return_value="lab_code_1",
+    )
+    @patch(
+        "core.views.core.utils.labs.get_lab_codes_from_user", return_value=["LAB-01"]
+    )
+    @patch(
+        "core.views.core.utils.labs.get_lab_name_from_user", return_value="Hospital A"
+    )
+    @patch(
+        "core.views.core.utils.generic_functions.get_user_role",
+        return_value="Collector",
+    )
     @patch("core.views.core.utils.samples.get_sample_per_date_per_all_lab")
     @patch("core.views.Group.objects.filter")
     def test_intranet_non_manager_builds_lab_context(
@@ -6095,16 +6113,29 @@ class CoreViewBranchTests(SimpleTestCase):
         self.assertEqual(intra_data["ena_accession"], [("E1",)])
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.public_db.percentage_graphic", return_value="percentage")
+    @patch(
+        "core.views.core.utils.public_db.percentage_graphic", return_value="percentage"
+    )
     @patch("core.views.core.utils.public_db.get_preprocessed_ena_data")
     @patch("core.views.core.utils.public_db.get_preprocessed_gisaid_data")
-    @patch("core.views.core.utils.samples.get_lab_last_actions", return_value=["actions"])
-    @patch("core.views.core.utils.samples.create_dash_bar_for_each_lab", return_value="per-lab")
-    @patch("core.views.core.utils.samples.get_all_collecting_insts", return_value=[{"value": "LAB-01", "label": "Hospital A"}])
+    @patch(
+        "core.views.core.utils.samples.get_lab_last_actions", return_value=["actions"]
+    )
+    @patch(
+        "core.views.core.utils.samples.create_dash_bar_for_each_lab",
+        return_value="per-lab",
+    )
+    @patch(
+        "core.views.core.utils.samples.get_all_collecting_insts",
+        return_value=[{"value": "LAB-01", "label": "Hospital A"}],
+    )
     @patch("core.views.core.utils.samples.fancy_gauge_graphic", return_value="gauge")
     @patch("core.views.core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab")
     @patch("core.views.core.utils.samples.create_date_sample_bar", return_value="bar")
-    @patch("core.views.core.utils.samples.count_handled_samples", return_value={"Defined": 5})
+    @patch(
+        "core.views.core.utils.samples.count_handled_samples",
+        return_value={"Defined": 5},
+    )
     @patch("core.views.core.utils.samples.get_sample_per_date_per_all_lab")
     @patch("core.views.Group.objects.filter")
     def test_intranet_manager_builds_global_context(
@@ -6185,7 +6216,10 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"form": "metadata"})
+    @patch(
+        "core.views.core.utils.samples.create_metadata_form",
+        return_value={"form": "metadata"},
+    )
     @patch("core.views.core.utils.samples.analyze_input_samples", return_value={})
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
     def test_metadata_form_define_samples_empty_analysis_returns_form(
@@ -6203,7 +6237,10 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"form": "metadata"})
+    @patch(
+        "core.views.core.utils.samples.create_metadata_form",
+        return_value={"form": "metadata"},
+    )
     @patch(
         "core.views.core.utils.samples.analyze_input_samples",
         return_value={"s_incomplete": ["S1"]},
@@ -6228,8 +6265,13 @@ class CoreViewBranchTests(SimpleTestCase):
 
     @patch("core.views.render")
     @patch("core.views.core.utils.samples.get_sample_pre_recorded", return_value=["S1"])
-    @patch("core.views.core.utils.samples.create_form_for_batch", return_value={"batch": "form"})
-    @patch("core.views.core.utils.samples.save_temp_sample_data", return_value={"saved": 1})
+    @patch(
+        "core.views.core.utils.samples.create_form_for_batch",
+        return_value={"batch": "form"},
+    )
+    @patch(
+        "core.views.core.utils.samples.save_temp_sample_data", return_value={"saved": 1}
+    )
     @patch(
         "core.views.core.utils.samples.analyze_input_samples",
         return_value={"save_samples": ["S1"]},
@@ -6250,7 +6292,10 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_form_for_batch", return_value={"batch": "form"})
+    @patch(
+        "core.views.core.utils.samples.create_form_for_batch",
+        return_value={"batch": "form"},
+    )
     @patch("core.views.core.utils.samples.get_sample_pre_recorded", return_value=["S1"])
     @patch("core.views.core.utils.samples.check_if_empty_data", return_value=False)
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
@@ -6271,7 +6316,10 @@ class CoreViewBranchTests(SimpleTestCase):
     @patch("core.views.render")
     @patch("core.views.core.utils.samples.delete_temporary_sample_table")
     @patch("core.views.core.utils.samples.write_form_data_to_excel")
-    @patch("core.views.core.utils.samples.join_sample_and_batch", return_value={"sample": "data"})
+    @patch(
+        "core.views.core.utils.samples.join_sample_and_batch",
+        return_value={"sample": "data"},
+    )
     @patch("core.views.core.utils.samples.check_if_empty_data", return_value=True)
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
     def test_metadata_form_define_batch_success_writes_and_cleans_temp_data(
@@ -6298,9 +6346,15 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_form_for_batch", return_value={"batch": "form"})
+    @patch(
+        "core.views.core.utils.samples.create_form_for_batch",
+        return_value={"batch": "form"},
+    )
     @patch("core.views.core.utils.samples.get_sample_pre_recorded", return_value=["S1"])
-    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=True)
+    @patch(
+        "core.views.core.utils.samples.pending_samples_in_metadata_form",
+        return_value=True,
+    )
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
     def test_metadata_form_get_resumes_pending_batch(
         self, _schema, _pending, _pre_recorded, _batch_form, render
@@ -6317,8 +6371,14 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"ERROR": "No schema"})
-    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=False)
+    @patch(
+        "core.views.core.utils.samples.create_metadata_form",
+        return_value={"ERROR": "No schema"},
+    )
+    @patch(
+        "core.views.core.utils.samples.pending_samples_in_metadata_form",
+        return_value=False,
+    )
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
     def test_metadata_form_get_renders_form_error(
         self, _schema, _pending, _form, render
@@ -6335,8 +6395,14 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"lab_name": ""})
-    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=False)
+    @patch(
+        "core.views.core.utils.samples.create_metadata_form",
+        return_value={"lab_name": ""},
+    )
+    @patch(
+        "core.views.core.utils.samples.pending_samples_in_metadata_form",
+        return_value=False,
+    )
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
     def test_metadata_form_get_requires_assigned_lab(
         self, _schema, _pending, _form, render
@@ -6353,8 +6419,14 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.samples.create_metadata_form", return_value={"lab_name": "Lab A"})
-    @patch("core.views.core.utils.samples.pending_samples_in_metadata_form", return_value=False)
+    @patch(
+        "core.views.core.utils.samples.create_metadata_form",
+        return_value={"lab_name": "Lab A"},
+    )
+    @patch(
+        "core.views.core.utils.samples.pending_samples_in_metadata_form",
+        return_value=False,
+    )
     @patch("core.views.core.utils.schema.get_latest_schema", return_value=object())
     def test_metadata_form_get_renders_metadata_form(
         self, _schema, _pending, _form, render
@@ -6394,13 +6466,18 @@ class CoreViewBranchTests(SimpleTestCase):
         )
 
     @patch("core.views.render")
-    @patch("core.views.core.utils.labs.update_contact_lab", return_value={"ERROR": "Invalid phone"})
+    @patch(
+        "core.views.core.utils.labs.update_contact_lab",
+        return_value={"ERROR": "Invalid phone"},
+    )
     @patch("core.views.core.utils.labs.get_lab_name_from_user", return_value="Lab A")
     @patch(
         "core.views.core.utils.labs.get_lab_contact_details",
         return_value={"Phone Number": "123", "Email": "old@example.org"},
     )
-    def test_laboratory_contact_update_error(self, _contact, _lab_name, _update, render):
+    def test_laboratory_contact_update_error(
+        self, _contact, _lab_name, _update, render
+    ):
         request = self.factory.post(
             "/laboratoryContact",
             {"action": "updateLabData", "phone_number": ""},
