@@ -10,6 +10,22 @@ import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
 
 
+def _coerce_filter_date(date_value):
+    if date_value is None or date_value == "":
+        return None
+    if isinstance(date_value, pd.Timestamp):
+        return date_value.to_pydatetime()
+    if isinstance(date_value, datetime):
+        return date_value
+
+    for date_format in ("%Y-%m-%d", "%m/%d/%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(str(date_value), date_format)
+        except ValueError:
+            continue
+    return None
+
+
 def load_variant_graphic_dataframe():
     json_data = dashboard.utils.generic_graphic_data.get_graphic_json_data(
         "variant_graphic_data"
@@ -67,19 +83,13 @@ def build_lineage_variation_figure(df_full, start_date=None, end_date=None):
     lineages = df_full["Lineage"].unique().tolist()
     first_date = df_full["Collection date"].min()
     last_date = df_full["Collection date"].max()
+    start_date_obj = _coerce_filter_date(start_date) or first_date
+    end_date_obj = _coerce_filter_date(end_date) or last_date
 
-    if start_date is None or end_date is None:
-        sub_data_df = df_full.loc[
-            (df_full["Collection date"] >= first_date)
-            & (df_full["Collection date"] < last_date)
-        ].copy()
-    else:
-        start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-        end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
-        sub_data_df = df_full.loc[
-            (df_full["Collection date"] >= start_date_obj)
-            & (df_full["Collection date"] < end_date_obj)
-        ].copy()
+    sub_data_df = df_full.loc[
+        (df_full["Collection date"] >= start_date_obj)
+        & (df_full["Collection date"] <= end_date_obj)
+    ].copy()
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     if sub_data_df.empty:
