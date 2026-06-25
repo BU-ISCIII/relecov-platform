@@ -44,7 +44,7 @@ def register():
                         max_date_allowed=last_date,
                         initial_visible_month=last_date,
                         calendar_orientation="horizontal",
-                        number_of_months_shown=12,
+                        number_of_months_shown=3,
                         display_format="MM/DD/YYYY",
                         clearable=True,
                         minimum_nights=0,
@@ -65,7 +65,7 @@ def register():
         [
             dbc.Row(
                 [
-                    dbc.Col(controls, md=4),
+                    dbc.Col(controls, md=6),
                     dbc.Col(period_text, md=6),
                     dbc.Col(
                         dcc.Graph(
