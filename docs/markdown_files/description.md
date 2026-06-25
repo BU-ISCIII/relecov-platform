@@ -9,7 +9,7 @@ Inmaculada Casas. Head of Respiratory and Influenza Unit, WHO National Influenza
 
 Coordinated by the Reference Laboratory for Respiratory Viruses of the National Microbiology Center (Carlos III Health Institute), this network reports cases to the ECDC and WHO. Participants have been designated by the various Autonomous Communities—each region and the two autonomous cities are represented. Depending on their regional decisions, laboratories or sequencing consortia may join the network in various capacities. Early generation of sequences and pooling of genomic data are key tools for viral surveillance and preparation for future public health alerts.
 
-More info can be found [here](http://relecov.isciiides.es/news-reports/).
+More info can be found [here](https://relecov.isciii.es/news-reports/).
 
 ## Platform Overview
 
