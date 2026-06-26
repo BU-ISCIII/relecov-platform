@@ -73,8 +73,7 @@ def dash_bar_lab(option_list, data):
     app = DjangoDash(
         "samplePerLabGraphic",
         external_stylesheets=[
-            "https://fonts.googleapis.com/css2?family=Oxanium&display=swap",
-            "/static/core/css/dash_style.css",
+            "/static/core/custom/css/dash_style.css",
         ],
     )
     empty_fig = px.bar(x=[0], y=[0], height=300)
@@ -83,7 +82,7 @@ def dash_bar_lab(option_list, data):
 
     app.layout = html.Div(
         [
-            html.H4("Select the laboratory", style={"fontFamily": "Oxanium"}),
+            html.H4("Select the laboratory", style={"fontFamily": "Oxanium, sans-serif"}),
             html.Div(
                 [
                     dcc.Dropdown(

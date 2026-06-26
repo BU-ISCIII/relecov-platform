@@ -161,7 +161,7 @@ def pie_graphic(data, names, title, show_legend=False):
         hoverinfo="label+percent",
         textinfo="value",
         textfont_size=16,
-        title_font=dict(size=18, family="Verdana", color="#448873"),
+        title_font=dict(size=18, family="Oxanium, sans-serif", color="#448873"),
         marker=dict(colors=colors),
         opacity=0.6,
     )
@@ -314,7 +314,7 @@ def build_sample_variant_figure(mdata, toggle_rangeslider=None, relayout_data=No
             y=annotation_y,
             text=domain["name"],
             showarrow=False,
-            font=dict(size=12, color="black"),
+            font=dict(family="Oxanium, sans-serif", size=12, color="black"),
         )
     fig.add_shape(
         type="rect",
