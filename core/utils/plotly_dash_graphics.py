@@ -82,7 +82,9 @@ def dash_bar_lab(option_list, data):
 
     app.layout = html.Div(
         [
-            html.H4("Select the laboratory", style={"fontFamily": "Oxanium, sans-serif"}),
+            html.H4(
+                "Select the laboratory", style={"fontFamily": "Oxanium, sans-serif"}
+            ),
             html.Div(
                 [
                     dcc.Dropdown(
