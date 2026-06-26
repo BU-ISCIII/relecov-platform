@@ -194,7 +194,7 @@ def pie_graphic(labels, values, options, show_legend=True):
         hoverinfo="label+percent",
         textinfo="value",
         textfont_size=16,
-        title_font=dict(size=18, family="Verdana", color="#448873"),
+        title_font=dict(size=18, family="Oxanium, sans-serif", color="#448873"),
         marker=dict(colors=colors),
         opacity=0.6,
     )

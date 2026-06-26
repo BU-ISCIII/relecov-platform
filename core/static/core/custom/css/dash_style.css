@@ -1,0 +1,10 @@
+@import url("fonts.css");
+
+html,
+body,
+.dash-app-content,
+.dash-app-content *,
+.plotly-graph-div,
+.plotly-graph-div *:not(i):not(.bi):not([class^="bi-"]):not([class*=" bi-"]) {
+  font-family: var(--relecov-font-family) !important;
+}

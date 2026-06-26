@@ -27,14 +27,13 @@ def register():
     app = DjangoDash(
         APP_NAME,
         external_stylesheets=[
-            "https://fonts.googleapis.com/css2?family=Oxanium&display=swap",
-            "/static/core/css/dash_style.css",
+            "/static/core/custom/css/dash_style.css",
         ],
     )
 
     app.layout = html.Div(
         [
-            html.H4("Select the laboratory", style={"fontFamily": "Oxanium"}),
+            html.H4("Select the laboratory", style={"fontFamily": "Oxanium, sans-serif"}),
             dcc.Dropdown(
                 id="select_collecting_inst",
                 options=[],
