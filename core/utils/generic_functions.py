@@ -110,3 +110,16 @@ def get_user_role(user):
 def get_user_lab_field(user):
     user_group = get_user_role(user)
     return core.config.INSTITUTION_FIELD_MAPDICT.get(user_group)
+
+
+def cookie_consent(request):
+    settings_tab = request.GET.get("cookie_settings")
+    show_cookie_settings = settings_tab in {"privacy", "necessary"}
+    has_cookie_consent = core.config.COOKIE_CONSENT_NAME in request.COOKIES
+    show_cookie_banner = not has_cookie_consent and not show_cookie_settings
+    return {
+        "show_cookie_banner": show_cookie_banner,
+        "show_cookie_settings": show_cookie_settings,
+        "cookie_settings_tab": settings_tab or "privacy",
+        "cookie_consent_next": request.path,
+    }

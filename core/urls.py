@@ -19,6 +19,7 @@ urlpatterns = [
         name="assign_samples_to_user",
     ),
     path("Contact", core.views.contact, name="contact"),
+    path("cookie-consent/", core.views.cookie_consent, name="cookie_consent"),
     path("intranet/", core.views.intranet, name="intranet"),
     path(
         "laboratoryContact/",
