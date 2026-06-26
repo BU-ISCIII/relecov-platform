@@ -161,85 +161,84 @@
                 <input type="hidden" name="next" value="{{ cookie_consent_next }}">
                 <button type="submit" class="cookie-btn cookie-btn-secondary">Reject</button>
             </form>
-            <a class="cookie-btn cookie-btn-outline" href="?cookie_settings=privacy">More information</a>
+            <button type="button" class="cookie-btn cookie-btn-outline" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">More information</button>
         </div>
     </div>
 </div>
-{% endif %}
 
-{% if show_cookie_settings %}
-<div id="cookieSettingsModal" class="cookie-modal" role="dialog" aria-modal="true" aria-labelledby="cookieSettingsTitle">
-    <a class="cookie-modal-backdrop" href="{{ cookie_consent_next }}" aria-label="Close cookie settings"></a>
-    <div class="cookie-modal-panel">
-        <a class="cookie-modal-close" href="{{ cookie_consent_next }}" aria-label="Close cookie settings">
-            <i class="bi bi-x-lg"></i>
-        </a>
-        <aside class="cookie-modal-sidebar">
-            <img src="{% static 'core/custom/img/GDPR.jpg' %}" alt="eu_gdpr_compliant" class="cookie-modal-logo">
-            <a class="cookie-tab {% if cookie_settings_tab == 'privacy' %}active{% endif %}" href="?cookie_settings=privacy">Privacy overview</a>
-            <a class="cookie-tab {% if cookie_settings_tab == 'necessary' %}active{% endif %}" href="?cookie_settings=necessary">Strictly necessary cookies</a>
-        </aside>
-        <section class="cookie-modal-body">
-            <div class="cookie-tab-panel {% if cookie_settings_tab == 'privacy' %}active{% endif %}">
-                <h2 id="cookieSettingsTitle">Privacy overview</h2>
-                <p>
-                    This website has a public area and an authenticated area. In both areas, strictly necessary first-party cookies may be used for security. In the authenticated area, a session cookie is also used to keep the user signed in. Optional third-party or analytics cookies are only allowed when the selected preference is "Accept all".
-                    <a href="{% url 'cookie_policy' %}">See the Cookie Policy</a>.
-                </p>
-            </div>
-            <div class="cookie-tab-panel {% if cookie_settings_tab == 'necessary' %}active{% endif %}">
-                <h2>Strictly necessary cookies</h2>
-                <p>
-                    These cookies are necessary for the website to function correctly and cannot be disabled in our systems. They are set in response to actions made by the user, such as saving cookie preferences, protecting forms, signing in, or keeping an authenticated session active.
-                </p>
-                <div class="cookie-table-wrapper">
-                    <table class="cookie-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Purpose</th>
-                                <th>Area</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>csrftoken</td>
-                                <td>Protects forms and POST requests against cross-site request forgery.</td>
-                                <td>Public and authenticated</td>
-                            </tr>
-                            <tr>
-                                <td>relecovCookieConsent</td>
-                                <td>Stores the user's cookie preference.</td>
-                                <td>Public and authenticated</td>
-                            </tr>
-                            <tr>
-                                <td>sessionid</td>
-                                <td>Keeps the user signed in after login.</td>
-                                <td>Authenticated only</td>
-                            </tr>
-                        </tbody>
-                    </table>
+<div class="modal fade cookie-modal" id="cookieSettingsModal" tabindex="-1" aria-labelledby="cookieSettingsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content cookie-modal-panel">
+            <button type="button" class="cookie-modal-close" data-bs-dismiss="modal" aria-label="Close cookie settings">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <aside class="cookie-modal-sidebar" role="tablist" aria-label="Cookie settings sections">
+                <img src="{% static 'core/custom/img/GDPR.jpg' %}" alt="eu_gdpr_compliant" class="cookie-modal-logo">
+                <button type="button" class="cookie-tab active" id="cookiePrivacyTab" data-bs-toggle="tab" data-bs-target="#cookiePrivacyPanel" role="tab" aria-controls="cookiePrivacyPanel" aria-selected="true">Privacy overview</button>
+                <button type="button" class="cookie-tab" id="cookieNecessaryTab" data-bs-toggle="tab" data-bs-target="#cookieNecessaryPanel" role="tab" aria-controls="cookieNecessaryPanel" aria-selected="false">Strictly necessary cookies</button>
+            </aside>
+            <section class="cookie-modal-body tab-content">
+                <div class="cookie-tab-panel tab-pane fade show active" id="cookiePrivacyPanel" role="tabpanel" aria-labelledby="cookiePrivacyTab" tabindex="0">
+                    <h2 id="cookieSettingsTitle">Privacy overview</h2>
+                    <p>
+                        This website has a public area and an authenticated area. In both areas, strictly necessary first-party cookies may be used for security. In the authenticated area, a session cookie is also used to keep the user signed in. Optional third-party or analytics cookies are only allowed when the selected preference is "Accept all".
+                        <a href="{% url 'cookie_policy' %}">See the Cookie Policy</a>.
+                    </p>
                 </div>
-                <div class="cookie-toggle-row">
-                    <span class="cookie-toggle" aria-hidden="true"></span>
-                    <strong>Enabled</strong>
+                <div class="cookie-tab-panel tab-pane fade" id="cookieNecessaryPanel" role="tabpanel" aria-labelledby="cookieNecessaryTab" tabindex="0">
+                    <h2>Strictly necessary cookies</h2>
+                    <p>
+                        These cookies are necessary for the website to function correctly and cannot be disabled in our systems. They are set in response to actions made by the user, such as saving cookie preferences, protecting forms, signing in, or keeping an authenticated session active.
+                    </p>
+                    <div class="cookie-table-wrapper">
+                        <table class="cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Purpose</th>
+                                    <th>Area</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>csrftoken</td>
+                                    <td>Protects forms and POST requests against cross-site request forgery.</td>
+                                    <td>Public and authenticated</td>
+                                </tr>
+                                <tr>
+                                    <td>relecovCookieConsent</td>
+                                    <td>Stores the user's cookie preference.</td>
+                                    <td>Public and authenticated</td>
+                                </tr>
+                                <tr>
+                                    <td>sessionid</td>
+                                    <td>Keeps the user signed in after login.</td>
+                                    <td>Authenticated only</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="cookie-toggle-row">
+                        <span class="cookie-toggle" aria-hidden="true"></span>
+                        <strong>Enabled</strong>
+                    </div>
                 </div>
-            </div>
-            <div class="cookie-modal-actions">
-                <form method="post" action="{% url 'cookie_consent' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="value" value="all">
-                    <input type="hidden" name="next" value="{{ cookie_consent_next }}">
-                    <button type="submit" class="cookie-btn cookie-btn-primary">Accept all</button>
-                </form>
-                <form method="post" action="{% url 'cookie_consent' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="value" value="necessary_only">
-                    <input type="hidden" name="next" value="{{ cookie_consent_next }}">
-                    <button type="submit" class="cookie-btn cookie-btn-secondary">Reject all</button>
-                </form>
-            </div>
-        </section>
+                <div class="cookie-modal-actions">
+                    <form method="post" action="{% url 'cookie_consent' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="value" value="all">
+                        <input type="hidden" name="next" value="{{ cookie_consent_next }}">
+                        <button type="submit" class="cookie-btn cookie-btn-primary">Accept all</button>
+                    </form>
+                    <form method="post" action="{% url 'cookie_consent' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="value" value="necessary_only">
+                        <input type="hidden" name="next" value="{{ cookie_consent_next }}">
+                        <button type="submit" class="cookie-btn cookie-btn-secondary">Reject all</button>
+                    </form>
+                </div>
+            </section>
+        </div>
     </div>
 </div>
 {% endif %}
@@ -260,6 +259,19 @@
 
         <!-- Template Main JS File -->
         <script src="{% static 'core/main_style/js/main.js' %}"></script>
+
+        <script>
+            const cookieSettingsModal = document.getElementById("cookieSettingsModal");
+            const cookieConsentBanner = document.getElementById("cookieConsentBanner");
+            if (cookieSettingsModal && cookieConsentBanner) {
+                cookieSettingsModal.addEventListener("show.bs.modal", function () {
+                    cookieConsentBanner.classList.add("cookie-consent-hidden");
+                });
+                cookieSettingsModal.addEventListener("hidden.bs.modal", function () {
+                    cookieConsentBanner.classList.remove("cookie-consent-hidden");
+                });
+            }
+        </script>
 
     </body>
 </html>
