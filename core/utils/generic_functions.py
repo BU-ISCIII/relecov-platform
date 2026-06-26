@@ -113,13 +113,10 @@ def get_user_lab_field(user):
 
 
 def cookie_consent(request):
-    settings_tab = request.GET.get("cookie_settings")
-    show_cookie_settings = settings_tab in {"privacy", "necessary"}
     has_cookie_consent = core.config.COOKIE_CONSENT_NAME in request.COOKIES
-    show_cookie_banner = not has_cookie_consent and not show_cookie_settings
     return {
-        "show_cookie_banner": show_cookie_banner,
-        "show_cookie_settings": show_cookie_settings,
-        "cookie_settings_tab": settings_tab or "privacy",
+        "show_cookie_banner": not has_cookie_consent,
+        "show_cookie_settings": False,
+        "cookie_settings_tab": "privacy",
         "cookie_consent_next": request.path,
     }
