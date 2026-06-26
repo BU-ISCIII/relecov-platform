@@ -62,6 +62,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "docs.utils.context_processors.docs_current_path",
+                "core.utils.generic_functions.cookie_consent",
             ],
         },
     },

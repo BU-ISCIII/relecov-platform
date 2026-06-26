@@ -161,3 +161,8 @@ INSTITUTION_FIELD_MAPDICT = {
     "Submitter": "submitting_institution",
     "Collector": "lab_code_1",
 }
+
+# Cookie consent
+COOKIE_CONSENT_NAME = "relecovCookieConsent"
+COOKIE_CONSENT_MAX_AGE = 60 * 60 * 24 * 365
+COOKIE_CONSENT_VALUES = {"all", "necessary_only"}

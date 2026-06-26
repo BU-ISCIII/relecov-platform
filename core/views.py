@@ -6,6 +6,9 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 # Local imports
 import core.models
@@ -118,6 +121,39 @@ def index(request):
         "core/index.html",
         {"number_of_samples": number_of_samples, "nextstrain_url": nextstrain_url},
     )
+
+
+def cookie_policy(request):
+    return render(request, "core/cookiePolicy.html")
+
+
+def _get_cookie_consent_redirect(request):
+    next_url = request.POST.get("next") or "/"
+    if url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return "/"
+
+
+@require_POST
+def cookie_consent(request):
+    consent_value = request.POST.get("value")
+    if consent_value not in core.config.COOKIE_CONSENT_VALUES:
+        return JsonResponse({"ok": False, "error": "Invalid consent value"}, status=400)
+
+    response = redirect(_get_cookie_consent_redirect(request))
+    response.set_cookie(
+        core.config.COOKIE_CONSENT_NAME,
+        f"{consent_value}|{timezone.now().isoformat()}",
+        max_age=core.config.COOKIE_CONSENT_MAX_AGE,
+        path="/",
+        samesite="Lax",
+        secure=request.is_secure(),
+    )
+    return response
 
 
 @login_required
