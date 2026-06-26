@@ -34,6 +34,7 @@ import core.utils.samples_map
 import core.utils.schema
 import core.utils.variants
 from core.templatetags.user_groups import has_group
+from core.utils.generic_functions import cookie_consent
 from core.views import (
     _get_search_sample_rows_for_user,
     _get_sort_value,
@@ -5533,6 +5534,36 @@ class CoreViewBranchTests(SimpleTestCase):
                 "nextstrain_url": "https://nextstrain.example",
             },
         )
+
+    def test_cookie_consent_context_shows_banner_without_cookie(self):
+        request = self.factory.get("/")
+
+        context = cookie_consent(request)
+
+        self.assertEqual(
+            context,
+            {
+                "show_cookie_banner": True,
+                "show_cookie_settings": False,
+                "cookie_settings_tab": "privacy",
+                "cookie_consent_next": "/metadataForm",
+            },
+        )
+
+    def test_cookie_consent_sets_necessary_only_cookie(self):
+        request = self.factory.post(
+            "/cookie-consent/",
+            {"value": "necessary_only", "next": "/"},
+        )
+
+        response = core.views.cookie_consent(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/")
+        consent_cookie = response.cookies["relecovCookieConsent"]
+        self.assertTrue(consent_cookie.value.startswith("necessary_only|"))
+        self.assertEqual(consent_cookie["max-age"], 60 * 60 * 24 * 365)
+        self.assertEqual(consent_cookie["samesite"], "Lax")
 
     @patch("core.views.redirect")
     def test_assign_samples_redirects_non_admin(self, redirect):
