@@ -80,7 +80,8 @@ def register():
                     ),
                 ],
             ),
-        ]
+        ],
+        style={"fontFamily": "Oxanium, sans-serif"},
     )
 
     @app.callback(
