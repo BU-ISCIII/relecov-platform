@@ -9,6 +9,8 @@ from plotly.subplots import make_subplots
 import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
 
+PLOTLY_FONT = "Oxanium, sans-serif"
+
 
 def _coerce_filter_date(date_value):
     if date_value is None or date_value == "":
@@ -101,9 +103,10 @@ def build_lineage_variation_figure(df_full, start_date=None, end_date=None):
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(size=20, color="red"),
+            font=dict(family=PLOTLY_FONT, size=20, color="red"),
         )
         fig.update_layout(
+            font=dict(family=PLOTLY_FONT),
             xaxis=dict(showline=True, linecolor="black", linewidth=2, mirror=True),
             yaxis=dict(showline=True, linecolor="black", linewidth=2, mirror=True),
             barmode="stack",
@@ -187,6 +190,7 @@ def build_lineage_variation_figure(df_full, start_date=None, end_date=None):
     )
     fig.update_yaxes(title_text="<b>Number of samples processed</b>", secondary_y=True)
     fig.update_layout(
+        font=dict(family=PLOTLY_FONT),
         title_text="Variants over the selected period",
         autotypenumbers="convert types",
         barmode="stack",

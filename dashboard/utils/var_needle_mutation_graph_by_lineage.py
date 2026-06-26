@@ -6,6 +6,7 @@ import dashboard.utils.generic_graphic_data
 import dashboard.utils.generic_process_data
 
 APP_NAME = "needlePlotMutationByLineage"
+PLOTLY_FONT = "Oxanium, sans-serif"
 
 
 def _domain_name_key(name):
@@ -65,6 +66,7 @@ def get_variant_data_from_lineages(graphic_name=None, lineage=None, chromosome=N
 def empty_needle_plot_figure():
     fig = go.Figure()
     fig.update_layout(
+        font=dict(family=PLOTLY_FONT),
         title={"text": "Needle Plot", "x": 0.1, "xanchor": "left"},
         xaxis_title="Genome Position",
         yaxis_title="Population Allele Frequency",
@@ -189,7 +191,7 @@ def build_needle_plot_figure(
             y=annotation_y,
             text=domain["name"],
             showarrow=False,
-            font=dict(size=12, color="black"),
+            font=dict(family=PLOTLY_FONT, size=12, color="black"),
         )
     fig.add_shape(
         type="rect",
@@ -252,6 +254,7 @@ def build_needle_plot_figure(
         )
 
     fig.update_layout(
+        font=dict(family=PLOTLY_FONT),
         title={"text": "Needle Plot", "x": 0.1, "xanchor": "left"},
         xaxis=dict(
             title="Genome Position",

@@ -28,7 +28,11 @@ def register():
 
     app = DjangoDash(
         APP_NAME,
-        external_stylesheets=[dbc.themes.BOOTSTRAP],
+        external_stylesheets=[
+            "https://fonts.googleapis.com/css2?family=Oxanium&display=swap",
+            "/static/core/css/dash_style.css",
+            dbc.themes.BOOTSTRAP,
+        ],
     )
 
     controls = dbc.Card(
@@ -82,6 +86,7 @@ def register():
             ),
         ],
         fluid=True,
+        style={"fontFamily": "Oxanium, sans-serif"},
     )
 
     @app.callback(
