@@ -38,3 +38,7 @@
 
 - **FAQs**
     - [Create new users](create_new_user.md)
+
+- **Legal**
+    - [Cookie Policy](/cookie-policy/)
+

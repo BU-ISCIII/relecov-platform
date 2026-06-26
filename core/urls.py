@@ -20,6 +20,7 @@ urlpatterns = [
     ),
     path("Contact", core.views.contact, name="contact"),
     path("cookie-consent/", core.views.cookie_consent, name="cookie_consent"),
+    path("cookie-policy/", core.views.cookie_policy, name="cookie_policy"),
     path("intranet/", core.views.intranet, name="intranet"),
     path(
         "laboratoryContact/",

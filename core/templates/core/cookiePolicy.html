@@ -1,0 +1,113 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="hero-animated d-flex font-primary">
+    <div class="container position-relative pt-5 pb-5">
+        <div class="row pt-4">
+            <div class="col-lg-10 mx-auto">
+                <h1>Cookie Policy</h1>
+                <p class="text-muted">Last updated: June 2026</p>
+
+                <p>
+                    This Cookie Policy explains how the RELECOV Platform uses cookies and similar technologies. The platform is operated by the Instituto de Salud Carlos III (ISCIII) for viral sequencing and variant evolution monitoring.
+                </p>
+
+                <h2>What Are Cookies?</h2>
+                <p>
+                    Cookies are small pieces of information stored in your browser when you visit a website. They can help a website work correctly, remember user actions or preferences, protect forms, or keep an authenticated session active.
+                </p>
+
+                <h2>Types Of Cookies</h2>
+                <p>
+                    Cookies may be classified by who manages them in:
+                </p>
+                <ul>
+                    <li><strong>First-party cookies:</strong> cookies set from the RELECOV Platform domain.</li>
+                    <li><strong>Third-party cookies:</strong> cookies set from a domain managed by another provider.</li>
+                </ul>
+                <p>
+                    According to how long they remain stored in:
+                </p>
+                <ul>
+                    <li><strong>Session cookies:</strong> cookies used while the user is accessing the service.</li>
+                    <li><strong>Persistent cookies:</strong> cookies stored for a defined period or until deleted by the user.</li>
+                </ul>
+                <p>
+                    According to their purpose:
+                </p>
+                <ul>
+                    <li><strong>Strictly necessary cookies:</strong> cookies required for security, session management, preference storage, or requested services.</li>
+                    <li><strong>Analytics cookies:</strong> cookies that may be used to understand how users interact with the website. The RELECOV Platform does not currently set optional analytics cookies through the consent banner.</li>
+                </ul>
+
+                <h2>Cookies Used By This Platform</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Purpose</th>
+                                <th>Provider</th>
+                                <th>Retention</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>csrftoken</code></td>
+                                <td>Protects forms and POST requests against cross-site request forgery.</td>
+                                <td>RELECOV Platform</td>
+                                <td>Up to 1 year</td>
+                                <td>Strictly necessary</td>
+                            </tr>
+                            <tr>
+                                <td><code>relecovCookieConsent</code></td>
+                                <td>Stores the user's cookie preference.</td>
+                                <td>RELECOV Platform</td>
+                                <td>Up to 1 year</td>
+                                <td>Strictly necessary / preference</td>
+                            </tr>
+                            <tr>
+                                <td><code>sessionid</code></td>
+                                <td>Keeps authenticated users signed in while using the private area of the platform.</td>
+                                <td>RELECOV Platform</td>
+                                <td>Up to 15 days or until the user logs out.</td>
+                                <td>Strictly necessary</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Personal Data</h2>
+                <p>
+                    These cookies do not store directly readable personal information such as name, email address, or contact details. They are associated with the browser being used. In the authenticated area, the session cookie is used only to keep the user signed in.
+                </p>
+
+                <h2>Consent</h2>
+                <p>
+                    When you first visit the platform, a cookie notice is shown. If you select <strong>Accept</strong>, you accept strictly necessary cookies and any optional third-party or analytics cookies where they are used. If you select <strong>Reject all</strong>, only strictly necessary first-party cookies will be used.
+                </p>
+                <p>
+                    Strictly necessary cookies cannot be disabled from the platform because they are required for security, authentication, and requested services. You can delete or block cookies from your browser settings, although some parts of the platform may stop working correctly.
+                </p>
+
+                <h2>Third-Party Scripts</h2>
+                <p>
+                    Some authenticated pages may load third-party scripts or stylesheets to provide interactive spreadsheet or table functionality. These resources are scripts or stylesheets, not cookies by themselves. If a third-party provider were to set cookies in the future, those cookies should be reviewed and documented here.
+                </p>
+
+                <h2>How To Manage Cookies</h2>
+                <p>
+                    You can manage, delete, or block cookies through your browser settings. Blocking strictly necessary cookies may affect login, form submission, preference storage, or other essential features of the platform.
+                </p>
+
+                <h2>Privacy Policy</h2>
+                <p>
+                    For more information about privacy and data protection, please see the
+                    <a href="https://relecov.isciii.es/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
