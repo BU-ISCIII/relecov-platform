@@ -33,7 +33,9 @@ def register():
 
     app.layout = html.Div(
         [
-            html.H4("Select the laboratory", style={"fontFamily": "Oxanium, sans-serif"}),
+            html.H4(
+                "Select the laboratory", style={"fontFamily": "Oxanium, sans-serif"}
+            ),
             dcc.Dropdown(
                 id="select_collecting_inst",
                 options=[],
