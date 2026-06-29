@@ -25,12 +25,83 @@
     #sample_list th:nth-child(2) input {
       white-space: nowrap;
     }
+    #sample_list thead tr.filter-row th {
+      vertical-align: top;
+    }
+    #sample_list thead tr.filter-row th input,
+    #sample_list thead tr.filter-row th select {
+      margin-top: 0;
+    }
     #sample_list th:last-child,
     #sample_list td:last-child {
       min-width: 260px;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
-    #sample_list thead tr.filter-row th:last-child select {
-      min-width: 220px;
+    #sample_list thead tr.filter-row th:last-child .institution-search-wrapper,
+    #sample_list thead tr.filter-row th:last-child button:not(.institution-search-clear),
+    #sample_list .institution-filter-options {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    #sample_list .institution-search-wrapper {
+      position: relative;
+    }
+    #sample_list .institution-search-wrapper input {
+      padding-right: 1.8rem;
+    }
+    #sample_list .institution-search-clear {
+      position: absolute;
+      top: 50%;
+      right: 0.45rem;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #6c757d;
+      line-height: 1;
+      padding: 0;
+      width: 1rem;
+      height: 1rem;
+    }
+    #sample_list .institution-search-clear:hover,
+    #sample_list .institution-search-clear:focus {
+      color: var(--color-primary);
+      outline: none;
+    }
+    #sample_list thead tr.filter-row th:last-child button:not(.institution-search-clear) {
+      white-space: normal;
+    }
+    #sample_list .institution-filter-options {
+      max-height: 8rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      border: 1px solid #ced4da;
+      border-radius: 0.25rem;
+      background: #fff;
+      padding: 0.35rem 0.5rem;
+    }
+    #sample_list .institution-filter-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 400;
+      line-height: 1.15;
+      padding: 0.2rem 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    #sample_list .institution-filter-option input {
+      flex: 0 0 auto;
+      margin-top: 0.15rem;
+    }
+    #sample_list .institution-filter-option span {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+      overflow-wrap: anywhere;
     }
     #sample_list a.sample-browser-link {
       color: var(--color-blue);
@@ -207,7 +278,7 @@
                                                     });
                                                 });
 
-                                                [2, 3].forEach(function(index) {
+                                                [2].forEach(function(index) {
                                                     var column = api.column(index);
                                                     var headerCell = $('.filter-row th').eq(index);  // Use the empty row for filters
                                                     var columnName = $('.dataTable thead tr:first th').eq(index).text().trim();
@@ -223,9 +294,89 @@
                                                             column.search($(this).val(), false, false).draw();
                                                         });
 
-                                                    var options = index === 2 ? lineageOptions : institutionOptions;
-                                                    options.forEach(function (d) {
+                                                    lineageOptions.forEach(function (d) {
                                                         select.append('<option value="' + d + '">' + d + '</option>')
+                                                    });
+                                                });
+
+                                                [3].forEach(function(index) {
+                                                    var column = api.column(index);
+                                                    var headerCell = $('.filter-row th').eq(index);
+                                                    var columnName = $('.dataTable thead tr:first th').eq(index).text().trim();
+                                                    var selectedInstitutions = [];
+                                                    headerCell.empty();
+                                                    var searchWrapper = $('<div class="institution-search-wrapper mb-1"></div>')
+                                                        .appendTo(headerCell)
+                                                        .on('click mousedown keydown touchstart', function (event) {
+                                                            event.stopPropagation();
+                                                        });
+                                                    var searchInput = $('<input type="text" class="form-control form-control-sm" placeholder="Search hospitals..." />')
+                                                        .appendTo(searchWrapper);
+                                                    $('<button type="button" class="institution-search-clear" aria-label="Clear hospital search">x</button>')
+                                                        .appendTo(searchWrapper)
+                                                        .on('click', function (event) {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                            searchInput.val('');
+                                                            renderInstitutionOptions('');
+                                                            searchInput.trigger('focus');
+                                                        });
+                                                    $('<button type="button" class="btn btn-outline-secondary btn-sm mb-1">Remove filter of ' + columnName + '</button>')
+                                                        .appendTo(headerCell)
+                                                        .on('click mousedown keydown touchstart', function (event) {
+                                                            event.stopPropagation();
+                                                        })
+                                                        .on('click', function () {
+                                                            selectedInstitutions = [];
+                                                            searchInput.val('');
+                                                            column.search('', false, false).draw();
+                                                            renderInstitutionOptions('');
+                                                        });
+                                                    var optionContainer = $('<div class="institution-filter-options"></div>')
+                                                        .appendTo(headerCell)
+                                                        .on('click mousedown keydown touchstart', function (event) {
+                                                            event.stopPropagation();
+                                                        });
+
+                                                    function updateInstitutionSearch() {
+                                                        column.search(selectedInstitutions.length ? JSON.stringify(selectedInstitutions) : '', false, false).draw();
+                                                    }
+
+                                                    function renderInstitutionOptions(searchText) {
+                                                        var orderedOptions = selectedInstitutions.concat(
+                                                            institutionOptions.filter(function (d) {
+                                                                return selectedInstitutions.indexOf(d) === -1;
+                                                            })
+                                                        );
+                                                        optionContainer.empty();
+                                                        orderedOptions.forEach(function (d) {
+                                                            if (searchText && d.toLowerCase().indexOf(searchText) === -1 && selectedInstitutions.indexOf(d) === -1) {
+                                                                return;
+                                                            }
+                                                            var optionId = 'institution-filter-' + Math.abs(d.split('').reduce(function (acc, char) {
+                                                                return ((acc << 5) - acc) + char.charCodeAt(0);
+                                                            }, 0));
+                                                            var label = $('<label class="institution-filter-option" for="' + optionId + '"></label>');
+                                                            var checkbox = $('<input type="checkbox" id="' + optionId + '" />')
+                                                                .prop('checked', selectedInstitutions.indexOf(d) !== -1)
+                                                                .on('change', function () {
+                                                                    if (this.checked && selectedInstitutions.indexOf(d) === -1) {
+                                                                        selectedInstitutions.push(d);
+                                                                    } else if (!this.checked) {
+                                                                        selectedInstitutions = selectedInstitutions.filter(function (value) {
+                                                                            return value !== d;
+                                                                        });
+                                                                    }
+                                                                    updateInstitutionSearch();
+                                                                    renderInstitutionOptions(searchInput.val().toLowerCase());
+                                                                });
+                                                            label.append(checkbox).append($('<span></span>').text(d));
+                                                            optionContainer.append(label);
+                                                        });
+                                                    }
+                                                    renderInstitutionOptions('');
+                                                    searchInput.on('keyup change clear', function () {
+                                                        renderInstitutionOptions($(this).val().toLowerCase());
                                                     });
                                                 });
                                                 // Hide the loading message
