@@ -66,7 +66,9 @@ def _get_search_sample_rows_for_user(user_obj):
     ]
 
 
-def _normalize_datatable_search_value(value, regex=False, json_list=False):
+def _normalize_datatable_search_value(
+    value, regex=False, json_list=False, json_object=False
+):
     """Normalize DataTables search values, including escaped exact-match regexes."""
     if not value:
         return ""
@@ -76,6 +78,15 @@ def _normalize_datatable_search_value(value, regex=False, json_list=False):
                 str(item).strip() for item in json.loads(value) if str(item).strip()
             ]
         except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+    if json_object and value.startswith("{") and value.endswith("}"):
+        try:
+            return {
+                key: str(item).strip()
+                for key, item in json.loads(value).items()
+                if str(item).strip()
+            }
+        except (AttributeError, TypeError, ValueError, json.JSONDecodeError):
             pass
     if regex and value.startswith("^") and value.endswith("$"):
         value = value[1:-1]
@@ -102,6 +113,16 @@ def _row_matches_search(row, global_search, column_filters):
         candidate = str(row[field_name] or "")
         if isinstance(search_value, list):
             if candidate not in search_value:
+                return False
+            continue
+        if isinstance(search_value, dict):
+            start_date = search_value.get("from")
+            end_date = search_value.get("to")
+            if not candidate:
+                return False
+            if start_date and candidate < start_date:
+                return False
+            if end_date and candidate > end_date:
                 return False
             continue
         if exact_match:
@@ -328,6 +349,7 @@ def search_sample_data(request):
             request.GET.get(f"columns[{index}][search][regex]", "false").lower()
             == "true",
             index == 3,
+            index == 1,
         )
         exact_match = index in (2, 3)
         column_filters.append((field_name, search_value, exact_match))
