@@ -338,6 +338,34 @@ def search_sample_data(request):
         if _row_matches_search(row, global_search, column_filters)
     ]
 
+    lineage_option_filters = [
+        column_filter
+        for column_filter in column_filters
+        if column_filter[0] != "lineage"
+    ]
+    lineage_options = sorted(
+        {
+            row["lineage"]
+            for row in sample_rows
+            if row["lineage"]
+            and _row_matches_search(row, global_search, lineage_option_filters)
+        }
+    )
+
+    institution_option_filters = [
+        column_filter
+        for column_filter in column_filters
+        if column_filter[0] != "collecting_institution"
+    ]
+    collecting_institution_options = sorted(
+        {
+            row["collecting_institution"]
+            for row in sample_rows
+            if row["collecting_institution"]
+            and _row_matches_search(row, global_search, institution_option_filters)
+        }
+    )
+
     order_column = request.GET.get("order[0][column]")
     order_direction = request.GET.get("order[0][dir]", "asc")
     if order_column is not None:
@@ -362,6 +390,8 @@ def search_sample_data(request):
             "recordsTotal": len(sample_rows),
             "recordsFiltered": len(filtered_rows),
             "data": paginated_rows,
+            "lineage_options": lineage_options,
+            "collecting_institution_options": collecting_institution_options,
         }
     )
 
