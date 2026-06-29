@@ -48,12 +48,12 @@ cp -r /path/to/auspice /opt/nextstrain/dataset/sars-cov-2
 The service configuration file is located in the **conf** directory of the relecov-platform.
 If you change the installation folder from `/opt` to a different location, replace 
 `/opt/` for your installation folder.
-Copy the service file to `/usr/lib/systemd/system`
+Copy the service file to `/etc/systemd/system`
 ```
-sudo cp /opt/relecov-platform/conf/nextstrain.service /usr/lib/systemd/system
+sudo cp /opt/relecov-platform/conf/nextstrain.service /etc/systemd/system
 ```
 By default, the service listens on port 8100. If you need to change this port, 
-edit `/usr/lib/systemd/system` and replace the default port number with your desired value, then save the file.
+edit `/etc/systemd/system` and replace the default port number with your desired value, then save the file.
 
 ### Start Nexstrain service
 To get the service up, you need to start the service:
