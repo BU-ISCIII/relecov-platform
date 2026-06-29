@@ -1,6 +1,6 @@
 # How to use Nextstrain
 
-After you have correctly installed **Nextstrain** by following the steps described in the [README](https://github.com/Shettland/relecov-platform/tree/develop#install-nextstrain), you need to prepare your data and configuration files to run Nextstrain.
+After you have correctly installed **Nextstrain** by following the steps described in the [README](https://github.com/BU-ISCIII/relecov-platform/blob/main/README.md), you need to prepare your data and configuration files to run Nextstrain.
 
 Once Nextstrain is installed, clone the repository https://github.com/BU-ISCIII/nexstrain_relecov.git and copy it into the `datasets/sars-cov-2/` directory. For clarity, we will refer to this copy as the "build_folder."
 
@@ -20,10 +20,10 @@ ccggaggattccggattgtcaatatgcccggaggattccggattgtcaatatgcccggaa
 
 The header of the metadata table may vary depending on the metadata that you want to use, but you can find a reference [here](https://github.com/BU-ISCIII/nexstrain_relecov/blob/master/data/example_metadata.tsv). 
 
-For a basic analysis, not all the headers are necessary. The relecov's custom script [metadata_nextstrain_parser.py](https://github.com/BU-ISCIII/nexstrain_relecov/tree/master/data) can be run to parse the metadata processed with the `relecov-tools` from JSON format to TSV format:
+For a basic analysis, not all the headers are necessary. The relecov's custom script [metadata_nextstrain_parser.py](https://github.com/BU-ISCIII/relecov-tools/blob/main/relecov_tools/assets/pipeline_utils/metadata_nextstrain_parser.py) can be run to parse the metadata processed with the `relecov-tools` from JSON format to TSV format, by taking all JSON files stored within a specific directory, as shown in the following command:
 
 ```
-python metadata_nextstrain_parser.py relecov_metadata.json relecov_metadata.tsv
+python3 metadata_nextstrain_parser.py --input-dir json_files/
 ```
 
 The next step would be to customize the config file `relecov_data.yaml` to your needs. You may find information on how to do this task [here](https://docs.nextstrain.org/projects/ncov/en/latest/reference/workflow-config-file.html).
