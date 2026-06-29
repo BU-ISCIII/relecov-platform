@@ -10,7 +10,7 @@
     }
     #sample_list th:first-child,
     #sample_list td:first-child {
-      min-width: 210px;
+      min-width: 190px;
       white-space: nowrap;
     }
     #sample_list th:first-child .dt-column-title,
@@ -25,7 +25,7 @@
     }
     #sample_list th:nth-child(2),
     #sample_list td:nth-child(2) {
-      min-width: 170px;
+      min-width: 150px;
     }
     #sample_list th:nth-child(2) .dt-column-title,
     #sample_list th:nth-child(2) input {
@@ -34,7 +34,25 @@
     #sample_list .date-range-filter {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.35rem;
+    }
+    #sample_list .date-range-filter label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 0.15rem;
+      white-space: normal;
+    }
+    #sample_list .date-range-input-wrapper {
+      position: relative;
+    }
+    #sample_list .date-range-input-wrapper input {
+      box-sizing: border-box;
+      font-size: 0.82rem;
+      padding-left: 0.35rem;
+      padding-right: 1.45rem;
+      width: 100%;
     }
     #sample_list thead tr.filter-row th {
       vertical-align: top;
@@ -76,8 +94,23 @@
       width: 1rem;
       height: 1rem;
     }
+    #sample_list .date-range-clear {
+      position: absolute;
+      top: 50%;
+      right: 0.3rem;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #6c757d;
+      line-height: 1;
+      padding: 0;
+      width: 0.9rem;
+      height: 0.9rem;
+    }
     #sample_list .sample-id-search-clear:hover,
     #sample_list .sample-id-search-clear:focus,
+    #sample_list .date-range-clear:hover,
+    #sample_list .date-range-clear:focus,
     #sample_list .institution-search-clear:hover,
     #sample_list .institution-search-clear:focus {
       color: var(--color-primary);
@@ -330,10 +363,22 @@
                                                     .on('click mousedown keydown touchstart', function (event) {
                                                       event.stopPropagation();
                                                     });
+                                                  var startField = $('<div class="date-range-field"></div>')
+                                                    .appendTo(dateContainer);
+                                                  $('<label>Start date filter</label>')
+                                                    .appendTo(startField);
+                                                  var startWrapper = $('<div class="date-range-input-wrapper"></div>')
+                                                    .appendTo(startField);
                                                   var startInput = $('<input type="date" class="form-control form-control-sm" aria-label="Collection date from" />')
+                                                    .appendTo(startWrapper);
+                                                  var endField = $('<div class="date-range-field"></div>')
                                                     .appendTo(dateContainer);
+                                                  $('<label>End date filter</label>')
+                                                    .appendTo(endField);
+                                                  var endWrapper = $('<div class="date-range-input-wrapper"></div>')
+                                                    .appendTo(endField);
                                                   var endInput = $('<input type="date" class="form-control form-control-sm" aria-label="Collection date to" />')
-                                                    .appendTo(dateContainer);
+                                                    .appendTo(endWrapper);
 
                                                   function updateDateRangeSearch() {
                                                     var searchValue = '';
@@ -347,6 +392,24 @@
                                                       column.search(searchValue, false, false).draw();
                                                     }
                                                   }
+                                                  $('<button type="button" class="date-range-clear" aria-label="Clear start date filter">x</button>')
+                                                    .appendTo(startWrapper)
+                                                    .on('click', function (event) {
+                                                      event.preventDefault();
+                                                      event.stopPropagation();
+                                                      startInput.val('');
+                                                      updateDateRangeSearch();
+                                                      startInput.trigger('focus');
+                                                    });
+                                                  $('<button type="button" class="date-range-clear" aria-label="Clear end date filter">x</button>')
+                                                    .appendTo(endWrapper)
+                                                    .on('click', function (event) {
+                                                      event.preventDefault();
+                                                      event.stopPropagation();
+                                                      endInput.val('');
+                                                      updateDateRangeSearch();
+                                                      endInput.trigger('focus');
+                                                    });
                                                   startInput.add(endInput).on('change clear', updateDateRangeSearch);
                                                 });
 
