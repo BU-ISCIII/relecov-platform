@@ -214,6 +214,8 @@
                                     $(document).ready(function() {
                                         var lineageOptions = JSON.parse(document.getElementById('search-sample-lineage-options').textContent);
                                         var institutionOptions = JSON.parse(document.getElementById('search-sample-institution-options').textContent);
+                                        var refreshLineageOptions = null;
+                                        var refreshInstitutionOptions = null;
                                         var sampleUrlTemplate = "{% url 'sample_display' 0 %}";
 
                                         function escapeHtml(value) {
@@ -241,6 +243,18 @@
                                                             '<div class="col-sm-10"><div class="card border-danger mb-3"><div class="card-header text-center text-danger"><h3 style="text-align:center">Sample Browser is not available</h3></div><div class="card-body text-center"><br><p><strong>' + escapeHtml(json.error) + '</strong></p></div></div></div>'
                                                         );
                                                         return [];
+                                                    }
+                                                    if (json.lineage_options) {
+                                                        lineageOptions = json.lineage_options;
+                                                        if (refreshLineageOptions) {
+                                                            refreshLineageOptions();
+                                                        }
+                                                    }
+                                                    if (json.collecting_institution_options) {
+                                                        institutionOptions = json.collecting_institution_options;
+                                                        if (refreshInstitutionOptions) {
+                                                            refreshInstitutionOptions();
+                                                        }
                                                     }
                                                     return json.data || [];
                                                 }
@@ -282,7 +296,7 @@
                                                     var column = api.column(index);
                                                     var headerCell = $('.filter-row th').eq(index);  // Use the empty row for filters
                                                     var columnName = $('.dataTable thead tr:first th').eq(index).text().trim();
-                                                    var select = $('<select class="form-select form-select-sm"><option value="">Filter by ' + columnName + '</option></select>')
+                                                    var select = $('<select class="form-select form-select-sm"></select>')
                                                         .appendTo($(headerCell.empty()))
                                                         .on('click mousedown keydown touchstart', function (event) {
                                                             event.stopPropagation();
@@ -294,9 +308,19 @@
                                                             column.search($(this).val(), false, false).draw();
                                                         });
 
-                                                    lineageOptions.forEach(function (d) {
-                                                        select.append('<option value="' + d + '">' + d + '</option>')
-                                                    });
+                                                    function renderLineageOptions() {
+                                                        var selectedLineage = select.val() || column.search();
+                                                        select.empty().append('<option value="">Filter by ' + columnName + '</option>');
+                                                        lineageOptions.forEach(function (d) {
+                                                            select.append($('<option></option>').val(d).text(d));
+                                                        });
+                                                        if (selectedLineage && lineageOptions.indexOf(selectedLineage) === -1) {
+                                                            select.append($('<option></option>').val(selectedLineage).text(selectedLineage));
+                                                        }
+                                                        select.val(selectedLineage);
+                                                    }
+                                                    refreshLineageOptions = renderLineageOptions;
+                                                    renderLineageOptions();
                                                 });
 
                                                 [3].forEach(function(index) {
@@ -374,6 +398,9 @@
                                                             optionContainer.append(label);
                                                         });
                                                     }
+                                                    refreshInstitutionOptions = function () {
+                                                        renderInstitutionOptions(searchInput.val().toLowerCase());
+                                                    };
                                                     renderInstitutionOptions('');
                                                     searchInput.on('keyup change clear', function () {
                                                         renderInstitutionOptions($(this).val().toLowerCase());
