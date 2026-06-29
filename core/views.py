@@ -1,5 +1,6 @@
 # Generic imports
 from datetime import datetime
+import json
 from collections import defaultdict, OrderedDict
 import re
 from django.shortcuts import render, redirect
@@ -65,10 +66,17 @@ def _get_search_sample_rows_for_user(user_obj):
     ]
 
 
-def _normalize_datatable_search_value(value, regex=False):
+def _normalize_datatable_search_value(value, regex=False, json_list=False):
     """Normalize DataTables search values, including escaped exact-match regexes."""
     if not value:
         return ""
+    if json_list and value.startswith("[") and value.endswith("]"):
+        try:
+            return [
+                str(item).strip() for item in json.loads(value) if str(item).strip()
+            ]
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
     if regex and value.startswith("^") and value.endswith("$"):
         value = value[1:-1]
         # DataTables' escapeRegex() prefixes regex metacharacters with a
@@ -92,6 +100,10 @@ def _row_matches_search(row, global_search, column_filters):
         if not search_value:
             continue
         candidate = str(row[field_name] or "")
+        if isinstance(search_value, list):
+            if candidate not in search_value:
+                return False
+            continue
         if exact_match:
             if candidate != search_value:
                 return False
@@ -315,6 +327,7 @@ def search_sample_data(request):
             request.GET.get(f"columns[{index}][search][value]", ""),
             request.GET.get(f"columns[{index}][search][regex]", "false").lower()
             == "true",
+            index == 3,
         )
         exact_match = index in (2, 3)
         column_filters.append((field_name, search_value, exact_match))
