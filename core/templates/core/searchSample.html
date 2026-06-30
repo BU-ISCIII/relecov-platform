@@ -169,6 +169,18 @@
       width: 100%;
       max-width: 100%;
     }
+    .sample-browser-download .sample-browser-csv-button {
+      background-color: rgba(var(--color-green-rgb), 0.12);
+      border-color: var(--color-green);
+      color: var(--color-green);
+      font-weight: 500;
+    }
+    .sample-browser-download .sample-browser-csv-button:hover,
+    .sample-browser-download .sample-browser-csv-button:focus {
+      background-color: var(--color-green);
+      border-color: var(--color-green);
+      color: var(--color-white);
+    }
 </style>
 {% endblock %}
 
@@ -276,7 +288,7 @@
                                             lengthMenu: [ [25, 50, 100, 200, -1], [25, 50, 100, 200, "All"] ],
                                             orderCellsTop: true,
                                             dom:
-                                                "<'row'<'col-md-3'l><'col-md-9'f>>" +
+                                                "<'row align-items-center'<'col-md-3'l><'col-md-4 sample-browser-download'><'col-md-5'f>>" +
                                                 "<'row'<'col-sm-12'tr>>" +
                                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                                             responsive: true,
@@ -323,6 +335,13 @@
                                             ],
                                             initComplete: function () {
                                                 var api = this.api();
+                                                var csvUrl = "{% url 'search_sample_csv' %}";
+                                                $('<button type="button" class="btn btn-sm sample-browser-csv-button">Download filtered table</button>')
+                                                    .appendTo($('.sample-browser-download'))
+                                                    .on('click', function () {
+                                                        var params = $.param(table.ajax.params());
+                                                        window.location = csvUrl + (params ? '?' + params : '');
+                                                    });
 
                                                 [0].forEach(function(index) {
                                                   var column = api.column(index);

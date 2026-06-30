@@ -56,6 +56,11 @@ urlpatterns = [
         core.views.search_sample_data,
         name="search_sample_data",
     ),
+    path(
+        "searchSample/csv",
+        core.views.search_sample_csv,
+        name="search_sample_csv",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,10 +1,11 @@
 # Generic imports
 from datetime import datetime
+import csv
 import json
 from collections import defaultdict, OrderedDict
 import re
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.utils import timezone
@@ -305,38 +306,8 @@ def search_sample(request):
     )
 
 
-@login_required
-def search_sample_data(request):
-    """Return paginated sample browser data for DataTables server-side mode."""
-    sample_rows = _get_search_sample_rows_for_user(request.user)
-    if isinstance(sample_rows, dict) and "ERROR" in sample_rows:
-        try:
-            draw = int(request.GET.get("draw", 0) or 0)
-        except (TypeError, ValueError):
-            draw = 0
-        return JsonResponse(
-            {
-                "draw": draw,
-                "recordsTotal": 0,
-                "recordsFiltered": 0,
-                "data": [],
-                "error": sample_rows["ERROR"],
-            }
-        )
-
-    try:
-        draw = int(request.GET.get("draw", 0) or 0)
-    except (TypeError, ValueError):
-        draw = 0
-    try:
-        start = max(int(request.GET.get("start", 0) or 0), 0)
-    except (TypeError, ValueError):
-        start = 0
-    try:
-        length = int(request.GET.get("length", 25) or 25)
-    except (TypeError, ValueError):
-        length = 25
-
+def _get_filtered_search_sample_data(request, sample_rows):
+    """Apply DataTables search and ordering parameters to sample browser rows."""
     global_search = _normalize_datatable_search_value(
         request.GET.get("search[value]", ""),
         request.GET.get("search[regex]", "false").lower() == "true",
@@ -401,6 +372,47 @@ def search_sample_data(request):
         key=lambda row: _get_sort_value(row, field_name), reverse=reverse_order
     )
 
+    return filtered_rows, lineage_options, collecting_institution_options
+
+
+@login_required
+def search_sample_data(request):
+    """Return paginated sample browser data for DataTables server-side mode."""
+    sample_rows = _get_search_sample_rows_for_user(request.user)
+    if isinstance(sample_rows, dict) and "ERROR" in sample_rows:
+        try:
+            draw = int(request.GET.get("draw", 0) or 0)
+        except (TypeError, ValueError):
+            draw = 0
+        return JsonResponse(
+            {
+                "draw": draw,
+                "recordsTotal": 0,
+                "recordsFiltered": 0,
+                "data": [],
+                "error": sample_rows["ERROR"],
+            }
+        )
+
+    try:
+        draw = int(request.GET.get("draw", 0) or 0)
+    except (TypeError, ValueError):
+        draw = 0
+    try:
+        start = max(int(request.GET.get("start", 0) or 0), 0)
+    except (TypeError, ValueError):
+        start = 0
+    try:
+        length = int(request.GET.get("length", 25) or 25)
+    except (TypeError, ValueError):
+        length = 25
+
+    (
+        filtered_rows,
+        lineage_options,
+        collecting_institution_options,
+    ) = _get_filtered_search_sample_data(request, sample_rows)
+
     if length == -1:
         paginated_rows = filtered_rows[start:]
     else:
@@ -416,6 +428,40 @@ def search_sample_data(request):
             "collecting_institution_options": collecting_institution_options,
         }
     )
+
+
+@login_required
+def search_sample_csv(request):
+    """Download the currently filtered sample browser rows as CSV."""
+    sample_rows = _get_search_sample_rows_for_user(request.user)
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="relecov_samples.csv"'
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            "Sample Sequencing ID",
+            "Collection Date",
+            "Lineage",
+            "Collecting Institution",
+        ]
+    )
+
+    if isinstance(sample_rows, dict) and "ERROR" in sample_rows:
+        return response
+
+    filtered_rows, _lineage_options, _institution_options = (
+        _get_filtered_search_sample_data(request, sample_rows)
+    )
+    for row in filtered_rows:
+        writer.writerow(
+            [
+                row["sequencing_id"],
+                row["collection_date"],
+                row["lineage"],
+                row["collecting_institution"],
+            ]
+        )
+    return response
 
 
 @login_required
