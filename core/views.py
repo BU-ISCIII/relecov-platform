@@ -536,9 +536,12 @@ def intranet(request):
             start = time.time()
             sample_lab_objs = core.utils.samples.get_sample_objs_per_lab(lab_name)
             print(f"Took {start - time.time()} seconds for sample_lab_objs")
+            analysis_lab_name = (
+                lab_code if user_role == "Collector" and lab_code else lab_name
+            )
             analysis_percent = (
                 core.utils.bioinfo_analysis.get_bio_analysis_stats_from_lab(
-                    lab_name=(lab_code or lab_name), institution_type=lab_field
+                    lab_name=analysis_lab_name, institution_type=lab_field
                 )
             )
             print(f"Took {start - time.time()} seconds for analysis_percent")

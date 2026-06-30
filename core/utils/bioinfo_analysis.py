@@ -41,6 +41,8 @@ def get_bio_analysis_stats_from_lab(
         bio_stats["analized"] = (
             core.models.DateUpdateState.objects.select_related("sampleID")
             .filter(sampleID__pk__in=lab_samples, stateID__state__iexact="Bioinfo")
+            .values("sampleID")
+            .distinct()
             .count()
         )
         bio_stats["received"] = (
