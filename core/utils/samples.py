@@ -703,7 +703,13 @@ def get_search_table_for_user(user_obj):
         return table_data
     if user_role == "Submitter":
         user_lab = core.utils.labs.get_lab_name_from_user(user_obj)
-        lab_entries = samples_to_search.get(user_lab, {})
+        lab_entries = {}
+        if user_lab:
+            user_lab_normalized = user_lab.lower()
+            for submitter_name, entries in samples_to_search.items():
+                if str(submitter_name or "").lower() == user_lab_normalized:
+                    lab_entries = entries
+                    break
         for info in lab_entries.values():
             table_data.extend(info.get("rows", []))
     else:

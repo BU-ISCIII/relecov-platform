@@ -509,7 +509,7 @@ def intranet(request):
                 if not matches_lab:
                     continue
             else:
-                if value != lab_name:
+                if not value or not lab_name or value.lower() != lab_name.lower():
                     continue
             # Adapt YYYY-WNN to datetime format so it can be converted to date object
             converted_date = datetime.strptime(d["iso_yearweek"] + "-1", "%G-W%V-%u")
