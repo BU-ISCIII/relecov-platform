@@ -9,11 +9,9 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-from openpyxl import Workbook
 
 # Local imports
 import core.models
@@ -467,85 +465,6 @@ def search_sample_csv(request):
     return response
 
 
-def _get_collection_iso_week(collection_date):
-    """Return ISO week in YYYY-WNN format from a collection date string."""
-    if not collection_date:
-        return ""
-    try:
-        parsed_date = datetime.strptime(collection_date, "%Y-%m-%d")
-    except ValueError:
-        return ""
-    iso_year, iso_week, _ = parsed_date.isocalendar()
-    return f"{iso_year}-W{iso_week:02d}"
-
-
-def _get_epi_season(collection_date):
-    """Return epidemiological season in YYYY_YYYY format."""
-    if not collection_date:
-        return ""
-    try:
-        parsed_date = datetime.strptime(collection_date, "%Y-%m-%d")
-    except ValueError:
-        return ""
-    year, week, _weekday = parsed_date.isocalendar()
-    if week >= 40:
-        season_start = year
-        season_end = year + 1
-    else:
-        season_start = year - 1
-        season_end = year
-    return f"{season_start}_{season_end}"
-
-
-
-def _get_sample_lineage_value(sample, property_name):
-    """Return a lineage value for the requested property name."""
-    if not sample:
-        return ""
-    lineage_values = getattr(sample, "surveillance_lineages", None)
-    if lineage_values is not None:
-        for lineage_value in lineage_values:
-            if lineage_value.lineage_fieldID.property_name == property_name:
-                return lineage_value.value or ""
-        return ""
-    lineage_value = sample.lineage_values.filter(
-        lineage_fieldID__property_name=property_name
-    ).last()
-    return lineage_value.value if lineage_value else ""
-
-
-def _get_sample_bioinfo_value(sample, property_name):
-    """Return a bioinfo analysis value for the requested property name."""
-    if not sample:
-        return ""
-    bioinfo_values = getattr(sample, "surveillance_bioinfo_values", None)
-    if bioinfo_values is not None:
-        for bioinfo_value in bioinfo_values:
-            if bioinfo_value.bioinfo_analysis_fieldID.property_name == property_name:
-                return bioinfo_value.value or ""
-        return ""
-    bioinfo_value = sample.bio_analysis_values.filter(
-        bioinfo_analysis_fieldID__property_name=property_name
-    ).last()
-    return bioinfo_value.value if bioinfo_value else ""
-
-
-def _get_sample_public_database_value(sample, property_name):
-    """Return a public database value for the requested property name."""
-    if not sample:
-        return ""
-    public_database_values = getattr(sample, "surveillance_public_database_values", None)
-    if public_database_values is not None:
-        for public_database_value in public_database_values:
-            if public_database_value.public_database_fieldID.property_name == property_name:
-                return public_database_value.value or ""
-        return ""
-    public_database_value = sample.publicdatabasevalues_set.filter(
-        public_database_fieldID__property_name=property_name
-    ).last()
-    return public_database_value.value if public_database_value else ""
-
-
 @login_required
 def search_sample_surveillance_data(request):
     """Download surveillance data for the currently filtered sample browser rows."""
@@ -556,107 +475,7 @@ def search_sample_surveillance_data(request):
             _get_filtered_search_sample_data(request, sample_rows)
         )
 
-    sequencing_ids = [row["sequencing_id"] for row in filtered_rows]
-    lineage_prefetch = Prefetch(
-        "lineage_values",
-        queryset=core.models.LineageValues.objects.filter(
-            lineage_fieldID__property_name__in=[
-                "lineage_assignment",
-                "lineage_assignment_software_version",
-                "lineage_assignment_database_version",
-            ]
-        ).select_related("lineage_fieldID"),
-        to_attr="surveillance_lineages",
-    )
-    bioinfo_prefetch = Prefetch(
-        "bio_analysis_values",
-        queryset=core.models.BioinfoAnalysisValue.objects.filter(
-            bioinfo_analysis_fieldID__property_name__in=[
-                "per_genome_greater_10x",
-                "bioinformatics_analysis_date",
-                "consensus_sequence_filename",
-                "qc_test",
-            ]
-        ).select_related("bioinfo_analysis_fieldID"),
-        to_attr="surveillance_bioinfo_values",
-    )
-    public_database_prefetch = Prefetch(
-        "publicdatabasevalues_set",
-        queryset=core.models.PublicDatabaseValues.objects.filter(
-            public_database_fieldID__property_name="gisaid_accession_id"
-        ).select_related("public_database_fieldID"),
-        to_attr="surveillance_public_database_values",
-    )
-    sample_lookup = {
-        sample.sequencing_sample_id: sample
-        for sample in core.models.Sample.objects.filter(
-            sequencing_sample_id__in=sequencing_ids
-        ).prefetch_related(
-            lineage_prefetch, bioinfo_prefetch, public_database_prefetch
-        )
-    }
-
-    workbook = Workbook()
-    worksheet = workbook.active
-    worksheet.title = "per_sample_data"
-    worksheet.append(
-        [
-            "COLLECTING_LAB_SAMPLE_ID",
-            "SEQUENCING_SAMPLE_ID",
-            "MICROBIOLOGY_LAB_SAMPLE_ID",
-            "UNIQUE_SAMPLE_ID",
-            "GISAID_ACCESSION_ID",
-            "COLLECTING_INSTITUTION",
-            "SUBMITTING_INSTITUTION",
-            "SUBMITTING_INSTITUTION_ID",
-            "CCAA",
-            "PROVINCE",
-            "SAMPLE_COLLECTION_DATE",
-            "WEEK",
-            "SEASON",
-            "LINEAGE",
-            "PANGOLIN_SOFTWARE_VERSION",
-            "PANGOLIN_DATABASE_VERSION",
-            "ANALYSIS_DATE",
-            "COVERAGE_10X",
-            "QC_TEST",
-            "CONSENSUS_SEQUENCE_FILENAME",
-        ]
-    )
-    for row in filtered_rows:
-        sample = sample_lookup.get(row["sequencing_id"])
-        iskylims_project_values = core.utils.samples.get_iskylims_project_values(
-            sample
-        )
-        worksheet.append(
-            [
-                sample.collecting_lab_sample_id if sample else "",
-                sample.sequencing_sample_id if sample else row["sequencing_id"],
-                sample.microbiology_lab_sample_id if sample else "",
-                sample.sample_unique_id if sample else "",
-                _get_sample_public_database_value(sample, "gisaid_accession_id"),
-                sample.collecting_institution if sample else "",
-                sample.submitting_institution if sample else "",
-                iskylims_project_values.get("Submitting Institution Identifier", ""),
-                iskylims_project_values.get("Autonomic Community", ""),
-                iskylims_project_values.get("Province", ""),
-                row["collection_date"],
-                _get_collection_iso_week(row["collection_date"]),
-                _get_epi_season(row["collection_date"]),
-                _get_sample_lineage_value(sample, "lineage_assignment"),
-                _get_sample_lineage_value(
-                    sample, "lineage_assignment_software_version"
-                ),
-                _get_sample_lineage_value(
-                    sample, "lineage_assignment_database_version"
-                ),
-                _get_sample_bioinfo_value(sample, "bioinformatics_analysis_date"),
-                _get_sample_bioinfo_value(sample, "per_genome_greater_10x"),
-                _get_sample_bioinfo_value(sample, "qc_test"),
-                _get_sample_bioinfo_value(sample, "consensus_sequence_filename"),
-            ]
-        )
-
+    workbook = core.utils.samples.build_surveillance_workbook(filtered_rows)
     output = BytesIO()
     workbook.save(output)
     output.seek(0)
