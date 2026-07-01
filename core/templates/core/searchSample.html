@@ -173,13 +173,14 @@
       display: flex;
       gap: 0.5rem;
       justify-content: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
     .sample-browser-download .sample-browser-download-button {
       background-color: rgba(var(--color-green-rgb), 0.12);
       border-color: var(--color-green);
       color: var(--color-green);
       font-weight: 500;
+      white-space: nowrap;
     }
     .sample-browser-download .sample-browser-download-button:hover,
     .sample-browser-download .sample-browser-download-button:focus {
@@ -294,7 +295,7 @@
                                             lengthMenu: [ [25, 50, 100, 200, -1], [25, 50, 100, 200, "All"] ],
                                             orderCellsTop: true,
                                             dom:
-                                                "<'row align-items-center'<'col-md-3'l><'col-md-4 sample-browser-download'><'col-md-5'f>>" +
+                                                "<'row align-items-center'<'col-md-3'l><'col-md-5 sample-browser-download'><'col-md-4'f>>" +
                                                 "<'row'<'col-sm-12'tr>>" +
                                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                                             responsive: true,
@@ -343,19 +344,98 @@
                                                 var api = this.api();
                                                 var csvUrl = "{% url 'search_sample_csv' %}";
                                                 var surveillanceUrl = "{% url 'search_sample_surveillance_data' %}";
-                                                function downloadFilteredData(downloadUrl) {
+                                                var surveillanceSecondsPerSample = 0.12;
+                                                var downloadWarningThresholdSeconds = 10;
+                                                function getFilteredSampleCount() {
+                                                    return table.page.info().recordsDisplay || 0;
+                                                }
+                                                function formatSampleCount(count) {
+                                                    return count.toLocaleString('en-US');
+                                                }
+                                                function getEstimatedDownloadSeconds(count) {
+                                                    return Math.ceil(count * surveillanceSecondsPerSample);
+                                                }
+                                                function formatEstimatedDuration(totalSeconds) {
+                                                    if (totalSeconds < 60) {
+                                                        return totalSeconds + ' seconds';
+                                                    }
+                                                    var minutes = Math.floor(totalSeconds / 60);
+                                                    var seconds = totalSeconds % 60;
+                                                    if (seconds === 0) {
+                                                        return minutes + ' min';
+                                                    }
+                                                    return minutes + ' min ' + seconds + ' sec';
+                                                }
+                                                function confirmLongDownload(count) {
+                                                    var estimatedSeconds = getEstimatedDownloadSeconds(count);
+                                                    if (estimatedSeconds <= downloadWarningThresholdSeconds) {
+                                                        return true;
+                                                    }
+                                                    return window.confirm(
+                                                        'You are about to generate a file for ' +
+                                                        formatSampleCount(count) +
+                                                        ' filtered samples. Estimated generation time: ' +
+                                                        formatEstimatedDuration(estimatedSeconds) +
+                                                        '. Consider applying more filters before continuing. Continue?'
+                                                    );
+                                                }
+                                                function getDownloadFilename(response, fallbackFilename) {
+                                                    var contentDisposition = response.headers.get('Content-Disposition') || '';
+                                                    var filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+                                                    return filenameMatch ? filenameMatch[1] : fallbackFilename;
+                                                }
+                                                function setDownloadButtonsLoading(button, loadingText) {
+                                                    var originalText = button.text();
+                                                    $('.sample-browser-download-button').prop('disabled', true);
+                                                    button.text(loadingText);
+                                                    return function () {
+                                                        $('.sample-browser-download-button').prop('disabled', false);
+                                                        button.text(originalText);
+                                                    };
+                                                }
+                                                function startBlobDownload(blob, filename) {
+                                                    var objectUrl = window.URL.createObjectURL(blob);
+                                                    var downloadLink = document.createElement('a');
+                                                    downloadLink.href = objectUrl;
+                                                    downloadLink.download = filename;
+                                                    document.body.appendChild(downloadLink);
+                                                    downloadLink.click();
+                                                    document.body.removeChild(downloadLink);
+                                                    window.URL.revokeObjectURL(objectUrl);
+                                                }
+                                                function downloadFilteredData(downloadUrl, button, loadingText, fallbackFilename) {
+                                                    var filteredSampleCount = getFilteredSampleCount();
+                                                    if (!confirmLongDownload(filteredSampleCount)) {
+                                                        return;
+                                                    }
+                                                    var restoreButton = setDownloadButtonsLoading(button, loadingText);
                                                     var params = $.param(table.ajax.params());
-                                                    window.location = downloadUrl + (params ? '?' + params : '');
+                                                    fetch(downloadUrl + (params ? '?' + params : ''), {
+                                                        credentials: 'same-origin'
+                                                    })
+                                                        .then(function (response) {
+                                                            if (!response.ok) {
+                                                                throw new Error('Download request failed.');
+                                                            }
+                                                            var filename = getDownloadFilename(response, fallbackFilename);
+                                                            return response.blob().then(function (blob) {
+                                                                startBlobDownload(blob, filename);
+                                                            });
+                                                        })
+                                                        .catch(function () {
+                                                            window.alert('The file could not be generated. Please try again or apply more filters.');
+                                                        })
+                                                        .finally(restoreButton);
                                                 }
                                                 $('<button type="button" class="btn btn-sm sample-browser-download-button">Download filtered table</button>')
                                                     .appendTo($('.sample-browser-download'))
                                                     .on('click', function () {
-                                                        downloadFilteredData(csvUrl);
+                                                        downloadFilteredData(csvUrl, $(this), 'Generating table...', 'relecov_samples.csv');
                                                     });
                                                 $('<button type="button" class="btn btn-sm sample-browser-download-button">Download surveillance data</button>')
                                                     .appendTo($('.sample-browser-download'))
                                                     .on('click', function () {
-                                                        downloadFilteredData(surveillanceUrl);
+                                                        downloadFilteredData(surveillanceUrl, $(this), 'Generating surveillance data...', 'surveillance_data.xlsx');
                                                     });
 
                                                 [0].forEach(function(index) {
