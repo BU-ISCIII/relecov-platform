@@ -169,14 +169,20 @@
       width: 100%;
       max-width: 100%;
     }
-    .sample-browser-download .sample-browser-csv-button {
+    .sample-browser-download {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .sample-browser-download .sample-browser-download-button {
       background-color: rgba(var(--color-green-rgb), 0.12);
       border-color: var(--color-green);
       color: var(--color-green);
       font-weight: 500;
     }
-    .sample-browser-download .sample-browser-csv-button:hover,
-    .sample-browser-download .sample-browser-csv-button:focus {
+    .sample-browser-download .sample-browser-download-button:hover,
+    .sample-browser-download .sample-browser-download-button:focus {
       background-color: var(--color-green);
       border-color: var(--color-green);
       color: var(--color-white);
@@ -336,11 +342,20 @@
                                             initComplete: function () {
                                                 var api = this.api();
                                                 var csvUrl = "{% url 'search_sample_csv' %}";
-                                                $('<button type="button" class="btn btn-sm sample-browser-csv-button">Download filtered table</button>')
+                                                var surveillanceUrl = "{% url 'search_sample_surveillance_data' %}";
+                                                function downloadFilteredData(downloadUrl) {
+                                                    var params = $.param(table.ajax.params());
+                                                    window.location = downloadUrl + (params ? '?' + params : '');
+                                                }
+                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download filtered table</button>')
                                                     .appendTo($('.sample-browser-download'))
                                                     .on('click', function () {
-                                                        var params = $.param(table.ajax.params());
-                                                        window.location = csvUrl + (params ? '?' + params : '');
+                                                        downloadFilteredData(csvUrl);
+                                                    });
+                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download surveillance data</button>')
+                                                    .appendTo($('.sample-browser-download'))
+                                                    .on('click', function () {
+                                                        downloadFilteredData(surveillanceUrl);
                                                     });
 
                                                 [0].forEach(function(index) {

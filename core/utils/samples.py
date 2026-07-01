@@ -486,6 +486,49 @@ def get_public_database_fields(schema_obj, db_type):
     return None
 
 
+def get_iskylims_lookup_ids(sample_obj):
+    """Return iSkyLIMS lookup IDs for a sample, preferring unique sample id."""
+    lookup_ids = []
+    unique_id = (sample_obj.get_unique_id() or "").strip()
+    seq_id = (sample_obj.get_sequencing_sample_id() or "").strip()
+    if unique_id:
+        lookup_ids.append(unique_id)
+    if seq_id and seq_id not in lookup_ids:
+        lookup_ids.append(seq_id)
+    return lookup_ids
+
+
+def get_iskylims_sample_information(sample_obj):
+    """Return the first iSkyLIMS sample payload available for this sample."""
+    for sample_id in get_iskylims_lookup_ids(sample_obj):
+        iskylims_data = core.utils.rest_api.get_sample_information(sample_id)
+        if not iskylims_data or "ERROR" in iskylims_data:
+            continue
+        if not iskylims_data:
+            continue
+        return iskylims_data[0]
+    return None
+
+
+def get_iskylims_project_values(sample_obj):
+    """Return iSkyLIMS project values keyed by display label."""
+    iskylims_data = get_iskylims_sample_information(sample_obj)
+    if not iskylims_data:
+        return {}
+    project_field_display_map = core.utils.rest_api.get_sample_project_field_display_map(
+        iskylims_data.get("sample_project")
+    )
+    project_values = {}
+    for key, value in iskylims_data.get("Project values", {}).items():
+        project_values[project_field_display_map.get(key, key)] = value
+    return project_values
+
+
+def get_iskylims_project_value(sample_obj, label_name):
+    """Return one iSkyLIMS project value by display label."""
+    return get_iskylims_project_values(sample_obj).get(label_name, "")
+
+
 def get_sample_display_data(sample_id, user):
     """Check if user is allowed to see the data and if true collect all info
     from sample to display
@@ -552,23 +595,10 @@ def get_sample_display_data(sample_id, user):
     # Lab metadata in iSkyLIMS is keyed by the platform-wide unique sample id
     # (the value shown as Sample Name in iSky). Keep a fallback to the historical
     # sequencing_sample_id so legacy records can still resolve.
-    lookup_ids = []
-    unique_id = (sample_obj.get_unique_id() or "").strip()
-    seq_id = (sample_obj.get_sequencing_sample_id() or "").strip()
-    if unique_id:
-        lookup_ids.append(unique_id)
-    if seq_id and seq_id not in lookup_ids:
-        lookup_ids.append(seq_id)
-
-    # Fetch information from iSkyLIMS
-    for sample_id in lookup_ids:
-        iskylims_data = core.utils.rest_api.get_sample_information(sample_id)
-        if not iskylims_data or "ERROR" in iskylims_data:
-            continue
+    iskylims_data = get_iskylims_sample_information(sample_obj)
+    if iskylims_data:
         s_data["iskylims_basic"] = []
         s_data["iskylims_p_data"] = []
-        # iskylims_data is a list with one element. Then get the first element
-        iskylims_data = iskylims_data[0]
         project_field_display_map = (
             core.utils.rest_api.get_sample_project_field_display_map(
                 iskylims_data.get("sample_project")
@@ -586,7 +616,6 @@ def get_sample_display_data(sample_id, user):
             else:
                 s_data["iskylims_basic"].append([key, i_data])
         s_data["iskylims_project"] = iskylims_data.get("sample_project")
-        break
     return s_data
 
 
