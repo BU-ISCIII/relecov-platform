@@ -61,6 +61,11 @@ urlpatterns = [
         core.views.search_sample_csv,
         name="search_sample_csv",
     ),
+    path(
+        "searchSample/surveillance-data",
+        core.views.search_sample_surveillance_data,
+        name="search_sample_surveillance_data",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
