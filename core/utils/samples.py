@@ -3,13 +3,16 @@ import json
 import os
 import shutil
 import hashlib
+from datetime import datetime
 from collections import OrderedDict, defaultdict
 import pandas as pd
+from openpyxl import Workbook
 from django.contrib.auth.models import Group, User
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.db.models import Q
 from django.db.models import Count
+from django.db.models import Prefetch
 from django.db.models.functions import TruncDate
 import relecov_tools.utils
 from django.template.loader import render_to_string
@@ -527,6 +530,206 @@ def get_iskylims_project_values(sample_obj):
 def get_iskylims_project_value(sample_obj, label_name):
     """Return one iSkyLIMS project value by display label."""
     return get_iskylims_project_values(sample_obj).get(label_name, "")
+
+
+SURVEILLANCE_LINEAGE_FIELDS = [
+    "lineage_assignment",
+    "lineage_assignment_software_version",
+    "lineage_assignment_database_version",
+]
+SURVEILLANCE_BIOINFO_FIELDS = [
+    "per_genome_greater_10x",
+    "bioinformatics_analysis_date",
+    "consensus_sequence_filename",
+    "qc_test",
+]
+SURVEILLANCE_PUBLIC_DATABASE_FIELDS = ["gisaid_accession_id"]
+SURVEILLANCE_COLUMNS = [
+    "COLLECTING_LAB_SAMPLE_ID",
+    "SEQUENCING_SAMPLE_ID",
+    "MICROBIOLOGY_LAB_SAMPLE_ID",
+    "UNIQUE_SAMPLE_ID",
+    "GISAID_ACCESSION_ID",
+    "COLLECTING_INSTITUTION",
+    "SUBMITTING_INSTITUTION",
+    "SUBMITTING_INSTITUTION_ID",
+    "CCAA",
+    "PROVINCE",
+    "SAMPLE_COLLECTION_DATE",
+    "WEEK",
+    "SEASON",
+    "LINEAGE",
+    "PANGOLIN_SOFTWARE_VERSION",
+    "PANGOLIN_DATABASE_VERSION",
+    "ANALYSIS_DATE",
+    "COVERAGE_10X",
+    "QC_TEST",
+    "CONSENSUS_SEQUENCE_FILENAME",
+]
+
+
+def get_collection_iso_week(collection_date):
+    """Return ISO week in YYYY-WNN format from a collection date string."""
+    if not collection_date:
+        return ""
+    try:
+        parsed_date = datetime.strptime(collection_date, "%Y-%m-%d")
+    except ValueError:
+        return ""
+    iso_year, iso_week, _ = parsed_date.isocalendar()
+    return f"{iso_year}-W{iso_week:02d}"
+
+
+def get_epi_season(collection_date):
+    """Return epidemiological season in YYYY_YYYY format."""
+    if not collection_date:
+        return ""
+    try:
+        parsed_date = datetime.strptime(collection_date, "%Y-%m-%d")
+    except ValueError:
+        return ""
+    year, week, _weekday = parsed_date.isocalendar()
+    if week >= 40:
+        season_start = year
+        season_end = year + 1
+    else:
+        season_start = year - 1
+        season_end = year
+    return f"{season_start}_{season_end}"
+
+
+def get_sample_lineage_value(sample_obj, property_name):
+    """Return a lineage value for the requested property name."""
+    if not sample_obj:
+        return ""
+    lineage_values = getattr(sample_obj, "surveillance_lineages", None)
+    if lineage_values is not None:
+        for lineage_value in lineage_values:
+            if lineage_value.lineage_fieldID.property_name == property_name:
+                return lineage_value.value or ""
+        return ""
+    lineage_value = sample_obj.lineage_values.filter(
+        lineage_fieldID__property_name=property_name
+    ).last()
+    return lineage_value.value if lineage_value else ""
+
+
+def get_sample_bioinfo_value(sample_obj, property_name):
+    """Return a bioinfo analysis value for the requested property name."""
+    if not sample_obj:
+        return ""
+    bioinfo_values = getattr(sample_obj, "surveillance_bioinfo_values", None)
+    if bioinfo_values is not None:
+        for bioinfo_value in bioinfo_values:
+            if bioinfo_value.bioinfo_analysis_fieldID.property_name == property_name:
+                return bioinfo_value.value or ""
+        return ""
+    bioinfo_value = sample_obj.bio_analysis_values.filter(
+        bioinfo_analysis_fieldID__property_name=property_name
+    ).last()
+    return bioinfo_value.value if bioinfo_value else ""
+
+
+def get_sample_public_database_value(sample_obj, property_name):
+    """Return a public database value for the requested property name."""
+    if not sample_obj:
+        return ""
+    public_database_values = getattr(
+        sample_obj, "surveillance_public_database_values", None
+    )
+    if public_database_values is not None:
+        for public_database_value in public_database_values:
+            if (
+                public_database_value.public_database_fieldID.property_name
+                == property_name
+            ):
+                return public_database_value.value or ""
+        return ""
+    public_database_value = sample_obj.publicdatabasevalues_set.filter(
+        public_database_fieldID__property_name=property_name
+    ).last()
+    return public_database_value.value if public_database_value else ""
+
+
+def get_surveillance_sample_lookup(sequencing_ids):
+    """Return samples keyed by sequencing sample ID with export values prefetched."""
+    lineage_prefetch = Prefetch(
+        "lineage_values",
+        queryset=core.models.LineageValues.objects.filter(
+            lineage_fieldID__property_name__in=SURVEILLANCE_LINEAGE_FIELDS
+        ).select_related("lineage_fieldID"),
+        to_attr="surveillance_lineages",
+    )
+    bioinfo_prefetch = Prefetch(
+        "bio_analysis_values",
+        queryset=core.models.BioinfoAnalysisValue.objects.filter(
+            bioinfo_analysis_fieldID__property_name__in=SURVEILLANCE_BIOINFO_FIELDS
+        ).select_related("bioinfo_analysis_fieldID"),
+        to_attr="surveillance_bioinfo_values",
+    )
+    public_database_prefetch = Prefetch(
+        "publicdatabasevalues_set",
+        queryset=core.models.PublicDatabaseValues.objects.filter(
+            public_database_fieldID__property_name__in=(
+                SURVEILLANCE_PUBLIC_DATABASE_FIELDS
+            )
+        ).select_related("public_database_fieldID"),
+        to_attr="surveillance_public_database_values",
+    )
+    return {
+        sample.sequencing_sample_id: sample
+        for sample in core.models.Sample.objects.filter(
+            sequencing_sample_id__in=sequencing_ids
+        ).prefetch_related(
+            lineage_prefetch, bioinfo_prefetch, public_database_prefetch
+        )
+    }
+
+
+def get_surveillance_sample_row(row, sample_obj):
+    """Return one per-sample surveillance export row."""
+    iskylims_project_values = get_iskylims_project_values(sample_obj)
+    collection_date = row["collection_date"]
+    return [
+        sample_obj.collecting_lab_sample_id if sample_obj else "",
+        sample_obj.sequencing_sample_id if sample_obj else row["sequencing_id"],
+        sample_obj.microbiology_lab_sample_id if sample_obj else "",
+        sample_obj.sample_unique_id if sample_obj else "",
+        get_sample_public_database_value(sample_obj, "gisaid_accession_id"),
+        sample_obj.collecting_institution if sample_obj else "",
+        sample_obj.submitting_institution if sample_obj else "",
+        iskylims_project_values.get("Submitting Institution Identifier", ""),
+        iskylims_project_values.get("Autonomic Community", ""),
+        iskylims_project_values.get("Province", ""),
+        collection_date,
+        get_collection_iso_week(collection_date),
+        get_epi_season(collection_date),
+        get_sample_lineage_value(sample_obj, "lineage_assignment"),
+        get_sample_lineage_value(
+            sample_obj, "lineage_assignment_software_version"
+        ),
+        get_sample_lineage_value(
+            sample_obj, "lineage_assignment_database_version"
+        ),
+        get_sample_bioinfo_value(sample_obj, "bioinformatics_analysis_date"),
+        get_sample_bioinfo_value(sample_obj, "per_genome_greater_10x"),
+        get_sample_bioinfo_value(sample_obj, "qc_test"),
+        get_sample_bioinfo_value(sample_obj, "consensus_sequence_filename"),
+    ]
+
+
+def build_surveillance_workbook(filtered_rows):
+    """Build the surveillance data workbook for filtered sample browser rows."""
+    sequencing_ids = [row["sequencing_id"] for row in filtered_rows]
+    sample_lookup = get_surveillance_sample_lookup(sequencing_ids)
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "per_sample_data"
+    worksheet.append(SURVEILLANCE_COLUMNS)
+    for row in filtered_rows:
+        sample_obj = sample_lookup.get(row["sequencing_id"])
+        worksheet.append(get_surveillance_sample_row(row, sample_obj))
+    return workbook
 
 
 def get_sample_display_data(sample_id, user):
