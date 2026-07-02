@@ -4,8 +4,13 @@
 
 {% block extra_css %}
 <style>
+    .sample-browser-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
     #sample_list {
       width: 100% !important;
+      min-width: 980px;
       table-layout: auto;
     }
     #sample_list th:first-child,
@@ -171,20 +176,29 @@
     }
     .sample-browser-download {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.45rem;
       justify-content: center;
       flex-wrap: wrap;
+      margin: 0.35rem 0;
     }
     .sample-browser-download-break {
       flex-basis: 100%;
       height: 0;
     }
     .sample-browser-download .sample-browser-download-button {
+      align-items: center;
       background-color: rgba(var(--color-green-rgb), 0.12);
       border-color: var(--color-green);
       color: var(--color-green);
+      display: inline-flex;
       font-weight: 500;
-      white-space: nowrap;
+      justify-content: center;
+      line-height: 1.1;
+      min-height: 3rem;
+      padding: 0.35rem 0.55rem;
+      text-align: center;
+      white-space: normal;
+      width: 9.4rem;
     }
     .sample-browser-download .sample-browser-download-button:hover,
     .sample-browser-download .sample-browser-download-button:focus {
@@ -192,8 +206,8 @@
       border-color: var(--color-green);
       color: var(--color-white);
     }
-    #sample_card .card-body p.sample-browser-download-note {
-      font-size: 1.0rem !important;
+    #sample_card .card-body p.sample-browser-notes {
+      font-size: 0.9rem !important;
       line-height: 1.2;
       margin-top: -0.5rem;
     }
@@ -255,10 +269,12 @@
                                     <div class="card mx-3 my-3 w-auto p-3 border">
                                         <div class="card-body">
                                             <p class="card-text mb-1">The following table shows the available samples to search</p>
-                                            <p class="sample-browser-download-note">* All download buttons will download data only for the samples displayed after applying filters.</p>
+                                            <p class="sample-browser-notes">* All download buttons will download data only for the samples displayed after applying filters.</p>
+                                            <p class="sample-browser-notes">** If your screen is small, you can scroll left and right to see whole table.</p>
                                             <div class="row row-space-2 margin-b-2">
-                                                <div class="col-sm-14">
-                                                    <table id="sample_list" class="table table-striped table-bordered">
+                                                <div class="col-12">
+                                                    <div class="table-responsive sample-browser-table-wrapper">
+                                                        <table id="sample_list" class="table table-striped table-bordered">
                                                         <colgroup>
                                                             <col style="width: 22%;">
                                                             <col style="width: 22%;">
@@ -280,7 +296,8 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody></tbody>
-                                                    </table>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
