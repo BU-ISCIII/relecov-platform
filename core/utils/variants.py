@@ -1,5 +1,7 @@
 # Generic imports
+from collections import defaultdict
 from django.db.models import F
+from openpyxl import Workbook
 
 # Local imports
 import core.models
@@ -95,6 +97,133 @@ def get_variant_data_from_sample(sample_id):
             variant_data.append(v_data + v_in_s_data + v_ann_data_p)
     data["variant_data"] = variant_data
     return data
+
+
+VARIANTS_LONG_TABLE_COLUMNS = [
+    "sample",
+    "chrom",
+    "pos",
+    "ref",
+    "alt",
+    "dp",
+    "ref_dp",
+    "alt_dp",
+    "af",
+    "Gene ID",
+    "hgvs_c",
+    "hgvs_p",
+    "hgvs_p_1_letter",
+]
+
+
+def merge_variant_annotation_values(annotation_values):
+    """Merge annotation values following the SampleDisplay table style."""
+    if not annotation_values:
+        return ["-", "-", "-", "-"]
+    merged_values = []
+    for idx in range(len(annotation_values[0])):
+        column_values = [values[idx] for values in annotation_values]
+        unique_values = []
+        for value in column_values:
+            if value not in unique_values:
+                unique_values.append(value)
+        merged_values.append(" - ".join(unique_values))
+    return merged_values
+
+
+def get_variant_annotation_row(variant_obj, annotation_map=None):
+    """Return one merged annotation row fragment for one variant."""
+    if annotation_map is None:
+        variant_annotations = core.models.VariantAnnotation.objects.filter(
+            variantID_id=variant_obj
+        ).select_related("geneID_id")
+        annotations = list(variant_annotations)
+    else:
+        annotations = annotation_map.get(variant_obj.pk, [])
+    annotation_values = [
+        [
+            variant_annotation.get_geneID_id(),
+            variant_annotation.hgvs_c,
+            variant_annotation.hgvs_p,
+            variant_annotation.hgvs_p_1_letter,
+        ]
+        for variant_annotation in annotations
+    ]
+    return merge_variant_annotation_values(annotation_values)
+
+
+def get_variant_annotation_map(variant_ids):
+    """Return variant annotations grouped by variant ID."""
+    annotation_map = defaultdict(list)
+    variant_annotations = core.models.VariantAnnotation.objects.filter(
+        variantID_id__in=variant_ids
+    ).select_related("geneID_id")
+    for variant_annotation in variant_annotations:
+        annotation_map[variant_annotation.variantID_id_id].append(variant_annotation)
+    return annotation_map
+
+
+def get_variants_long_table_rows(filtered_rows):
+    """Return one row per sample variant annotation for filtered sample rows."""
+    sequencing_ids = [row["sequencing_id"] for row in filtered_rows]
+    variant_in_samples = list(
+        core.models.VariantInSample.objects.filter(
+            sampleID_id__sequencing_sample_id__in=sequencing_ids
+        )
+        .select_related(
+            "sampleID_id",
+            "variantID_id",
+            "variantID_id__chromosomeID_id",
+        )
+        .order_by("sampleID_id__sequencing_sample_id", "variantID_id__pos")
+    )
+    variant_ids = [
+        variant_in_sample.variantID_id_id
+        for variant_in_sample in variant_in_samples
+        if variant_in_sample.variantID_id_id
+    ]
+    annotation_map = get_variant_annotation_map(variant_ids)
+    rows = []
+    seen_sample_variants = set()
+    for variant_in_sample in variant_in_samples:
+        variant_obj = variant_in_sample.get_variantID_obj()
+        if variant_obj is None:
+            continue
+        sample_variant_key = (
+            variant_in_sample.sampleID_id_id,
+            variant_in_sample.variantID_id_id,
+        )
+        if sample_variant_key in seen_sample_variants:
+            continue
+        seen_sample_variants.add(sample_variant_key)
+        chromosome_obj = variant_obj.chromosomeID_id
+        variant_prefix = [
+            variant_in_sample.sampleID_id.get_sequencing_sample_id(),
+            chromosome_obj.get_chromosome_name() if chromosome_obj else "",
+            variant_obj.get_pos(),
+            variant_obj.get_ref(),
+            variant_obj.get_alt(),
+            variant_in_sample.get_dp(),
+            variant_in_sample.get_ref_dp(),
+            variant_in_sample.get_alt_dp(),
+            variant_in_sample.get_af(),
+        ]
+        annotation_row = get_variant_annotation_row(
+            variant_obj, annotation_map=annotation_map
+        )
+        rows.append(variant_prefix + annotation_row)
+    return rows
+
+
+def build_variants_long_table_workbook(filtered_rows):
+    """Build the variants long table workbook for filtered sample browser rows."""
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "variants_long_table"
+    worksheet.append(VARIANTS_LONG_TABLE_COLUMNS)
+    for row in get_variants_long_table_rows(filtered_rows):
+        worksheet.append(row)
+    return workbook
 
 
 def get_variant_graphic_from_sample(sample_id):

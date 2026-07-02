@@ -173,7 +173,11 @@
       display: flex;
       gap: 0.5rem;
       justify-content: center;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
+    }
+    .sample-browser-download-break {
+      flex-basis: 100%;
+      height: 0;
     }
     .sample-browser-download .sample-browser-download-button {
       background-color: rgba(var(--color-green-rgb), 0.12);
@@ -187,6 +191,11 @@
       background-color: var(--color-green);
       border-color: var(--color-green);
       color: var(--color-white);
+    }
+    #sample_card .card-body p.sample-browser-download-note {
+      font-size: 1.0rem !important;
+      line-height: 1.2;
+      margin-top: -0.5rem;
     }
 </style>
 {% endblock %}
@@ -245,7 +254,8 @@
                                 <div id="sample_card" class="d-none">
                                     <div class="card mx-3 my-3 w-auto p-3 border">
                                         <div class="card-body">
-                                            <p class="card-text">The following table shows the available samples to search</p>
+                                            <p class="card-text mb-1">The following table shows the available samples to search</p>
+                                            <p class="sample-browser-download-note">* All download buttons will download data only for the samples displayed after applying filters.</p>
                                             <div class="row row-space-2 margin-b-2">
                                                 <div class="col-sm-14">
                                                     <table id="sample_list" class="table table-striped table-bordered">
@@ -295,7 +305,7 @@
                                             lengthMenu: [ [25, 50, 100, 200, -1], [25, 50, 100, 200, "All"] ],
                                             orderCellsTop: true,
                                             dom:
-                                                "<'row align-items-center'<'col-md-3'l><'col-md-5 sample-browser-download'><'col-md-4'f>>" +
+                                                "<'row align-items-center'<'col-md-2'l><'col-md-7 sample-browser-download'><'col-md-3'f>>" +
                                                 "<'row'<'col-sm-12'tr>>" +
                                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                                             responsive: true,
@@ -344,16 +354,27 @@
                                                 var api = this.api();
                                                 var csvUrl = "{% url 'search_sample_csv' %}";
                                                 var surveillanceUrl = "{% url 'search_sample_surveillance_data' %}";
-                                                var surveillanceSecondsPerSample = 0.12;
+                                                var variantsLongTableUrl = "{% url 'search_sample_variants_long_table' %}";
                                                 var downloadWarningThresholdSeconds = 10;
+                                                var surveillanceDownloadEstimate = {
+                                                    baseSeconds: 0,
+                                                    secondsPerSample: 0.12
+                                                };
+                                                var variantsDownloadEstimate = {
+                                                    baseSeconds: 7,
+                                                    secondsPerSample: 0.0125
+                                                };
                                                 function getFilteredSampleCount() {
                                                     return table.page.info().recordsDisplay || 0;
                                                 }
                                                 function formatSampleCount(count) {
                                                     return count.toLocaleString('en-US');
                                                 }
-                                                function getEstimatedDownloadSeconds(count) {
-                                                    return Math.ceil(count * surveillanceSecondsPerSample);
+                                                function getEstimatedDownloadSeconds(count, estimate) {
+                                                    return Math.ceil(
+                                                        estimate.baseSeconds +
+                                                        count * estimate.secondsPerSample
+                                                    );
                                                 }
                                                 function formatEstimatedDuration(totalSeconds) {
                                                     if (totalSeconds < 60) {
@@ -366,8 +387,11 @@
                                                     }
                                                     return minutes + ' min ' + seconds + ' sec';
                                                 }
-                                                function confirmLongDownload(count) {
-                                                    var estimatedSeconds = getEstimatedDownloadSeconds(count);
+                                                function confirmLongDownload(count, estimate) {
+                                                    if (!estimate) {
+                                                        return true;
+                                                    }
+                                                    var estimatedSeconds = getEstimatedDownloadSeconds(count, estimate);
                                                     if (estimatedSeconds <= downloadWarningThresholdSeconds) {
                                                         return true;
                                                     }
@@ -403,9 +427,9 @@
                                                     document.body.removeChild(downloadLink);
                                                     window.URL.revokeObjectURL(objectUrl);
                                                 }
-                                                function downloadFilteredData(downloadUrl, button, loadingText, fallbackFilename) {
+                                                function downloadFilteredData(downloadUrl, button, loadingText, fallbackFilename, estimate) {
                                                     var filteredSampleCount = getFilteredSampleCount();
-                                                    if (!confirmLongDownload(filteredSampleCount)) {
+                                                    if (!confirmLongDownload(filteredSampleCount, estimate)) {
                                                         return;
                                                     }
                                                     var restoreButton = setDownloadButtonsLoading(button, loadingText);
@@ -427,15 +451,22 @@
                                                         })
                                                         .finally(restoreButton);
                                                 }
-                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download filtered table</button>')
+                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download shown table *</button>')
                                                     .appendTo($('.sample-browser-download'))
                                                     .on('click', function () {
                                                         downloadFilteredData(csvUrl, $(this), 'Generating table...', 'relecov_samples.csv');
                                                     });
-                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download surveillance data</button>')
+                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download surveillance data *</button>')
                                                     .appendTo($('.sample-browser-download'))
                                                     .on('click', function () {
-                                                        downloadFilteredData(surveillanceUrl, $(this), 'Generating surveillance data...', 'surveillance_data.xlsx');
+                                                        downloadFilteredData(surveillanceUrl, $(this), 'Generating surveillance data...', 'surveillance_data.xlsx', surveillanceDownloadEstimate);
+                                                    });
+                                                $('<span class="sample-browser-download-break" aria-hidden="true"></span>')
+                                                    .appendTo($('.sample-browser-download'));
+                                                $('<button type="button" class="btn btn-sm sample-browser-download-button">Download variants long table *</button>')
+                                                    .appendTo($('.sample-browser-download'))
+                                                    .on('click', function () {
+                                                        downloadFilteredData(variantsLongTableUrl, $(this), 'Generating variants long table...', 'variants_long_table.xlsx', variantsDownloadEstimate);
                                                     });
 
                                                 [0].forEach(function(index) {

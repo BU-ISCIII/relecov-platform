@@ -490,6 +490,30 @@ def search_sample_surveillance_data(request):
 
 
 @login_required
+def search_sample_variants_long_table(request):
+    """Download variants long table data for current sample browser filters."""
+    sample_rows = _get_search_sample_rows_for_user(request.user)
+    filtered_rows = []
+    if not (isinstance(sample_rows, dict) and "ERROR" in sample_rows):
+        filtered_rows, _lineage_options, _institution_options = (
+            _get_filtered_search_sample_data(request, sample_rows)
+        )
+
+    workbook = core.utils.variants.build_variants_long_table_workbook(filtered_rows)
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    response = HttpResponse(
+        output.getvalue(),
+        content_type=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ),
+    )
+    response["Content-Disposition"] = 'attachment; filename="variants_long_table.xlsx"'
+    return response
+
+
+@login_required
 def metadata_visualization(request):
     if request.user.username != "admin":
         return redirect("/")
