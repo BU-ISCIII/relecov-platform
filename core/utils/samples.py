@@ -534,6 +534,47 @@ def get_iskylims_project_value(sample_obj, label_name):
     return get_iskylims_project_values(sample_obj).get(label_name, "")
 
 
+def get_iskylims_project_values_bulk(sample_objs):
+    """Return iSkyLIMS project values keyed by sequencing sample ID."""
+    sample_lookup_ids = OrderedDict()
+    request_ids = []
+    for sample_obj in sample_objs:
+        if sample_obj is None:
+            continue
+        lookup_ids = get_iskylims_lookup_ids(sample_obj)
+        if not lookup_ids:
+            continue
+        sample_lookup_ids[sample_obj.sequencing_sample_id] = lookup_ids
+        for lookup_id in lookup_ids:
+            if lookup_id not in request_ids:
+                request_ids.append(lookup_id)
+
+    if not request_ids:
+        return None
+
+    bulk_data = {}
+    for start in range(0, len(request_ids), SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE):
+        chunk_data = core.utils.rest_api.get_sample_project_values_bulk(
+            request_ids[start : start + SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE],
+            SURVEILLANCE_ISKYLIMS_FIELDS,
+        )
+        if not chunk_data or "ERROR" in chunk_data:
+            return None
+        bulk_data.update(chunk_data)
+
+    project_values_by_sample = {}
+    for sequencing_id, lookup_ids in sample_lookup_ids.items():
+        for lookup_id in lookup_ids:
+            sample_data = bulk_data.get(lookup_id)
+            if not sample_data:
+                continue
+            project_values_by_sample[sequencing_id] = sample_data.get(
+                "Project values", {}
+            )
+            break
+    return project_values_by_sample
+
+
 SURVEILLANCE_LINEAGE_FIELDS = [
     "lineage_assignment",
     "lineage_assignment_software_version",
@@ -546,6 +587,12 @@ SURVEILLANCE_BIOINFO_FIELDS = [
     "qc_test",
 ]
 SURVEILLANCE_PUBLIC_DATABASE_FIELDS = ["gisaid_accession_id"]
+SURVEILLANCE_ISKYLIMS_FIELDS = [
+    "Submitting Institution Identifier",
+    "Autonomic Community",
+    "Province",
+]
+SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE = 200
 SURVEILLANCE_COLUMNS = [
     "COLLECTING_LAB_SAMPLE_ID",
     "SEQUENCING_SAMPLE_ID",
@@ -686,9 +733,10 @@ def get_surveillance_sample_lookup(sequencing_ids):
     }
 
 
-def get_surveillance_sample_row(row, sample_obj):
+def get_surveillance_sample_row(row, sample_obj, iskylims_project_values=None):
     """Return one per-sample surveillance export row."""
-    iskylims_project_values = get_iskylims_project_values(sample_obj)
+    if iskylims_project_values is None:
+        iskylims_project_values = get_iskylims_project_values(sample_obj)
     collection_date = row["collection_date"]
     return [
         sample_obj.collecting_lab_sample_id if sample_obj else "",
@@ -718,13 +766,21 @@ def build_surveillance_workbook(filtered_rows):
     """Build the surveillance data workbook for filtered sample browser rows."""
     sequencing_ids = [row["sequencing_id"] for row in filtered_rows]
     sample_lookup = get_surveillance_sample_lookup(sequencing_ids)
+    iskylims_values_lookup = get_iskylims_project_values_bulk(sample_lookup.values())
     workbook = Workbook()
     worksheet = workbook.active
     worksheet.title = "per_sample_data"
     worksheet.append(SURVEILLANCE_COLUMNS)
     for row in filtered_rows:
         sample_obj = sample_lookup.get(row["sequencing_id"])
-        worksheet.append(get_surveillance_sample_row(row, sample_obj))
+        iskylims_project_values = None
+        if iskylims_values_lookup is not None:
+            iskylims_project_values = iskylims_values_lookup.get(
+                row["sequencing_id"], {}
+            )
+        worksheet.append(
+            get_surveillance_sample_row(row, sample_obj, iskylims_project_values)
+        )
     return workbook
 
 

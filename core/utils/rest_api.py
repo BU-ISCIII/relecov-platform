@@ -113,6 +113,19 @@ def get_sample_information(sample_name):
     return data["data"]
 
 
+def get_sample_project_values_bulk(sample_names, fields=None):
+    """Fetch selected iSkyLIMS project values for many samples in one request."""
+    query_data = {"samples": ",".join(sample_names)}
+    if fields:
+        query_data["fields"] = ",".join(fields)
+    data = create_get_api_instance(
+        core.config.ISKLIMS_GET_SAMPLE_PROJECT_VALUES_BULK, query_data
+    )
+    if "ERROR" in data:
+        return {"ERROR": data}
+    return data["data"]
+
+
 def get_sample_parameter_data(param_data):
     if isinstance(param_data, dict):
         data = create_get_api_instance(
