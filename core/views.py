@@ -939,6 +939,16 @@ def organism_annotation(request):
 def laboratory_contact(request):
     lab_data = core.utils.labs.get_lab_contact_details(request.user)
     user_lab = core.utils.labs.get_lab_name_from_user(request.user)
+    if not isinstance(lab_data, dict):
+        lab_label = user_lab or request.user.username
+        return render(
+            request,
+            "core/laboratoryContact.html",
+            {
+                "ERROR": f"No contact data found for your user {lab_label}",
+                "lab_data": {},
+            },
+        )
     proc_lab_data = {k.replace(" ", "_").lower(): v for k, v in lab_data.items()}
     if "ERROR" in lab_data:
         return render(
