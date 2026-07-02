@@ -518,8 +518,10 @@ def get_iskylims_project_values(sample_obj):
     iskylims_data = get_iskylims_sample_information(sample_obj)
     if not iskylims_data:
         return {}
-    project_field_display_map = core.utils.rest_api.get_sample_project_field_display_map(
-        iskylims_data.get("sample_project")
+    project_field_display_map = (
+        core.utils.rest_api.get_sample_project_field_display_map(
+            iskylims_data.get("sample_project")
+        )
     )
     project_values = {}
     for key, value in iskylims_data.get("Project values", {}).items():
@@ -680,9 +682,7 @@ def get_surveillance_sample_lookup(sequencing_ids):
         sample.sequencing_sample_id: sample
         for sample in core.models.Sample.objects.filter(
             sequencing_sample_id__in=sequencing_ids
-        ).prefetch_related(
-            lineage_prefetch, bioinfo_prefetch, public_database_prefetch
-        )
+        ).prefetch_related(lineage_prefetch, bioinfo_prefetch, public_database_prefetch)
     }
 
 
@@ -705,12 +705,8 @@ def get_surveillance_sample_row(row, sample_obj):
         get_collection_iso_week(collection_date),
         get_epi_season(collection_date),
         get_sample_lineage_value(sample_obj, "lineage_assignment"),
-        get_sample_lineage_value(
-            sample_obj, "lineage_assignment_software_version"
-        ),
-        get_sample_lineage_value(
-            sample_obj, "lineage_assignment_database_version"
-        ),
+        get_sample_lineage_value(sample_obj, "lineage_assignment_software_version"),
+        get_sample_lineage_value(sample_obj, "lineage_assignment_database_version"),
         get_sample_bioinfo_value(sample_obj, "bioinformatics_analysis_date"),
         get_sample_bioinfo_value(sample_obj, "per_genome_greater_10x"),
         get_sample_bioinfo_value(sample_obj, "qc_test"),
