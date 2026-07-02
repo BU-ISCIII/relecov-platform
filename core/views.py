@@ -499,17 +499,12 @@ def search_sample_variants_long_table(request):
             _get_filtered_search_sample_data(request, sample_rows)
         )
 
-    workbook = core.utils.variants.build_variants_long_table_workbook(filtered_rows)
-    output = BytesIO()
-    workbook.save(output)
-    output.seek(0)
-    response = HttpResponse(
-        output.getvalue(),
-        content_type=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-    )
-    response["Content-Disposition"] = 'attachment; filename="variants_long_table.xlsx"'
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="variants_long_table.csv"'
+    writer = csv.writer(response)
+    writer.writerow(core.utils.variants.VARIANTS_LONG_TABLE_COLUMNS)
+    for row in core.utils.variants.get_variants_long_table_rows(filtered_rows):
+        writer.writerow(row)
     return response
 
 
