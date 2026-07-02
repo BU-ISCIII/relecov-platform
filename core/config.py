@@ -121,6 +121,7 @@ ISKLIMS_GET_LABORATORY_PARAMETERS = ["lab-data", "laboratory"]
 ISKLIMS_PUT_LABORATORY_PARAMETER = "update-lab"
 ISKLIMS_GET_SAMPLE_FIELDS = "sample-fields"
 ISKLIMS_GET_SAMPLE_INFORMATION = ["sample-info", "sample"]
+ISKLIMS_GET_SAMPLE_PROJECT_VALUES_BULK = ["sample-project-values-bulk"]
 ISKLIMS_GET_SAMPLE_PARAMETER_INFORMATION = ["sample-info", "parameter"]
 ISKLIMS_GET_SAMPLE_PROJECT_PARAMETER_INFORMATION = ["sample-info"]
 ISKLIMS_GET_SAMPLE_PROJECT_FIELDS = ["projects-fields", "project"]
