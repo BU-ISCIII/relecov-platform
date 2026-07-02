@@ -14,6 +14,10 @@
   flex: 1 0 auto;
 }
 
+#wrapper #content-wrapper #content > .container-fluid > .row:first-child {
+  padding-top: 1.5rem;
+}
+
 /* Clases auxiliares */
 .rounded-circle {
   border-radius: 50% !important;
