@@ -66,6 +66,11 @@ urlpatterns = [
         core.views.search_sample_surveillance_data,
         name="search_sample_surveillance_data",
     ),
+    path(
+        "searchSample/variants-long-table",
+        core.views.search_sample_variants_long_table,
+        name="search_sample_variants_long_table",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
