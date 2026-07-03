@@ -4,7 +4,7 @@ import os
 import shutil
 import hashlib
 from datetime import datetime
-from collections import OrderedDict, defaultdict
+from collections import Counter, OrderedDict, defaultdict
 import pandas as pd
 from openpyxl import Workbook
 from django.contrib.auth.models import Group, User
@@ -615,6 +615,10 @@ SURVEILLANCE_COLUMNS = [
     "QC_TEST",
     "CONSENSUS_SEQUENCE_FILENAME",
 ]
+SURVEILLANCE_AGGREGATED_COLUMNS = [
+    "LINEAGE",
+    "NUMBER_SAMPLES",
+]
 
 
 def get_collection_iso_week(collection_date):
@@ -771,6 +775,7 @@ def build_surveillance_workbook(filtered_rows):
     worksheet = workbook.active
     worksheet.title = "per_sample_data"
     worksheet.append(SURVEILLANCE_COLUMNS)
+    lineage_counts = Counter()
     for row in filtered_rows:
         sample_obj = sample_lookup.get(row["sequencing_id"])
         iskylims_project_values = None
@@ -778,9 +783,17 @@ def build_surveillance_workbook(filtered_rows):
             iskylims_project_values = iskylims_values_lookup.get(
                 row["sequencing_id"], {}
             )
-        worksheet.append(
-            get_surveillance_sample_row(row, sample_obj, iskylims_project_values)
+        sample_row = get_surveillance_sample_row(
+            row, sample_obj, iskylims_project_values
         )
+        worksheet.append(sample_row)
+        lineage = sample_row[SURVEILLANCE_COLUMNS.index("LINEAGE")]
+        if lineage:
+            lineage_counts[lineage] += 1
+    aggregated_worksheet = workbook.create_sheet("aggregated_data")
+    aggregated_worksheet.append(SURVEILLANCE_AGGREGATED_COLUMNS)
+    for lineage, count in sorted(lineage_counts.items()):
+        aggregated_worksheet.append([lineage, count])
     return workbook
 
 
