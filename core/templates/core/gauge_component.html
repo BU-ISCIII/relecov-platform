@@ -1,5 +1,5 @@
 <div class="gauge-container">
-    <h5 class="gauge-title">Percentage of Samples Analyzed</h5>
+    <h5 class="gauge-title">Percentage of<br>Samples Analyzed</h5>
     <div class="gauge">
         <div class="progress">
             <div class="bar" id="bar"></div>
@@ -25,12 +25,22 @@
     text-align: center;
     border-radius: 12px;
     font-family: 'Oxanium', sans-serif;
+    overflow: visible;
+    min-width: 280px;
 }
 
-.gauge-title {
+.gauge-container .gauge-title {
     color: #042940;
-    margin-bottom: 20px;
+    display: block;
+    width: 100%;
+    min-width: 240px;
+    margin: 0 auto 20px;
     font-weight: 600;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: normal;
+    word-break: normal;
+    line-height: 1.25;
 }
 
 .gauge {
