@@ -180,12 +180,12 @@ LOG_CRONTAB_FILE = os.path.join(BASE_DIR, "logs", "crontab.log")
 CRONJOBS = [
     (
         "0 0 * * *",
-        "dashboard.cron.update_search_samples_summary",
+        "dashboard.cron.update_daily_graphic_json_data",
         ">>" + LOG_CRONTAB_FILE,
     ),
     (
         "10 0 1 * *",
-        "dashboard.cron.update_graphic_json_data",
+        "dashboard.cron.update_monthly_graphic_json_data",
         ">>" + LOG_CRONTAB_FILE,
     ),
 ]

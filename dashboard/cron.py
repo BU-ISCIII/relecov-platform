@@ -21,7 +21,7 @@ def remove_older_graphic_jsons(graphic_name, date):
     return
 
 
-def update_weekly_graphic_json_data():
+def update_daily_graphic_json_data():
     """Update graphic json caches that must be refreshed weekly."""
     graphic_name = "search_samples_summary_table"
     dates = list(
