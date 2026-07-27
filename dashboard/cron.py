@@ -21,8 +21,8 @@ def remove_older_graphic_jsons(graphic_name, date):
     return
 
 
-def update_search_samples_summary():
-    """Update only the Sample Browser summary cache."""
+def update_weekly_graphic_json_data():
+    """Update graphic json caches that must be refreshed weekly."""
     graphic_name = "search_samples_summary_table"
     dates = list(
         dashboard.models.GraphicJsonFile.objects.filter(
@@ -32,15 +32,35 @@ def update_search_samples_summary():
     if dates:
         remove_older_graphic_jsons(graphic_name, max(dates))
 
-    print("Starting search_samples_summary update...")
+    print("Starting weekly graphic jsons update...")
     print("Start timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
     print("Running pre_proc_search_samples_summary()")
     dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
-    print("search_samples_summary update finished")
+    print("Running pre_proc_variant_graphic()")
+    dashboard.utils.generic_process_data.pre_proc_variant_graphic()
+    print("Running pre_proc_samples_per_date_all_lab(detailed=True)")
+    dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(
+        detailed=True
+    )
+    print("Running pre_proc_intranet_gisaid_data")
+    dashboard.utils.generic_process_data.pre_proc_intranet_gisaid_data()
+    print("Running pre_proc_intranet_ena_data()")
+    dashboard.utils.generic_process_data.pre_proc_intranet_ena_data()
+    uniq_chrom_id_list = [
+        x["chromosomeID"]
+        for x in core.models.Gene.objects.values("chromosomeID").distinct()
+    ]
+    print(f"List of extracted unique chromosomes: {uniq_chrom_id_list}")
+    print("Running pre_proc_variations_per_lineage() for each chromosome")
+    for chromosome in uniq_chrom_id_list:
+        dashboard.utils.generic_process_data.pre_proc_variations_per_lineage(
+            chromosome=chromosome
+        )
+    print("weekly graphic jsons update finished")
     print("End timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
 
-def update_graphic_json_data():
+def update_monthly_graphic_json_data():
     """This function is called from crontab to update graphic json data.
     It also removes all the previous graphic jsons except for the last.
     In the end, there should remain 2 graphic jsons for each category,
@@ -65,8 +85,6 @@ def update_graphic_json_data():
     print("Start timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
     print("Running pre_proc_calculation_date()")
     dashboard.utils.generic_process_data.pre_proc_calculation_date()
-    print("Running pre_proc_variant_graphic()")
-    dashboard.utils.generic_process_data.pre_proc_variant_graphic()
     print("Running pre_proc_specimen_source_pcr_1()")
     dashboard.utils.generic_process_data.pre_proc_specimen_source_pcr_1()
     print("Running pre_proc_extraction_protocol_pcr_1()")
@@ -97,31 +115,13 @@ def update_graphic_json_data():
     dashboard.utils.generic_process_data.pre_proc_host_info()
     print("Running pre_proc_samples_per_date_all_lab()")
     dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab()
-    print("Running pre_proc_samples_per_date_all_lab(detailed=True)")
-    dashboard.utils.generic_process_data.pre_proc_samples_per_date_all_lab(
-        detailed=True
-    )
     print("Running pre_proc_samples_received_per_lab()")
     dashboard.utils.generic_process_data.pre_proc_samples_received_per_lab()
     print("Running pre_proc_samples_received_per_ccaa()")
     dashboard.utils.generic_process_data.pre_proc_samples_received_per_ccaa()
-    print("Running pre_proc_intranet_gisaid_data")
-    dashboard.utils.generic_process_data.pre_proc_intranet_gisaid_data()
-    print("Running pre_proc_intranet_ena_data()")
-    dashboard.utils.generic_process_data.pre_proc_intranet_ena_data()
     print("Running pre_proc_methodology_lims_fields_util()")
     dashboard.utils.generic_process_data.pre_proc_methodology_lims_fields_util()
     print("Running pre_proc_bioinfo_fields_util()")
     dashboard.utils.generic_process_data.pre_proc_bioinfo_fields_util()
-    uniq_chrom_id_list = [
-        x["chromosomeID"]
-        for x in core.models.Gene.objects.values("chromosomeID").distinct()
-    ]
-    print(f"List of extracted unique chromosomes: {uniq_chrom_id_list}")
-    print("Running pre_proc_variations_per_lineage() for each chromosome")
-    for chromosome in uniq_chrom_id_list:
-        dashboard.utils.generic_process_data.pre_proc_variations_per_lineage(
-            chromosome=chromosome
-        )
     print("Graphic jsons update finished")
     print("End timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
