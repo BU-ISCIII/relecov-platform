@@ -52,7 +52,7 @@ DB_CONN_MAX_AGE='60'
 # Gunicorn runtime tuning.
 WEB_CONCURRENCY='2'
 GUNICORN_THREADS='2'
-GUNICORN_TIMEOUT='120'
+GUNICORN_TIMEOUT='600'
 GUNICORN_KEEPALIVE='5'
 
 ### (optional) Python installation path where pip and python executables are located
