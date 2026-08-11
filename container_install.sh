@@ -66,8 +66,8 @@ service_readiness_path() {
 }
 service_image_name() {
     case "$1" in
-        app) echo relecov-platform:local ;;
-        iskylims_app) echo relecov-iskylims:local ;;
+        app) echo "${PLATFORM_APP_IMAGE:-${APP_IMAGE:-relecov-platform:local}}" ;;
+        iskylims_app) echo "${ISKYLIMS_APP_IMAGE:-relecov-iskylims:local}" ;;
         *) return 1 ;;
     esac
 }
@@ -107,7 +107,17 @@ prepare_compose_environment() {
     local -a deployment_values=(
         "GIT_REVISION|$git_revision"
         "APP_IMAGE|relecov-platform:local"
+        "PLATFORM_APP_IMAGE|relecov-platform:local"
         "ISKYLIMS_APP_IMAGE|relecov-iskylims:local"
+        "NEXTSTRAIN_PORT|$(config_value_or_default NEXTSTRAIN_PORT "${install_conf_host_by_service[app]}" '8100')"
+        "MAPBOX_ACCESS_TOKEN|$(config_value_or_default MAPBOX_ACCESS_TOKEN "${install_conf_host_by_service[app]}" '')"
+        "MAPBOX_STYLE_OWNER|$(config_value_or_default MAPBOX_STYLE_OWNER "${install_conf_host_by_service[app]}" 'mapbox')"
+        "MAPBOX_STYLE_ID|$(config_value_or_default MAPBOX_STYLE_ID "${install_conf_host_by_service[app]}" 'light-v11')"
+        "RELECOV_PLATFORM_SERVER_NAME|$(config_value_or_default RELECOV_PLATFORM_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
+        "RELECOV_ISKYLIMS_SERVER_NAME|$(config_value_or_default RELECOV_ISKYLIMS_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
+        "RELECOV_NEXTSTRAIN_SERVER_NAME|$(config_value_or_default RELECOV_NEXTSTRAIN_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
+        "PLATFORM_LOG_PATH|$(config_value_or_default HOST_LOG_PATH "${install_conf_host_by_service[app]}" '')"
+        "ISKYLIMS_LOG_PATH|$(config_value_or_default HOST_LOG_PATH "${install_conf_host_by_service[iskylims_app]}" '')"
         "APACHE_CONF_PATH|$(config_value_or_default APACHE_CONF_PATH "${install_conf_host_by_service[app]}" '')"
         "APACHE_LOG_PATH|$(config_value_or_default APACHE_LOG_PATH "${install_conf_host_by_service[app]}" '')"
         "APACHE_BIND_HOST|$(config_value_or_default APACHE_BIND_HOST "${install_conf_host_by_service[app]}" '')"
@@ -251,6 +261,8 @@ prepare_running_container_mount_permissions() {
                 "$install_path/logs|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/documents|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/static|$uid:$gid|u+rwX,g+rwX,o+rX"
+                "$install_path/cron|$uid:$gid|0700"
+                "$install_path/tmp|$uid:$gid|0700"
             )
             apply_container_directory_permission_spec "$container_id" "${app_running_mount_permission_spec[@]}"
             prepare_django_container_settings_permissions "$container_id" "$install_path/relecov_platform/settings.py" "$uid" "$gid"
@@ -262,6 +274,8 @@ prepare_running_container_mount_permissions() {
                 "$install_path/logs|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/documents|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/static|$uid:$gid|u+rwX,g+rwX,o+rX"
+                "$install_path/cron|$uid:$gid|0700"
+                "$install_path/tmp|$uid:$gid|0700"
             )
             apply_container_directory_permission_spec "$container_id" "${iskylims_app_running_mount_permission_spec[@]}"
             prepare_django_container_settings_permissions "$container_id" "$install_path/iskylims/settings.py" "$uid" "$gid"
@@ -317,9 +331,47 @@ bootstrap_service() {
 # in their generated wrapper and set application_supports_test_data=true. Keep
 # application-specific fixture names, users/groups, downloads, and data-service
 # layout here so the complete test installation remains readable in one file.
-application_supports_test_data=false
+application_supports_test_data=true
 load_test_deployment_data() {
-    die "Test/demo data loading is not implemented for $APPLICATION_NAME"
+    local iskylims_container samba_container fixture_path
+    local demo_archive="$demo_data" downloaded_demo=false
+
+    iskylims_container="$(current_service_container iskylims_app)"
+    if [ "$skip_test_data" = false ]; then
+        fixture_path="$(service_repo_path iskylims_app)/test/test_data.json"
+        if engine_exec exec "$iskylims_container" test -f "$fixture_path"; then
+            engine_exec exec "$iskylims_container" \
+                "$(service_install_path iskylims_app)/virtualenv/bin/python" \
+                "$(service_install_path iskylims_app)/manage.py" loaddata "$fixture_path"
+        else
+            echo "No iSkyLIMS test fixture found at $fixture_path; skipping."
+        fi
+    fi
+
+    [ "$skip_demo_data" = false ] || return 0
+    samba_container="$(current_service_container samba 2>/dev/null || true)"
+    [ -n "$samba_container" ] || {
+        echo "Samba service is not running; skipping demo sequencing data."
+        return 0
+    }
+    if [ -z "$demo_archive" ]; then
+        demo_archive="$script_dir/iskylims_demo_data.tar.gz"
+        wget -O "$demo_archive" \
+            https://zenodo.org/record/8091169/files/iskylims_demo_data.tar.gz
+        downloaded_demo=true
+    fi
+    [ -f "$demo_archive" ] || die "Demo-data archive not found: $demo_archive"
+    engine_exec cp "$demo_archive" "$samba_container:/mnt/iskylims_demo_data.tar.gz"
+    engine_exec exec "$samba_container" \
+        tar -xf /mnt/iskylims_demo_data.tar.gz -C /mnt
+    engine_exec exec "$samba_container" sh -lc '
+        for root in /mnt/test_ngs_data /mnt/Runs; do
+            [ ! -d "$root" ] || find "$root" -type d -exec chmod o+rx {} +
+            [ ! -d "$root" ] || find "$root" -type f -exec chmod o+r {} +
+        done
+        rm -f /mnt/iskylims_demo_data.tar.gz
+    '
+    [ "$downloaded_demo" = false ] || rm -f "$demo_archive"
 }
 
 action="install"; mode="production"; engine="docker"; git_revision="current"
