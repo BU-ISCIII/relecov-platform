@@ -101,10 +101,10 @@ Django settings file.
 `APACHE_LIMIT_REQUEST_BODY` configure the rendered proxy. They are
 operational values, not Django or React application settings.
 
-`APACHE_SERVER_NAME` is the host name handled by the baseline VirtualHost.
+`APACHE_SERVER_NAME` is the public Relecov Platform hostname.
 
 RELECOV uses three hostname-based virtual hosts. Configure
-`RELECOV_PLATFORM_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, and
+`APACHE_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, and
 `RELECOV_NEXTSTRAIN_SERVER_NAME` with the public DNS names for the platform,
 iSkyLIMS, and Nextstrain services respectively.
 `APACHE_UPSTREAM_SERVICE` defaults to `ADDONS.apache.CONFIG_SERVICE`, while
