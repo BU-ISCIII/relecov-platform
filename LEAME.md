@@ -412,6 +412,33 @@ Si aparece `ModSecurity: Failed to open debug log file`, conservar el fichero
 para diagnostico, ejecutar `fix-permissions` y reiniciar. Si hay que sustituir
 el inode, moverlo primero a un backup en vez de borrarlo.
 
+### Cargar datos de Nextstrain
+
+El instalador crea y conserva el volumen `nextstrain_data`, pero no selecciona
+ni descarga datasets. Copiar los datos Auspice revisados mediante el servicio
+en ejecucion para escribir en el volumen montado:
+
+```bash
+NEXTSTRAIN_SOURCE='/srv/relecov-nextstrain-data'
+NEXTSTRAIN_DATA_DIR='/data' # Debe coincidir con la configuracion protegida.
+test -d "$NEXTSTRAIN_SOURCE"
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  cp "$NEXTSTRAIN_SOURCE/." "nextstrain:$NEXTSTRAIN_DATA_DIR/"
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec nextstrain find "$NEXTSTRAIN_DATA_DIR" -maxdepth 2 -type f
+```
+
+Usar `docker` en lugar de `podman` cuando corresponda. La copia no elimina
+datasets antiguos: realizar primero un backup y retirar ficheros obsoletos de
+forma explicita. No borrar el volumen durante una actualizacion normal.
+
+```bash
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec -T nextstrain tar -C /data -czf - . > nextstrain-data.tar.gz
+```
+
+Verificar finalmente la URL publica y todos los datasets o narrativas esperados.
+
 ## Notas de permisos
 
 - Ejecutar siempre Podman y el instalador con el mismo usuario rootless.
