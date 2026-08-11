@@ -16,6 +16,7 @@ APPLICATION_NAME="RELECOV Platform"
 # lifecycle mechanics below unchanged.
 # ============================================================================
 install_services=(app iskylims_app)
+addon_build_services=(nextstrain)
 permission_services=(app iskylims_app apache)
 configured_services=(app iskylims_app)
 
@@ -109,7 +110,12 @@ prepare_compose_environment() {
         "APP_IMAGE|relecov-platform:local"
         "PLATFORM_APP_IMAGE|relecov-platform:local"
         "ISKYLIMS_APP_IMAGE|relecov-iskylims:local"
+        "NEXTSTRAIN_IMAGE|$(config_value_or_default NEXTSTRAIN_IMAGE "${install_conf_host_by_service[app]}" 'nextstrain:local')"
+        "NEXTSTRAIN_BUILD_CONTEXT|$(config_value_or_default NEXTSTRAIN_BUILD_CONTEXT "${install_conf_host_by_service[app]}" './nextstrain')"
+        "NEXTSTRAIN_DOCKERFILE|$(config_value_or_default NEXTSTRAIN_DOCKERFILE "${install_conf_host_by_service[app]}" 'Dockerfile')"
         "NEXTSTRAIN_PORT|$(config_value_or_default NEXTSTRAIN_PORT "${install_conf_host_by_service[app]}" '8100')"
+        "NEXTSTRAIN_HOST_PORT|$(config_value_or_default NEXTSTRAIN_HOST_PORT "${install_conf_host_by_service[app]}" '8100')"
+        "NEXTSTRAIN_DATA_DIR|$(config_value_or_default NEXTSTRAIN_DATA_DIR "${install_conf_host_by_service[app]}" '/data')"
         "MAPBOX_ACCESS_TOKEN|$(config_value_or_default MAPBOX_ACCESS_TOKEN "${install_conf_host_by_service[app]}" '')"
         "MAPBOX_STYLE_OWNER|$(config_value_or_default MAPBOX_STYLE_OWNER "${install_conf_host_by_service[app]}" 'mapbox')"
         "MAPBOX_STYLE_ID|$(config_value_or_default MAPBOX_STYLE_ID "${install_conf_host_by_service[app]}" 'light-v11')"
@@ -516,6 +522,11 @@ for service_name in "${install_services[@]}"; do
             --build-arg VITE_API_BASE_URL="$vite_api_url" \
             --tag "$(service_image_name "$service_name")" "$context"
     fi
+done
+# Build add-on images through Compose so their declared build arguments and
+# add-on-owned Dockerfiles remain the single source of truth.
+for service_name in "${addon_build_services[@]}"; do
+    deployment_compose -f "$compose_file" build --no-cache "$service_name"
 done
 # 7. Recreate and start the complete topology from one Compose invocation so
 # freshly built images and the current configuration are deployed consistently.
