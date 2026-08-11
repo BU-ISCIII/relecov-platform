@@ -18,12 +18,15 @@ APPLICATION_NAME="RELECOV Platform"
 install_services=(app iskylims_app)
 addon_build_services=(nextstrain)
 permission_services=(app iskylims_app apache)
-configured_services=(app iskylims_app)
+configured_services=(app iskylims_app apache nextstrain samba)
 
 default_service_install_conf() {
     case "$1" in
         app) [ "$mode" = test ] && echo conf/docker_test_settings.txt || echo conf/docker_production_settings.txt ;;
         iskylims_app) [ "$mode" = test ] && echo ../relecov-iskylims/conf/docker_test_settings.txt || echo ../relecov-iskylims/conf/docker_production_settings.txt ;;
+        apache) [ "$mode" = test ] && echo conf/apache/apache_test_settings.txt || echo conf/apache/apache_production_settings.txt ;;
+        nextstrain) [ "$mode" = test ] && echo conf/nextstrain/nextstrain_test_settings.txt || echo conf/nextstrain/nextstrain_production_settings.txt ;;
+        samba) [ "$mode" = test ] && echo conf/samba/samba_test_settings.txt || echo conf/samba/samba_production_settings.txt ;;
         *) return 1 ;;
     esac
 }
@@ -104,43 +107,17 @@ prepare_compose_environment() {
     local -a settings_sources=(
         "APP|${install_conf_host_by_service[app]}"
         "ISKYLIMS_APP|${install_conf_host_by_service[iskylims_app]}"
+        "|${install_conf_host_by_service[apache]}"
+        "|${install_conf_host_by_service[nextstrain]}"
+        "|${install_conf_host_by_service[samba]}"
     )
     local -a deployment_values=(
         "GIT_REVISION|$git_revision"
         "APP_IMAGE|relecov-platform:local"
         "PLATFORM_APP_IMAGE|relecov-platform:local"
         "ISKYLIMS_APP_IMAGE|relecov-iskylims:local"
-        "NEXTSTRAIN_IMAGE|$(config_value_or_default NEXTSTRAIN_IMAGE "${install_conf_host_by_service[app]}" 'nextstrain:local')"
-        "NEXTSTRAIN_BUILD_CONTEXT|$(config_value_or_default NEXTSTRAIN_BUILD_CONTEXT "${install_conf_host_by_service[app]}" './nextstrain')"
-        "NEXTSTRAIN_DOCKERFILE|$(config_value_or_default NEXTSTRAIN_DOCKERFILE "${install_conf_host_by_service[app]}" 'Dockerfile')"
-        "NEXTSTRAIN_PORT|$(config_value_or_default NEXTSTRAIN_PORT "${install_conf_host_by_service[app]}" '8100')"
-        "NEXTSTRAIN_HOST_PORT|$(config_value_or_default NEXTSTRAIN_HOST_PORT "${install_conf_host_by_service[app]}" '8100')"
-        "NEXTSTRAIN_DATA_DIR|$(config_value_or_default NEXTSTRAIN_DATA_DIR "${install_conf_host_by_service[app]}" '/data')"
-        "MAPBOX_ACCESS_TOKEN|$(config_value_or_default MAPBOX_ACCESS_TOKEN "${install_conf_host_by_service[app]}" '')"
-        "MAPBOX_STYLE_OWNER|$(config_value_or_default MAPBOX_STYLE_OWNER "${install_conf_host_by_service[app]}" 'mapbox')"
-        "MAPBOX_STYLE_ID|$(config_value_or_default MAPBOX_STYLE_ID "${install_conf_host_by_service[app]}" 'light-v11')"
-        "RELECOV_PLATFORM_SERVER_NAME|$(config_value_or_default RELECOV_PLATFORM_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
-        "RELECOV_ISKYLIMS_SERVER_NAME|$(config_value_or_default RELECOV_ISKYLIMS_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
-        "RELECOV_NEXTSTRAIN_SERVER_NAME|$(config_value_or_default RELECOV_NEXTSTRAIN_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
         "PLATFORM_LOG_PATH|$(config_value_or_default HOST_LOG_PATH "${install_conf_host_by_service[app]}" '')"
         "ISKYLIMS_LOG_PATH|$(config_value_or_default HOST_LOG_PATH "${install_conf_host_by_service[iskylims_app]}" '')"
-        "APACHE_CONF_PATH|$(config_value_or_default APACHE_CONF_PATH "${install_conf_host_by_service[app]}" '')"
-        "APACHE_LOG_PATH|$(config_value_or_default APACHE_LOG_PATH "${install_conf_host_by_service[app]}" '')"
-        "APACHE_BIND_HOST|$(config_value_or_default APACHE_BIND_HOST "${install_conf_host_by_service[app]}" '')"
-        "APACHE_PORT|$(config_value_or_default APACHE_PORT "${install_conf_host_by_service[app]}" '')"
-        "APACHE_SERVER_NAME|$(config_value_or_default APACHE_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
-        "APACHE_UPSTREAM_SERVICE|$(config_value_or_default APACHE_UPSTREAM_SERVICE "${install_conf_host_by_service[app]}" '')"
-        "APACHE_UPSTREAM_PORT|$(config_value_or_default APACHE_UPSTREAM_PORT "${install_conf_host_by_service[app]}" '')"
-        "APACHE_PROXY_TIMEOUT|$(config_value_or_default APACHE_PROXY_TIMEOUT "${install_conf_host_by_service[app]}" '')"
-        "APACHE_LOG_STEM|$(config_value_or_default APACHE_LOG_STEM "${install_conf_host_by_service[app]}" '')"
-        "SERVER_STATUS_SERVER_NAME|$(config_value_or_default SERVER_STATUS_SERVER_NAME "${install_conf_host_by_service[app]}" '')"
-        "SERVER_STATUS_ALIASES|$(config_value_or_default SERVER_STATUS_ALIASES "${install_conf_host_by_service[app]}" '')"
-        "SERVER_STATUS_ALLOW_FROM|$(config_value_or_default SERVER_STATUS_ALLOW_FROM "${install_conf_host_by_service[app]}" '')"
-        "APACHE_FORWARDED_PROTO|$(config_value_or_default APACHE_FORWARDED_PROTO "${install_conf_host_by_service[app]}" '')"
-        "APACHE_FORWARDED_PORT|$(config_value_or_default APACHE_FORWARDED_PORT "${install_conf_host_by_service[app]}" '')"
-        "APACHE_LIMIT_REQUEST_BODY|$(config_value_or_default APACHE_LIMIT_REQUEST_BODY "${install_conf_host_by_service[app]}" '')"
-        "SAMBA_USER|$(config_value_or_default SAMBA_USER "${install_conf_host_by_service[iskylims_app]}" '')"
-        "SAMBA_PASSWORD|$(config_value_or_default SAMBA_PASSWORD "${install_conf_host_by_service[iskylims_app]}" '')"
     )
     compose_env_file="$script_dir/.env.${mode}.file"
     write_compose_environment_file "$compose_env_file" settings_sources deployment_values
@@ -395,7 +372,7 @@ Options:
   --engine docker|podman
   --git_revision <branch|tag|commit|current>
   --install_conf <path>              First application service only.
-  --install_conf_map <service,path>  Repeat for every service override.
+  --install_conf_map <component,path>  Repeat for application and add-on overrides.
   --compose_file <path>
   --script_before <name[,args]>
   --script_after <name[,args]>
@@ -455,7 +432,7 @@ if [ -n "$install_conf" ]; then install_conf_host_by_service["${install_services
 for mapping in "${install_conf_map_entries[@]}"; do
     [[ "$mapping" == *,* ]] || die "Invalid --install_conf_map: $mapping"
     service_name="${mapping%%,*}"; path="${mapping#*,}"
-    array_contains "$service_name" "${configured_services[@]}" || die "Unknown mapped service: $service_name"
+    array_contains "$service_name" "${configured_services[@]}" || die "Unknown mapped component: $service_name"
     install_conf_host_by_service["$service_name"]="$path"
 done
 for service_name in "${configured_services[@]}"; do
