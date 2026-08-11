@@ -43,11 +43,11 @@
     "TIMEZONE": "Europe/Madrid"
   },
   "files": {
-    ".dockerignore": "49a5b2223fb2a4f4201c19a833c60ba91f3e979632b6ae45fd4aca4cf22abb32",
-    ".gitignore": "5f08b2eb5e81fa7a1f4d5bc73df8ba6741e4a3f78925890c3fd1018f2188545b",
+    ".dockerignore": "a76e2a974786736d1d3744ed534ae9996514cb15d921328450f3757fafe273d2",
+    ".gitignore": "86a6d029356710031e592d78821b3c5a2ef0bc510fa746703bfcef56ea10fc15",
     "Dockerfile": "4fdbc95d7aadfc8bc2dbdd0b83ac767cb5a2323a4fbd2b35edb625d36dc02b6f",
-    "LEAME.md": "6a019c031c0675ee3749b47d90f97d322e15a547922c324607e662a9a3adc082",
-    "README.md": "7b89d55276877c8abab6a887ebff7f6d861f9906349f4fb7ec0cba050a60e434",
+    "LEAME.md": "a6511ccf6383a934b4ae24ebb286880652836d6781000bc0c4d425888a285f03",
+    "README.md": "f21dac32b14a8d4e9ccff189c6ae3033761df08e6ca763568a60cb29db99d3c4",
     "conf/INSTALL_SETTINGS.md": "f169794181cfc5492cb8c36e1590ceb6cdcd236b8198bf9f3d6c558464b1ab80",
     "conf/apache/00-logs.conf": "3c2ab4e693e528d2cad37c0c5bb0bc4511803a7f206b339182de192d4e398092",
     "conf/apache/01-reverse-proxy.conf": "25c670b5669d2887620e6688da4b890bd6d54ea97a613248cc0b969cc03e5476",
