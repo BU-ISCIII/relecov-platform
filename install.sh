@@ -186,14 +186,28 @@ install_application_system_packages() {
     if [[ -f /etc/debian_version ]]; then
         apt-get update
         apt-get install -y --no-install-recommends \
-            python3-dev default-libmysqlclient-dev passwd
+            python3-dev \
+            default-libmysqlclient-dev \
+            apache2-dev \
+            build-essential \
+            passwd
     elif command -v microdnf >/dev/null 2>&1; then
         microdnf install -y \
-            python3.11-devel mariadb-connector-c-devel shadow-utils
+            python3.11-devel \
+            mariadb-connector-c-devel \
+            httpd-devel \
+            gcc \
+            make \
+            shadow-utils
         microdnf clean all
     elif command -v dnf >/dev/null 2>&1; then
         dnf install -y \
-            python3.11-devel mariadb-connector-c-devel shadow-utils
+            python3.11-devel \
+            mariadb-connector-c-devel \
+            httpd-devel \
+            gcc \
+            make \
+            shadow-utils
     else
         die "Unsupported package manager for system dependency installation"
     fi
@@ -202,16 +216,17 @@ install_application_system_packages() {
 prepare_application_directories() {
     # Argument: final INSTALL_PATH. Create application-specific persistent
     # directories here. Generic logs/documents/static/cron/tmp already exist.
-    # Example:
-    #   mkdir -p "$1/documents/genomic_files" "$1/logs/audit"
-    :
+    # mkdir -p is intentionally idempotent and preserves existing schemas and
+    # all other persistent directory contents during install and upgrade.
+    mkdir -p "$1/documents/schemas"
 }
 
 stage_application_custom_files() {
     # Arguments: source directory, final INSTALL_PATH, action (install|upgrade).
     # Copy application-owned files that intentionally need extra processing;
     # the standard already installs the Django URL and optional routing files.
-    :
+    # RELECOV currently has no additional files outside the normal source sync.
+    return 0
 }
 
 write_application_runtime_env() {
@@ -278,10 +293,56 @@ PY
 }
 
 set_application_permissions() {
-    # Argument: final INSTALL_PATH. Direct/bare-metal installs can customize
-    # owner/group here; container orchestration owns container mount permissions.
-    # Example: chown -R "${APP_UID}:${APP_GID}" "$1/logs" "$1/documents"
-    :
+    # Argument: final INSTALL_PATH. Container image staging and runtime mount
+    # permissions are owned by the Dockerfile and container_install.sh.
+    [[ "$WORKFLOW" == "standard" ]] || return 0
+
+    local install_path="$1"
+    local install_user="${SUDO_USER:-$(id -un)}"
+    local apache_group="apache"
+    local logs_path="$install_path/logs"
+
+    [[ -f /etc/debian_version ]] && apache_group="www-data"
+    getent group "$apache_group" >/dev/null 2>&1 \
+        || die "Required Apache group does not exist: $apache_group"
+
+    case "${LOG_TYPE:-regular_folder}" in
+        regular_folder)
+            [[ ! -L "$logs_path" ]] \
+                || die "$logs_path is a symbolic link but LOG_TYPE=regular_folder"
+            mkdir -p "$logs_path"
+            ;;
+        symbolic_link)
+            [[ -n "${LOG_PATH:-}" ]] \
+                || die "LOG_PATH is required when LOG_TYPE=symbolic_link"
+            [[ -d "$LOG_PATH" ]] \
+                || die "Configured log directory does not exist: $LOG_PATH"
+            if [[ -L "$logs_path" ]]; then
+                [[ "$(readlink -f "$logs_path")" == "$(readlink -f "$LOG_PATH")" ]] \
+                    || die "$logs_path points to a different location than LOG_PATH"
+            else
+                if [[ -d "$logs_path" ]]; then
+                    rmdir "$logs_path" 2>/dev/null \
+                        || die "Refusing to replace non-empty log directory: $logs_path"
+                elif [[ -e "$logs_path" ]]; then
+                    die "Refusing to replace non-directory log path: $logs_path"
+                fi
+                ln -s "$LOG_PATH" "$logs_path"
+            fi
+            logs_path="$LOG_PATH"
+            ;;
+        *) die "Unsupported LOG_TYPE: $LOG_TYPE" ;;
+    esac
+
+    mkdir -p "$install_path/documents/schemas"
+    if [[ $(id -u) -eq 0 ]]; then
+        chown -R "$install_user:$apache_group" \
+            "$install_path/documents" "$logs_path"
+    else
+        printf 'WARNING: ownership update requires root; leaving owner/group unchanged.\n' >&2
+    fi
+    chmod -R u+rwX,g+rwX,o-rwx "$install_path/documents" "$logs_path"
+    chmod 0775 "$install_path/documents" "$install_path/documents/schemas" "$logs_path"
 }
 
 restart_application_server() {
