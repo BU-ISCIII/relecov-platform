@@ -1,69 +1,107 @@
-### Installation path
+# Safe local/test values. Never use these credentials in production.
+
+### Application layout and Django project
+REPO_PATH='/srv/relecov-platform'
 INSTALL_PATH='/opt/relecov-platform'
-PROJECT_NAME='relecov_platform'
-REQUIRED_MODULES='core dashboard docs'
-MIGRATION_MODULES='core dashboard django_plotly_dash'
+PROJECT_MODULE='relecov_platform'
+PYTHON_BIN_PATH='python3.11'
 
+### Application-specific installation modules
+# Optional lists used only when install.sh implements these operations.
+REQUIRED_MODULES=''
+MIGRATION_MODULES=''
+FAKEINITIAL_MODULES=''
 
-### Container runtime settings
-# Host directory for Apache bind-mounted configuration files.
-# Production deployments use /srv/containers/bind/relecov-platform/relecov_apache_conf.
-APACHE_CONF_PATH=''
-# Production deployments bind mount settings.py from a writable host path.
-DJANGO_SETTINGS_PATH=''
-# Host directory for Apache logs.
-APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
-# Host directory for RELECOV Platform application logs.
-PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
-# Host directory for iSkyLIMS application logs when using the integrated stack.
-ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
-# Apache virtual host names rendered into the container reverse proxy config.
-RELECOV_PLATFORM_SERVER_NAME=''
-RELECOV_ISKYLIMS_SERVER_NAME='relecov-iskylims.isciiides.es'
-RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.isciiides.es'
-# Apache server-status virtual host and access control.
-SERVER_STATUS_SERVER_NAME=''
-SERVER_STATUS_ALIASES='127.0.0.1 localhost'
-SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
-# Forwarded headers set by Apache. Keep http/8081 for local non-TLS testing.
-APACHE_FORWARDED_PROTO='http'
-APACHE_FORWARDED_PORT='8081'
-# Production compose host port (unused by docker-compose.test.yml).
-APACHE_HOST_PORT='8090'
-# UID/GID for the non-root relecov-platform user inside the app container.
+### Container runtime identity
 APP_UID='1212'
 APP_GID='1212'
-# Shell assigned to the container runtime user during image build.
 APP_SHELL='/bin/bash'
-# Internal app ports used by Django runserver/Gunicorn and Nextstrain.
-APP_PORT='8000'
-ISKYLIMS_APP_PORT='8001'
-NEXTSTRAIN_PORT='8100'
-# Django debug flag for the test container stack.
-DJANGO_DEBUG='false'
-# Django persistent database connection lifetime in seconds.
+APP_PORT='8001'
+
+### Disposable persistence paths
+HOST_LOG_PATH='/tmp/relecov-platform/logs'
+# Test images render settings during build and do not mount this host path.
+DJANGO_SETTINGS_PATH='/tmp/relecov-platform/data/settings/relecov_platform/settings.py'
+
+### Compose test database
+DB_HOST='app_db'
+DB_PORT='3306'
+DB_NAME='relecov_platform'
+DB_USER='django'
+DB_PASSWORD='djangopass'
+DB_ROOT_PASSWORD='root'
+
+### Django and local email defaults
+DJANGO_DEBUG='true'
+DJANGO_SECRET_KEY='test-only-change-me'
+DJANGO_ALLOWED_HOSTS='*'
+DJANGO_CSRF_TRUSTED_ORIGINS='http://localhost:8001,http://127.0.0.1:8001'
 DB_CONN_MAX_AGE='60'
-# Gunicorn runtime tuning.
+
+### Local email defaults
+EMAIL_HOST='host.docker.internal'
+EMAIL_PORT='25'
+EMAIL_HOST_USER='bioinformatica@isciii.es'
+EMAIL_HOST_PASSWORD=''
+EMAIL_USE_TLS='False'
+
+### Initial administrator (bootstrap install only)
+CREATE_INITIAL_SUPERUSER='false'
+DJANGO_SUPERUSER_USERNAME='admin'
+DJANGO_SUPERUSER_EMAIL=''
+DJANGO_SUPERUSER_PASSWORD=''
+
+### Gunicorn and startup tuning
 WEB_CONCURRENCY='2'
 GUNICORN_THREADS='2'
-GUNICORN_TIMEOUT='600'
+GUNICORN_TIMEOUT='300'
 GUNICORN_KEEPALIVE='5'
+APP_START_WAIT_TIMEOUT_SECONDS='100'
 
-### (optional) Python installation path where pip and python executables are located
-PYTHON_BIN_PATH='python3'
+### Application log policy compatibility
+# Set LOG_PATH when LOG_TYPE='symbolic_link'.
+LOG_TYPE='regular_folder'
+LOG_PATH=''
 
-### Settings required to access database
-DB_USER='django'
-DB_PASS='djangopass'
-DB_NAME='relecov_docker'
-DB_SERVER_IP='db'
-DB_PORT=3306
+### Selected infrastructure add-ons
+# Apache add-on
+# Used only when ADDONS.apache selects this application as CONFIG_SERVICE.
 
-### Settings required for accessing relecov-platform
-LOCAL_SERVER_IP='*'
-DNS_URL='*'
-SUPERUSER='admin'
+# Sources under <repository>/conf/apache are rendered into deployment/apache.
+# This compatibility value is unused unless application code consumes it.
+APACHE_CONF_PATH=''
 
-### Logs settings
-LOG_TYPE="regular_folder" # can be symbolic_link, or regular_folder
-LOG_PATH=""
+# Disposable test logs and a public test endpoint.
+APACHE_LOG_PATH='/tmp/relecov-platform/apache-logs'
+APACHE_BIND_HOST='0.0.0.0'
+APACHE_PORT='8081'
+
+# Host name handled by the local test VirtualHost.
+APACHE_SERVER_NAME='localhost'
+
+# Compose service receiving proxied requests. Leave empty to use the service
+# selected by ADDONS.apache.CONFIG_SERVICE (normally app for a single service).
+APACHE_UPSTREAM_SERVICE=''
+
+# Internal application port used by ProxyPass. Leave empty to use APP_PORT from
+# the selected service's test settings.
+APACHE_UPSTREAM_PORT=''
+
+# Maximum proxy request duration in seconds. Leave empty to use the selected
+# service's GUNICORN_TIMEOUT, falling back to 120 seconds when it is undefined.
+APACHE_PROXY_TIMEOUT=''
+
+# Prefix for the generated <stem>-apache.access.log and
+# <stem>-apache.error.log files. Leave empty to derive it from
+# APACHE_SERVER_NAME, with URL schemes, paths and ports removed.
+APACHE_LOG_STEM=''
+
+# Local server-status defaults.
+SERVER_STATUS_SERVER_NAME='localhost'
+SERVER_STATUS_ALIASES='127.0.0.1 localhost'
+SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
+
+# Test proxy headers and request-body limit.
+APACHE_FORWARDED_PROTO='http'
+APACHE_FORWARDED_PORT='8081'
+APACHE_LIMIT_REQUEST_BODY='52428800'

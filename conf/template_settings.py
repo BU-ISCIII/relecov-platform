@@ -1,40 +1,48 @@
-from pathlib import Path
-import os
+"""Django settings rendered by the BU-ISCIII deployment library.
 
-# Build paths inside the project like this: BASE_DIR / "subdir".
+This is an application-owned template. Keep the exact Django applications and
+project behavior here; deployment-specific values are replaced from the
+selected production or test installation settings file.
+"""
+
+from pathlib import Path
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# The renderer replaces this complete line and preserves the existing generated
+# value during upgrades. Never commit a real production secret here.
 SECRET_KEY = "PLACEHOLDER"
+DEBUG = djangodebug
+ALLOWED_HOSTS = [
+    host.strip() for host in "djangoallowedhosts".split(",") if host.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in "djangocsrftrustedorigins".split(",")
+    if origin.strip()
+]
 
-
-# SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "localserverip", "dns_url"]
-
-# Application definition
+# Add every local and third-party Django application used by the project.
+# Application ordering can affect template overrides and startup behavior.
+# Prefer an explicit AppConfig path when the application provides one:
+#     "your_app.apps.YourAppConfig",
 INSTALLED_APPS = [
+    # Application-specific examples:
+    # "your_app",
+    # "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_plotly_dash.apps.DjangoPlotlyDashConfig",
-    "django_crontab",
-    "core",
-    "dashboard",
-    "docs",
-    "django_extensions",
-    "rest_framework",
-    "drf_spectacular",
-    "django_cleanup",  # should go after your apps
 ]
+
+# Optional application display metadata. Define the exact structure consumed
+# by the project; this is not a standard Django setting.
+# APPS_NAMES = [
+#     ["your_app", "Human-readable application name"],
+# ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -44,15 +52,16 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_plotly_dash.middleware.BaseMiddleware",
-    "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
 ]
 
 ROOT_URLCONF = "relecov_platform.urls"
+WSGI_APPLICATION = "relecov_platform.wsgi.application"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
+        # Add application-owned template directories when needed:
+        # "DIRS": [BASE_DIR / "documents" / "service_templates"],
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -61,29 +70,23 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "docs.utils.context_processors.docs_current_path",
-                "core.utils.generic_functions.cookie_consent",
+                "django.template.context_processors.i18n",
             ],
         },
-    },
+    }
 ]
-
-WSGI_APPLICATION = "relecov_platform.wsgi.application"
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
+        "NAME": "djangodbname",
         "USER": "djangouser",
         "PASSWORD": "djangopass",
-        "PORT": "djangoport",
-        "NAME": "djangodbname",
         "HOST": "djangohost",
-        "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "60")),
-    },
+        "PORT": "djangoport",
+        "CONN_MAX_AGE": dbconnmaxage,
+    }
 }
-
-# Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -100,94 +103,39 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Relecov Platform API",
-    "DESCRIPTION": "REST API to access relecov platform",
-    "VERSION": "1.0",
-    "SERVE_INCLUDE_SCHEMA": True,
-    # OTHER SETTINGS
-    "GENERIC_ADDITIONAL_PROPERTIES": "dict",
-}
-
-#  enable the use of frames within HTML documents
-X_FRAME_OPTIONS = "SAMEORIGIN"
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+TIME_ZONE = "Europe/Madrid"
 USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = False
-
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "django_plotly_dash.finders.DashAssetFinder",
-    "django_plotly_dash.finders.DashAppDirectoryFinder",
-    "core.finders.DashComponentFinderNoDuplicates",
-]
-
-PLOTLY_COMPONENTS = [
-    "dpd_components",
-    "dash_bootstrap_components",
-    "dash_daq",
-    "dash_bio",
-]
-
-PLOTLY_DASH = {
-    "view_decorator": "core.dash_access.selective_login_required",
-    # Use the Django session backend for initial_arguments. The default cache is
-    # LocMemCache in this deployment, which is process-local and breaks Dash
-    # iframe initial state across multiple workers.
-    "cache_arguments": False,
-    "serve_locally": True,
-}
-
-SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"basic": {"type": "basic"}}}
-
-#  Media settings
-MEDIA_URL = "/documents/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "documents/")
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+USE_TZ = True
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_ROOT = BASE_DIR / "static"
+MEDIA_URL = "/documents/"
+MEDIA_ROOT = BASE_DIR / "documents"
 
-# Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = "/intranet/"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "emailhostserver"
+EMAIL_PORT = emailport
+EMAIL_HOST_USER = "emailhostuser"
+EMAIL_HOST_PASSWORD = "emailhostpassword"
+EMAIL_USE_TLS = emailhosttls
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+# Optional django-crontab configuration. Enable "django_crontab" in
+# INSTALLED_APPS before activating these settings.
+# LOG_CRONTAB_FILE = BASE_DIR / "logs" / "crontab.log"
+# CRONJOBS = [
+#     ("*/15 * * * *", "your_app.cron.job", f">>{LOG_CRONTAB_FILE}"),
+# ]
+# CRONTAB_COMMAND_SUFFIX = "2>&1"
+
+# Optional upload limit in bytes. Django's default is 2.5 MiB.
+# DATA_UPLOAD_MAX_MEMORY_SIZE = 10_000_000
+
+# Enable only when every request reaches Django through a trusted proxy that
+# overwrites X-Forwarded-Proto. Incorrect use lets clients spoof HTTPS.
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Add application/framework-specific settings below, for example REST framework
+# authentication, Swagger, Crispy Forms, logging or cleanup policies.
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-LOG_CRONTAB_FILE = os.path.join(BASE_DIR, "logs", "crontab.log")
-
-# Crontab settings
-CRONJOBS = [
-    (
-        "0 0 * * *",
-        "dashboard.cron.update_daily_graphic_json_data",
-        ">>" + LOG_CRONTAB_FILE,
-    ),
-    (
-        "10 0 1 * *",
-        "dashboard.cron.update_monthly_graphic_json_data",
-        ">>" + LOG_CRONTAB_FILE,
-    ),
-]
-
-CRONTAB_COMMAND_SUFFIX = "2>&1"
