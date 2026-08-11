@@ -18,7 +18,7 @@ PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
 # Host directory for iSkyLIMS application logs when using the integrated stack.
 ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
 # Apache virtual host names rendered into the container reverse proxy config.
-RELECOV_PLATFORM_SERVER_NAME=''
+APACHE_SERVER_NAME=''
 RELECOV_ISKYLIMS_SERVER_NAME='relecov-iskylims.isciiides.es'
 RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.isciiides.es'
 # Apache server-status virtual host and access control.

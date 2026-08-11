@@ -18,10 +18,9 @@ APACHE_PORT='8080'
 
 # Public host name handled by the default VirtualHost. Use localhost for a
 # workstation deployment or the externally visible DNS name in production.
-APACHE_SERVER_NAME='CHANGE_ME_DNS_NAME'
+APACHE_SERVER_NAME='CHANGE_ME_PLATFORM_DNS_NAME'
 
-# Public hostnames routed by the integrated RELECOV virtual hosts.
-RELECOV_PLATFORM_SERVER_NAME='CHANGE_ME_PLATFORM_DNS_NAME'
+# Additional public hostnames routed by the integrated RELECOV virtual hosts.
 RELECOV_ISKYLIMS_SERVER_NAME='CHANGE_ME_ISKYLIMS_DNS_NAME'
 RELECOV_NEXTSTRAIN_SERVER_NAME='CHANGE_ME_NEXTSTRAIN_DNS_NAME'
 
