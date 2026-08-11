@@ -97,6 +97,11 @@ Developer review checklist:
 operational values, not Django or React application settings.
 
 `APACHE_SERVER_NAME` is the host name handled by the baseline VirtualHost.
+
+RELECOV uses three hostname-based virtual hosts. Configure
+`RELECOV_PLATFORM_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, and
+`RELECOV_NEXTSTRAIN_SERVER_NAME` with the public DNS names for the platform,
+iSkyLIMS, and Nextstrain services respectively.
 `APACHE_UPSTREAM_SERVICE` defaults to `ADDONS.apache.CONFIG_SERVICE`, while
 `APACHE_UPSTREAM_PORT` defaults to that service's `APP_PORT`.
 `APACHE_PROXY_TIMEOUT` defaults to its `GUNICORN_TIMEOUT` (or 120 seconds), and
@@ -112,3 +117,13 @@ hosts, routes, and aliases. During installation they are rendered with the
 protected deployment environment into `deployment/apache/`; only those final
 files are bind-mounted. `APACHE_LOG_PATH` is the writable persistent host log
 source.
+
+
+### Nextstrain visualization
+
+`NEXTSTRAIN_IMAGE` names the locally built image. `NEXTSTRAIN_BUILD_CONTEXT`
+and `NEXTSTRAIN_DOCKERFILE` select its scaffolded build inputs. The public
+`MAPBOX_ACCESS_TOKEN`, `MAPBOX_STYLE_OWNER`, and `MAPBOX_STYLE_ID` are embedded
+in the custom Auspice bundle at build time. `NEXTSTRAIN_PORT` is the internal
+HTTP port, while `NEXTSTRAIN_HOST_PORT` publishes it on host loopback.
+`NEXTSTRAIN_DATA_DIR` is backed by the persistent `nextstrain_data` volume.

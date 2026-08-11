@@ -116,6 +116,11 @@ APACHE_PORT='8080'
 # workstation deployment or the externally visible DNS name in production.
 APACHE_SERVER_NAME='CHANGE_ME_DNS_NAME'
 
+# Public hostnames routed by the three RELECOV Apache virtual hosts.
+RELECOV_PLATFORM_SERVER_NAME='CHANGE_ME_PLATFORM_DNS_NAME'
+RELECOV_ISKYLIMS_SERVER_NAME='CHANGE_ME_ISKYLIMS_DNS_NAME'
+RELECOV_NEXTSTRAIN_SERVER_NAME='CHANGE_ME_NEXTSTRAIN_DNS_NAME'
+
 # Compose service receiving proxied requests. Leave empty to use the service
 # selected by ADDONS.apache.CONFIG_SERVICE (normally app for a single service).
 APACHE_UPSTREAM_SERVICE=''
@@ -146,3 +151,15 @@ APACHE_FORWARDED_PORT='443'
 # 50 MiB. The reverse-proxy template applies this value to Apache and, when
 # loaded, ModSecurity. Increase it only for endpoints that require larger data.
 APACHE_LIMIT_REQUEST_BODY='52428800'
+
+
+# Nextstrain visualization add-on
+NEXTSTRAIN_IMAGE='nextstrain:local'
+NEXTSTRAIN_BUILD_CONTEXT='./nextstrain'
+NEXTSTRAIN_DOCKERFILE='Dockerfile'
+NEXTSTRAIN_PORT='8100'
+NEXTSTRAIN_HOST_PORT='8100'
+NEXTSTRAIN_DATA_DIR='/data'
+MAPBOX_ACCESS_TOKEN='CHANGE_ME'
+MAPBOX_STYLE_OWNER='mapbox'
+MAPBOX_STYLE_ID='light-v11'

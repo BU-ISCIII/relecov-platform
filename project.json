@@ -30,6 +30,9 @@
     "apache": {
       "CONFIG_SERVICE": "app"
     },
+    "nextstrain": {
+      "CONFIG_SERVICE": "app"
+    },
     "samba": {
       "CONFIG_SERVICE": "iskylims_app",
       "MODES": [

@@ -56,6 +56,7 @@ Services:
 Selected add-ons:
 
 - Apache source configuration lives under `conf/apache/`; customize its virtual hosts and routes there. The installer renders final bind sources under `deployment/apache/`.
+- The Nextstrain add-on serves datasets from persistent `nextstrain_data` storage. Production access should normally pass through the configured reverse proxy.
 - The Samba add-on provides disposable NGS demo storage only in `--test` mode.
 
 ## Minimum requirements
@@ -126,6 +127,8 @@ the `DJANGO_SUPERUSER_*` values in the selected test settings before install.
 An existing account is never reset. Open the loopback URL using `APP_PORT` from
 the rendered test environment, or `APACHE_PORT` when the Apache add-on is used.
 
+The Nextstrain viewer is available at `http://127.0.0.1:${NEXTSTRAIN_HOST_PORT:-8100}` in the test deployment.
+
 The Samba add-on supplies disposable test storage only. Applications may load
 fixtures and demo files into it through `load_test_deployment_data`; production
 continues to use the externally managed storage configured by the application.
@@ -170,6 +173,7 @@ not copied into image layers.
 | `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
+| Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
 | Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
 The standard fixes application binds below `/srv/containers/bind/relecov-platform`

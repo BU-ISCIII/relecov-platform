@@ -102,6 +102,8 @@ services:
         condition: service_healthy
       iskylims_app:
         condition: service_healthy
+      nextstrain:
+        condition: service_healthy
     ports:
       - "${APACHE_BIND_HOST:?APACHE_BIND_HOST is required}:${APACHE_PORT:?APACHE_PORT is required}:8080"
     healthcheck:
@@ -125,6 +127,34 @@ services:
       # OPTIONAL APP MOUNTS belong in ADDONS.apache.MOUNTS.
     networks: [deployment_net]
   # END BU-ISCIII ADDON: apache
+  # BEGIN BU-ISCIII ADDON: nextstrain
+  nextstrain:
+    image: ${NEXTSTRAIN_IMAGE:-nextstrain:local}
+    build:
+      context: ${NEXTSTRAIN_BUILD_CONTEXT:-./nextstrain}
+      dockerfile: ${NEXTSTRAIN_DOCKERFILE:-Dockerfile}
+      args:
+        MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-pk.REPLACE_WITH_MAPBOX_PUBLIC_TOKEN}
+        MAPBOX_STYLE_OWNER: ${MAPBOX_STYLE_OWNER:-mapbox}
+        MAPBOX_STYLE_ID: ${MAPBOX_STYLE_ID:-light-v11}
+    restart: unless-stopped
+    environment:
+      HOST: "0.0.0.0"
+      PORT: ${NEXTSTRAIN_PORT:-8100}
+    ports:
+      - "127.0.0.1:${NEXTSTRAIN_HOST_PORT:-8100}:${NEXTSTRAIN_PORT:-8100}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ['PORT'] + '/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - nextstrain_data:${NEXTSTRAIN_DATA_DIR:-/data}
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks: [deployment_net]
+  # END BU-ISCIII ADDON: nextstrain
   # BEGIN BU-ISCIII ADDON: samba (test only)
   samba:
     image: docker.io/dperson/samba:latest
@@ -174,4 +204,5 @@ volumes:
   iskylims_app_test_documents:
   iskylims_app_test_static:
   apache_test_logs:
+  nextstrain_data:
   samba_test_data:

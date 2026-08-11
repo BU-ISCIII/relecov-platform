@@ -79,6 +79,12 @@ APACHE_PORT='8081'
 # Host name handled by the local test VirtualHost.
 APACHE_SERVER_NAME='localhost'
 
+# Distinct local names select each hostname-based virtual host. Add them to
+# /etc/hosts when testing from a browser.
+RELECOV_PLATFORM_SERVER_NAME='platform.localhost'
+RELECOV_ISKYLIMS_SERVER_NAME='iskylims.localhost'
+RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.localhost'
+
 # Compose service receiving proxied requests. Leave empty to use the service
 # selected by ADDONS.apache.CONFIG_SERVICE (normally app for a single service).
 APACHE_UPSTREAM_SERVICE=''
@@ -105,3 +111,15 @@ SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
 APACHE_FORWARDED_PROTO='http'
 APACHE_FORWARDED_PORT='8081'
 APACHE_LIMIT_REQUEST_BODY='52428800'
+
+
+# Nextstrain visualization add-on
+NEXTSTRAIN_IMAGE='nextstrain:local'
+NEXTSTRAIN_BUILD_CONTEXT='./nextstrain'
+NEXTSTRAIN_DOCKERFILE='Dockerfile'
+NEXTSTRAIN_PORT='8100'
+NEXTSTRAIN_HOST_PORT='8100'
+NEXTSTRAIN_DATA_DIR='/data'
+MAPBOX_ACCESS_TOKEN='pk.REPLACE_WITH_MAPBOX_PUBLIC_TOKEN'
+MAPBOX_STYLE_OWNER='mapbox'
+MAPBOX_STYLE_ID='light-v11'
