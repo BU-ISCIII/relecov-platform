@@ -253,8 +253,15 @@ validate_application_runtime() {
 before_django_migrate() {
     # Arguments: action and space-separated MIGRATION_MODULES. This is for
     # application migration preparation, not the user-selected runscript hooks.
-    # Example: [[ "$1" == install && -n "$2" ]] && python manage.py makemigrations $2
-    :
+    local action="$1" migration_modules="$2" module
+
+    echo "Validating Django migration plan for $action"
+    for module in $migration_modules; do
+        python manage.py showmigrations "$module" --plan >/dev/null \
+            || die "Unable to inspect migrations for Django app: $module"
+    done
+    python manage.py migrate --plan --noinput >/dev/null \
+        || die "Unable to calculate the Django migration plan"
 }
 
 after_django_migrate() {
