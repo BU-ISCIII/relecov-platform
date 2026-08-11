@@ -142,7 +142,7 @@ Docker:
 ```bash
 bash container_install.sh --action install --engine docker \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
 ```
 
 Podman:
@@ -150,7 +150,7 @@ Podman:
 ```bash
 bash container_install.sh --action install --engine podman \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
 ```
 
 The installer creates `.env.production.file`; use it for later direct Compose
@@ -218,7 +218,7 @@ notes:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <new-reviewed-tag-or-commit> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
 ```
 
 Replace `podman` with `docker` for a Docker-managed deployment. Stop on build,
@@ -392,7 +392,7 @@ Compatible application-only rollback:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <previous-reviewed-revision> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
 ```
 
 Full restore when schema or persistent-file formats are incompatible:
@@ -410,7 +410,7 @@ mysql --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password \
 podman volume import "$DOCUMENTS_VOLUME" "$BACKUP_DIR/documents.tar"
 tar -C /srv/containers/bind -xzf "$BACKUP_DIR/bind-mounts.tar.gz"
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
 ```
 
 Then deploy the revision recorded in `git-revision.txt`, start the deployment,
@@ -427,7 +427,7 @@ volume at `/data` and extracting `/backup/documents.tar` there.
 
    ```bash
    bash container_install.sh --action fix-permissions --engine podman \
-     --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+     --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
    ```
 
 5. Do not fake migrations, delete volumes, or rebuild from an unrecorded
@@ -519,7 +519,7 @@ be replaced, move it to a timestamped backup instead of deleting evidence:
 sudo mv /var/log/local/relecov-platform/apache/modsec_debug.log \
   /var/log/local/relecov-platform/apache/modsec_debug.log.blocked
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
 podman compose --env-file .env.production.file -f docker-compose.prod.yml restart apache
 ```
 
