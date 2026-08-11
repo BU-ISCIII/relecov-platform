@@ -18,6 +18,9 @@ Integrated RELECOV metadata, validation, submission, LIMS, and visualization pla
 - [Bare-metal deployment (Ubuntu/CentOS)](#bare-metal-deployment-ubuntucentos)
 - [Common operations (Docker + bare-metal)](#common-operations-docker--bare-metal)
 - [Final configuration steps](#final-configuration-steps)
+  - [Configure iSkyLIMS integration](#configure-iskylims-integration)
+  - [Configure Nextstrain link](#configure-nextstrain-link)
+  - [Verify integrations](#verify-integrations)
 - [Developer notes](#developer-notes)
 - [Application documentation](#application-documentation)
 
@@ -541,11 +544,50 @@ podman compose --env-file .env.production.file -f docker-compose.prod.yml restar
 
 ## Final configuration steps
 
-The application developer must document real post-install workflows here:
-initial administrator ownership, email delivery, identity-provider clients,
-storage credentials, scheduled jobs, and one representative user workflow.
-The generated baseline creates the initial Django administrator only when its
-profile settings explicitly request it.
+Sign in to the Relecov Django administration site after deployment. The
+installer creates the initial administrator only when
+`CREATE_INITIAL_SUPERUSER=true` and the protected `DJANGO_SUPERUSER_*` values
+are provided.
+
+The settings below are application records stored in the Relecov database.
+They are not `container_install.sh` settings and must not be added to files
+under `deployment/settings/`. Open **Administration → Core → Config settings**
+(`/admin/core/configsetting/`) and update the existing record or create it when
+it is absent.
+
+### Configure iSkyLIMS integration
+
+Configure these records:
+
+| Name | Value |
+|---|---|
+| `ISKYLIMS_SERVER` | Base URL reachable from the Relecov application container, for example `https://<iskylims-host>` |
+| `ISKYLIMS_USER` | Dedicated iSkyLIMS API account |
+| `ISKYLIMS_PASSWORD` | Password for that API account |
+
+Do not append an API route to `ISKYLIMS_SERVER`; Relecov adds the configured
+iSkyLIMS REST path itself. Use a dedicated least-privilege account and never
+retain credentials supplied by example fixtures. The password is included in
+database backups, so protect backup access and retention accordingly.
+
+### Configure Nextstrain link
+
+Set `NEXTSTRAIN_URL` to the browser-facing HTTPS URL served by the Nextstrain
+Apache virtual host. Include a dataset path only when that is the reviewed URL
+users should open, for example `https://<nextstrain-host>/<dataset-path>`.
+
+This database value is only the link presented by Relecov. The Nextstrain
+container, Mapbox build values, and dataset volume remain configured through
+their deployment settings and operational workflow.
+
+### Verify integrations
+
+1. Open the Relecov home page and confirm its Nextstrain link reaches the
+   expected visualization.
+2. Exercise a Relecov workflow that reads from iSkyLIMS.
+3. Exercise an authorized update operation and confirm the dedicated API
+   credentials work.
+4. Review application logs for authentication, DNS, TLS, or API errors.
 
 ## Developer notes
 
