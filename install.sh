@@ -1,994 +1,405 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-APP_VERSION="3.1.0dev"
+install_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$install_script_dir"
+# shellcheck disable=SC1091
+source "$install_script_dir/deployment/lib/container/common.sh"
+# shellcheck disable=SC1091
+source "$install_script_dir/deployment/lib/container/django.sh"
 
-# usage: prints the command line help and usage examples.
+APP_VERSION="0.2.0"
+ACTION="install"
+OPERATION_SCOPE="full"
+WORKFLOW="standard"
+GIT_REVISION="current"
+INSTALL_CONF="./install_settings.txt"
+LOAD_TABLES="false"
+SKIP_TABLES="false"
+SKIP_APACHE_RESTART="false"
+SCRIPT_BEFORE=()
+SCRIPT_AFTER=()
+RENDER_SETTINGS="auto"
+SETTINGS_OUTPUT=""
+INITIAL_GIT_REF=""
+
 usage() {
-cat << EOF
-This script install and upgrade the relecov-platform app.
+    cat <<'EOF'
+Install, stage, or bootstrap RELECOV Platform.
 
-usage : $0 --upgrade --git_revision --conf
-    Optional input data:
-    --install       | Install relecov-platform full/dep/app
-    --upgrade       | Upgrade relecov-platform full/dep/app
-    --stage         | Stage app files only (install/upgrade) without DB work. Internal/container use.
-    --bootstrap     | Run DB/bootstrap steps only (install/upgrade) against an existing staged app. Internal/container use.
-    --git_revision  | Git revision name to run (branch, tag, commit SHA, or 'current' to use copied local sources as-is)
-    --conf          | Select custom configuration file. Default: ./install_settings.txt
-    --tables        | Load the first inital tables (from conf folder)
-    --skip_tables   | Skip loading initial tables (even during install)
-    --script        | Run a migration script after migrations.
-    --script_before | Run a migration script before migrations.
-    --script_after  | Run a migration script after migrations (same as --script).
-    --ren_app       | Rename apps required for the upgrade migration to 3.0.0
-    --docker        | Deprecated. Use --skip_apache_restart to avoid Apache checks/restart.
+Usage: ./install.sh [options]
 
+  --install full|dep|app       Install dependencies, application, or both.
+  --upgrade full|dep|app       Upgrade dependencies, application, or both.
+  --stage install|upgrade      Stage an immutable image; never touch the DB.
+  --bootstrap install|upgrade  Bootstrap an already staged application.
+  --git_revision <revision>    Branch, tag, commit, or current (default).
+  --conf <path>                Normalized installation settings file.
+  --render-settings            Render Django settings during staging.
+  --settings-output <path>     Override the rendered settings destination.
+  --tables                     Load conf/first_install_tables.json.
+  --skip_tables                Never load the initial fixture.
+  --script_before <name[,args]>  Repeatable pre-migrate django-extensions hook.
+  --script_after <name[,args]>   Repeatable post-migrate hook.
+  --script <name[,args]>       Alias for --script_after.
+  --docker                     Deprecated alias for --skip_apache_restart.
+  --skip_apache_restart        Do not restart a host Apache service.
+  --help
+  --version
 
 Examples:
-    Install relecov-platform only dep
-    sudo $0 --install dep
-
-    Install only relecov-platform app
-    $0 --install app
-
-    Upgrade using develop code
-    $0 --upgrade full --git_revision develop
-
-    Upgrade running migration script and update initial tables
-    $0 --upgrade full --script <migration_script> --tables
-
-    Stage application files during a container image build
-    $0 --stage install --git_revision main --conf conf/docker_production_settings.txt
-
-    Bootstrap database/static using an already staged container image
-    $0 --bootstrap upgrade --git_revision main --conf conf/docker_production_settings.txt
-
-    Make adjustments for apps renaming in upgrade 2.3.0 to 2.3.1
-    $0 --upgrade full --ren_app --script <migration_script> --tables
-
-    Upgrade running pre/post migration scripts:
-    $0 --upgrade app --script_before <pre_script> --script_after <post_script>
+  ./install.sh --install full --conf conf/docker_test_settings.txt --tables
+  ./install.sh --upgrade app --git_revision v2.0.0 --script_before prepare_v2
+  ./install.sh --stage install --conf conf/docker_test_settings.txt --render-settings
+  ./install.sh --bootstrap upgrade --conf /tmp/runtime_install_settings.txt
 EOF
 }
 
-# log: write timestamped log entries to stdout.
-_log_compose_entry() {
-    local level="$1"; shift
-    local message="$*"
-    local timestamp
-    timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-    printf "%s [%s] %s" "$timestamp" "$level" "$message"
+die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+info() { printf 'INFO: %s\n' "$*"; }
+command_required() { command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
+
+while (($#)); do
+    case "$1" in
+        --git_revision) GIT_REVISION="${2:-}"; shift 2 ;;
+        --conf) INSTALL_CONF="${2:-}"; shift 2 ;;
+        --render-settings) RENDER_SETTINGS="true"; shift ;;
+        --settings-output) SETTINGS_OUTPUT="${2:-}"; shift 2 ;;
+        --stage|--bootstrap)
+            WORKFLOW="${1#--}"
+            [[ "${2:-}" =~ ^(install|upgrade)$ ]] || die "$1 requires install or upgrade"
+            ACTION="$2"; OPERATION_SCOPE="app"; shift 2
+            ;;
+        --install|--upgrade)
+            ACTION="${1#--}"; WORKFLOW="standard"
+            [[ "${2:-}" =~ ^(full|dep|app)$ ]] || die "$1 requires full, dep, or app"
+            OPERATION_SCOPE="$2"; shift 2
+            ;;
+        --script_before) [[ -n "${2:-}" ]] || die "$1 requires a value"; SCRIPT_BEFORE+=("$2"); shift 2 ;;
+        --script_after|--script) [[ -n "${2:-}" ]] || die "$1 requires a value"; SCRIPT_AFTER+=("$2"); shift 2 ;;
+        --tables) LOAD_TABLES="true"; shift ;;
+        --skip_tables) SKIP_TABLES="true"; LOAD_TABLES="false"; shift ;;
+        --docker|--skip_apache_restart) SKIP_APACHE_RESTART="true"; shift ;;
+        --help) usage; exit 0 ;;
+        --version) echo "$APP_VERSION"; exit 0 ;;
+        *) die "Unknown option: $1" ;;
+    esac
+done
+
+[[ "$WORKFLOW" != "stage" || ${#SCRIPT_BEFORE[@]} -eq 0 && ${#SCRIPT_AFTER[@]} -eq 0 ]] \
+    || die "Migration scripts cannot run during the stage workflow"
+[[ -f "$INSTALL_CONF" ]] || die "Configuration not found: $INSTALL_CONF"
+if [[ "$INSTALL_CONF" != /* ]]; then
+    INSTALL_CONF="$(cd "$(dirname "$INSTALL_CONF")" && pwd)/$(basename "$INSTALL_CONF")"
+fi
+if [[ "$WORKFLOW" != "stage" ]] && grep -Eq "^[A-Z0-9_]+=.*CHANGE_ME" "$INSTALL_CONF"; then
+    die "Configuration still contains CHANGE_ME values"
+fi
+# shellcheck disable=SC1090
+source "$INSTALL_CONF"
+: "${INSTALL_PATH:?INSTALL_PATH is required}"
+: "${PROJECT_MODULE:?PROJECT_MODULE is required}"
+[[ "$PROJECT_MODULE" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] \
+    || die "PROJECT_MODULE must be a valid Python package name"
+: "${PYTHON_BIN_PATH:?PYTHON_BIN_PATH is required}"
+: "${DB_HOST:?DB_HOST is required}"
+: "${DB_PORT:?DB_PORT is required}"
+: "${DB_NAME:?DB_NAME is required}"
+: "${DB_USER:?DB_USER is required}"
+: "${DB_PASSWORD:?DB_PASSWORD is required}"
+REQUIRED_MODULES="${REQUIRED_MODULES:-}"
+MIGRATION_MODULES="${MIGRATION_MODULES:-}"
+
+if [[ "$RENDER_SETTINGS" == "auto" ]]; then
+    [[ "$WORKFLOW" == "standard" ]] && RENDER_SETTINGS="true" || RENDER_SETTINGS="false"
+fi
+
+remember_git_ref() {
+    git -C "$install_script_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    INITIAL_GIT_REF="$(git -C "$install_script_dir" symbolic-ref --quiet --short HEAD \
+        || git -C "$install_script_dir" rev-parse HEAD)"
 }
 
-log() {
-    local level="$1"; shift
-    local message="$*"
-    local entry
-    entry="$(_log_compose_entry "$level" "$message")"
-    printf "%s\n" "$entry"
-}
-
-# db_check: verifies connectivity to the configured MySQL instance using mysqladmin/mysqlshow.
-db_check(){
-    log "INFO" "Checking database connectivity against $DB_SERVER_IP:$DB_PORT"
-    local mysqladmin_bin
-    local mysqlshow_bin
-    mysqladmin_bin="$(command -v mysqladmin || command -v mariadb-admin || true)"
-    mysqlshow_bin="$(command -v mysqlshow || command -v mariadb-show || true)"
-
-    if [ -z "$mysqladmin_bin" ] || [ -z "$mysqlshow_bin" ]; then
-        log "ERROR" "mysql client tools not found (mysqladmin/mysqlshow or mariadb-admin/mariadb-show)."
-        exit 1
-    fi
-
-    "$mysqladmin_bin" -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist > /dev/null
-
-    if ! [ $? -eq 0 ]; then
-        log "ERROR" "Unable to connect to database. Check if your database is running and accessible"
-        exit 1
-    fi
-    RESULT=`"$mysqlshow_bin" --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o $DB_NAME`
-
-    if  ! [ "$RESULT" == "$DB_NAME" ] ; then
-        log "ERROR" "relecov-platform database is not defined yet"
-        log "ERROR" "Create relecov-platform database on your mysql server and run again the installation script"
-        exit 1
-    fi
-}
-
-# apache_check: ensures apache/httpd service is running depending on distribution.
-apache_check(){
-    if [[ $linux_distribution == "Ubuntu" ]]; then
-        if ! pidof apache2 > /dev/null ; then
-            log "WARN" "Apache Server is down... Trying to restart Apache"
-            systemctl restart apache2.service
-            sleep 10
-            if pidof apache2 > /dev/null ; then
-                log "INFO" "Apache Server is up"
-            else
-                log "ERROR" "Unable to start Apache"
-                log "ERROR" "Solve the issue with Apache server and run again the installation script"
-                exit 1
-            fi
-        fi
-    elif [[ $linux_distribution == "CentOs" || $linux_distribution == "RedHatEnterprise" ]]; then
-        if ! pidof httpd > /dev/null ; then
-            log "WARN" "Apache Server is down... Trying to restart Apache"
-            systemctl restart httpd
-            sleep 10
-            if pidof httpd > /dev/null ; then
-                log "INFO" "Apache Server is up"
-            else
-                log "ERROR" "Unable to start Apache"
-                log "ERROR" "Solve the issue with Apache server and run again the installation script"
-                exit 1
-            fi
-        fi
-    fi
-}
-
-# python_check: confirm required Python version is available in PYTHON_BIN_PATH.
-python_check(){
-    python_version=$(su -c $PYTHON_BIN_PATH --version $user 2>&1)
-    if [[ $python_version == "" ]]; then
-        log "ERROR" "Python3 is not found in your system"
-        log "ERROR" "Solve the issue with Python and run again the installation script"
-        exit 1
-    fi
-    p_version=$(echo $python_version | cut -d"." -f2)
-    if (( $p_version < 7 )); then
-        log "ERROR" "Application requires at least version 3.7.x of Python3"
-        log "ERROR" "Solve the issue with python and run again the installation script"
-        exit 1
-    fi
-}
-
-# root_check: enforce running privileged sections as root.
-root_check(){
-    if [[ $EUID -ne 0 ]]; then
-        log "ERROR" "Exiting installation. This script must be run as root"
-        exit 1
-    fi
-}
-
-generate_django_secret_key(){
-    "$PYTHON_BIN_PATH" -c "import secrets; print(''.join(secrets.choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for _ in range(50)))"
-}
-
-sed_replacement_escape(){
-    printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
-}
-
-# update_settings_and_urls: rewrite Django settings and urls with deployment values.
-update_settings_and_urls(){
-    log "INFO" "Updating settings.py and urls.py with deployment values"
-    local project_dir="$INSTALL_PATH/$PROJECT_NAME"
-    local secret_line=""
-    local tmp_settings=""
-
-    if [ -f "$project_dir/settings.py" ]; then
-        secret_line="$(grep -E "^SECRET_KEY[[:space:]]*=" "$project_dir/settings.py" | tail -n 1)"
-    fi
-    if [ -z "$secret_line" ] || [[ "$secret_line" =~ SECRET_KEY[[:space:]]*=[[:space:]]*SECRET ]]; then
-        secret_line="SECRET_KEY = '$(generate_django_secret_key)'"
-    fi
-
-    tmp_settings="$(mktemp)"
-    cp conf/template_settings.py "$tmp_settings"
-    cp conf/urls.py "$project_dir"
-    if [ -f conf/routing.py ]; then
-        cp conf/routing.py "$project_dir"
-    fi
-
-    sed -i \
-        -e "s|^SECRET_KEY.*|$(sed_replacement_escape "$secret_line")|" \
-        -e "s|djangouser|$(sed_replacement_escape "$DB_USER")|g" \
-        -e "s|djangopass|$(sed_replacement_escape "$DB_PASS")|g" \
-        -e "s|djangohost|$(sed_replacement_escape "$DB_SERVER_IP")|g" \
-        -e "s|djangoport|$(sed_replacement_escape "$DB_PORT")|g" \
-        -e "s|djangodbname|$(sed_replacement_escape "$DB_NAME")|g" \
-        -e "s|emailhostserver|$(sed_replacement_escape "$EMAIL_HOST_SERVER")|g" \
-        -e "s|emailport|$(sed_replacement_escape "$EMAIL_PORT")|g" \
-        -e "s|emailhostuser|$(sed_replacement_escape "$EMAIL_HOST_USER")|g" \
-        -e "s|emailhostpassword|$(sed_replacement_escape "$EMAIL_HOST_PASSWORD")|g" \
-        -e "s|emailhosttls|$(sed_replacement_escape "$EMAIL_USE_TLS")|g" \
-        -e "s|localserverip|$(sed_replacement_escape "$LOCAL_SERVER_IP")|g" \
-        -e "s|localhost|$(sed_replacement_escape "$DNS_URL")|g" \
-        "$tmp_settings"
-
-    cp "$tmp_settings" "$project_dir/settings.py"
-    rm -f "$tmp_settings"
-}
-
-# restore_git_ref: reset repository to branch/tag/commit active before script ran.
 restore_git_ref() {
-    echo "Restoring to initial git reference: $initial_git_ref"
-    git checkout "$initial_git_ref" --quiet
+    [[ -n "$INITIAL_GIT_REF" ]] || return 0
+    git -C "$install_script_dir" checkout --quiet "$INITIAL_GIT_REF" || \
+        printf 'WARNING: could not restore git revision %s\n' "$INITIAL_GIT_REF" >&2
 }
 
-# load_tables: wrapper to call Django loaddata with optional verbosity.
-load_tables() {
-    # Function parameters
-    local data_file="${1:-conf/first_install_tables.json}"
-    local verbose="${2:-false}"
-
-    # Check if the file exists
-    if [[ ! -f "$data_file" ]]; then
-        echo "Error: The data file '$data_file' does not exist."
-        return 1
-    fi
-
-    # Conditional message based on verbose mode
-    if [[ "$verbose" == true ]]; then
-        echo "Loading pre-filled tables from file: $data_file"
-    fi
-
-    # Load pre-filled tables
-    python manage.py loaddata "$data_file"
-    if [[ $? -eq 0 ]]; then
-        echo "Tables loaded successfully from '$data_file'."
-    else
-        echo "Error loading tables from '$data_file'."
-        return 1
-    fi
-
-    if [[ "$verbose" == true ]]; then
-        echo "Table loading process completed."
-    fi
-}
-
-# ensure_git_safe_directory: avoid Git "dubious ownership" failures in containerized installs.
-ensure_git_safe_directory() {
-    local repo_dir
-    repo_dir="$(pwd -P)"
-
-    if [ -d "$repo_dir/.git" ] || [ -f "$repo_dir/.git" ]; then
-        git config --global --add safe.directory "$repo_dir" >/dev/null 2>&1 || true
-        git config --system --add safe.directory "$repo_dir" >/dev/null 2>&1 || true
-    fi
-}
-
-# Ensure to recover current git branch/tag/SHA on script exit
-ensure_git_safe_directory
-initial_git_ref=$(git rev-parse --abbrev-ref HEAD || git rev-parse HEAD)
-trap restore_git_ref EXIT
-
-#================================================================
-#SET TEMINAL COLORS
-#================================================================
-YELLOW='\033[0;33m'
-WHITE='\033[0;37m'
-CYAN='\033[0;36m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-ORANGE='\033[0;33m'
-
-# log_section: print a visually separated header in both console and log.
-log_section() {
-    local message="$1"
-    log "INFO" "$message"
-    printf "\n\n%s\n" "${YELLOW}------------------${NC}"
-    printf "%b\n" "${YELLOW}${message}${NC}"
-    printf "%s\n\n" "${YELLOW}------------------${NC}"
-}
-
-# log_info: convenience helper for blue info messages (console only).
-log_info() {
-    printf "%b\n" "${BLUE}$(_log_compose_entry "INFO" "$1")${NC}"
-}
-
-# log_warn: emit warning text in cyan for terminal visibility.
-log_warn() {
-    printf "%b\n" "${CYAN}$(_log_compose_entry "WARN" "$1")${NC}"
-}
-
-# log_error: emit error text in red for terminal visibility.
-log_error() {
-    printf "%b\n" "${RED}$(_log_compose_entry "ERROR" "$1")${NC}"
-}
-
-# abort_install: log an error and exit with optional status.
-abort_install() {
-    log_error "$1"
-    exit "${2:-1}"
-}
-
-chown_if_root() {
-    if [ "$EUID" -eq 0 ]; then
-        chown "$@"
-    else
-        log_warn "Skipping chown (requires root): chown $*"
-    fi
-}
-
-detect_apache_group() {
-    if command -v lsb_release >/dev/null 2>&1; then
-        linux_distribution=$(lsb_release -i | cut -f 2-)
-    else
-        linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
-    fi
-
-    if [[ $linux_distribution == "Ubuntu" || $linux_distribution == "ubuntu" ]]; then
-        apache_group="www-data"
-    else
-        apache_group="apache"
-    fi
-}
-
-ensure_file_exists() {
-    local file_path="$1"
-    local friendly_name="${2:-$1}"
-    if [ ! -f "$file_path" ]; then
-        abort_install "Required file '$friendly_name' not found."
-    fi
-}
-
-# load_install_config: source the selected install_settings file.
-load_install_config() {
-    ensure_file_exists "$conf" "$conf"
-    # shellcheck disable=SC1090
-    . "$conf"
-    INSTALL_PATH="${APP_INSTALL_PATH:-$INSTALL_PATH}"
-}
-
-# checkout_git_revision: ensure desired git revision exists and check it out safely.
 checkout_git_revision() {
-    if [[ "$git_branch" == "current" ]]; then
-        printf "${YELLOW}Using copied local working tree without git checkout.${NC}\n"
-        return 0
-    fi
-    if git rev-parse --verify "$git_branch" >/dev/null 2>&1; then
-        if [[ $git_branch != $initial_git_ref ]]; then
-            local local_changes
-            local_changes=$(git status --porcelain)
-            if [[ -n $local_changes ]]; then
-                abort_install "Unable to switch to $git_branch. Commit or stash local changes first."
-            fi
-            printf "${YELLOW}Switching to revision %s.${NC}\n" "$git_branch"
-            git checkout "$git_branch" --quiet
-        else
-            printf "${YELLOW}Using current revision: '%s'.${NC}\n" "$git_branch"
-        fi
-    else
-        abort_install "Git reference $git_branch is not defined in ${PWD}."
-    fi
+    [[ "$GIT_REVISION" != "current" ]] || return 0
+    [[ -n "$INITIAL_GIT_REF" ]] || die "Cannot select $GIT_REVISION: source has no Git metadata"
+    git -C "$install_script_dir" rev-parse --verify "${GIT_REVISION}^{commit}" >/dev/null 2>&1 \
+        || die "Git revision is not available locally: $GIT_REVISION"
+    [[ -z "$(git -C "$install_script_dir" status --porcelain)" ]] \
+        || die "Commit or stash local changes before selecting $GIT_REVISION"
+    git -C "$install_script_dir" checkout --quiet "$GIT_REVISION"
 }
 
-# check_requirements: run Python/DB/Apache/root validations before install/upgrade.
-check_requirements() {
-    log_section "Checking main requirements"
-    python_check
-    log_info "Valid version of Python"
-    if [[ "$operation_scope" == "full" || "$operation_scope" == "app" ]]; then
-        db_check
-        log_info "Successful check for database"
-        if [ "$restart_apache" = true ]; then
-            apache_check
-            log_info "Successful check for apache"
-        fi
-    fi
-
-    if [ "$install_type" == "full" ] || [ "$install_type" == "dep" ] || [ "$upgrade_type" == "full" ] || [ "$upgrade_type" == "dep" ]; then
-        log_warn "Checking requirement of root user when installation is full or dep"
-        root_check
-        log_info "Successful checking of root user"
-    fi
+check_python() {
+    command_required "$PYTHON_BIN_PATH"
+    "$PYTHON_BIN_PATH" -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' \
+        || die "Python 3.10 or newer is required"
 }
 
-check_stage_requirements() {
-    log_section "Checking requirements for staged app preparation"
-    python_check
-    log_info "Valid version of Python"
+check_required_modules() {
+    local module
+    [[ -f "$install_script_dir/conf/urls.py" ]] \
+        || die "Django URL configuration is missing: conf/urls.py"
+    for module in $REQUIRED_MODULES; do
+        [[ -e "$install_script_dir/$module" ]] || die "Required application module is missing: $module"
+    done
 }
 
-check_bootstrap_requirements() {
-    log_section "Checking requirements for application bootstrap"
-    python_check
-    log_info "Valid version of Python"
-    db_check
-    log_info "Successful check for database"
-}
-
-# install_system_packages: install InterOp and distro-specific OS packages required by relecov-platform.
-install_system_packages() {
-    if [ "${SKIP_SYSTEM_PACKAGES:-}" = "1" ]; then
-        echo "Skipping system package installation (SKIP_SYSTEM_PACKAGES=1)"
+check_database() {
+    # The MySQL client is used by RELECOV/iSkyLIMS; PyMySQL fallback supports
+    # minimal Patho Core-style containers without the client package.
+    if command -v mysql >/dev/null 2>&1; then
+        MYSQL_PWD="$DB_PASSWORD" mysql --host="$DB_HOST" --port="$DB_PORT" \
+            --user="$DB_USER" --database="$DB_NAME" --execute='SELECT 1' >/dev/null \
+            || die "Unable to connect to database $DB_NAME at $DB_HOST:$DB_PORT"
         return
     fi
+    "$INSTALL_PATH/virtualenv/bin/python" - "$DB_HOST" "$DB_PORT" "$DB_USER" "$DB_PASSWORD" "$DB_NAME" <<'PY'
+import sys
+import pymysql
+connection = pymysql.connect(host=sys.argv[1], port=int(sys.argv[2]),
+    user=sys.argv[3], password=sys.argv[4], database=sys.argv[5])
+connection.close()
+PY
+}
 
-    echo "Installing Interop"
-    if [ -d /opt/interop ]; then
-        echo "There is already an interop installation"
-        echo "Skipping Interop installation"
+# ============================================================================
+# APPLICATION CUSTOMIZATION POINTS
+#
+# Keep generic lifecycle code outside this section. Each hook has a safe no-op
+# default. Add project behavior here, document why it is required, and make it
+# idempotent so a failed deployment can be retried safely.
+# ============================================================================
+
+install_application_system_packages() {
+    # Keep the Dockerfile limited to tools needed to launch this installer.
+    # Framework build headers and post-install user-management tools belong to
+    # this lifecycle and are installed before virtualenv creation.
+    [[ "${SKIP_SYSTEM_PACKAGES:-0}" != "1" ]] || return 0
+    [[ $(id -u) -eq 0 ]] || return 0
+    if [[ -f /etc/debian_version ]]; then
+        apt-get update
+        apt-get install -y --no-install-recommends \
+            python3-dev default-libmysqlclient-dev passwd
+    elif command -v microdnf >/dev/null 2>&1; then
+        microdnf install -y \
+            python3.11-devel mariadb-connector-c-devel shadow-utils
+        microdnf clean all
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y \
+            python3.11-devel mariadb-connector-c-devel shadow-utils
     else
-        cd /opt
-        echo "Downloading interop software"
-        wget https://github.com/Illumina/interop/releases/download/v1.1.15/InterOp-1.1.15-Linux-GNU.tar.gz
-        tar -xf  InterOp-1.1.15-Linux-GNU.tar.gz
-        ln -s InterOp-1.1.15-Linux-GNU interop
-        rm InterOp-1.1.15-Linux-GNU.tar.gz
-        echo "Interop is now installed"
-        cd -
-    fi
-
-    if command -v lsb_release >/dev/null 2>&1; then
-            linux_distribution=$(lsb_release -i | cut -f 2-)
-    else
-        linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
-    fi
-
-    if [[ $linux_distribution == "Ubuntu" || $linux_distribution == "ubuntu" ]]; then
-        echo "Software installation for Ubuntu"
-        apt-get update && apt-get upgrade -y
-        apt-get install -y \
-            apt-utils wget \
-            libmysqlclient-dev \
-            python3-venv  \
-            libpq-dev \
-            python3-dev python3-pip python3-wheel \
-            apache2-dev cifs-utils \
-            gnuplot
-
-    elif [[ $linux_distribution == "CentOS" || $linux_distribution == "RedHatEnterprise" || $linux_distribution == "centos" || $linux_distribution == "rhel" || $linux_distribution == "fedora" ]]; then
-        echo "Software installation for Centos/RedHat"
-        yum groupinstall "Development tools"
-        yum install zlib-devel bzip2-devel openssl-devel \
-                    wget httpd-devel mysql-libs sqlite sqlite-devel \
-                    mariadb-devel libffi-devel \
-                    gnuplot cifs-utils
+        die "Unsupported package manager for system dependency installation"
     fi
 }
 
-# run_django_deploy: execute makemigrations/migrate and optional fixture/superuser steps.
-run_django_deploy() {
-    local mode="${1:-install}"
-    if [ "$run_script_before" = true ]; then
-        for val in "${migration_script_before[@]}"; do
-            if [[ $val = *","* ]]; then
-                parameters=(${val//,/ })
-                echo "Running pre-migration script: ${parameters[0]}"
-                ./manage.py runscript ${parameters[0]} --script-args ${parameters[1]}
-                echo "Done pre-migration script: ${parameters[0]}"
-            else
-                echo "Running pre-migration script: $val"
-                ./manage.py runscript $val
-                echo "Done pre-migration script: $val"
-            fi
-        done
-    fi
-
-    if [ "$mode" = "upgrade" ]; then
-        echo "Applying migrations in fake-initial mode"
-        if ! python manage.py migrate --noinput --fake-initial; then
-            abort_install "migrate --fake-initial failed"
-        fi
-        # Second pass ensures non-initial migrations are applied after fake-initial.
-        echo "Applying migrations"
-        if ! python manage.py migrate --noinput; then
-            abort_install "migrate failed after fake-initial"
-        fi
-    else
-        echo "Applying migrations"
-        if ! python manage.py migrate --noinput; then
-            abort_install "migrate failed"
-        fi
-    fi
-
-    if [ "$tables" = true ]; then
-        echo "Loading pre-filled tables..."
-        load_tables "$prefilled_tables" true
-        echo "Done loading pre-filled tables..."
-    fi
-
-    if [ "$run_script" = true ]; then
-        for val in "${migration_script[@]}"; do
-            if [[ $val = *","* ]]; then
-                parameters=(${val//,/ })
-                echo "Running post-migration script: ${parameters[0]}"
-                ./manage.py runscript ${parameters[0]} --script-args ${parameters[1]}
-                echo "Done post-migration script: ${parameters[0]}"
-            else
-                echo "Running post-migration script: $val"
-                ./manage.py runscript $val
-                echo "Done post-migration script: $val"
-            fi
-        done
-    fi
-
-    if [ "$mode" = "install" ]; then
-        echo "Creating super user "
-        python manage.py createsuperuser --username admin
-    fi
+prepare_application_directories() {
+    # Argument: final INSTALL_PATH. Create application-specific persistent
+    # directories here. Generic logs/documents/static/cron/tmp already exist.
+    # Example:
+    #   mkdir -p "$1/documents/genomic_files" "$1/logs/audit"
+    :
 }
 
-refresh_static_files() {
-    echo "Deleting static files..."
-    if [ -d "$INSTALL_PATH/static" ]; then
-        if command -v mountpoint >/dev/null 2>&1 && mountpoint -q "$INSTALL_PATH/static"; then
-            echo "Static directory is a mount point. Skipping delete."
-        else
-            rm -rf "$INSTALL_PATH/static" || echo "Skipping static removal (busy)."
-        fi
-    fi
-    echo "Running collect statics..."
-    python manage.py collectstatic --noinput
-    echo "Done collect statics"
+stage_application_custom_files() {
+    # Arguments: source directory, final INSTALL_PATH, action (install|upgrade).
+    # Copy application-owned files that intentionally need extra processing;
+    # the standard already installs the Django URL and optional routing files.
+    :
 }
 
-# sync_requirements_file: copy repository requirements into the target installation path.
-sync_requirements_file() {
-    mkdir -p $INSTALL_PATH/conf
-    rsync -rlv conf/requirements.txt $INSTALL_PATH/conf/requirements.txt
+write_application_runtime_env() {
+    # Argument: final INSTALL_PATH. Use this only when the application reads a
+    # runtime .env in addition to Django settings. Never hard-code credentials.
+    # Patho Core-style example:
+    #   umask 077
+    #   printf 'OIDC_ISSUER=%s\n' "${OIDC_ISSUER:?required}" > "$1/.env"
+    #   for key in $(compgen -A variable KEYCLOAK_ | sort); do
+    #       printf '%s=%s\n' "$key" "${!key}" >> "$1/.env"
+    #   done
+    :
 }
 
-# setup_virtualenv: create or refresh the Python virtualenv depending on mode.
-setup_virtualenv() {
-    local mode="$1"
-    cd $INSTALL_PATH
-    if [ "$mode" = "install" ]; then
-        if [ -d virtualenv ]; then
-            echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
-            read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]] ; then
-                rm -rf $INSTALL_PATH/virtualenv
-                bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-            else
-                echo "virtualenv already defined. Skipping."
-            fi
-        else
-            bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-        fi
-    else
-        if [ -d virtualenv ]; then
-            read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]] ; then
-                rm -rf $INSTALL_PATH/virtualenv
-                bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-            fi
-        else
-            read -p "There is no virtualenv. Do you want to create a new one? (Y/N) " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]] ; then
-                bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-            else
-                echo "Exiting..."
-                exit 0
-            fi
-        fi
-    fi
-    cd -
+validate_application_runtime() {
+    # Called after DB connectivity and before migrations. Validate optional
+    # identity-provider or feature configuration here.
+    # Example: require KEYCLOAK_ISSUER only when legacy auth is disabled:
+    #   [[ "${ENABLE_LEGACY_AUTH:-true}" == true || -n "${KEYCLOAK_ISSUER:-}" ]] ||
+    #       die "KEYCLOAK_ISSUER is required when legacy auth is disabled"
+    :
 }
 
-# prepare_documents_structure: ensure document directories and templates exist with correct permissions.
-prepare_documents_structure() {
-    echo "Created documents structure"
-    mkdir -p $INSTALL_PATH/documents/schemas
-
-    chown_if_root -R "$user:$apache_group" "$INSTALL_PATH/documents"
-    chmod 775 $INSTALL_PATH/documents
+before_django_migrate() {
+    # Arguments: action and space-separated MIGRATION_MODULES. This is for
+    # application migration preparation, not the user-selected runscript hooks.
+    # Example: [[ "$1" == install && -n "$2" ]] && python manage.py makemigrations $2
+    :
 }
 
-# install_python_requirements: activate the venv and install required Python packages.
-install_python_requirements() {
-    cd $INSTALL_PATH
-    echo "activate the virtualenv"
-    source virtualenv/bin/activate
-    echo "Installing required python packages"
-    python -m pip install --upgrade pip
-    python -m pip install wheel
+after_django_migrate() {
+    # Create the initial administrator only for an explicitly enabled fresh
+    # runtime bootstrap. Retries leave an existing account unchanged.
+    [[ "$WORKFLOW" == "bootstrap" && "$ACTION" == "install" ]] || return 0
+    [[ "${CREATE_INITIAL_SUPERUSER:-false}" == "true" ]] || return 0
+    : "${DJANGO_SUPERUSER_USERNAME:?DJANGO_SUPERUSER_USERNAME is required}"
+    : "${DJANGO_SUPERUSER_PASSWORD:?DJANGO_SUPERUSER_PASSWORD is required}"
+
+    DJANGO_SUPERUSER_USERNAME="$DJANGO_SUPERUSER_USERNAME" \
+    DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-}" \
+    DJANGO_SUPERUSER_PASSWORD="$DJANGO_SUPERUSER_PASSWORD" \
+        python manage.py shell <<'PY'
+import os
+
+from django.contrib.auth import get_user_model
+
+user_model = get_user_model()
+username = os.environ["DJANGO_SUPERUSER_USERNAME"]
+email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
+password = os.environ["DJANGO_SUPERUSER_PASSWORD"]
+lookup = {user_model.USERNAME_FIELD: username}
+user, created = user_model._default_manager.get_or_create(**lookup)
+if created:
+    if hasattr(user, "email"):
+        user.email = email
+    user.is_staff = True
+    user.is_superuser = True
+    user.set_password(password)
+    user.save()
+    print(f"Created initial superuser: {username}")
+else:
+    print(f"Initial superuser already exists: {username}")
+PY
+}
+
+set_application_permissions() {
+    # Argument: final INSTALL_PATH. Direct/bare-metal installs can customize
+    # owner/group here; container orchestration owns container mount permissions.
+    # Example: chown -R "${APP_UID}:${APP_GID}" "$1/logs" "$1/documents"
+    :
+}
+
+restart_application_server() {
+    # Called only for a direct standard workflow unless restart was skipped.
+    # Example: systemctl reload apache2  (or httpd on RHEL-family systems).
+    :
+}
+
+# ========================= END APPLICATION CUSTOMIZATION =====================
+
+stage_dependencies() {
+    checkout_git_revision
+    check_python
+    check_required_modules
+    install_application_system_packages
+    mkdir -p "$INSTALL_PATH"
+    [[ -d "$INSTALL_PATH/virtualenv" ]] \
+        || "$PYTHON_BIN_PATH" -m venv "$INSTALL_PATH/virtualenv"
+    # shellcheck disable=SC1091
+    source "$INSTALL_PATH/virtualenv/bin/activate"
+    python -m pip install --upgrade pip wheel
+    [[ -f conf/requirements.txt ]] || die "Missing conf/requirements.txt"
     python -m pip install -r conf/requirements.txt
-    cd -
 }
 
-ensure_virtualenv_ready() {
-    if [ ! -d "$INSTALL_PATH/virtualenv" ]; then
-        log_warn "Virtualenv missing. INSTALL_PATH=$INSTALL_PATH"
-        ls -la "$INSTALL_PATH" || true
-        abort_install "Virtualenv not found at $INSTALL_PATH/virtualenv. Run --install dep first."
+stage_application_files() {
+    checkout_git_revision
+    [[ -d "$INSTALL_PATH/virtualenv" ]] \
+        || die "virtualenv not found at $INSTALL_PATH; install dependencies first"
+    # The Django wrapper is deployment-generated and must never be inherited
+    # from an ignored local source tree or a previous staged installation.
+    rm -rf "$INSTALL_PATH/$PROJECT_MODULE"
+    rm -f "$INSTALL_PATH/manage.py"
+    rsync -rl --delete \
+        --exclude .git --exclude .env --exclude /logs --exclude /documents \
+        --exclude /static --exclude /cron --exclude /tmp --exclude /virtualenv \
+        --exclude /manage.py --exclude "/$PROJECT_MODULE" \
+        ./ "$INSTALL_PATH/"
+    mkdir -p "$INSTALL_PATH/logs" "$INSTALL_PATH/documents" \
+        "$INSTALL_PATH/static" "$INSTALL_PATH/cron" "$INSTALL_PATH/tmp"
+    prepare_application_directories "$INSTALL_PATH"
+    "$INSTALL_PATH/virtualenv/bin/python" -m django startproject \
+        "$PROJECT_MODULE" "$INSTALL_PATH"
+    install -m 0644 "$install_script_dir/conf/urls.py" \
+        "$INSTALL_PATH/$PROJECT_MODULE/urls.py"
+    if [[ -f "$install_script_dir/conf/routing.py" ]]; then
+        install -m 0644 "$install_script_dir/conf/routing.py" \
+            "$INSTALL_PATH/$PROJECT_MODULE/routing.py"
     fi
+    stage_application_custom_files "$install_script_dir" "$INSTALL_PATH" "$ACTION"
+    printf '%s\n' "$GIT_REVISION" > "$INSTALL_PATH/.deployed_revision"
+    if [[ "$RENDER_SETTINGS" == "true" ]]; then
+        local template="$install_script_dir/conf/template_settings.py"
+        local output="${SETTINGS_OUTPUT:-$INSTALL_PATH/$PROJECT_MODULE/settings.py}"
+        [[ -f "$template" ]] || die "Django settings template not found: $template"
+        render_django_settings_file "$template" "$output" "$INSTALL_CONF"
+    fi
+    write_application_runtime_env "$INSTALL_PATH"
+    set_application_permissions "$INSTALL_PATH"
 }
 
-# restart_apache_service: restart Apache/HTTPD unless running inside Docker or explicitly skipped.
-restart_apache_service() {
-    if command -v lsb_release >/dev/null 2>&1; then
-        linux_distribution=$(lsb_release -i | cut -f 2-)
-    else
-        linux_distribution=$(awk -F= '/^ID=/{gsub(/"/,""); print $2}' /etc/os-release)
-    fi
-    if [[ $linux_distribution == "Ubuntu" ]]; then
-        apache_daemon="apache2"
-    else
-        apache_daemon="httpd"
-    fi
-    if ! systemctl restart $apache_daemon; then
-        echo -e "${ORANGE}Apache server restart failed. trying with sudo${NC}"
-        sudo systemctl restart $apache_daemon
-    fi
+run_hook() {
+    local specification="$1" script_name="${1%%,*}"
+    local -a args=(manage.py runscript "$script_name")
+    [[ -n "$script_name" ]] || die "Empty migration script name"
+    [[ "$specification" != *,* ]] || args+=(--script-args "${specification#*,}")
+    python "${args[@]}"
 }
 
-# run_dependency_stage: execute the dependency portion (system packages + venv + pip) for install or upgrade.
-run_dependency_stage() {
-    local mode="$1"
-
-    if [ "$mode" = "install" ]; then
-    log_section "Preparing dependency environment for installation"
-        if [ -d $INSTALL_PATH ]; then
-            echo "There already is an installation of relecov-platform in $INSTALL_PATH."
-            read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-                echo "Exiting without running relecov-platform installation"
-                exit 1
-            else
-                rm -rf $INSTALL_PATH
-            fi
-        fi
-        install_system_packages
-        mkdir -p $INSTALL_PATH
-        detect_apache_group
-        chown_if_root -R "$user:$apache_group" "$INSTALL_PATH"
-        chmod 775 $INSTALL_PATH
-    else
-        log_section "Preparing dependency environment for upgrade"
-        if [ ! -d $INSTALL_PATH ]; then
-            abort_install "Unable to start the upgrade. Folder $INSTALL_PATH does not exist."
-        fi
-        install_system_packages
-    fi
-
-    sync_requirements_file
-    setup_virtualenv "$mode"
-    install_python_requirements
-}
-
-# upgrade_application_files: sync code/config and run upgrade-specific tasks (renames, migrations).
-upgrade_application_files() {
-    stage_upgrade_application_files
-    bootstrap_application_runtime "upgrade"
-    log_section "Successfuly upgrade of relecov-platform version: ${APP_VERSION}"
-}
-
-# stage_upgrade_application_files: sync code/config into INSTALL_PATH without DB work.
-stage_upgrade_application_files() {
-    if [ ! -d $INSTALL_PATH ]; then
-        abort_install "Unable to start the upgrade. Folder $INSTALL_PATH does not exist."
-    fi
-
-    log_section "Starting relecov-platform Upgrade version: ${APP_VERSION}"
-    detect_apache_group
-
-    echo "Copying files to installation folder"
-    rsync -rlv conf/ $INSTALL_PATH/conf/
-    rsync -rlv --fuzzy --delay-updates --delete-delay \
-          --exclude "logs" --exclude "documents" --exclude "__pycache__" \
-          README.md LICENSE test conf $REQUIRED_MODULES $INSTALL_PATH
-
-    cd $INSTALL_PATH
-    ensure_virtualenv_ready
-    echo "activate the virtualenv"
+bootstrap_application() {
+    [[ -f "$INSTALL_PATH/manage.py" ]] || die "manage.py not found; run --stage first"
+    [[ -x "$INSTALL_PATH/virtualenv/bin/python" ]] || die "virtualenv not found; run --stage first"
+    cd "$INSTALL_PATH"
+    # shellcheck disable=SC1091
     source virtualenv/bin/activate
-
-    if [ ! -f "$INSTALL_PATH/manage.py" ]; then
-        echo "manage.py not found. Creating ${PROJECT_NAME} project"
-        "$INSTALL_PATH/virtualenv/bin/python" -m django startproject "$PROJECT_NAME" .
+    check_database
+    validate_application_runtime
+    python manage.py check --deploy
+    local hook
+    for hook in "${SCRIPT_BEFORE[@]}"; do run_hook "$hook"; done
+    before_django_migrate "$ACTION" "$MIGRATION_MODULES"
+    python manage.py migrate --noinput
+    if [[ "$LOAD_TABLES" == "true" && "$SKIP_TABLES" == "false" ]]; then
+        [[ -f conf/first_install_tables.json ]] \
+            || die "Initial table fixture not found: conf/first_install_tables.json"
+        python manage.py loaddata conf/first_install_tables.json
     fi
-
-    echo "Update settings and url file."
-    update_settings_and_urls
-    prepare_documents_structure
-
-    cd -
+    for hook in "${SCRIPT_AFTER[@]}"; do run_hook "$hook"; done
+    after_django_migrate "$ACTION"
+    python manage.py collectstatic --noinput
+    local migration_log
+    migration_log="$(mktemp "${TMPDIR:-/tmp}/relecov-platform-migrations.XXXXXX.log")"
+    if ! python manage.py showmigrations --plan > "$migration_log" 2>&1 \
+        || grep -Fq '[ ]' "$migration_log"; then
+        cat "$migration_log" >&2
+        rm -f "$migration_log"
+        die "Django migration verification failed"
+    fi
+    rm -f "$migration_log"
 }
 
-# install_application_files: deploy Django project files, update settings, and run initial migrations.
-install_application_files() {
-    stage_install_application_files
-    bootstrap_application_runtime "install"
-    log_section "Successfuly relecov-platform Installation version: ${APP_VERSION}"
-    echo "Installation completed"
-}
+remember_git_ref
+trap restore_git_ref EXIT
 
-# stage_install_application_files: copy app files into INSTALL_PATH without DB work.
-stage_install_application_files() {
-    log_section "Starting relecov-platform install version: ${APP_VERSION}"
-
-    user=${SUDO_USER:-$USER}
-    group=$(groups | cut -d" " -f1)
-    detect_apache_group
-
-    if [ "$install_type" == "full" ] || [ "$install_type" == "app" ]; then
-
-        if [ $LOG_TYPE == "symbolic_link" ]; then
-            if [ -d $LOG_PATH ]; then
-                if [ -e "$INSTALL_PATH/logs" ]; then
-                    echo "Log target $INSTALL_PATH/logs already exists. Leaving it unchanged."
-                else
-                    echo "Creating symbolic link to log folder"
-                    ln -s "$LOG_PATH" "$INSTALL_PATH/logs"
-                    chmod 775 "$LOG_PATH"
-                fi
-            else
-                echo "Log folder path: $LOG_PATH does not exist. Fix it in the install_settings.txt and run again."
-            exit 1
-            fi
-        else
-            if  [ ! -d $INSTALL_PATH/logs ]; then
-                mkdir -p $INSTALL_PATH/logs
-                chown_if_root "$user:$apache_group" "$INSTALL_PATH/logs"
-                chmod 775 $INSTALL_PATH/logs
-            else
-                echo "Log folder path: $INSTALL_PATH/logs already exist."
-            fi
+case "$WORKFLOW" in
+    stage) stage_dependencies; stage_application_files ;;
+    bootstrap) bootstrap_application ;;
+    standard)
+        if [[ "$OPERATION_SCOPE" == "full" || "$OPERATION_SCOPE" == "dep" ]]; then
+            stage_dependencies
         fi
+        if [[ "$OPERATION_SCOPE" == "full" || "$OPERATION_SCOPE" == "app" ]]; then
+            stage_application_files
+            bootstrap_application
+        fi
+        if [[ "$SKIP_APACHE_RESTART" == "false" ]]; then restart_application_server; fi
+        ;;
+    *) die "Invalid workflow: $WORKFLOW" ;;
+esac
 
-        rsync -rlv README.md LICENSE test conf $REQUIRED_MODULES $INSTALL_PATH
-
-        cd $INSTALL_PATH
-
-        prepare_documents_structure
-
-        ensure_virtualenv_ready
-        echo "activate the virtualenv"
-        source virtualenv/bin/activate
-
-        echo "Creating ${PROJECT_NAME} project"
-        "$INSTALL_PATH/virtualenv/bin/python" -m django startproject "$PROJECT_NAME" .
-
-        update_settings_and_urls
-
-        cd -
-    fi
-}
-
-# bootstrap_application_runtime: run DB/bootstrap tasks against an already staged INSTALL_PATH.
-bootstrap_application_runtime() {
-    local mode="$1"
-
-    if [ ! -d "$INSTALL_PATH" ]; then
-        abort_install "Unable to bootstrap application. Folder $INSTALL_PATH does not exist."
-    fi
-
-    cd $INSTALL_PATH
-    ensure_virtualenv_ready
-    echo "activate the virtualenv"
-    source virtualenv/bin/activate
-
-    if [ ! -f "$INSTALL_PATH/manage.py" ]; then
-        abort_install "manage.py not found at $INSTALL_PATH/manage.py. Stage application files first."
-    fi
-
-    run_django_deploy "$mode"
-    refresh_static_files
-
-    cd -
-}
-
-# translate long options to short
-reset=true
-for arg in "$@"
-do
-    if [ -n "$reset" ]; then
-      unset reset
-      set --      # this resets the "$@" array so we can rebuild it
-    fi
-    case "$arg" in
-    # OPTIONAL
-        --install)      set -- "$@" -i ;;
-        --upgrade)      set -- "$@" -u ;;
-        --stage)        set -- "$@" -j ;;
-        --bootstrap)    set -- "$@" -l ;;
-        --script)       set -- "$@" -s ;;
-        --script_before) set -- "$@" -p ;;
-        --script_after) set -- "$@" -o ;;
-        --tables)       set -- "$@" -t ;;
-        --skip_tables)  set -- "$@" -b ;;
-        --git_revision) set -- "$@" -g ;;
-        --conf)         set -- "$@" -c ;;
-        --ren_app)      set -- "$@" -r ;;
-        --docker)       set -- "$@" -k ;;
-        --skip_apache_restart) set -- "$@" -a ;;
-
-    # ADITIONAL
-        --help)     set -- "$@" -h ;;
-        --version)  set -- "$@" -v ;;
-    # PASSING VALUE IN PARAMETER
-        *)          set -- "$@" "$arg" ;;
-    esac
-done
-
-# SETTING DEFAULT VALUES
-ren_app=false
-tables=false
-git_branch=$initial_git_ref
-conf="./install_settings.txt"
-install=true
-install_type="full"
-upgrade=false
-upgrade_type="full"
-workflow="standard"
-workflow_mode=""
-docker=false
-prefilled_tables="conf/first_install_tables.json"
-restart_apache=true
-run_script=false
-run_script_before=false
-migration_script=()
-migration_script_before=()
-skip_tables=false
-
-# PARSE VARIABLE ARGUMENTS WITH getops
-options=":c:s:i:u:j:l:r:g:tdbkvhao:p:"
-while getopts $options opt; do
-    case $opt in
-        i ) 
-            workflow="standard"
-            install=true
-            upgrade=false
-            if [[ "$OPTARG" == "full" || "$OPTARG" == "dep" || "$OPTARG" == "app" ]]; then
-                install_type=$OPTARG
-                upgrade_type=$OPTARG
-            else
-                echo "Install is not set to one valid option. Use: --install full/app/dep"
-                exit 1
-            fi
-            ;;
-        u )
-            workflow="standard"
-            install=false
-            upgrade=true
-            if [[ "$OPTARG" == "full" || "$OPTARG" == "dep" || "$OPTARG" == "app" ]]; then
-                upgrade_type=$OPTARG
-                install_type=$OPTARG
-            else
-                echo "Upgrade is not set to one valid option. Use: --upgrade full/app/dep"
-                exit 1
-            fi
-            ;;
-        j )
-            workflow="stage"
-            workflow_mode=$OPTARG
-            if [[ "$workflow_mode" != "install" && "$workflow_mode" != "upgrade" ]]; then
-                echo "Stage is not set to one valid option. Use: --stage install/upgrade"
-                exit 1
-            fi
-            ;;
-        l )
-            workflow="bootstrap"
-            workflow_mode=$OPTARG
-            if [[ "$workflow_mode" != "install" && "$workflow_mode" != "upgrade" ]]; then
-                echo "Bootstrap is not set to one valid option. Use: --bootstrap install/upgrade"
-                exit 1
-            fi
-            ;;
-        s )
-            run_script=true
-            migration_script+=("$OPTARG")
-            ;;
-        p )
-            run_script_before=true
-            migration_script_before+=("$OPTARG")
-            ;;
-        o )
-            run_script=true
-            migration_script+=("$OPTARG")
-            ;;
-        t )
-            tables=true
-            ;;
-        b )
-            tables=false
-            skip_tables=true
-            ;;
-        r )
-            ren_app=true
-            ;;
-		g )
-			git_branch=$OPTARG
-            ;;
-        c )
-            conf=$OPTARG
-            ;;
-        k )
-            docker=true
-            restart_apache=false
-            ;;
-        a )
-            restart_apache=false
-            ;;
-        h )
-            usage
-            exit 1
-            ;;
-        v )
-            echo $APP_VERSION
-            exit 1
-            ;;
-        \?)
-            echo "Invalid Option: -$OPTARG" 1>&2
-            usage
-            exit 1
-            ;;
-        : )
-            echo "Option -$OPTARG requires an argument." >&2
-            exit 1
-            ;;
-        * )
-            echo "Unimplemented option: -$OPTARG" >&2;
-            exit 1
-            ;;
-    esac
-done
-shift $((OPTIND-1))
-
-operation="install"
-operation_scope="$install_type"
-if [ $upgrade == true ]; then
-    operation="upgrade"
-    operation_scope="$upgrade_type"
-fi
-if [ "$workflow" != "standard" ]; then
-    operation="$workflow_mode"
-    operation_scope="app"
-fi
-
-# Default to loading initial tables on installs unless explicitly skipped.
-if [ "$operation" = "install" ] && [ "$skip_tables" = false ] && [ "$tables" = false ]; then
-    tables=true
-fi
-
-load_install_config
-PROJECT_NAME="${PROJECT_NAME:-relecov_platform}"
-checkout_git_revision
-user=${SUDO_USER:-$USER}
-
-if [ "$workflow" = "stage" ]; then
-    check_stage_requirements
-    if [ "$workflow_mode" = "install" ]; then
-        stage_install_application_files
-    else
-        stage_upgrade_application_files
-    fi
-    exit 0
-fi
-
-if [ "$workflow" = "bootstrap" ]; then
-    check_bootstrap_requirements
-    bootstrap_application_runtime "$workflow_mode"
-    exit 0
-fi
-
-check_requirements
-
-if [[ "$operation_scope" == "full" || "$operation_scope" == "dep" ]]; then
-    run_dependency_stage "$operation"
-    if [ "$operation_scope" = "dep" ]; then
-        log_info "Dependency stage completed."
-        exit 0
-    fi
-fi
-
-if [[ "$operation_scope" == "full" || "$operation_scope" == "app" ]]; then
-    if [ "$operation" = "install" ]; then
-        install_application_files
-    else
-        upgrade_application_files
-    fi
-    if [ $restart_apache == true ]; then
-        restart_apache_service
-    fi
-    exit 0
-fi
-
-printf "\n\n%s"
-printf "${RED}------------------${NC}\n"
-printf "%s"
-printf "${RED}Invalid installation parameters${NC}\n"
-printf "%s"
-printf "${RED}------------------${NC}\n\n"
-echo "See the usage examples"
-usage
-exit 1
+info "$WORKFLOW $ACTION completed for RELECOV Platform at $INSTALL_PATH"

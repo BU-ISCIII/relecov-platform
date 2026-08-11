@@ -1,432 +1,410 @@
-# Instalacion de RELECOV Platform en produccion con Podman rootless
+# Actualizacion de RELECOV Platform con Podman rootless
 
-Esta guia resume los comandos para desplegar en produccion la pila integrada:
-
-- RELECOV Platform
-- iSkyLIMS
-- Nextstrain
-- Apache reverse proxy en contenedor
-- Base de datos MySQL/MariaDB externa
-
-Se asume que los datos iniciales vienen del entorno de desarrollo:
-
-- dump de base de datos de `relecov-platform`
-- dump de base de datos de `relecov-iskylims`
-- documentos de `relecov-platform`
-- documentos de `relecov-iskylims`
-- datos de Nextstrain
-
-Los ejemplos usan Podman rootless. Si se usa Docker, sustituir `--engine podman` por `--engine docker` y `podman compose` por `docker compose`.
+Esta guia es la lista de ejecucion para instalar, actualizar y recuperar el
+despliegue de produccion. Los comandos generados son reutilizables; antes de la
+aprobacion, el responsable de la aplicacion debe completar los campos marcados
+`<REVISAR>` con valores o referencias institucionales verificadas.
 
 ## Indice
 
-- [Instalacion de RELECOV Platform en produccion con Podman rootless](#instalacion-de-relecov-platform-en-produccion-con-podman-rootless)
-  - [Indice](#indice)
-  - [Requisitos minimos del host](#requisitos-minimos-del-host)
-  - [Clonar repositorios](#clonar-repositorios)
-  - [Preparar directorios del host](#preparar-directorios-del-host)
-  - [Preparar ficheros recibidos de desarrollo](#preparar-ficheros-recibidos-de-desarrollo)
-  - [Crear bases de datos de produccion e importar dumps](#crear-bases-de-datos-de-produccion-e-importar-dumps)
-  - [Crear volumenes e importar documentos y Nextstrain](#crear-volumenes-e-importar-documentos-y-nextstrain)
-  - [Configurar produccion](#configurar-produccion)
-  - [Instalar contenedores](#instalar-contenedores)
-  - [Reparar permisos](#reparar-permisos)
-  - [Comprobaciones](#comprobaciones)
-  - [Operaciones utiles](#operaciones-utiles)
+- [Requisitos](#requisitos)
+- [Estructura de directorios en los servidores](#estructura-de-directorios-en-los-servidores)
+- [Preparar directorios del host](#preparar-directorios-del-host)
+- [Actualizar codigo](#actualizar-codigo)
+- [Configurar los ajustes de produccion](#configurar-los-ajustes-de-produccion)
+- [Backup antes de actualizar](#backup-antes-de-actualizar)
+- [Ejecutar la actualizacion](#ejecutar-la-actualizacion)
+- [Comprobaciones posteriores](#comprobaciones-posteriores)
+- [Rollback](#rollback)
+- [Reparar permisos](#reparar-permisos)
+- [Operaciones utiles](#operaciones-utiles)
+- [Notas de permisos](#notas-de-permisos)
 
-## Requisitos minimos del host
+## Requisitos
 
-- `git`
-- Podman rootless y `podman-compose` o `podman compose`
-- Docker Engine y Docker Compose v2 si no se usa Podman
-- Acceso a un servidor MySQL/MariaDB de produccion
-- Cliente MySQL/MariaDB en el host para crear bases de datos e importar dumps
-- Usuario de sistema con permisos para ejecutar contenedores rootless
-- Permisos de `sudo` solo para preparar paquetes y directorios del host
-
-No ejecutar `container_install.sh` con `sudo`. El usuario que ejecuta Podman debe ser el mismo usuario que ejecuta el instalador.
-
-## Clonar repositorios
-
-Los dos repositorios deben quedar al mismo nivel:
+- Podman rootless y un proveedor de Compose funcionales.
+- El mismo usuario sin privilegios para el instalador y Podman.
+- Revision aprobada: `<REVISAR: tag o commit>`.
+- DNS/TLS, base de datos, almacenamiento, correo e identidad: `<REVISAR>`.
+- Responsable operativo y contacto de escalado: `<REVISAR>`.
+- Objetivos RPO/RTO y ubicacion de backups: `<REVISAR>`.
 
 ```bash
-mkdir -p /opt/containers_apps/relecov-platform-all
-cd /opt/containers_apps/relecov-platform-all
-
-git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
-git clone https://github.com/BU-ISCIII/iskylims.git relecov-iskylims
+podman info
+podman compose version || podman-compose --version
 ```
 
-Actualizar codigo si los repositorios ya existen:
+No ejecutar `container_install.sh` con `sudo`. Podman rootless, el proveedor de
+Compose y el instalador deben usar siempre la misma cuenta. Los ejemplos usan
+`podman compose`; si el host proporciona `podman-compose`, sustituir ese prefijo
+completo. La libreria compartida detecta ambos proveedores automaticamente.
 
-```bash
-cd /opt/containers_apps/relecov-platform-all/relecov-platform
-git pull
+## Estructura de directorios en los servidores
 
-cd /opt/containers_apps/relecov-platform-all/relecov-iskylims
-git pull
+Todos los despliegues usan esta estructura institucional. El nombre de la
+aplicacion separa sus fuentes bind, logs y backups; Podman administra su propio
+storage y no debe modificarse manualmente.
+
+```text
+/opt/containers_apps/
+└── relecov-platform/
+    ├── backup/                         # Backups locales opcionales
+    └── relecov-platform/               # Clone Git y configuracion protegida
+
+/srv/containers/
+├── backup/
+│   └── relecov-platform/               # Backup central recomendado
+├── bind/
+│   └── relecov-platform/
+│       └── settings/                   # settings.py renderizado por servicio
+├── shared/                             # Datos compartidos entre aplicaciones
+└── storage/
+    └── <usuario-podman>/               # Storage rootless gestionado por Podman
+
+/var/log/local/
+└── relecov-platform/
+    ├── apache/
+    └── apps/
 ```
+
+Persistencia declarada por el despliegue:
+
+| Activo | Ubicacion de produccion | Requisito de recuperacion |
+|---|---|---|
+| `app` database | External production database | Database backup before migration |
+| `app` documents | `app_documents` named volume | Volume backup |
+| `app` static | `app_static` named volume | Replaceable through collectstatic |
+| `app` logs | `/var/log/local/relecov-platform/apps` host bind | Retain/rotate per institutional log policy |
+| `app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
+| `iskylims_app` database | External production database | Database backup before migration |
+| `iskylims_app` documents | `iskylims_app_documents` named volume | Volume backup |
+| `iskylims_app` static | `iskylims_app_static` named volume | Replaceable through collectstatic |
+| `iskylims_app` logs | `/var/log/local/relecov-platform/apps` host bind | Retain/rotate per institutional log policy |
+| `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
+| Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
+| Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
+| Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
 ## Preparar directorios del host
 
-Crear rutas de bind mounts para configuracion Apache y logs:
+Crear la estructura comun antes de la primera instalacion. Sustituir
+`<usuario-podman>` por la cuenta que ejecutara siempre Podman y el instalador.
 
 ```bash
-sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_apache_conf
-sudo mkdir -p /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo mkdir -p /var/log/local/relecov-platform/apache
+sudo mkdir -p /opt/containers_apps/relecov-platform
+sudo mkdir -p /srv/containers/backup/relecov-platform
+sudo mkdir -p /srv/containers/bind/relecov-platform/settings
 sudo mkdir -p /var/log/local/relecov-platform/apps
-sudo mkdir -p /var/log/local/relecov-iskylims/apps
-
-sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /srv/containers/bind/relecov-platform/relecov_apache_conf
-sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /var/log/local/relecov-platform
-sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /var/log/local/relecov-platform
-sudo chown -R "_USER-RUNNING_PODMAN_:_USER-RUNNING_PODMAN_" /var/log/local/relecov-iskylims
-
-sudo chown -R "bioinfo:bioinfo" /srv/containers/bind/relecov-platform/relecov_apache_conf
-sudo chown -R "bioinfo:bioinfo" /srv/containers/bind/relecov-platform/relecov_django_setting
-sudo chown -R "bioinfo:bioinfo" /var/log/local/relecov-platform
-sudo chown -R "bioinfo:bioinfo" /var/log/local/relecov-platform
-sudo chown -R "bioinfo:bioinfo" /var/log/local/relecov-iskylims
+sudo mkdir -p /var/log/local/relecov-platform/apache
+sudo chown -R <usuario-podman>:<usuario-podman> \
+  /opt/containers_apps/relecov-platform \
+  /srv/containers/backup/relecov-platform \
+  /srv/containers/bind/relecov-platform \
+  /var/log/local/relecov-platform
 ```
 
-Si la infraestructura usa rutas distintas, reflejarlas despues en `APACHE_CONF_PATH`, `APACHE_LOG_PATH`, `PLATFORM_LOG_PATH` e `ISKYLIMS_LOG_PATH`.
-
-## Preparar ficheros recibidos de desarrollo
-
-Ejemplo de carpeta de entrada:
+Aplicar despues UID/GID internos, modos y etiquetas SELinux mediante el
+instalador. No modificar el arbol `/srv/containers/storage/` manualmente.
 
 ```bash
-mkdir -p /opt/containers_apps/relecov-platform-all/input
+bash container_install.sh --action fix-permissions --engine podman \
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
 ```
 
-Copiar ahi estos ficheros, ajustando nombres si hace falta:
+## Actualizar codigo
 
-```text
-/opt/containers_apps/relecov-platform-all/input/relecov_platform_dev.sql
-/opt/containers_apps/relecov-platform-all/input/relecov_iskylims_dev.sql
-/opt/containers_apps/relecov-platform-all/input/relecov_platform_documents.tar
-/opt/containers_apps/relecov-platform-all/input/relecov_iskylims_documents.tar
-/opt/containers_apps/relecov-platform-all/input/nextstrain_data.tar
-```
-
-## Crear bases de datos de produccion e importar dumps
-
-Variables usadas en los comandos:
+Para un checkout nuevo:
 
 ```bash
-DB_HOST="<host_mysql>"
-DB_PORT="3306"
-DB_ADMIN_USER="root"
-
-PLATFORM_DB="relecov_prod"
-ISKYLIMS_DB="iskylims_prod"
-APP_DB_USER="django"
-APP_DB_PASS="<password_segura>"
+cd /opt/containers_apps/relecov-platform
+git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+cd relecov-platform
+git checkout <revision-aprobada>
 ```
 
-Crear bases de datos y usuario:
+En un checkout existente, verificar primero que no haya cambios locales y
+cambiar a la revision entregada mediante el procedimiento Git de la institucion.
+Registrar el commit exacto con `git rev-parse HEAD`.
+
+## Configurar los ajustes de produccion
+
+Crear un fichero ignorado y con modo `0600` por servicio a partir de su
+`conf/docker_production_settings.txt`. Resolver todos los `CHANGE_ME` y revisar
+la matriz [`conf/INSTALL_SETTINGS.md`](conf/INSTALL_SETTINGS.md). No guardar
+secretos en `.env.production.file`, Compose, Git ni argumentos de proceso.
+
+Valores que requieren decision del responsable de la aplicacion:
+
+- hostnames publicos, TLS y proxy;
+- base de datos y credenciales de minimo privilegio;
+- rutas persistentes, UID/GID, SELinux y politica de backup;
+- correo, identidad, almacenamiento y ajustes propios de la aplicacion;
+- administrador inicial y transferencia segura de sus credenciales.
+
+## Backup antes de actualizar
+
+Crear un directorio identificado y registrar el estado desplegado:
 
 ```bash
-mysql --user="$DB_ADMIN_USER" --password --host="$DB_HOST" --port="$DB_PORT" <<SQL
-CREATE DATABASE IF NOT EXISTS ${PLATFORM_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE DATABASE IF NOT EXISTS ${ISKYLIMS_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS '${APP_DB_USER}'@'%' IDENTIFIED BY '${APP_DB_PASS}';
-GRANT ALL PRIVILEGES ON ${PLATFORM_DB}.* TO '${APP_DB_USER}'@'%';
-GRANT ALL PRIVILEGES ON ${ISKYLIMS_DB}.* TO '${APP_DB_USER}'@'%';
-FLUSH PRIVILEGES;
-SQL
+BACKUP_DIR="/srv/containers/backup/relecov-platform/$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+git rev-parse HEAD > "$BACKUP_DIR/git-revision.txt"
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  images > "$BACKUP_DIR/images.txt"
+cp .env.production.file "$BACKUP_DIR/"
+cp <fichero-ajustes-protegido> "$BACKUP_DIR/"
+chmod -R go-rwx "$BACKUP_DIR"
 ```
 
-Importar dumps de desarrollo:
+Exportar la base de datos externa desde un punto coherente:
 
 ```bash
-mysql --user="$APP_DB_USER" --password --host="$DB_HOST" --port="$DB_PORT" "$PLATFORM_DB" \
-  < /opt/containers_apps/relecov-platform-all/input/relecov_platform_dev.sql
-
-mysql --user="$APP_DB_USER" --password --host="$DB_HOST" --port="$DB_PORT" "$ISKYLIMS_DB" \
-  < /opt/containers_apps/relecov-platform-all/input/relecov_iskylims_dev.sql
+mysqldump --single-transaction --routines --triggers \
+  --host=<db-host> --port=<db-port> --user=<db-user> --password \
+  <db-name> > "$BACKUP_DIR/database.sql"
 ```
 
-## Crear volumenes e importar documentos y Nextstrain
-
-Usar un nombre de proyecto Compose estable para que los volumenes tengan nombres previsibles:
+Localizar y exportar cada volumen no reconstruible declarado en la tabla:
 
 ```bash
-export COMPOSE_PROJECT_NAME=relecov
+podman volume ls | grep 'relecov-platform'
+podman volume export <volumen-documents> > "$BACKUP_DIR/documents.tar"
+podman volume export <volumen-static> > "$BACKUP_DIR/static.tar"
 ```
 
-Crear volumenes:
+Exportar `documents` y `static` por cada servicio Django que los declare;
+omitir esos comandos para perfiles sin dichos volumenes. Aunque `static` puede
+regenerarse con `collectstatic`, conservarlo permite una restauracion exacta.
+
+Guardar tambien los bind mounts persistentes. Los logs se conservan segun su
+politica de retencion; la configuracion protegida debe incluirse siempre.
 
 ```bash
-podman volume create relecov_relecov_documents
-podman volume create relecov_iskylims_documents
-podman volume create relecov_nextstrain_data
+tar -C /srv/containers/bind -czf "$BACKUP_DIR/bind-mounts.tar.gz" relecov-platform
+tar -C /var/log/local -czf "$BACKUP_DIR/logs.tar.gz" relecov-platform
+sha256sum "$BACKUP_DIR"/* > "$BACKUP_DIR/SHA256SUMS"
 ```
 
-Importar documentos y datos. `podman volume import` espera un fichero `.tar` con el contenido del volumen.
+No continuar hasta verificar los ficheros, espacio disponible y procedimiento
+de restauracion.
 
-El `.tar` debe contener directamente lo que debe quedar dentro del volumen, no una carpeta contenedora adicional llamada `documents` o `nextstrain_data`.
+## Ejecutar la actualizacion
 
-Estructura esperada para `relecov_platform_documents.tar`:
-
-```text
-relecov_platform_documents.tar
-|-- <fichero_o_directorio_1>
-|-- <fichero_o_directorio_2>
-`-- ...
-```
-
-Despues del import, debe quedar asi dentro del volumen:
-
-```text
-/opt/relecov-platform/documents/
-|-- <fichero_o_directorio_1>
-|-- <fichero_o_directorio_2>
-`-- ...
-```
-
-No debe quedar asi:
-
-```text
-/opt/relecov-platform/documents/
-`-- documents/
-    |-- <fichero_o_directorio_1>
-    `-- ...
-```
-
-Ejemplo para crear el `.tar` correctamente desde el entorno origen:
+Primera instalacion:
 
 ```bash
-tar -cf relecov_platform_documents.tar -C /opt/relecov-platform/documents .
-tar -cf relecov_iskylims_documents.tar -C /opt/iskylims/documents .
-tar -cf nextstrain_data.tar -C /ruta/nextstrain_data .
+bash container_install.sh --action install --engine podman \
+  --git_revision <revision-aprobada> \
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
 ```
 
-Importar los `.tar`:
+Actualizacion:
 
 ```bash
-podman volume import relecov_relecov_documents /opt/containers_apps/relecov-platform-all/input/relecov_platform_documents.tar
-podman volume import relecov_iskylims_documents /opt/containers_apps/relecov-platform-all/input/relecov_iskylims_documents.tar
-podman volume import relecov_nextstrain_data /opt/containers_apps/relecov-platform-all/input/nextstrain_data.tar
+bash container_install.sh --action upgrade --engine podman \
+  --git_revision <nueva-revision-aprobada> \
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
 ```
 
-Si el compose se ejecuto sin `COMPOSE_PROJECT_NAME=relecov`, revisar los nombres reales:
+Durante `--action upgrade`, `container_install.sh`:
+
+1. valida opciones, configuraciones protegidas y Compose antes de modificar el
+   despliegue;
+2. genera `.env.production.file` y las configuraciones runtime protegidas;
+3. prepara bind mounts, propietarios, modos y etiquetas SELinux;
+4. construye las imagenes desde la revision aprobada;
+5. recrea la topologia conservando volumenes y bind mounts persistentes;
+6. espera readiness y repara los volumenes desde los contenedores en ejecucion;
+7. ejecuta el bootstrap requerido por cada perfil —checks, migraciones,
+   scripts/fixtures y `collectstatic` para Django—;
+8. ejecuta el smoke test y solo entonces declara completada la actualizacion.
+
+Seguir ademas la guia especifica de la version cuando exista. Detenerse ante
+cualquier fallo de build, readiness, bootstrap, migracion o smoke test.
+
+## Comprobaciones posteriores
 
 ```bash
-podman volume ls
+podman compose --env-file .env.production.file -f docker-compose.prod.yml ps
+podman compose --env-file .env.production.file -f docker-compose.prod.yml logs --tail 200
+bash scripts/smoke_test.sh --engine podman
 ```
 
-## Configurar produccion
+Verificar tambien `<REVISAR: URL publica>`, autenticacion, correo, tareas
+programadas y un flujo real de lectura. Registrar estado, imagenes, revision y
+resultado de aceptacion.
 
-Crear ficheros de configuracion:
+## Rollback
+
+Si el esquema y los formatos persistentes siguen siendo compatibles, desplegar
+la revision anterior registrada y repetir las pruebas:
 
 ```bash
-cd /opt/containers_apps/relecov-platform-all/relecov-platform
-
-cp conf/docker_production_settings.txt conf/my_prod_settings_relecov.txt
-cp ../relecov-iskylims/conf/docker_production_settings.txt ../relecov-iskylims/conf/my_prod_settings_iskylims.txt
+bash container_install.sh --action upgrade --engine podman \
+  --git_revision <revision-anterior> \
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
 ```
 
-Editar configuracion de RELECOV Platform:
+Si no son compatibles, detener escrituras y restaurar el punto completo:
 
 ```bash
-nano conf/my_prod_settings_relecov.txt
+podman compose --env-file .env.production.file -f docker-compose.prod.yml down
+mysql --host=<db-host> --port=<db-port> --user=<db-user> --password \
+  <db-name> < "$BACKUP_DIR/database.sql"
+podman volume import <volumen-documents> "$BACKUP_DIR/documents.tar"
+podman volume import <volumen-static> "$BACKUP_DIR/static.tar"
+tar -C /srv/containers/bind -xzf "$BACKUP_DIR/bind-mounts.tar.gz"
+cp "$BACKUP_DIR/<fichero-ajustes-protegido>" <ruta-configuracion-protegida>/
 ```
 
-Valores principales:
-
-```bash
-INSTALL_PATH='/opt/relecov-platform'
-APACHE_CONF_PATH='/srv/containers/bind/relecov-platform/relecov_apache_conf'
-DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py'
-APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
-PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
-ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
-APACHE_FORWARDED_PROTO='https'
-APACHE_FORWARDED_PORT='443'
-APACHE_HOST_PORT='8090'
-
-APP_UID='1212'
-APP_GID='1212'
-APP_PORT='8000'
-ISKYLIMS_APP_PORT='8001'
-NEXTSTRAIN_PORT='8100'
-MAPBOX_ACCESS_TOKEN='<token_publico_mapbox_restringido_por_URL>'
-MAPBOX_STYLE_OWNER='mapbox'
-MAPBOX_STYLE_ID='light-v11'
-
-DB_USER='django'
-DB_PASS='<password_segura>'
-DB_NAME='relecov_prod'
-DB_SERVER_IP='<host_mysql>'
-DB_PORT=3306
-
-DNS_URL='relecov-platform.isciiides.es'
-RELECOV_PLATFORM_SERVER_NAME='relecov-platform.isciiides.es'
-RELECOV_ISKYLIMS_SERVER_NAME='relecov-iskylims.isciiides.es'
-RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.isciiides.es'
-
-EMAIL_HOST_SERVER='<smtp>'
-EMAIL_PORT='25'
-EMAIL_HOST_USER='<correo>'
-EMAIL_HOST_PASSWORD=''
-EMAIL_USE_TLS='False'
-```
-
-Editar configuracion de iSkyLIMS:
-
-```bash
-nano ../relecov-iskylims/conf/my_prod_settings_iskylims.txt
-```
-
-Valores principales:
-
-```bash
-INSTALL_PATH='/opt/iskylims'
-APP_UID='1212'
-APP_GID='1212'
-APP_PORT='8001'
-APACHE_FORWARDED_PROTO='https'
-APACHE_FORWARDED_PORT='443'
-
-DB_USER='django'
-DB_PASS='<password_segura>'
-DB_NAME='iskylims_prod'
-DB_SERVER_IP='<host_mysql>'
-DB_PORT=3306
-
-DNS_URL='relecov-iskylims.isciiides.es'
-
-EMAIL_HOST_SERVER='<smtp>'
-EMAIL_PORT='25'
-EMAIL_HOST_USER='<correo>'
-EMAIL_HOST_PASSWORD=''
-EMAIL_USE_TLS='False'
-```
-
-## Instalar contenedores
-
-Ejecutar desde `relecov-platform`:
-
-```bash
-cd /opt/containers_apps/relecov-platform/relecov-platform
-export COMPOSE_PROJECT_NAME=relecov
-
-bash container_install.sh --engine podman \
-  --action upgrade \
-  --git_revision develop \
-  --install_conf_map app,my_prod_settings_relecov.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/my_prod_settings_iskylims.txt \
-  2>&1 | tee relecov_prod_install_$(date +%Y%m%d_%H%M%S).log
-```
-
-El instalador:
-
-- construye las imagenes;
-- genera `.env.prod.file`;
-- renderiza la configuracion Apache;
-- arranca `apache`, `app`, `iskylims_app` y `nextstrain`;
-- aplica migraciones;
-- refresca estaticos;
-- prepara permisos de bind mounts y volumenes.
+Restaurar el fichero de ajustes protegido, desplegar la revision anotada en
+`git-revision.txt` y dejar que el instalador regenere `.env.production.file`.
+Ejecutar `fix-permissions`, arrancar y validar antes de
+reabrir el servicio. Los volumenes deben existir y estar vacios antes de
+`podman volume import`; recrearlos con Compose cuando sea necesario.
 
 ## Reparar permisos
 
-Ejecutar si se han importado volumenes, cambiado propietarios, recreado contenedores manualmente o cambiado `APP_UID` / `APP_GID`:
+Ejecutar esta accion cuando:
+
+- se hayan creado o restaurado bind mounts o volumenes;
+- se hayan recreado contenedores manualmente;
+- hayan cambiado `APP_UID`, `APP_GID` o el usuario rootless;
+- existan errores de escritura en logs, documentos, static o configuracion;
+- SELinux rechace un bind mount revisado;
+- Apache o la aplicacion fallen por propietarios/modos incorrectos.
+
+Primera fase, incluso con los contenedores detenidos:
 
 ```bash
-cd /opt/containers_apps/relecov-platform-all/relecov-platform
-export COMPOSE_PROJECT_NAME=relecov
-
-bash container_install.sh --engine podman \
-  --action fix-permissions \
-  --install_conf_map app,my_prod_settings_relecov.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/my_prod_settings_iskylims.txt
+bash container_install.sh --action fix-permissions --engine podman \
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
 ```
 
-Si los contenedores no estaban arrancados, arrancar y repetir para reparar tambien los volumenes montados:
+Esta accion no construye imagenes, no migra la base de datos y no borra datos.
+Con los contenedores detenidos repara los bind mounts accesibles desde el host.
+Arrancar y repetirla para reparar tambien los volumenes montados:
 
 ```bash
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml up -d
-
-bash container_install.sh --engine podman \
-  --action fix-permissions \
-  --install_conf_map app,conf/my_prod_settings_relecov.txt \
-  --install_conf_map iskylims_app,../relecov-iskylims/conf/my_prod_settings_iskylims.txt
-```
-
-## Comprobaciones
-
-Estado de contenedores:
-
-```bash
-cd /opt/containers_apps/relecov-platform-all/relecov-platform
-export COMPOSE_PROJECT_NAME=relecov
-
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml ps
-```
-
-Logs:
-
-```bash
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 apache
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 app
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 iskylims_app
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml logs --tail 200 nextstrain
-```
-
-Checks Django:
-
-```bash
-podman exec -it relecov_app python /opt/relecov-platform/manage.py check
-podman exec -it relecov_iskylims_app python /opt/iskylims/manage.py check
-```
-
-Checks por Apache:
-
-```bash
-curl -I -H "Host: relecov-platform.isciiides.es" http://<host>:8090
-curl -I -H "Host: relecov-iskylims.isciiides.es" http://<host>:8090
-curl -I -H "Host: nextstrain.isciiides.es" http://<host>:8090
+podman compose --env-file .env.production.file -f docker-compose.prod.yml up -d
+bash container_install.sh --action fix-permissions --engine podman \
+  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt
 ```
 
 ## Operaciones utiles
 
-Usar siempre `.env.prod.file` al ejecutar Compose directamente:
-
 ```bash
-export COMPOSE_PROJECT_NAME=relecov
-
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml ps
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml up -d
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml restart app
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml restart iskylims_app
-podman compose --env-file .env.prod.file -f docker-compose.prod.yml down
+podman compose --env-file .env.production.file -f docker-compose.prod.yml ps
+podman compose --env-file .env.production.file -f docker-compose.prod.yml logs --tail 200
+podman compose --env-file .env.production.file -f docker-compose.prod.yml up -d
+podman compose --env-file .env.production.file -f docker-compose.prod.yml restart
+podman compose --env-file .env.production.file -f docker-compose.prod.yml down
 ```
 
-Entrar a contenedores:
+### Servicio Django `app`
 
 ```bash
-podman exec -it relecov_app bash
-podman exec -it relecov_iskylims_app bash
+# Logs separados del servicio.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  logs --tail 200 app
+
+# Entrar al contenedor.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec app bash
+
+# Regenerar static sin ejecutar migraciones.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec app bash -lc \
+  'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py collectstatic --noinput'
+
+# Diagnostico previo a una recuperacion de bootstrap.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec app bash -lc \
+  'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py check --deploy && python manage.py showmigrations --plan'
 ```
 
-Exportar backups desde produccion:
+La recuperacion preferida es corregir la causa y repetir
+`container_install.sh --action install|upgrade` con la misma revision y
+configuracion protegida. Si el instalador no puede completarse y el responsable
+autoriza un bootstrap manual despues del backup:
 
 ```bash
-BACKUP_DIR=~/relecov_prod_backup_$(date +%Y%m%d_%H%M%S)
-mkdir -p "$BACKUP_DIR"
-
-mysqldump --user="$APP_DB_USER" --password --host="$DB_HOST" --port="$DB_PORT" "$PLATFORM_DB" \
-  > "$BACKUP_DIR/relecov_platform.sql"
-
-mysqldump --user="$APP_DB_USER" --password --host="$DB_HOST" --port="$DB_PORT" "$ISKYLIMS_DB" \
-  > "$BACKUP_DIR/relecov_iskylims.sql"
-
-podman volume export relecov_relecov_documents > "$BACKUP_DIR/relecov_platform_documents.tar"
-podman volume export relecov_iskylims_documents > "$BACKUP_DIR/relecov_iskylims_documents.tar"
-podman volume export relecov_nextstrain_data > "$BACKUP_DIR/nextstrain_data.tar"
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec app bash -lc \
+  'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py migrate --noinput && python manage.py collectstatic --noinput'
 ```
+
+Registrar este procedimiento excepcional y ejecutar despues el smoke test.
+
+### Servicio Django `iskylims_app`
+
+```bash
+# Logs separados del servicio.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  logs --tail 200 iskylims_app
+
+# Entrar al contenedor.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec iskylims_app bash
+
+# Regenerar static sin ejecutar migraciones.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec iskylims_app bash -lc \
+  'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py collectstatic --noinput'
+
+# Diagnostico previo a una recuperacion de bootstrap.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec iskylims_app bash -lc \
+  'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py check --deploy && python manage.py showmigrations --plan'
+```
+
+La recuperacion preferida es corregir la causa y repetir
+`container_install.sh --action install|upgrade` con la misma revision y
+configuracion protegida. Si el instalador no puede completarse y el responsable
+autoriza un bootstrap manual despues del backup:
+
+```bash
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec iskylims_app bash -lc \
+  'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py migrate --noinput && python manage.py collectstatic --noinput'
+```
+
+Registrar este procedimiento excepcional y ejecutar despues el smoke test.
+
+### Servicio Apache
+
+```bash
+# Logs separados de Apache y validacion de configuracion.
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  logs --tail 200 apache
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec apache httpd -t
+
+# Estado restringido; usar valores del fichero protegido.
+APACHE_PORT='CHANGE_ME'
+SERVER_STATUS_SERVER_NAME='localhost'
+curl --fail --show-error \
+  --header "Host: $SERVER_STATUS_SERVER_NAME" \
+  "http://127.0.0.1:$APACHE_PORT/server-status?auto"
+```
+
+Para diagnosticos SELinux y ModSecurity, comprobar el bind de logs antes de
+reiniciar:
+
+```bash
+ls -ldZ /var/log/local/relecov-platform/apache
+```
+
+Si aparece `ModSecurity: Failed to open debug log file`, conservar el fichero
+para diagnostico, ejecutar `fix-permissions` y reiniciar. Si hay que sustituir
+el inode, moverlo primero a un backup en vez de borrarlo.
+
+## Notas de permisos
+
+- Ejecutar siempre Podman y el instalador con el mismo usuario rootless.
+- No usar `sudo container_install.sh` ni cambiar propietarios dentro del storage
+  de Podman.
+- Mantener estables los UID/GID de runtime entre actualizaciones.
+- Revisar etiquetas SELinux y propietarios de bind mounts mediante
+  `fix-permissions`.
+- Preservar evidencias y backups antes de cualquier recuperacion destructiva.

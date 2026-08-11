@@ -1,97 +1,148 @@
-### Production specific installation config
-# Copy this file or edit the values below so they match the external
-# infrastructure you are connecting to before building the image.
+# Production configuration for this application service.
+# Copy to a protected ignored file, chmod 0600, and replace every CHANGE_ME.
+# The same file drives the ephemeral image build secret, host settings render,
+# Compose environment and temporary bootstrap copy.
 
-### Installation path and modules settings
+### Application layout and Django project
+# Source repository staged in the image and final application installation.
+REPO_PATH='/srv/relecov-platform'
 INSTALL_PATH='/opt/relecov-platform'
-PROJECT_NAME='relecov_platform'
-REQUIRED_MODULES='core dashboard docs'
-MIGRATION_MODULES='core dashboard django_plotly_dash'
+# Python package containing settings.py, urls.py and wsgi.py. This is generated
+# from project.json and normally should not be changed in this file.
+PROJECT_MODULE='relecov_platform'
+# Python executable used to create the application virtual environment.
+PYTHON_BIN_PATH='python3.11'
 
+### Application-specific installation modules
+# Optional space-separated Django applications consumed by installers that
+# support dependency, migration and fake-initial module lists. Leave empty when
+# the application install.sh does not implement the corresponding behavior.
+# iSkyLIMS example: REQUIRED_MODULES='core drylab wetlab clinic django_utils'
+REQUIRED_MODULES=''
+MIGRATION_MODULES=''
+FAKEINITIAL_MODULES=''
 
-### Container runtime settings
-# Host directory for Apache bind-mounted configuration files.
-# Keep this as a writable host path for rootless or hardened deployments.
-APACHE_CONF_PATH='/srv/containers/bind/relecov-platform/relecov_apache_conf'
-# Host path for the bind-mounted Django settings.py.
-DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/relecov_django_setting/settings.py'
+### Container runtime identity
+# UID/GID must own every writable bind mount and named volume.
+APP_UID='1212'
+APP_GID='1212'
+# Production services should normally use a non-login shell.
+APP_SHELL='/sbin/nologin'
+# Internal application port used by Gunicorn and the reverse proxy.
+APP_PORT='8001'
 
-# Host directory for Apache logs.
+### Persistent host sources
+# Documents use the Compose-managed app_documents named volume.
+# Application logs remain on the host and must be creatable by the installer.
+HOST_LOG_PATH='/var/log/local/relecov-platform/apps'
+# Host bind source rendered before Compose starts. It must be a file path, not
+# a directory; the parent directory is created and protected by the installer.
+DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/settings/relecov_platform/settings.py'
+
+### External production database
+# Use a host name or IP reachable from inside the application container.
+# For a database running on the container host with either Docker or Podman,
+# use host.docker.internal; the production Compose profile maps that alias.
+DB_HOST='CHANGE_ME'
+DB_PORT='3306'
+DB_NAME='CHANGE_ME'
+DB_USER='CHANGE_ME'
+DB_PASSWORD='CHANGE_ME'
+
+### Django security and public URLs
+# Production debug must remain disabled.
+DJANGO_DEBUG='false'
+# Preserve this value across upgrades; changing it invalidates signed data.
+DJANGO_SECRET_KEY='CHANGE_ME'
+# Comma-separated host names accepted by Django, without URL schemes.
+DJANGO_ALLOWED_HOSTS='CHANGE_ME'
+# Comma-separated complete HTTPS origins, including their schemes.
+DJANGO_CSRF_TRUSTED_ORIGINS='https://CHANGE_ME'
+# Persistent database connection lifetime in seconds.
+DB_CONN_MAX_AGE='60'
+
+### Email
+# SMTP endpoint reachable from the application container.
+EMAIL_HOST='CHANGE_ME'
+EMAIL_PORT='25'
+EMAIL_HOST_USER='CHANGE_ME'
+EMAIL_HOST_PASSWORD='CHANGE_ME'
+# Python boolean spelling is used because settings rendering writes this value
+# directly into settings.py.
+EMAIL_USE_TLS='False'
+
+### Initial administrator (bootstrap install only)
+# Opt in only when a fresh installation should create its first Django
+# administrator. Keep the protected production settings file mode at 0600.
+CREATE_INITIAL_SUPERUSER='false'
+DJANGO_SUPERUSER_USERNAME='admin'
+DJANGO_SUPERUSER_EMAIL=''
+DJANGO_SUPERUSER_PASSWORD=''
+
+### Gunicorn and startup tuning
+WEB_CONCURRENCY='2'
+GUNICORN_THREADS='2'
+GUNICORN_TIMEOUT='300'
+GUNICORN_KEEPALIVE='5'
+# Maximum time container_start.sh waits for staged application files.
+APP_START_WAIT_TIMEOUT_SECONDS='100'
+
+### Application log policy compatibility
+# regular_folder stores logs below INSTALL_PATH. symbolic_link links that
+# directory to LOG_PATH, which must already exist and be writable.
+LOG_TYPE='regular_folder'
+LOG_PATH=''
+
+### Selected infrastructure add-ons
+# Apache add-on
+# Used only when ADDONS.apache selects this application as CONFIG_SERVICE.
+
+# Repository-owned sources live under <repository>/conf/apache. The installer
+# renders them to <repository>/deployment/apache and mounts those final files;
+# APACHE_CONF_PATH is not used by the standard lifecycle. Keep it empty unless
+# legacy application code explicitly consumes a different host directory.
+# Example legacy override: APACHE_CONF_PATH='/srv/containers/bind/apache-conf'
+APACHE_CONF_PATH=''
+
+# Persistent host directory mounted as the Apache log destination.
 APACHE_LOG_PATH='/var/log/local/relecov-platform/apache'
-# Host directory for RELECOV Platform application logs.
-PLATFORM_LOG_PATH='/var/log/local/relecov-platform/apps'
-# Host directory for iSkyLIMS application logs when using the integrated stack.
-ISKYLIMS_LOG_PATH='/var/log/local/relecov-iskylims/apps'
 
-# Apache virtual host names rendered into the container reverse proxy config.
-# Leave RELECOV_PLATFORM_SERVER_NAME empty to use DNS_URL.
-RELECOV_PLATFORM_SERVER_NAME=''
-RELECOV_ISKYLIMS_SERVER_NAME='relecov-iskylims.isciiides.es'
-RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.isciiides.es'
+# Public host interface and port. Use 127.0.0.1 when another host reverse proxy
+# is the only component that should reach this Apache container.
+APACHE_BIND_HOST='0.0.0.0'
+APACHE_PORT='8080'
 
-# Apache server-status virtual host and access control.
-# Leave SERVER_STATUS_SERVER_NAME empty to use DNS_URL. Normally use vm hostname.
-SERVER_STATUS_SERVER_NAME=''
+# Public host name handled by the default VirtualHost. Use localhost for a
+# workstation deployment or the externally visible DNS name in production.
+APACHE_SERVER_NAME='CHANGE_ME_DNS_NAME'
+
+# Compose service receiving proxied requests. Leave empty to use the service
+# selected by ADDONS.apache.CONFIG_SERVICE (normally app for a single service).
+APACHE_UPSTREAM_SERVICE=''
+
+# Internal application port used by ProxyPass. Leave empty to use APP_PORT from
+# the selected service's production settings.
+APACHE_UPSTREAM_PORT=''
+
+# Maximum proxy request duration in seconds. Leave empty to use the selected
+# service's GUNICORN_TIMEOUT, falling back to 120 seconds when it is undefined.
+APACHE_PROXY_TIMEOUT=''
+
+# Prefix for the generated <stem>-apache.access.log and
+# <stem>-apache.error.log files. Leave empty to derive it from
+# APACHE_SERVER_NAME, with URL schemes, paths and ports removed.
+APACHE_LOG_STEM=''
+
+# Server-status stays restricted by default. Use a local-only diagnostic name;
+# aliases and allow-list accept Apache-compatible values.
+SERVER_STATUS_SERVER_NAME='localhost'
 SERVER_STATUS_ALIASES='127.0.0.1 localhost'
 SERVER_STATUS_ALLOW_FROM='127.0.0.1 localhost'
 
-# Forwarded headers set by Apache in production.
+# Forwarded headers received by Django behind the production proxy.
 APACHE_FORWARDED_PROTO='https'
 APACHE_FORWARDED_PORT='443'
 
-# Host port published for the Apache reverse proxy. Apache listens on 8081
-# inside the container.
-APACHE_HOST_PORT='8090'
-
-# UID/GID for the non-root relecov-platform user inside the app container.
-APP_UID='1212'
-APP_GID='1212'
-
-# Shell assigned to the container runtime user during image build.
-APP_SHELL='/sbin/nologin'
-
-# Internal app ports used by Gunicorn/Nextstrain.
-APP_PORT='8000'
-ISKYLIMS_APP_PORT='8001'
-NEXTSTRAIN_PORT='8100'
-# Public browser token used to compile the Auspice map tile URL.
-# Restrict this token in Mapbox to the deployed Nextstrain hostname.
-MAPBOX_ACCESS_TOKEN=''
-MAPBOX_STYLE_OWNER='mapbox'
-MAPBOX_STYLE_ID='light-v11'
-
-# Django production debug flag. Keep disabled in production.
-DJANGO_DEBUG='false'
-# Django persistent database connection lifetime in seconds.
-DB_CONN_MAX_AGE='60'
-# Gunicorn runtime tuning.
-WEB_CONCURRENCY='2'
-GUNICORN_THREADS='2'
-GUNICORN_TIMEOUT='600'
-GUNICORN_KEEPALIVE='5'
-
-### (optional) Python installation path where pip and python executables are located
-PYTHON_BIN_PATH='python3.11'
-
-### Settings required to access database (external MySQL server)
-DB_USER='django'
-DB_PASS='djangopass'
-DB_NAME='relecov_dev'
-# hostname or IP of the production DB (use host.containers.internal with Podman when the DB runs on the same host)
-DB_SERVER_IP='host.containers.internal'
-DB_PORT=3306
-
-### Settings required for sending emails
-EMAIL_HOST_SERVER='smtp.yourdomain'
-EMAIL_PORT='25'
-EMAIL_HOST_USER='bioinfo'
-EMAIL_HOST_PASSWORD=''
-EMAIL_USE_TLS='False'
-
-### Settings required for accessing iSkyLIMS
-LOCAL_SERVER_IP='*'
-DNS_URL='*'
-
-### Logs settings
-LOG_TYPE="regular_folder"
-LOG_PATH=""
+# 50 MiB. The reverse-proxy template applies this value to Apache and, when
+# loaded, ModSecurity. Increase it only for endpoints that require larger data.
+APACHE_LIMIT_REQUEST_BODY='52428800'
