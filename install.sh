@@ -197,6 +197,7 @@ install_application_system_packages() {
             mariadb-connector-c-devel \
             httpd-devel \
             gcc \
+            gcc-c++ \
             make \
             shadow-utils
         microdnf clean all
@@ -206,6 +207,7 @@ install_application_system_packages() {
             mariadb-connector-c-devel \
             httpd-devel \
             gcc \
+            gcc-c++ \
             make \
             shadow-utils
     else
