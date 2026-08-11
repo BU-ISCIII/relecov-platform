@@ -4,6 +4,9 @@
       "apache": {
         "CONFIG_SERVICE": "app"
       },
+      "nextstrain": {
+        "CONFIG_SERVICE": "app"
+      },
       "samba": {
         "CONFIG_SERVICE": "iskylims_app",
         "MODES": [
@@ -43,23 +46,25 @@
     ".dockerignore": "49a5b2223fb2a4f4201c19a833c60ba91f3e979632b6ae45fd4aca4cf22abb32",
     ".gitignore": "5f08b2eb5e81fa7a1f4d5bc73df8ba6741e4a3f78925890c3fd1018f2188545b",
     "Dockerfile": "4fdbc95d7aadfc8bc2dbdd0b83ac767cb5a2323a4fbd2b35edb625d36dc02b6f",
-    "LEAME.md": "761ed591cb374b3efcdcd0199ef1c93a7bdb64239dc437c8c9be0f3c05d3aedb",
-    "README.md": "8ba6128d3849f50748f06b8be6823c193ef5e7873919e81c8a5f94972ef56642",
-    "conf/INSTALL_SETTINGS.md": "6dc932b73910ac74d73e119639f2c914dc1f19e1f20684dd468d84c01655bce9",
+    "LEAME.md": "c3ecddd699e2f52be2930b7a8b2b7857573c1bb427dc88a7f6c769575c1a48b3",
+    "README.md": "6381c4142d5ed1ca6ea8fac3f9762c3190bb5d3044db5e50dc0357e743b86d6a",
+    "conf/INSTALL_SETTINGS.md": "408e5ed7bff1e6058ae1d3d0abd0f7b23cb098412e496b1a1ad63d96d9107be9",
     "conf/apache/00-logs.conf": "3c2ab4e693e528d2cad37c0c5bb0bc4511803a7f206b339182de192d4e398092",
     "conf/apache/01-reverse-proxy.conf": "25c670b5669d2887620e6688da4b890bd6d54ea97a613248cc0b969cc03e5476",
     "conf/apache/02-server-status.conf": "c3b5d26f9b551083faf0d85b188bfa9c577ff0bd3b805f0ec104fe4f7d5101cb",
-    "conf/docker_production_settings.txt": "38b106aea34acfaabf23005dfa44be1592027f1b52b4369071a352d030e26f55",
-    "conf/docker_test_settings.txt": "9f7e0d201bf44c807da848bbfac25b5127e1ebac16956976d921257f52daabfb",
+    "conf/docker_production_settings.txt": "b506c50ed31e780be6eb47b90a14bf335765addb2e42a0e53b8dc23c9fc71b45",
+    "conf/docker_test_settings.txt": "5c72b1e36a17ba24875ef68a00be4d53ccd6e50a62e4a24875b58f75dc9b2bae",
     "conf/template_settings.py": "eac590e6ffd64ede3ee73babb317669f80f433dc07b70c7b3de0848431b6676c",
-    "container_install.sh": "40d60bb2ea9f818df4a4565c1f749f90c6cdd20adb5a1a670d7b75d9b535dbc3",
+    "container_install.sh": "73ff5f9c0f5068e2197b9b6f2e2e73c287f5f5d89f31c237d51984883a27458f",
     "deployment_health/README.md": "3d7c4295938708813369deeac9edc0eb8fe2153c77d03f9138febf3aed715aa5",
     "deployment_health/__init__.py": "bedcff132309f8970b1ca72fcea20c7cb38bb727d48f82d96dbf7104922abda0",
     "deployment_health/urls.py": "8d274b44d326f26d71b05021a34969c742478efbe47691aadd8c3a90ba16f340",
     "deployment_health/views.py": "d19cc3e8fef8519bae2b7fbdc25d17f6ae7df02479aa8890f4b4d250bb07f2e4",
-    "docker-compose.prod.yml": "6ff0bbad03926157c4af147c4daa3d4efa36d3a7ab101a936915601635a93d3d",
-    "docker-compose.test.yml": "807a7968b13eb8ffad88ff8ac20e6c72119080d541d7de05143864cbd13a8cea",
+    "docker-compose.prod.yml": "30df3b5bf90a4d88a81a2d577c34a5f7066c4ee02e2ffccdea4ef7c488a19619",
+    "docker-compose.test.yml": "57d291d137b5edd47fe0e32dd96b78201172f5a256e5d5edcf6043a2cbbd9e3c",
     "install.sh": "4ff1014c16779cbbd00046e1200daa7a45e7c6af406d6531ec6439ec7b73bb3f",
+    "nextstrain/Dockerfile": "f1a3426c2ac065ddb0841e21d657f068c9584e47b8193077cd3bd85e15391335",
+    "nextstrain/auspice-config.json": "6fc666bf5a0d05293dfdb6cc6b0800637e52c3335bda065b78c036fb6af0d7af",
     "scripts/container_start.sh": "4b1f3796d1915ce97d0769cc13e711aa62c3c7430051ac075be802fc38e8de9a",
     "scripts/smoke_test.sh": "bf3f6466348982d3252332d5aeae3f069af2ffb3a7b592a316ebc96403046ea3"
   },
