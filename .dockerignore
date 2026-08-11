@@ -1,0 +1,32 @@
+# Production installation settings are passed through a build secret. Exclude
+# all local settings and allow only committed, non-sensitive templates/tests.
+install_settings.txt
+conf/*settings*.txt
+!conf/docker_test_settings.txt
+!conf/template_install_settings.txt
+!conf/template_settings.txt
+.tmp_docker_install_conf_*.txt
+.env
+.env.*
+!.env.example
+.env.prod.file
+# Runtime-rendered add-on bind sources are not image build inputs.
+deployment/apache/*.conf
+
+.venv/
+venv/
+virtualenv/
+node_modules/
+.npm/
+.vite/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.vscode/
+.idea/
+logs/
+tmp/
+documents/
+build/
+dist/
+*.egg-info/
