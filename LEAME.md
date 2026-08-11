@@ -83,6 +83,7 @@ Persistencia declarada por el despliegue:
 | `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
+| Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
 | Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
 ## Preparar directorios del host
