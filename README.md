@@ -542,6 +542,33 @@ bash container_install.sh --action fix-permissions --engine podman \
 podman compose --env-file .env.production.file -f docker-compose.prod.yml restart apache
 ```
 
+#### Nextstrain dataset volume
+
+The installer creates and preserves the `nextstrain_data` volume but does not
+choose or download datasets. After deployment, copy the reviewed Auspice data
+from the host through the running service:
+
+```bash
+NEXTSTRAIN_SOURCE='/srv/relecov-nextstrain-data'
+NEXTSTRAIN_DATA_DIR='/data' # Must match the protected Nextstrain settings.
+test -d "$NEXTSTRAIN_SOURCE"
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  cp "$NEXTSTRAIN_SOURCE/." "nextstrain:$NEXTSTRAIN_DATA_DIR/"
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec nextstrain find "$NEXTSTRAIN_DATA_DIR" -maxdepth 2 -type f
+```
+
+Replace `podman` with `docker` when applicable. Copying updates matching paths
+but does not remove stale datasets. Back up the volume and remove obsolete
+files deliberately; never delete the volume during a normal upgrade.
+
+```bash
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec -T nextstrain tar -C /data -czf - . > nextstrain-data.tar.gz
+```
+
+Open the public Nextstrain URL and verify every expected dataset or narrative.
+
 ## Final configuration steps
 
 Sign in to the Relecov Django administration site after deployment. The
