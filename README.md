@@ -64,14 +64,30 @@ Selected add-ons:
 - Git and access to every declared build context.
 - Docker Engine with Compose v2, or Podman with a Compose provider.
 - Enough disk and memory for image builds and persistent application data.
-- A protected production settings file for every application service.
+- A protected production settings file for every application and selected add-on.
 - Production DNS, TLS termination, database, storage, email, identity, backup,
   and monitoring services required by the selected profiles.
 
-Copy each service's `conf/docker_production_settings.txt` to a protected,
-ignored file, set mode `0600`, and replace every `CHANGE_ME` value. The exact
+Copy each application's settings and each `conf/<addon>/*_production_settings.txt`
+to protected ignored files, set mode `0600`, and replace every `CHANGE_ME`. The exact
 meaning and security classification of settings is in
 [`conf/INSTALL_SETTINGS.md`](conf/INSTALL_SETTINGS.md).
+
+Create the ignored deployment settings directory and copy every production
+template that this topology consumes:
+
+```bash
+install -d -m 0700 deployment/settings
+install -m 0600 conf/docker_production_settings.txt deployment/settings/app_production_settings.txt
+install -m 0600 ../relecov-iskylims/conf/docker_production_settings.txt deployment/settings/iskylims_app_production_settings.txt
+install -m 0600 conf/apache/apache_production_settings.txt deployment/settings/apache_production_settings.txt
+install -m 0600 conf/nextstrain/nextstrain_production_settings.txt deployment/settings/nextstrain_production_settings.txt
+install -m 0600 conf/samba/samba_production_settings.txt deployment/settings/samba_production_settings.txt
+```
+
+Edit only the copies under `deployment/settings/`, replace every `CHANGE_ME`,
+and keep their mode at `0600`. Both installation workflows below point to
+these protected copies.
 
 ## Docker deployment
 
@@ -142,7 +158,7 @@ Docker:
 ```bash
 bash container_install.sh --action install --engine docker \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 Podman:
@@ -150,7 +166,7 @@ Podman:
 ```bash
 bash container_install.sh --action install --engine podman \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 The installer creates `.env.production.file`; use it for later direct Compose
@@ -218,7 +234,7 @@ notes:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <new-reviewed-tag-or-commit> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 Replace `podman` with `docker` for a Docker-managed deployment. Stop on build,
@@ -255,11 +271,11 @@ after the application developer documents and tests those integrations.
 ```bash
 # Stage application files and dependencies.
 bash install.sh --stage install --git_revision current \
-  --conf conf/docker_production_settings.txt
+  --conf deployment/settings/app_production_settings.txt
 
 # Bootstrap the prepared runtime (settings, migrations and static files).
 bash install.sh --bootstrap install \
-  --conf conf/docker_production_settings.txt
+  --conf deployment/settings/app_production_settings.txt
 ```
 
 For upgrades, take a backup and replace both `install` actions with `upgrade`.
@@ -346,7 +362,7 @@ settings files, and backup identifiers.
 
 ```bash
 BACKUP_DIR="/srv/containers/backup/relecov-platform/$(date +%Y%m%d_%H%M%S)"
-SETTINGS_FILE='/protected/app_production_settings.txt'
+SETTINGS_FILE='deployment/settings/app_production_settings.txt'
 DOCUMENTS_VOLUME='CHANGE_ME'
 DB_HOST='CHANGE_ME'
 DB_PORT='3306'
@@ -392,7 +408,7 @@ Compatible application-only rollback:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <previous-reviewed-revision> \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 Full restore when schema or persistent-file formats are incompatible:
@@ -410,7 +426,7 @@ mysql --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password \
 podman volume import "$DOCUMENTS_VOLUME" "$BACKUP_DIR/documents.tar"
 tar -C /srv/containers/bind -xzf "$BACKUP_DIR/bind-mounts.tar.gz"
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 Then deploy the revision recorded in `git-revision.txt`, start the deployment,
@@ -427,7 +443,7 @@ volume at `/data` and extracting `/backup/documents.tar` there.
 
    ```bash
    bash container_install.sh --action fix-permissions --engine podman \
-     --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+     --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
    ```
 
 5. Do not fake migrations, delete volumes, or rebuild from an unrecorded
@@ -519,7 +535,7 @@ be replaced, move it to a timestamped backup instead of deleting evidence:
 sudo mv /var/log/local/relecov-platform/apache/modsec_debug.log \
   /var/log/local/relecov-platform/apache/modsec_debug.log.blocked
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,/protected/app_production_settings.txt --install_conf_map iskylims_app,/protected/iskylims_app_production_settings.txt --install_conf_map apache,/protected/apache_production_settings.txt --install_conf_map nextstrain,/protected/nextstrain_production_settings.txt --install_conf_map samba,/protected/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 podman compose --env-file .env.production.file -f docker-compose.prod.yml restart apache
 ```
 
