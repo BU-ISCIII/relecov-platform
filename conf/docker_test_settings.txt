@@ -8,15 +8,14 @@ PYTHON_BIN_PATH='python3.11'
 
 ### Application-specific installation modules
 # Optional lists used only when install.sh implements these operations.
-REQUIRED_MODULES=''
-MIGRATION_MODULES=''
-FAKEINITIAL_MODULES=''
+REQUIRED_MODULES='core dashboard docs'
+MIGRATION_MODULES='core dashboard django_plotly_dash'
 
 ### Container runtime identity
 APP_UID='1212'
 APP_GID='1212'
 APP_SHELL='/bin/bash'
-APP_PORT='8001'
+APP_PORT='8000'
 
 ### Disposable persistence paths
 HOST_LOG_PATH='/tmp/relecov-platform/logs'
@@ -35,7 +34,7 @@ DB_ROOT_PASSWORD='root'
 DJANGO_DEBUG='true'
 DJANGO_SECRET_KEY='test-only-change-me'
 DJANGO_ALLOWED_HOSTS='*'
-DJANGO_CSRF_TRUSTED_ORIGINS='http://localhost:8001,http://127.0.0.1:8001'
+DJANGO_CSRF_TRUSTED_ORIGINS='http://localhost:8000,http://127.0.0.1:8000,http://platform.localhost:8081'
 DB_CONN_MAX_AGE='60'
 
 ### Local email defaults
