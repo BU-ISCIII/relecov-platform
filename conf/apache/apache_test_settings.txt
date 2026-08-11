@@ -11,9 +11,8 @@ APACHE_BIND_HOST='0.0.0.0'
 APACHE_PORT='8081'
 
 # Host name handled by the local test VirtualHost.
-APACHE_SERVER_NAME='localhost'
+APACHE_SERVER_NAME='platform.localhost'
 
-RELECOV_PLATFORM_SERVER_NAME='platform.localhost'
 RELECOV_ISKYLIMS_SERVER_NAME='iskylims.localhost'
 RELECOV_NEXTSTRAIN_SERVER_NAME='nextstrain.localhost'
 
