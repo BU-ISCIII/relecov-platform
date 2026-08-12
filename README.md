@@ -2,11 +2,51 @@
 
 Integrated RELECOV metadata, validation, submission, LIMS, and visualization platform.
 
-> Application developers: replace this short description with the domain
-> overview, architecture image, user-facing documentation link, and support
-> channel. The installation sections below are rendered by the deployment
-> standard and are ready to use unless explicitly marked for review.
+RELECOV is the Spanish network for genomic surveillance of SARS-CoV-2,
+coordinated by the Reference Laboratory for Respiratory Viruses of the
+National Microbiology Center at the Instituto de Salud Carlos III. This web
+platform centralizes processed genomic data and associated metadata, validates
+laboratory and bioinformatic submissions, supports controlled data access and
+public-repository submission workflows, and presents surveillance metrics and
+variant visualizations.
 
+The application works with [iSkyLIMS](https://github.com/BU-ISCIII/iSkyLIMS)
+for laboratory and sample-tracking workflows and with Nextstrain for genomic
+epidemiology visualization. User, administrator, metadata, API, dashboard, and
+Nextstrain guides are available in the
+[application documentation](docs/markdown_files/index.md). For defects and
+support requests, open an issue in the
+[RELECOV Platform repository](https://github.com/BU-ISCIII/relecov-platform/issues).
+
+## Infrastructure overview
+
+Apache is the public entry point for the integrated deployment and routes each
+configured DNS name to its internal service. The Django applications retain
+separate databases and persistent document/static storage. Nextstrain reads
+datasets from its own persistent volume. Production databases may be external;
+the local test deployment creates the two MySQL services shown below.
+
+```mermaid
+flowchart LR
+    users[Network users and administrators] --> apache[Apache reverse proxy]
+
+    apache --> platform[RELECOV Platform<br/>Django and Gunicorn]
+    apache --> iskylims[iSkyLIMS<br/>Django and Gunicorn]
+    apache --> nextstrain[Nextstrain<br/>Auspice]
+
+    platform --> platform_db[(RELECOV database)]
+    platform --> platform_assets[(Documents and static files)]
+    platform -->|REST integration| iskylims
+
+    iskylims --> iskylims_db[(iSkyLIMS database)]
+    iskylims --> iskylims_assets[(Documents and static files)]
+
+    nextstrain --> datasets[(Nextstrain datasets)]
+
+    apache --> apache_logs[(Apache logs)]
+```
+
+- [Infrastructure overview](#infrastructure-overview)
 - [Get the code (required)](#get-the-code-required)
 - [Choose your path](#choose-your-path)
 - [Minimum requirements](#minimum-requirements)
