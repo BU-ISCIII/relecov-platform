@@ -23,7 +23,7 @@ HOST_LOG_PATH='/tmp/relecov-platform/logs'
 DJANGO_SETTINGS_PATH='/tmp/relecov-platform/data/settings/relecov_platform/settings.py'
 
 ### Compose test database
-DB_HOST='app_db'
+DB_HOST='relecov_platform_app_db'
 DB_PORT='3306'
 DB_NAME='relecov_platform'
 DB_USER='django'
