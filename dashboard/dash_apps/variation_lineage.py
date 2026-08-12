@@ -9,22 +9,12 @@ APP_NAME = "variationLineageOverTime"
 
 
 def register():
-    data_df = (
-        dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
-    )
-    if isinstance(data_df, dict) or data_df.empty:
-        first_date = None
-        last_date = None
-        initial_figure = {}
-    else:
-        first_date = data_df["Collection date"].min()
-        last_date = data_df["Collection date"].max()
-        df_full = dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
-            data_df
-        )
-        initial_figure = dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
-            df_full
-        )
+    # AppConfig.ready() calls this function for every Django management
+    # command. Keep registration free of database and external API work so a
+    # fresh installation can migrate and load its initial configuration.
+    first_date = None
+    last_date = None
+    initial_figure = {}
 
     app = DjangoDash(
         APP_NAME,
