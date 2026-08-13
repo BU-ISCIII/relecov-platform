@@ -12,6 +12,7 @@ aprobacion, el responsable de la aplicacion debe completar los campos marcados
 - [Preparar directorios del host](#preparar-directorios-del-host)
 - [Actualizar codigo](#actualizar-codigo)
 - [Configurar los ajustes de produccion](#configurar-los-ajustes-de-produccion)
+- [Migrar datos en la primera instalacion de produccion](#migrar-datos-en-la-primera-instalacion-de-produccion)
 - [Backup antes de actualizar](#backup-antes-de-actualizar)
 - [Ejecutar la actualizacion](#ejecutar-la-actualizacion)
 - [Comprobaciones posteriores](#comprobaciones-posteriores)
@@ -79,12 +80,11 @@ Persistencia declarada por el despliegue:
 | `iskylims_app` database | External production database | Database backup before migration |
 | `iskylims_app` documents | `iskylims_app_documents` named volume | Volume backup |
 | `iskylims_app` static | `iskylims_app_static` named volume | Replaceable through collectstatic |
-| `iskylims_app` logs | `/var/log/local/relecov-platform/apps` host bind | Retain/rotate per institutional log policy |
+| `iskylims_app` logs | `/var/log/local/relecov-iskylims/apps` host bind | Retain/rotate per institutional log policy |
 | `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
-| Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
 ## Preparar directorios del host
 
@@ -109,7 +109,7 @@ instalador. No modificar el arbol `/srv/containers/storage/` manualmente.
 
 ```bash
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 ## Actualizar codigo
@@ -140,7 +140,6 @@ install -m 0600 conf/docker_production_settings.txt deployment/settings/app_prod
 install -m 0600 ../relecov-iskylims/conf/docker_production_settings.txt deployment/settings/iskylims_app_production_settings.txt
 install -m 0600 conf/apache/apache_production_settings.txt deployment/settings/apache_production_settings.txt
 install -m 0600 conf/nextstrain/nextstrain_production_settings.txt deployment/settings/nextstrain_production_settings.txt
-install -m 0600 conf/samba/samba_production_settings.txt deployment/settings/samba_production_settings.txt
 ```
 
 Editar unicamente las copias bajo `deployment/settings/`. Los comandos de
@@ -153,6 +152,116 @@ Valores que requieren decision del responsable de la aplicacion:
 - rutas persistentes, UID/GID, SELinux y politica de backup;
 - correo, identidad, almacenamiento y ajustes propios de la aplicacion;
 - administrador inicial y transferencia segura de sus credenciales.
+
+## Migrar datos en la primera instalacion de produccion
+
+Esta seccion solo se aplica cuando la primera instalacion debe conservar las
+bases de datos y documentos de un despliegue anterior. Preparar, como minimo,
+los siguientes artefactos y comprobar sus sumas antes de comenzar:
+
+```text
+input/
+|-- relecov_platform.sql
+|-- relecov_iskylims.sql
+|-- relecov_platform_documents.tar
+|-- relecov_iskylims_documents.tar
+`-- nextstrain_data.tar
+```
+
+Detener las escrituras en el sistema de origen antes de generar los dumps y
+archives definitivos. Conservar una copia independiente hasta completar las
+comprobaciones posteriores a la instalacion.
+
+### Importar las bases de datos
+
+Los nombres de base de datos, hosts y usuarios deben coincidir exactamente con
+los ficheros protegidos de `deployment/settings/`. Crear las bases de datos y
+conceder permisos con una cuenta administrativa; introducir las contrasenas de
+forma interactiva para no guardarlas en el historial:
+
+```bash
+DB_HOST='<host-mysql>'
+DB_PORT='3306'
+PLATFORM_DB='<base-relecov-platform>'
+ISKYLIMS_DB='<base-relecov-iskylims>'
+APP_DB_USER='<usuario-django>'
+
+mysql --host="$DB_HOST" --port="$DB_PORT" --user=root --password <<SQL
+CREATE DATABASE IF NOT EXISTS \`${PLATFORM_DB}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS \`${ISKYLIMS_DB}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON \`${PLATFORM_DB}\`.* TO '${APP_DB_USER}'@'%';
+GRANT ALL PRIVILEGES ON \`${ISKYLIMS_DB}\`.* TO '${APP_DB_USER}'@'%';
+FLUSH PRIVILEGES;
+SQL
+
+mysql --host="$DB_HOST" --port="$DB_PORT" --user="$APP_DB_USER" --password \
+  "$PLATFORM_DB" < input/relecov_platform.sql
+mysql --host="$DB_HOST" --port="$DB_PORT" --user="$APP_DB_USER" --password \
+  "$ISKYLIMS_DB" < input/relecov_iskylims.sql
+```
+
+### Restaurar documentos y datos de Nextstrain
+
+Compose antepone normalmente el nombre del proyecto a los volumenes logicos,
+pero el prefijo puede variar segun el directorio, `COMPOSE_PROJECT_NAME` y el
+proveedor de Compose. Fijar y exportar un nombre estable antes de ejecutar el
+instalador, crear explicitamente los tres volumenes y mantener esa variable en
+la sesion usada para la instalacion:
+
+```bash
+export COMPOSE_PROJECT_NAME='relecov-platform'
+
+podman volume create "${COMPOSE_PROJECT_NAME}_app_documents"
+podman volume create "${COMPOSE_PROJECT_NAME}_iskylims_app_documents"
+podman volume create "${COMPOSE_PROJECT_NAME}_nextstrain_data"
+
+podman volume ls --format '{{.Name}}' | grep -E \
+  '(^|_)(app_documents|iskylims_app_documents|nextstrain_data)$'
+```
+
+No asumir que esos son los nombres correctos si los volumenes ya existian o se
+uso anteriormente otro nombre de proyecto. Identificar y revisar los tres
+nombres fisicos antes de importar:
+
+```bash
+PLATFORM_DOCUMENTS_VOLUME='<nombre-real_app_documents>'
+ISKYLIMS_DOCUMENTS_VOLUME='<nombre-real_iskylims_app_documents>'
+NEXTSTRAIN_VOLUME='<nombre-real_nextstrain_data>'
+
+podman volume inspect "$PLATFORM_DOCUMENTS_VOLUME"
+podman volume inspect "$ISKYLIMS_DOCUMENTS_VOLUME"
+podman volume inspect "$NEXTSTRAIN_VOLUME"
+```
+
+Los volumenes de destino deben estar vacios. Cada `.tar` debe contener
+directamente los ficheros que deben quedar en la raiz del volumen, no una
+carpeta contenedora adicional llamada `documents` o `nextstrain_data`:
+
+```text
+relecov_platform_documents.tar
+|-- <fichero_o_directorio_1>
+`-- <fichero_o_directorio_2>
+```
+
+Comprobar la estructura y efectuar la importacion:
+
+```bash
+tar -tf input/relecov_platform_documents.tar | head
+tar -tf input/relecov_iskylims_documents.tar | head
+tar -tf input/nextstrain_data.tar | head
+
+podman volume import "$PLATFORM_DOCUMENTS_VOLUME" \
+  input/relecov_platform_documents.tar
+podman volume import "$ISKYLIMS_DOCUMENTS_VOLUME" \
+  input/relecov_iskylims_documents.tar
+podman volume import "$NEXTSTRAIN_VOLUME" input/nextstrain_data.tar
+```
+
+Ejecutar despues la primera instalacion con `container_install.sh` desde la
+misma sesion, conservando `COMPOSE_PROJECT_NAME`. El instalador debe reutilizar
+estos volumenes, aplicar permisos, ejecutar las migraciones pendientes y
+conservar los datos importados. Verificar al terminar que ambas aplicaciones
+muestran sus documentos y que Nextstrain publica todos los datasets esperados.
 
 ## Backup antes de actualizar
 
@@ -208,7 +317,7 @@ Primera instalacion:
 ```bash
 bash container_install.sh --action install --engine podman \
   --git_revision <revision-aprobada> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Actualizacion:
@@ -216,7 +325,7 @@ Actualizacion:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <nueva-revision-aprobada> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Durante `--action upgrade`, `container_install.sh`:
@@ -255,7 +364,7 @@ la revision anterior registrada y repetir las pruebas:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <revision-anterior> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Si no son compatibles, detener escrituras y restaurar el punto completo:
@@ -291,7 +400,7 @@ Primera fase, incluso con los contenedores detenidos:
 
 ```bash
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Esta accion no construye imagenes, no migra la base de datos y no borra datos.
@@ -301,7 +410,7 @@ Arrancar y repetirla para reparar tambien los volumenes montados:
 ```bash
 podman compose --env-file .env.production.file -f docker-compose.prod.yml up -d
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 ## Operaciones utiles
