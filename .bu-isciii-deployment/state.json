@@ -68,7 +68,7 @@
     "deployment_health/views.py": "d19cc3e8fef8519bae2b7fbdc25d17f6ae7df02479aa8890f4b4d250bb07f2e4",
     "docker-compose.prod.yml": "30df3b5bf90a4d88a81a2d577c34a5f7066c4ee02e2ffccdea4ef7c488a19619",
     "docker-compose.test.yml": "86f2ec8a4da1a1d537de58265b0dad9fd73c50173f05659c7171cd9db91de434",
-    "install.sh": "2642bd4cdbe7c50f6266289cf60eb76479db4f55313228e3b75af3f50e2ae3ca",
+    "install.sh": "8435fb5e8504c23d59138bda6b22223e59cea27a590fb3517d5c7e163c527f65",
     "nextstrain/Dockerfile": "f1a3426c2ac065ddb0841e21d657f068c9584e47b8193077cd3bd85e15391335",
     "nextstrain/auspice-config.json": "6fc666bf5a0d05293dfdb6cc6b0800637e52c3335bda065b78c036fb6af0d7af",
     "scripts/container_start.sh": "4b1f3796d1915ce97d0769cc13e711aa62c3c7430051ac075be802fc38e8de9a",
