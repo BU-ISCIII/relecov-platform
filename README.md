@@ -125,7 +125,6 @@ install -m 0600 conf/docker_production_settings.txt deployment/settings/app_prod
 install -m 0600 ../relecov-iskylims/conf/docker_production_settings.txt deployment/settings/iskylims_app_production_settings.txt
 install -m 0600 conf/apache/apache_production_settings.txt deployment/settings/apache_production_settings.txt
 install -m 0600 conf/nextstrain/nextstrain_production_settings.txt deployment/settings/nextstrain_production_settings.txt
-install -m 0600 conf/samba/samba_production_settings.txt deployment/settings/samba_production_settings.txt
 ```
 
 Edit only the copies under `deployment/settings/`, replace every `CHANGE_ME`,
@@ -201,7 +200,7 @@ Docker:
 ```bash
 bash container_install.sh --action install --engine docker \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Podman:
@@ -209,7 +208,7 @@ Podman:
 ```bash
 bash container_install.sh --action install --engine podman \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 The installer creates `.env.production.file`; use it for later direct Compose
@@ -228,12 +227,11 @@ not copied into image layers.
 | `iskylims_app` database | External production database | Database backup before migration |
 | `iskylims_app` documents | `iskylims_app_documents` named volume | Volume backup |
 | `iskylims_app` static | `iskylims_app_static` named volume | Replaceable through collectstatic |
-| `iskylims_app` logs | `/var/log/local/relecov-platform/apps` host bind | Retain/rotate per institutional log policy |
+| `iskylims_app` logs | `/var/log/local/relecov-iskylims/apps` host bind | Retain/rotate per institutional log policy |
 | `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
-| Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
 The standard fixes application binds below `/srv/containers/bind/relecov-platform`
 and logs below `/var/log/local/relecov-platform`. The operator must still record the
@@ -277,7 +275,7 @@ notes:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <new-reviewed-tag-or-commit> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Replace `podman` with `docker` for a Docker-managed deployment. Stop on build,
@@ -451,7 +449,7 @@ Compatible application-only rollback:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <previous-reviewed-revision> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Full restore when schema or persistent-file formats are incompatible:
@@ -469,7 +467,7 @@ mysql --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password \
 podman volume import "$DOCUMENTS_VOLUME" "$BACKUP_DIR/documents.tar"
 tar -C /srv/containers/bind -xzf "$BACKUP_DIR/bind-mounts.tar.gz"
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Then deploy the revision recorded in `git-revision.txt`, start the deployment,
@@ -486,7 +484,7 @@ volume at `/data` and extracting `/backup/documents.tar` there.
 
    ```bash
    bash container_install.sh --action fix-permissions --engine podman \
-     --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
    ```
 
 5. Do not fake migrations, delete volumes, or rebuild from an unrecorded
@@ -578,7 +576,7 @@ be replaced, move it to a timestamped backup instead of deleting evidence:
 sudo mv /var/log/local/relecov-platform/apache/modsec_debug.log \
   /var/log/local/relecov-platform/apache/modsec_debug.log.blocked
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 podman compose --env-file .env.production.file -f docker-compose.prod.yml restart apache
 ```
 
@@ -622,6 +620,58 @@ under `deployment/settings/`. Open **Administration → Core → Config settings
 (`/admin/core/configsetting/`) and update the existing record or create it when
 it is absent.
 
+### Initialize RELECOV Platform
+
+Complete this application-level configuration after the first production
+installation and before accepting normal workloads:
+
+1. Open **Configuration → SchemaHandling** and upload the reviewed RELECOV
+   schema. The repository copy is [`conf/relecov_schema.json`](conf/relecov_schema.json);
+   verify that it is the approved version for the deployment before loading it.
+2. Open **Configuration → Annotation** and load the reference annotation from
+   [`conf/NC_045512.2.gff`](conf/NC_045512.2.gff). This is the file historically
+   installed as `conf/NC_045512.2.gff`; replace it only through the reviewed
+   application release process.
+
+Loading a different schema or annotation changes application behaviour and
+may affect existing records. Back up the database first when repeating either
+operation on an established deployment.
+
+### Configure RELECOV in iSkyLIMS
+
+Sign in to the iSkyLIMS administration and WetLab interfaces, then complete
+the following checklist:
+
+1. Create the dedicated `relecovbot` user under `/admin/auth/user/`. Assign
+   only the permissions and groups required by the RELECOV integration.
+2. In **WetLab → PARAMETERS SETTINGS → Define Sample projects**, create the
+   RELECOV sample project if it is absent and assign its manager.
+3. In that project, open **Define fields → Load batch**, upload the approved
+   `relecov_schema.json`, select `classification` as the property used to fetch
+   fields, and load the required classifications. Review at least:
+   **Database Identifiers**, **Files info**, **Host information**,
+   **Pathogen diagnostic testing**, **Sample collection and processing**, and
+   **Sequencing**.
+4. Configure these ontology mappings under `/admin/core/ontologymap/`:
+
+   | iSkyLIMS field | Ontology term | RELECOV meaning |
+   |---|---|---|
+   | `lab_request` | `GENEPIO:0001153` | submitting institution |
+   | `species` | `GENEPIO:0001386` | organism |
+   | `sample_name` | `GENEPIO:0001123` | sequencing sample ID |
+   | `sample_entry_date` | `NCIT:C93644` | received date |
+   | `collection_sample_date` | `GENEPIO:0001174` | sample collection date |
+
+5. In **PARAMETERS SETTINGS → Initial Settings → Define new Specie**, add all
+   organism values allowed by the deployed schema, including every value that
+   will be received through the integration.
+6. Ensure that the `wetlab` application assignment is enabled for the RELECOV
+   project and its workflow.
+
+Treat the project fields, classifications, ontology mappings, and species as
+versioned application configuration. Record the reviewed values used for each
+production release.
+
 ### Configure iSkyLIMS integration
 
 Configure these records:
@@ -649,12 +699,14 @@ their deployment settings and operational workflow.
 
 ### Verify integrations
 
-1. Open the Relecov home page and confirm its Nextstrain link reaches the
+1. From the Relecov application container, verify that `ISKYLIMS_SERVER` is
+   reachable and resolves to the intended iSkyLIMS endpoint.
+2. Open the Relecov home page and confirm its Nextstrain link reaches the
    expected visualization.
-2. Exercise a Relecov workflow that reads from iSkyLIMS.
-3. Exercise an authorized update operation and confirm the dedicated API
+3. Exercise a Relecov workflow that reads from iSkyLIMS.
+4. Exercise an authorized update operation and confirm the dedicated API
    credentials work.
-4. Review application logs for authentication, DNS, TLS, or API errors.
+5. Review application logs for authentication, DNS, TLS, or API errors.
 
 ## Developer notes
 
@@ -663,6 +715,44 @@ their deployment settings and operational workflow.
 `container_install.sh` sources the vendored files under
 `deployment/lib/container/`. Do not edit those copies. Check or update them
 from the standards repository with `scaffold.py check-lib` or `sync-lib`.
+
+### Run the developer tests
+
+Use Python 3.11, matching the application container. From the repository root,
+create and activate the dedicated Micromamba environment:
+
+```bash
+micromamba create -f conf/test-environment.yml
+micromamba activate relecov-platform-test
+```
+
+The environment installs the pinned application requirements. Their native
+extensions require the same compiler and development headers documented for a
+bare-metal installation.
+
+Run the application tests with the lightweight test settings:
+
+```bash
+DJANGO_SETTINGS_MODULE=tests.settings \
+  python -m django test core dashboard --verbosity 2 --buffer
+```
+
+These settings use SQLite and do not connect to the production MySQL database,
+iSkyLIMS, or other external services. The `--buffer` option suppresses output
+from successful tests while retaining it for failures.
+
+Generate terminal and HTML coverage reports using the repository
+`.coveragerc`:
+
+```bash
+coverage run -m django test core dashboard --settings=tests.settings --buffer
+coverage report
+coverage html
+```
+
+Open `htmlcov/index.html` to inspect the HTML report. Coverage configuration
+excludes framework wiring such as migrations, admin and Dash registration,
+cron entry points, and the tests themselves; branch coverage remains enabled.
 
 ### Schema migration workflow
 
