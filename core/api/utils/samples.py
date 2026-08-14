@@ -1,10 +1,36 @@
 # Generic imports
+import re
 from datetime import datetime
 
 # Local imports
 import core.models
 import core.utils.samples
 import core.config
+
+
+def get_next_sample_unique_id():
+    """Return the next available ID after the highest generated sample ID."""
+    generated_id_pattern = (
+        rf"^{re.escape(core.config.SAMPLE_ID_PREFIX)}[A-Z]{{3}}-[0-9]{{4}}$"
+    )
+    last_unique_value = (
+        core.models.Sample.objects.filter(sample_unique_id__regex=generated_id_pattern)
+        .order_by("-sample_unique_id")
+        .values_list("sample_unique_id", flat=True)
+        .first()
+    )
+
+    if last_unique_value is None:
+        candidate = core.config.SAMPLE_ID_PREFIX + "AAA-0001"
+    else:
+        candidate = core.utils.samples.increase_unique_value(last_unique_value)
+
+    while core.models.Sample.objects.filter(
+        sample_unique_id__iexact=candidate
+    ).exists():
+        candidate = core.utils.samples.increase_unique_value(candidate)
+
+    return candidate
 
 
 def split_sample_data(data):
@@ -58,10 +84,7 @@ def split_sample_data(data):
     if requested_unique_id:
         split_data["sample"]["sample_unique_id"] = requested_unique_id
     elif core.models.Sample.objects.all().exists():
-        last_unique_value = core.models.Sample.objects.all().last().get_unique_id()
-        split_data["sample"]["sample_unique_id"] = (
-            core.utils.samples.increase_unique_value(last_unique_value)
-        )
+        split_data["sample"]["sample_unique_id"] = get_next_sample_unique_id()
     else:
         split_data["sample"]["sample_unique_id"] = (
             core.config.SAMPLE_ID_PREFIX + "AAA-0001"
