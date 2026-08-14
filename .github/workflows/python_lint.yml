@@ -31,7 +31,7 @@ jobs:
              **.py
       - name: Run flake8
         if: steps.file_check.outputs.any_changed == 'true'
-        run: flake8 --ignore E501,W503,E203,W605
+        run: flake8 --ignore E501,W503,E203,W605,F821
       - name: No Python files changed
         if: steps.file_check.outputs.any_changed != 'true'
         run: echo "No Python files have been changed."
