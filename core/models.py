@@ -739,7 +739,7 @@ class Sample(models.Model):
     lineage_info = models.ManyToManyField(LineageInfo, blank=True)
     bio_analysis_values = models.ManyToManyField(BioinfoAnalysisValue, blank=True)
 
-    sample_unique_id = models.CharField(max_length=12)
+    sample_unique_id = models.CharField(max_length=12, unique=True, null=False)
     microbiology_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     collecting_lab_sample_id = models.CharField(max_length=80, null=True, blank=True)
     sequencing_sample_id = models.CharField(max_length=80, null=True, blank=True)
