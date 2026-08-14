@@ -7,20 +7,27 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='GraphicJsonFile',
+            name="GraphicJsonFile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('graphic_name', models.CharField(max_length=60)),
-                ('graphic_data', models.JSONField()),
-                ('creation_date', models.DateTimeField(auto_now=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("graphic_name", models.CharField(max_length=60)),
+                ("graphic_data", models.JSONField()),
+                ("creation_date", models.DateTimeField(auto_now=True, null=True)),
             ],
             options={
-                'db_table': 'dashboard_graphic_json_file',
+                "db_table": "dashboard_graphic_json_file",
             },
         ),
     ]
