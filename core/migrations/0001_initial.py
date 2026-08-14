@@ -15,445 +15,971 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BioinfoAnalysisField',
+            name="BioinfoAnalysisField",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('property_name', models.CharField(max_length=60, unique=True)),
-                ('label_name', models.CharField(max_length=80)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("property_name", models.CharField(max_length=60, unique=True)),
+                ("label_name", models.CharField(max_length=80)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
             ],
             options={
-                'db_table': 'core_bioinfo_analysis_field',
+                "db_table": "core_bioinfo_analysis_field",
             },
         ),
         migrations.CreateModel(
-            name='BioinfoMetadataFile',
+            name="BioinfoMetadataFile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('file_path', models.CharField(max_length=200)),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("file_path", models.CharField(max_length=200)),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
             ],
             options={
-                'db_table': 'core_bioinfo_metadata_file',
+                "db_table": "core_bioinfo_metadata_file",
             },
         ),
         migrations.CreateModel(
-            name='Chromosome',
+            name="Chromosome",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('chromosome', models.CharField(max_length=110)),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("chromosome", models.CharField(max_length=110)),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
             ],
             options={
-                'db_table': 'core_chromosome',
+                "db_table": "core_chromosome",
             },
         ),
         migrations.CreateModel(
-            name='Classification',
+            name="Classification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('classification_name', models.CharField(max_length=150)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("classification_name", models.CharField(max_length=150)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
             ],
             options={
-                'db_table': 'core_metadata_classification',
+                "db_table": "core_metadata_classification",
             },
         ),
         migrations.CreateModel(
-            name='ConfigSetting',
+            name="ConfigSetting",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('configuration_name', models.CharField(max_length=80)),
-                ('configuration_value', models.CharField(blank=True, max_length=255, null=True)),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("configuration_name", models.CharField(max_length=80)),
+                (
+                    "configuration_value",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'core_config_setting',
+                "db_table": "core_config_setting",
             },
         ),
         migrations.CreateModel(
-            name='Effect',
+            name="Effect",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('effect', models.CharField(max_length=80)),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("effect", models.CharField(max_length=80)),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
             ],
             options={
-                'db_table': 'core_vcf_effect',
+                "db_table": "core_vcf_effect",
             },
         ),
         migrations.CreateModel(
-            name='Error',
+            name="Error",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('error_name', models.CharField(max_length=100)),
-                ('display_string', models.CharField(max_length=100)),
-                ('description', models.CharField(max_length=100)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("error_name", models.CharField(max_length=100)),
+                ("display_string", models.CharField(max_length=100)),
+                ("description", models.CharField(max_length=100)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
             ],
             options={
-                'db_table': 'core_error',
+                "db_table": "core_error",
             },
         ),
         migrations.CreateModel(
-            name='Filter',
+            name="Filter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('filter', models.CharField(max_length=70)),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("filter", models.CharField(max_length=70)),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
             ],
             options={
-                'db_table': 'core_vcf_filter',
+                "db_table": "core_vcf_filter",
             },
         ),
         migrations.CreateModel(
-            name='LineageFields',
+            name="LineageFields",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('property_name', models.CharField(max_length=60, unique=True)),
-                ('label_name', models.CharField(max_length=80)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("property_name", models.CharField(max_length=60, unique=True)),
+                ("label_name", models.CharField(max_length=80)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
             ],
             options={
-                'db_table': 'core_lineage_field',
+                "db_table": "core_lineage_field",
             },
         ),
         migrations.CreateModel(
-            name='LineageInfo',
+            name="LineageInfo",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('lineage_assignment', models.CharField(max_length=100)),
-                ('pango_lineages', models.CharField(max_length=100)),
-                ('variant_name', models.CharField(max_length=100)),
-                ('nextclade', models.CharField(max_length=100)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("lineage_assignment", models.CharField(max_length=100)),
+                ("pango_lineages", models.CharField(max_length=100)),
+                ("variant_name", models.CharField(max_length=100)),
+                ("nextclade", models.CharField(max_length=100)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'core_lineage_info',
+                "db_table": "core_lineage_info",
             },
         ),
         migrations.CreateModel(
-            name='PublicDatabaseType',
+            name="PublicDatabaseType",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_type_name', models.CharField(max_length=30)),
-                ('public_type_display', models.CharField(max_length=50)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("public_type_name", models.CharField(max_length=30)),
+                ("public_type_display", models.CharField(max_length=50)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'core_public_database_type',
+                "db_table": "core_public_database_type",
             },
         ),
         migrations.CreateModel(
-            name='SampleState',
+            name="SampleState",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('state', models.CharField(max_length=80)),
-                ('display_string', models.CharField(blank=True, max_length=80, null=True)),
-                ('description', models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("state", models.CharField(max_length=80)),
+                (
+                    "display_string",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
             ],
             options={
-                'db_table': 'core_sample_state',
+                "db_table": "core_sample_state",
             },
         ),
         migrations.CreateModel(
-            name='BioinfoAnalysisValue',
+            name="BioinfoAnalysisValue",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.CharField(blank=True, max_length=1000, null=True)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('bioinfo_analysis_fieldID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.bioinfoanalysisfield')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.CharField(blank=True, max_length=1000, null=True)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "bioinfo_analysis_fieldID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.bioinfoanalysisfield",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_bioinfo_analysis_value',
+                "db_table": "core_bioinfo_analysis_value",
             },
         ),
         migrations.CreateModel(
-            name='Gene',
+            name="Gene",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('gene_name', models.CharField(max_length=50)),
-                ('gene_start', models.IntegerField()),
-                ('gene_end', models.IntegerField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('chromosomeID', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.chromosome')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("gene_name", models.CharField(max_length=50)),
+                ("gene_start", models.IntegerField()),
+                ("gene_end", models.IntegerField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "chromosomeID",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.chromosome",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_gene',
+                "db_table": "core_gene",
             },
         ),
         migrations.CreateModel(
-            name='LineageValues',
+            name="LineageValues",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.CharField(blank=True, max_length=240, null=True)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('lineage_fieldID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.lineagefields')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.CharField(blank=True, max_length=240, null=True)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "lineage_fieldID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.lineagefields",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_lineage_value',
+                "db_table": "core_lineage_value",
             },
         ),
         migrations.CreateModel(
-            name='OrganismAnnotation',
+            name="OrganismAnnotation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('gff_version', models.CharField(max_length=5)),
-                ('gff_spec_version', models.CharField(max_length=10)),
-                ('sequence_region', models.CharField(max_length=30)),
-                ('organism_code', models.CharField(blank=True, max_length=20, null=True)),
-                ('organism_code_version', models.CharField(max_length=10)),
-                ('chromosomeID', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.chromosome')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("gff_version", models.CharField(max_length=5)),
+                ("gff_spec_version", models.CharField(max_length=10)),
+                ("sequence_region", models.CharField(max_length=30)),
+                (
+                    "organism_code",
+                    models.CharField(blank=True, max_length=20, null=True),
+                ),
+                ("organism_code_version", models.CharField(max_length=10)),
+                (
+                    "chromosomeID",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.chromosome",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_organism_annotation',
+                "db_table": "core_organism_annotation",
             },
         ),
         migrations.CreateModel(
-            name='Profile',
+            name="Profile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('laboratory', models.CharField(blank=True, max_length=120, null=True)),
-                ('code_id', models.CharField(blank=True, max_length=40, null=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("laboratory", models.CharField(blank=True, max_length=120, null=True)),
+                ("code_id", models.CharField(blank=True, max_length=40, null=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_profile',
+                "db_table": "core_profile",
             },
         ),
         migrations.CreateModel(
-            name='PublicDatabaseFields',
+            name="PublicDatabaseFields",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('property_name', models.CharField(max_length=60)),
-                ('label_name', models.CharField(max_length=80)),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
-                ('database_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.publicdatabasetype')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("property_name", models.CharField(max_length=60)),
+                ("label_name", models.CharField(max_length=80)),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "database_type",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.publicdatabasetype",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_public_database_field',
+                "db_table": "core_public_database_field",
             },
         ),
         migrations.CreateModel(
-            name='Sample',
+            name="Sample",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sample_unique_id', models.CharField(max_length=12)),
-                ('microbiology_lab_sample_id', models.CharField(blank=True, max_length=80, null=True)),
-                ('collecting_lab_sample_id', models.CharField(blank=True, max_length=80, null=True)),
-                ('sequencing_sample_id', models.CharField(blank=True, max_length=80, null=True)),
-                ('submitting_lab_sample_id', models.CharField(blank=True, max_length=80, null=True)),
-                ('collecting_institution', models.CharField(blank=True, max_length=120, null=True)),
-                ('lab_code_1', models.CharField(blank=True, max_length=80, null=True)),
-                ('submitting_institution', models.CharField(blank=True, max_length=120, null=True)),
-                ('sequence_file_R1', models.CharField(blank=True, max_length=80, null=True)),
-                ('sequence_file_R2', models.CharField(blank=True, max_length=80, null=True)),
-                ('sequence_file_R1_md5', models.CharField(blank=True, max_length=80, null=True)),
-                ('sequence_file_R2_md5', models.CharField(blank=True, max_length=80, null=True)),
-                ('sequence_file_path_R1', models.CharField(blank=True, max_length=120, null=True)),
-                ('sequence_file_path_R2', models.CharField(blank=True, max_length=120, null=True)),
-                ('sequencing_date', models.DateTimeField(blank=True, null=True)),
-                ('sample_fingerprint', models.CharField(blank=True, max_length=24, null=True, unique=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('bio_analysis_values', models.ManyToManyField(blank=True, to='core.bioinfoanalysisvalue')),
-                ('error_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.error')),
-                ('lineage_info', models.ManyToManyField(blank=True, to='core.lineageinfo')),
-                ('lineage_values', models.ManyToManyField(blank=True, to='core.lineagevalues')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('state', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.samplestate')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("sample_unique_id", models.CharField(max_length=12)),
+                (
+                    "microbiology_lab_sample_id",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "collecting_lab_sample_id",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "sequencing_sample_id",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "submitting_lab_sample_id",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "collecting_institution",
+                    models.CharField(blank=True, max_length=120, null=True),
+                ),
+                ("lab_code_1", models.CharField(blank=True, max_length=80, null=True)),
+                (
+                    "submitting_institution",
+                    models.CharField(blank=True, max_length=120, null=True),
+                ),
+                (
+                    "sequence_file_R1",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "sequence_file_R2",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "sequence_file_R1_md5",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "sequence_file_R2_md5",
+                    models.CharField(blank=True, max_length=80, null=True),
+                ),
+                (
+                    "sequence_file_path_R1",
+                    models.CharField(blank=True, max_length=120, null=True),
+                ),
+                (
+                    "sequence_file_path_R2",
+                    models.CharField(blank=True, max_length=120, null=True),
+                ),
+                ("sequencing_date", models.DateTimeField(blank=True, null=True)),
+                (
+                    "sample_fingerprint",
+                    models.CharField(blank=True, max_length=24, null=True, unique=True),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "bio_analysis_values",
+                    models.ManyToManyField(blank=True, to="core.bioinfoanalysisvalue"),
+                ),
+                (
+                    "error_type",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.error",
+                    ),
+                ),
+                (
+                    "lineage_info",
+                    models.ManyToManyField(blank=True, to="core.lineageinfo"),
+                ),
+                (
+                    "lineage_values",
+                    models.ManyToManyField(blank=True, to="core.lineagevalues"),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "state",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.samplestate",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_sample',
+                "db_table": "core_sample",
             },
         ),
         migrations.CreateModel(
-            name='PublicDatabaseValues',
+            name="PublicDatabaseValues",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.CharField(blank=True, max_length=240, null=True)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('public_database_fieldID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.publicdatabasefields')),
-                ('sampleID', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.sample')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.CharField(blank=True, max_length=240, null=True)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "public_database_fieldID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.publicdatabasefields",
+                    ),
+                ),
+                (
+                    "sampleID",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.sample",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_public_database_value',
+                "db_table": "core_public_database_value",
             },
         ),
         migrations.CreateModel(
-            name='DateUpdateState',
+            name="DateUpdateState",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateTimeField(auto_now_add=True)),
-                ('sampleID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.sample')),
-                ('stateID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.samplestate')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "sampleID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.sample"
+                    ),
+                ),
+                (
+                    "stateID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.samplestate",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_date_update_state',
+                "db_table": "core_date_update_state",
             },
         ),
         migrations.CreateModel(
-            name='Schema',
+            name="Schema",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file_name', models.FileField(upload_to='schemas')),
-                ('schema_name', models.CharField(max_length=40)),
-                ('schema_version', models.CharField(max_length=10)),
-                ('schema_in_use', models.BooleanField(default=True)),
-                ('schema_default', models.BooleanField(default=True)),
-                ('schema_apps_name', models.CharField(blank=True, max_length=40, null=True)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('user_name', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("file_name", models.FileField(upload_to="schemas")),
+                ("schema_name", models.CharField(max_length=40)),
+                ("schema_version", models.CharField(max_length=10)),
+                ("schema_in_use", models.BooleanField(default=True)),
+                ("schema_default", models.BooleanField(default=True)),
+                (
+                    "schema_apps_name",
+                    models.CharField(blank=True, max_length=40, null=True),
+                ),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "user_name",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_metadata_schema',
+                "db_table": "core_metadata_schema",
             },
         ),
         migrations.AddField(
-            model_name='sample',
-            name='schema_obj',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.schema'),
+            model_name="sample",
+            name="schema_obj",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="core.schema",
+            ),
         ),
         migrations.AddField(
-            model_name='publicdatabasefields',
-            name='schemaID',
-            field=models.ManyToManyField(to='core.schema'),
+            model_name="publicdatabasefields",
+            name="schemaID",
+            field=models.ManyToManyField(to="core.schema"),
         ),
         migrations.CreateModel(
-            name='MetadataVisualization',
+            name="MetadataVisualization",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('property_name', models.CharField(max_length=60)),
-                ('label_name', models.CharField(max_length=80)),
-                ('order', models.IntegerField()),
-                ('in_use', models.BooleanField(default=True)),
-                ('fill_mode', models.CharField(max_length=40)),
-                ('generated_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('schemaID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.schema')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("property_name", models.CharField(max_length=60)),
+                ("label_name", models.CharField(max_length=80)),
+                ("order", models.IntegerField()),
+                ("in_use", models.BooleanField(default=True)),
+                ("fill_mode", models.CharField(max_length=40)),
+                ("generated_at", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "schemaID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.schema"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_metadata_visualization',
+                "db_table": "core_metadata_visualization",
             },
         ),
         migrations.AddField(
-            model_name='lineagefields',
-            name='schemaID',
-            field=models.ManyToManyField(to='core.schema'),
+            model_name="lineagefields",
+            name="schemaID",
+            field=models.ManyToManyField(to="core.schema"),
         ),
         migrations.AddField(
-            model_name='bioinfoanalysisfield',
-            name='schemaID',
-            field=models.ManyToManyField(to='core.schema'),
+            model_name="bioinfoanalysisfield",
+            name="schemaID",
+            field=models.ManyToManyField(to="core.schema"),
         ),
         migrations.CreateModel(
-            name='SchemaProperties',
+            name="SchemaProperties",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('property', models.CharField(max_length=50)),
-                ('examples', models.CharField(blank=True, max_length=250, null=True)),
-                ('ontology', models.CharField(blank=True, max_length=40, null=True)),
-                ('type', models.CharField(max_length=20)),
-                ('format', models.CharField(blank=True, max_length=20, null=True)),
-                ('description', models.CharField(blank=True, max_length=500, null=True)),
-                ('label', models.CharField(blank=True, max_length=200, null=True)),
-                ('required', models.BooleanField(default=False)),
-                ('options', models.BooleanField(default=False)),
-                ('fill_mode', models.CharField(blank=True, max_length=50, null=True)),
-                ('classificationID', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.classification')),
-                ('schemaID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.schema')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("property", models.CharField(max_length=50)),
+                ("examples", models.CharField(blank=True, max_length=250, null=True)),
+                ("ontology", models.CharField(blank=True, max_length=40, null=True)),
+                ("type", models.CharField(max_length=20)),
+                ("format", models.CharField(blank=True, max_length=20, null=True)),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=500, null=True),
+                ),
+                ("label", models.CharField(blank=True, max_length=200, null=True)),
+                ("required", models.BooleanField(default=False)),
+                ("options", models.BooleanField(default=False)),
+                ("fill_mode", models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "classificationID",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.classification",
+                    ),
+                ),
+                (
+                    "schemaID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.schema"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_metadata_schema_properties',
+                "db_table": "core_metadata_schema_properties",
             },
         ),
         migrations.CreateModel(
-            name='PropertyOptions',
+            name="PropertyOptions",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enum', models.CharField(blank=True, max_length=250, null=True)),
-                ('ontology', models.CharField(blank=True, max_length=40, null=True)),
-                ('propertyID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.schemaproperties')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enum", models.CharField(blank=True, max_length=250, null=True)),
+                ("ontology", models.CharField(blank=True, max_length=40, null=True)),
+                (
+                    "propertyID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.schemaproperties",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_metadata_schema_property_option',
+                "db_table": "core_metadata_schema_property_option",
             },
         ),
         migrations.CreateModel(
-            name='TemporalSampleStorage',
+            name="TemporalSampleStorage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sample_name', models.CharField(max_length=100, null=True)),
-                ('field', models.CharField(max_length=100, null=True)),
-                ('value', models.CharField(max_length=100, null=True)),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("sample_name", models.CharField(max_length=100, null=True)),
+                ("field", models.CharField(max_length=100, null=True)),
+                ("value", models.CharField(max_length=100, null=True)),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_temporal_sample_storage',
+                "db_table": "core_temporal_sample_storage",
             },
         ),
         migrations.CreateModel(
-            name='Variant',
+            name="Variant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ref', models.CharField(blank=True, max_length=100, null=True)),
-                ('pos', models.CharField(blank=True, max_length=60, null=True)),
-                ('alt', models.CharField(blank=True, max_length=100, null=True)),
-                ('chromosomeID_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.chromosome')),
-                ('filterID_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.filter')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ref", models.CharField(blank=True, max_length=100, null=True)),
+                ("pos", models.CharField(blank=True, max_length=60, null=True)),
+                ("alt", models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "chromosomeID_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.chromosome",
+                    ),
+                ),
+                (
+                    "filterID_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.filter",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_variant',
+                "db_table": "core_variant",
             },
         ),
         migrations.CreateModel(
-            name='VariantAnnotation',
+            name="VariantAnnotation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('hgvs_c', models.CharField(max_length=60)),
-                ('hgvs_p', models.CharField(max_length=60)),
-                ('hgvs_p_1_letter', models.CharField(max_length=100)),
-                ('effectID_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.effect')),
-                ('geneID_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.gene')),
-                ('variantID_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.variant')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("hgvs_c", models.CharField(max_length=60)),
+                ("hgvs_p", models.CharField(max_length=60)),
+                ("hgvs_p_1_letter", models.CharField(max_length=100)),
+                (
+                    "effectID_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.effect",
+                    ),
+                ),
+                (
+                    "geneID_id",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.gene"
+                    ),
+                ),
+                (
+                    "variantID_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.variant",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_variant_annotation',
+                "db_table": "core_variant_annotation",
             },
         ),
         migrations.CreateModel(
-            name='VariantInSample',
+            name="VariantInSample",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('bioinformatics_analysis_date', models.CharField(blank=True, max_length=100, null=True)),
-                ('dp', models.CharField(blank=True, max_length=10, null=True)),
-                ('ref_dp', models.CharField(blank=True, max_length=10, null=True)),
-                ('alt_dp', models.CharField(blank=True, max_length=10, null=True)),
-                ('af', models.FloatField(blank=True, max_length=6, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('sampleID_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.sample')),
-                ('variantID_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.variant')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "bioinformatics_analysis_date",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                ("dp", models.CharField(blank=True, max_length=10, null=True)),
+                ("ref_dp", models.CharField(blank=True, max_length=10, null=True)),
+                ("alt_dp", models.CharField(blank=True, max_length=10, null=True)),
+                ("af", models.FloatField(blank=True, max_length=6, null=True)),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "sampleID_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.sample",
+                    ),
+                ),
+                (
+                    "variantID_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.variant",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_variant_in_sample',
+                "db_table": "core_variant_in_sample",
             },
         ),
         migrations.AddIndex(
-            model_name='variant',
-            index=models.Index(fields=['chromosomeID_id', 'pos', 'alt'], name='variant_chr_pos_alt_idx'),
+            model_name="variant",
+            index=models.Index(
+                fields=["chromosomeID_id", "pos", "alt"], name="variant_chr_pos_alt_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='variantannotation',
-            index=models.Index(fields=['hgvs_c', 'hgvs_p', 'hgvs_p_1_letter'], name='variant_annotation_hgvs_idx'),
+            model_name="variantannotation",
+            index=models.Index(
+                fields=["hgvs_c", "hgvs_p", "hgvs_p_1_letter"],
+                name="variant_annotation_hgvs_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='variantinsample',
-            index=models.Index(fields=['sampleID_id', 'bioinformatics_analysis_date'], name='vinsample_sampdate_idx'),
+            model_name="variantinsample",
+            index=models.Index(
+                fields=["sampleID_id", "bioinformatics_analysis_date"],
+                name="vinsample_sampdate_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='variantinsample',
-            index=models.Index(fields=['variantID_id'], name='variantinsample_variant_idx'),
+            model_name="variantinsample",
+            index=models.Index(
+                fields=["variantID_id"], name="variantinsample_variant_idx"
+            ),
         ),
     ]

@@ -3,7 +3,6 @@ import logging
 from django.apps import AppConfig
 from django.db import connection
 
-
 logger = logging.getLogger(__name__)
 
 
