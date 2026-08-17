@@ -231,13 +231,13 @@ nor this generated environment file is copied into image layers.
 | `app` database | External production database | Database backup before migration |
 | `app` documents | `app_documents` named volume | Volume backup |
 | `app` static | `app_static` named volume | Replaceable through collectstatic |
-| `app` logs | `/var/log/local/relecov-platform/apps` host bind | Retain/rotate per institutional log policy |
-| `app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
+| `app` logs | Host bind configured by `HOST_LOG_PATH` in `app_production_settings.txt` | Retain/rotate per institutional log policy |
+| `app` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `app_production_settings.txt` | Protected configuration backup |
 | `iskylims_app` database | External production database | Database backup before migration |
 | `iskylims_app` documents | `iskylims_app_documents` named volume | Volume backup |
 | `iskylims_app` static | `iskylims_app_static` named volume | Replaceable through collectstatic |
-| `iskylims_app` logs | `/var/log/local/relecov-iskylims/apps` host bind | Retain/rotate per institutional log policy |
-| `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
+| `iskylims_app` logs | Host bind configured by `HOST_LOG_PATH` in `iskylims_app_production_settings.txt` | Retain/rotate per institutional log policy |
+| `iskylims_app` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `iskylims_app_production_settings.txt` | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
