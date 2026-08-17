@@ -86,6 +86,14 @@ while (($#)); do
     esac
 done
 
+# A fresh installation loads an application-owned initial fixture by default.
+# Upgrades remain opt-in through --tables; --skip_tables is an explicit escape
+# hatch for recovery or externally restored databases.
+if [[ "$ACTION" == "install" && "$SKIP_TABLES" == "false" \
+    && -f "$install_script_dir/conf/first_install_tables.json" ]]; then
+    LOAD_TABLES="true"
+fi
+
 [[ "$WORKFLOW" != "stage" || ${#SCRIPT_BEFORE[@]} -eq 0 && ${#SCRIPT_AFTER[@]} -eq 0 ]] \
     || die "Migration scripts cannot run during the stage workflow"
 [[ -f "$INSTALL_CONF" ]] || die "Configuration not found: $INSTALL_CONF"
