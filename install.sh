@@ -201,7 +201,8 @@ install_application_system_packages() {
             default-libmysqlclient-dev \
             apache2-dev \
             build-essential \
-            passwd
+            passwd \
+            tzdata
     elif command -v microdnf >/dev/null 2>&1; then
         microdnf install -y \
             python3.11-devel \
@@ -211,6 +212,9 @@ install_application_system_packages() {
             gcc-c++ \
             make \
             shadow-utils
+        # UBI minimal can record tzdata as installed without its zoneinfo
+        # payload. Reinstall it so Python can resolve Django TIME_ZONE values.
+        microdnf reinstall -y tzdata
         microdnf clean all
     elif command -v dnf >/dev/null 2>&1; then
         dnf install -y \
@@ -220,7 +224,8 @@ install_application_system_packages() {
             gcc \
             gcc-c++ \
             make \
-            shadow-utils
+            shadow-utils \
+            tzdata
     else
         die "Unsupported package manager for system dependency installation"
     fi
