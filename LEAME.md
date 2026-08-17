@@ -80,34 +80,61 @@ Persistencia declarada por el despliegue:
 | `app` database | External production database | Database backup before migration |
 | `app` documents | `app_documents` named volume | Volume backup |
 | `app` static | `app_static` named volume | Replaceable through collectstatic |
-| `app` logs | `/var/log/local/relecov-platform/apps` host bind | Retain/rotate per institutional log policy |
-| `app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
+| `app` logs | Host bind configured by `HOST_LOG_PATH` in `app_production_settings.txt` | Retain/rotate per institutional log policy |
+| `app` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `app_production_settings.txt` | Protected configuration backup |
 | `iskylims_app` database | External production database | Database backup before migration |
 | `iskylims_app` documents | `iskylims_app_documents` named volume | Volume backup |
 | `iskylims_app` static | `iskylims_app_static` named volume | Replaceable through collectstatic |
-| `iskylims_app` logs | `/var/log/local/relecov-iskylims/apps` host bind | Retain/rotate per institutional log policy |
-| `iskylims_app` rendered settings | `/srv/containers/bind/relecov-platform/settings/` host bind | Protected configuration backup |
+| `iskylims_app` logs | Host bind configured by `HOST_LOG_PATH` in `iskylims_app_production_settings.txt` | Retain/rotate per institutional log policy |
+| `iskylims_app` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `iskylims_app_production_settings.txt` | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
 
 ## Preparar directorios del host
 
-Crear la estructura comun antes de la primera instalacion. Sustituir
-`<usuario-podman>` por la cuenta que ejecutara siempre Podman y el instalador.
+Crear primero la estructura comun. Sustituir `<usuario-podman>` por la cuenta
+que ejecutara siempre Podman y el instalador; normalmente es la cuenta de la
+sesion actual.
 
 ```bash
 sudo mkdir -p /opt/containers_apps/relecov-platform
 sudo mkdir -p /srv/containers/backup/relecov-platform
-sudo mkdir -p /srv/containers/bind/relecov-platform/settings
-sudo mkdir -p /var/log/local/relecov-platform/apps
-sudo mkdir -p /var/log/local/relecov-platform/apache
 sudo chown -R <usuario-podman>:<usuario-podman> \
   /opt/containers_apps/relecov-platform \
-  /srv/containers/backup/relecov-platform \
-  /srv/containers/bind/relecov-platform \
-  /var/log/local/relecov-platform
+  /srv/containers/backup/relecov-platform
 ```
+
+Despues de copiar y completar todos los ficheros protegidos en
+`deployment/settings/`, crear los binds exactamente donde indica cada servicio.
+Esto incluye el namespace independiente de iSkyLIMS:
+
+```bash
+PODMAN_USER='<usuario-podman>'
+(
+  source deployment/settings/app_production_settings.txt
+  : "${HOST_LOG_PATH:?HOST_LOG_PATH is required for app}"
+  : "${DJANGO_SETTINGS_PATH:?DJANGO_SETTINGS_PATH is required for app}"
+  sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" \
+    "$HOST_LOG_PATH" "$(dirname "$DJANGO_SETTINGS_PATH")"
+)
+(
+  source deployment/settings/iskylims_app_production_settings.txt
+  : "${HOST_LOG_PATH:?HOST_LOG_PATH is required for iskylims_app}"
+  : "${DJANGO_SETTINGS_PATH:?DJANGO_SETTINGS_PATH is required for iskylims_app}"
+  sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" \
+    "$HOST_LOG_PATH" "$(dirname "$DJANGO_SETTINGS_PATH")"
+)
+(
+  source deployment/settings/apache_production_settings.txt
+  : "${APACHE_LOG_PATH:?APACHE_LOG_PATH is required for apache}"
+  sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" "$APACHE_LOG_PATH"
+)
+```
+
+Los ficheros se cargan como el usuario actual dentro de subshells; solo
+`install -d` usa privilegios. Revisar antes las rutas y no ejecutar los
+ficheros completos con `sudo`.
 
 ## Actualizar codigo
 
