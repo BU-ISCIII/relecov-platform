@@ -308,7 +308,7 @@ Crear un directorio identificado y registrar el estado desplegado:
 
 ```bash
 BACKUP_DIR="/srv/containers/backup/relecov-platform/$(date +%Y%m%d_%H%M%S)"
-mkdir -p "$BACKUP_DIR"
+sudo mkdir -p "$BACKUP_DIR"
 git rev-parse HEAD > "$BACKUP_DIR/git-revision.txt"
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
   images > "$BACKUP_DIR/images.txt"
@@ -335,6 +335,7 @@ Localizar y exportar cada volumen no reconstruible declarado en la tabla:
 podman volume ls | grep 'relecov-platform'
 podman volume export <volumen-documents> > "$BACKUP_DIR/documents.tar"
 podman volume export <volumen-static> > "$BACKUP_DIR/static.tar"
+podman volume export relecov-platform_nextstrain_data > "$BACKUP_DIR/nextstrain_data.tar"
 ```
 
 Exportar `documents` y `static` por cada servicio Django que los declare;
