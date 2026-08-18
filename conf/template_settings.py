@@ -163,12 +163,12 @@ LOG_CRONTAB_FILE = BASE_DIR / "logs" / "crontab.log"
 CRONJOBS = [
     (
         "0 0 * * *",
-        "dashboard.cron.update_search_samples_summary",
+        "dashboard.cron.update_daily_graphic_json_data",
         f">>{LOG_CRONTAB_FILE}",
     ),
     (
         "10 0 1 * *",
-        "dashboard.cron.update_graphic_json_data",
+        "dashboard.cron.update_monthly_graphic_json_data",
         f">>{LOG_CRONTAB_FILE}",
     ),
 ]
