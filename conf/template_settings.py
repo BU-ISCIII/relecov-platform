@@ -5,6 +5,7 @@ project behavior here; deployment-specific values are replaced from the
 selected production or test installation settings file.
 """
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,7 +78,7 @@ DATABASES = {
         "NAME": "djangodbname",
         "USER": "djangouser",
         "PASSWORD": "djangopass",
-        "HOST": "djangohost",
+        "HOST": os.getenv("DB_HOST", "djangohost"),
         "PORT": "djangoport",
         "CONN_MAX_AGE": dbconnmaxage,
     }
