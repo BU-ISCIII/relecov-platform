@@ -475,10 +475,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                (
-                    "sample_unique_id",
-                    models.CharField(max_length=12, unique=True, null=True),
-                ),
+                ("sample_unique_id", models.CharField(max_length=12, unique=True)),
                 (
                     "microbiology_lab_sample_id",
                     models.CharField(blank=True, max_length=80, null=True),
