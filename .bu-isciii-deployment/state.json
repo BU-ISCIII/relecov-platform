@@ -2,13 +2,13 @@
   "config": {
     "ADDONS": {
       "apache": {
-        "CONFIG_SERVICE": "app"
+        "CONFIG_SERVICE": "relecov-platform"
       },
       "nextstrain": {
-        "CONFIG_SERVICE": "app"
+        "CONFIG_SERVICE": "relecov-platform"
       },
       "samba": {
-        "CONFIG_SERVICE": "iskylims_app",
+        "CONFIG_SERVICE": "relecov-iskylims",
         "MODES": [
           "test"
         ]
@@ -21,16 +21,7 @@
     "PYTHON_VERSION": "3.11",
     "REPOSITORY_URL": "https://github.com/BU-ISCIII/relecov-platform.git",
     "SERVICES": {
-      "app": {
-        "BUILD_CONTEXT": ".",
-        "DOCKERFILE": "Dockerfile",
-        "IMAGE": "relecov-platform:local",
-        "INSTALL_CONF": "conf/docker_production_settings.txt",
-        "PROFILE": "django",
-        "PROJECT_MODULE": "relecov_platform",
-        "TEST_INSTALL_CONF": "conf/docker_test_settings.txt"
-      },
-      "iskylims_app": {
+      "relecov-iskylims": {
         "BUILD_CONTEXT": "../relecov-iskylims",
         "DOCKERFILE": "Dockerfile",
         "IMAGE": "relecov-iskylims:local",
@@ -38,6 +29,15 @@
         "PROFILE": "django",
         "PROJECT_MODULE": "iskylims",
         "TEST_INSTALL_CONF": "../relecov-iskylims/conf/docker_test_settings.txt"
+      },
+      "relecov-platform": {
+        "BUILD_CONTEXT": ".",
+        "DOCKERFILE": "Dockerfile",
+        "IMAGE": "relecov-platform:local",
+        "INSTALL_CONF": "conf/docker_production_settings.txt",
+        "PROFILE": "django",
+        "PROJECT_MODULE": "relecov_platform",
+        "TEST_INSTALL_CONF": "conf/docker_test_settings.txt"
       }
     },
     "TIMEZONE": "Europe/Madrid"
@@ -46,33 +46,33 @@
     ".dockerignore": "bd9c115511d6b9dae318e4b6a85ddb282e60a46fd89c6cdecccdc20c668eb0e9",
     ".gitignore": "de487336ed72efd6601b985eda1c83754d6ee33b1cb4ce9f8973411caae833ed",
     "Dockerfile": "e3ce0f9db930aac0e8d4defc9d04d1509c676df16e033bb8cf9b02dfa3f006a1",
-    "LEAME.md": "937936b07d16157415e900b04a1428f4efbad8defc17926364312830f83cf0a6",
-    "README.md": "fba82bfdc0e69aae73bb32c2092723405c8d2525d5629c365e566e5951790e53",
+    "LEAME.md": "4606b100e4c975d57576d24fe9408852525b8c4902a658f1835f402f7b5e2146",
+    "README.md": "fb3d408f474e90d5caf9844c4e5c48f253efcafca4d90b8a0587d385772a5aaa",
     "conf/INSTALL_SETTINGS.md": "f169794181cfc5492cb8c36e1590ceb6cdcd236b8198bf9f3d6c558464b1ab80",
     "conf/apache/00-logs.conf": "3c2ab4e693e528d2cad37c0c5bb0bc4511803a7f206b339182de192d4e398092",
     "conf/apache/01-reverse-proxy.conf": "86f023c5a594d06d5db845498ef4510e2530a181bc8740ddbf3ed40baaa9459b",
     "conf/apache/02-server-status.conf": "c3b5d26f9b551083faf0d85b188bfa9c577ff0bd3b805f0ec104fe4f7d5101cb",
     "conf/apache/apache_production_settings.txt": "0f93c9a911b56c54966c39fda01f4f44c52fbd1cf902f2480ce35b90b721f89a",
     "conf/apache/apache_test_settings.txt": "b024cd4ea169536317d8dd0030ce85b03e338350a5e18ba15cf3685adebea7d4",
-    "conf/docker_production_settings.txt": "1700b63ff6bc792ce21801fd492a2827ffa74393412b3d392ea1925ab2bb199e",
-    "conf/docker_test_settings.txt": "12d65639484be31c40c036f04ce4e6911ca6aaddecb1a03232ee0877dc2c2b09",
+    "conf/docker_production_settings.txt": "62c7810fead025f9f073170b18d41b4f6d9ec2436c8e5ff397a33700df3f4f0c",
+    "conf/docker_test_settings.txt": "ae16109de93f6eac53b5c6d56e5610737bba750d2d8f1939ffc3c48a3777eb2b",
     "conf/nextstrain/nextstrain_production_settings.txt": "b2d64f4f1c8594ec135c1db1efa13f9d346f36398684063c286ea3554beb5491",
     "conf/nextstrain/nextstrain_test_settings.txt": "f36dbc829add8f17e26f0c0504a3f3493806967909fe131c2dc860f5d05c1b2f",
     "conf/samba/samba_production_settings.txt": "f19da30ab0890a79254e22c571629b34de2d37ad9c12449607158bff9a9188a1",
     "conf/samba/samba_test_settings.txt": "c383b88d43de8d65886cdd2b45bf9f27d91f5f3fe290f8f82378578fbeeff0b2",
     "conf/template_settings.py": "5a850d3f2cafa90afd35d8a031f635502228148baef0c03ba5a110ab88ac1fd2",
-    "container_install.sh": "7ac40184f72886caee1da8380a1f0cbf002d40c701d4904218a64dcd2f680389",
+    "container_install.sh": "7ca3983c715871a029e724949df656fa38e00ec5ff8a8a415171d7ba2eb8062d",
     "deployment_health/README.md": "3d7c4295938708813369deeac9edc0eb8fe2153c77d03f9138febf3aed715aa5",
     "deployment_health/__init__.py": "bedcff132309f8970b1ca72fcea20c7cb38bb727d48f82d96dbf7104922abda0",
     "deployment_health/urls.py": "8d274b44d326f26d71b05021a34969c742478efbe47691aadd8c3a90ba16f340",
     "deployment_health/views.py": "d19cc3e8fef8519bae2b7fbdc25d17f6ae7df02479aa8890f4b4d250bb07f2e4",
-    "docker-compose.prod.yml": "30df3b5bf90a4d88a81a2d577c34a5f7066c4ee02e2ffccdea4ef7c488a19619",
-    "docker-compose.test.yml": "57d291d137b5edd47fe0e32dd96b78201172f5a256e5d5edcf6043a2cbbd9e3c",
+    "docker-compose.prod.yml": "87accd6fe28429a92ad3128826a6dfa9ac3fdeaf4b0231b487c9d5dad62c3359",
+    "docker-compose.test.yml": "ec294da44d2108b4be0ca82fce76a24ff9652cf54cb6f76ab6915171fd9f4888",
     "install.sh": "74a3662bbbe9cb469845660a35310b73ad2e5857743b93fbade13135e0711eac",
     "nextstrain/Dockerfile": "f1a3426c2ac065ddb0841e21d657f068c9584e47b8193077cd3bd85e15391335",
     "nextstrain/auspice-config.json": "6fc666bf5a0d05293dfdb6cc6b0800637e52c3335bda065b78c036fb6af0d7af",
     "scripts/container_start.sh": "4b1f3796d1915ce97d0769cc13e711aa62c3c7430051ac075be802fc38e8de9a",
-    "scripts/smoke_test.sh": "bf3f6466348982d3252332d5aeae3f069af2ffb3a7b592a316ebc96403046ea3"
+    "scripts/smoke_test.sh": "fb998d141e44578856eab2e16f2a249e17128d29deda8278da7e057c9f7fe929"
   },
   "source": "BU-ISCIII deployment standards",
   "standard_version": "0.1.0"

@@ -91,8 +91,8 @@ Services:
 
 | Service | Profile | Build context | Internal port |
 |---|---|---|---:|
-| `app` | `django` | `.` | settings: `APP_PORT` |
-| `iskylims_app` | `django` | `../relecov-iskylims` | settings: `APP_PORT` |
+| `relecov-platform` | `django` | `.` | settings: `APP_PORT` |
+| `relecov-iskylims` | `django` | `../relecov-iskylims` | settings: `APP_PORT` |
 
 - Django services build with an ephemeral settings secret, render protected host settings, and run controlled migration/bootstrap steps.
 
@@ -207,7 +207,7 @@ Docker:
 ```bash
 bash container_install.sh --action install --engine docker \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Podman:
@@ -215,7 +215,7 @@ Podman:
 ```bash
 bash container_install.sh --action install --engine podman \
   --git_revision <reviewed-tag-or-commit> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 The installer creates `.env.production.file` for later direct Compose
@@ -228,16 +228,16 @@ nor this generated environment file is copied into image layers.
 
 | Asset | Production location | Backup/rebuild policy |
 |---|---|---|
-| `app` database | External production database | Database backup before migration |
-| `app` documents | `app_documents` named volume | Volume backup |
-| `app` static | `app_static` named volume | Replaceable through collectstatic |
-| `app` logs | Host bind configured by `HOST_LOG_PATH` in `app_production_settings.txt` | Retain/rotate per institutional log policy |
-| `app` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `app_production_settings.txt` | Protected configuration backup |
-| `iskylims_app` database | External production database | Database backup before migration |
-| `iskylims_app` documents | `iskylims_app_documents` named volume | Volume backup |
-| `iskylims_app` static | `iskylims_app_static` named volume | Replaceable through collectstatic |
-| `iskylims_app` logs | Host bind configured by `HOST_LOG_PATH` in `iskylims_app_production_settings.txt` | Retain/rotate per institutional log policy |
-| `iskylims_app` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `iskylims_app_production_settings.txt` | Protected configuration backup |
+| `relecov-platform` database | External production database | Database backup before migration |
+| `relecov-platform` documents | `relecov-platform_documents` named volume | Volume backup |
+| `relecov-platform` static | `relecov-platform_static` named volume | Replaceable through collectstatic |
+| `relecov-platform` logs | Host bind configured by `HOST_LOG_PATH` in `app_production_settings.txt` | Retain/rotate per institutional log policy |
+| `relecov-platform` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `app_production_settings.txt` | Protected configuration backup |
+| `relecov-iskylims` database | External production database | Database backup before migration |
+| `relecov-iskylims` documents | `relecov-iskylims_documents` named volume | Volume backup |
+| `relecov-iskylims` static | `relecov-iskylims_static` named volume | Replaceable through collectstatic |
+| `relecov-iskylims` logs | Host bind configured by `HOST_LOG_PATH` in `iskylims_app_production_settings.txt` | Retain/rotate per institutional log policy |
+| `relecov-iskylims` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `iskylims_app_production_settings.txt` | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
@@ -284,7 +284,7 @@ notes:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <new-reviewed-tag-or-commit> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Replace `podman` with `docker` for a Docker-managed deployment. Stop on build,
@@ -462,7 +462,7 @@ Compatible application-only rollback:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <previous-reviewed-revision> \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Full restore when schema or persistent-file formats are incompatible:
@@ -486,7 +486,7 @@ install -m 0600 "$BACKUP_DIR/apache_production_settings.txt" deployment/settings
 install -m 0600 "$BACKUP_DIR/nextstrain_production_settings.txt" deployment/settings/nextstrain_production_settings.txt
 install -m 0600 "$BACKUP_DIR/samba_production_settings.txt" deployment/settings/samba_production_settings.txt
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
 ```
 
 Then deploy the revision recorded in `git-revision.txt`, start the deployment,
@@ -503,7 +503,7 @@ volume at `/data` and extracting `/backup/documents.tar` there.
 
    ```bash
    bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
    ```
 
 5. Do not fake migrations, delete volumes, or rebuild from an unrecorded
@@ -511,23 +511,23 @@ volume at `/data` and extracting `/backup/documents.tar` there.
 
 ### Service-specific operational commands
 
-#### Django service `app`
+#### Django service `relecov-platform`
 
 ```bash
 # Logs and an interactive shell (replace podman with docker when applicable).
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  logs --tail 200 app
+  logs --tail 200 relecov-platform
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec app bash
+  exec relecov-platform bash
 
 # Rebuild static assets without running migrations.
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec app bash -lc \
+  exec relecov-platform bash -lc \
   'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py collectstatic --noinput'
 
 # Inspect Django and migration state before deciding whether to recover.
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec app bash -lc \
+  exec relecov-platform bash -lc \
   'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py check --deploy && python manage.py showmigrations --plan'
 ```
 
@@ -537,23 +537,23 @@ This safely recreates the temporary runtime configuration and repeats the
 controlled migration/fixture/static lifecycle. Direct `manage.py migrate` is a
 diagnostic last resort and must use the same backup and release procedure.
 
-#### Django service `iskylims_app`
+#### Django service `relecov-iskylims`
 
 ```bash
 # Logs and an interactive shell (replace podman with docker when applicable).
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  logs --tail 200 iskylims_app
+  logs --tail 200 relecov-iskylims
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec iskylims_app bash
+  exec relecov-iskylims bash
 
 # Rebuild static assets without running migrations.
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec iskylims_app bash -lc \
+  exec relecov-iskylims bash -lc \
   'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py collectstatic --noinput'
 
 # Inspect Django and migration state before deciding whether to recover.
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec iskylims_app bash -lc \
+  exec relecov-iskylims bash -lc \
   'cd "$INSTALL_PATH" && source virtualenv/bin/activate && python manage.py check --deploy && python manage.py showmigrations --plan'
 ```
 
@@ -567,9 +567,9 @@ diagnostic last resort and must use the same backup and release procedure.
 
 ```bash
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  logs --tail 200 apache
+  logs --tail 200 relecov-platform-apache
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec apache httpd -t
+  exec relecov-platform-apache httpd -t
 
 APACHE_PORT='CHANGE_ME'
 SERVER_STATUS_SERVER_NAME='localhost'
@@ -595,8 +595,8 @@ be replaced, move it to a timestamped backup instead of deleting evidence:
 sudo mv /var/log/local/relecov-platform/apache/modsec_debug.log \
   /var/log/local/relecov-platform/apache/modsec_debug.log.blocked
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map app,deployment/settings/app_production_settings.txt --install_conf_map iskylims_app,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
-podman compose --env-file .env.production.file -f docker-compose.prod.yml restart apache
+  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+podman compose --env-file .env.production.file -f docker-compose.prod.yml restart relecov-platform-apache
 ```
 
 #### Nextstrain dataset volume
@@ -610,9 +610,9 @@ NEXTSTRAIN_SOURCE='/srv/relecov-nextstrain-data'
 NEXTSTRAIN_DATA_DIR='/data' # Must match the protected Nextstrain settings.
 test -d "$NEXTSTRAIN_SOURCE"
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  cp "$NEXTSTRAIN_SOURCE/." "nextstrain:$NEXTSTRAIN_DATA_DIR/"
+  cp "$NEXTSTRAIN_SOURCE/." "relecov-platform-nextstrain:$NEXTSTRAIN_DATA_DIR/"
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec nextstrain find "$NEXTSTRAIN_DATA_DIR" -maxdepth 2 -type f
+  exec relecov-platform-nextstrain find "$NEXTSTRAIN_DATA_DIR" -maxdepth 2 -type f
 ```
 
 Replace `podman` with `docker` when applicable. Copying updates matching paths
@@ -621,7 +621,7 @@ files deliberately; never delete the volume during a normal upgrade.
 
 ```bash
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
-  exec -T nextstrain tar -C /data -czf - . > nextstrain-data.tar.gz
+  exec -T relecov-platform-nextstrain tar -C /data -czf - . > nextstrain-data.tar.gz
 ```
 
 Open the public Nextstrain URL and verify every expected dataset or narrative.
