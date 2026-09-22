@@ -30,6 +30,9 @@
     "apache": {
       "CONFIG_SERVICE": "relecov-platform"
     },
+    "nextstrain": {
+      "CONFIG_SERVICE": "relecov-platform"
+    },
     "samba": {
       "CONFIG_SERVICE": "relecov-iskylims",
       "MODES": [

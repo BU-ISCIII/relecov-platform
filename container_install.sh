@@ -320,6 +320,41 @@ bootstrap_service() {
     esac
 }
 
+build_production_service() {
+    local service_name="$1" context="$2" dockerfile="$3"
+    case "$service_name" in
+        relecov-platform)
+            engine_build --no-cache --file "$context/$dockerfile" \
+                --secret "id=install_conf,src=${install_conf_host_by_service[$service_name]}" \
+                --build-arg GIT_REVISION="$git_revision" \
+                --build-arg INSTALL_CONF="$(service_container_install_conf "$service_name")" \
+                --build-arg USE_INSTALL_CONF_SECRET=true \
+                --build-arg RENDER_DJANGO_SETTINGS=false \
+                --build-arg APP_REPO_PATH="$(service_repo_path "$service_name")" \
+                --build-arg APP_INSTALL_PATH="$(service_install_path "$service_name")" \
+                --build-arg APP_PORT="$(service_environment_value "$service_name" APP_PORT)" \
+                --build-arg APP_UID="$(service_uid "$service_name")" \
+                --build-arg APP_GID="$(service_gid "$service_name")" \
+                --tag "$(service_image_name "$service_name")" "$context"
+            ;;
+        relecov-iskylims)
+            engine_build --no-cache --file "$context/$dockerfile" \
+                --secret "id=install_conf,src=${install_conf_host_by_service[$service_name]}" \
+                --build-arg GIT_REVISION="$git_revision" \
+                --build-arg INSTALL_CONF="$(service_container_install_conf "$service_name")" \
+                --build-arg USE_INSTALL_CONF_SECRET=true \
+                --build-arg RENDER_DJANGO_SETTINGS=false \
+                --build-arg APP_REPO_PATH="$(service_repo_path "$service_name")" \
+                --build-arg APP_INSTALL_PATH="$(service_install_path "$service_name")" \
+                --build-arg APP_PORT="$(service_environment_value "$service_name" APP_PORT)" \
+                --build-arg APP_UID="$(service_uid "$service_name")" \
+                --build-arg APP_GID="$(service_gid "$service_name")" \
+                --tag "$(service_image_name "$service_name")" "$context"
+            ;;
+        *) die "Unsupported production build service: $service_name" ;;
+    esac
+}
+
 # Applications with disposable fixtures or demo files customize this callback
 # in their generated wrapper and set application_supports_test_data=true. Keep
 # application-specific fixture names, users/groups, downloads, and data-service

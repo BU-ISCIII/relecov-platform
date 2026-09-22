@@ -82,16 +82,17 @@ Persistencia declarada por el despliegue:
 | `relecov-platform` database | External production database | Database backup before migration |
 | `relecov-platform` documents | `relecov-platform_documents` named volume | Volume backup |
 | `relecov-platform` static | `relecov-platform_static` named volume | Replaceable through collectstatic |
-| `relecov-platform` logs | Host bind configured by `HOST_LOG_PATH` in `app_production_settings.txt` | Retain/rotate per institutional log policy |
-| `relecov-platform` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `app_production_settings.txt` | Protected configuration backup |
+| `relecov-platform` logs | Host bind configured by `HOST_LOG_PATH` in `relecov-platform_production_settings.txt` | Retain/rotate per institutional log policy |
+| `relecov-platform` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `relecov-platform_production_settings.txt` | Protected configuration backup |
 | `relecov-iskylims` database | External production database | Database backup before migration |
 | `relecov-iskylims` documents | `relecov-iskylims_documents` named volume | Volume backup |
 | `relecov-iskylims` static | `relecov-iskylims_static` named volume | Replaceable through collectstatic |
-| `relecov-iskylims` logs | Host bind configured by `HOST_LOG_PATH` in `iskylims_app_production_settings.txt` | Retain/rotate per institutional log policy |
-| `relecov-iskylims` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `iskylims_app_production_settings.txt` | Protected configuration backup |
+| `relecov-iskylims` logs | Host bind configured by `HOST_LOG_PATH` in `relecov-iskylims_production_settings.txt` | Retain/rotate per institutional log policy |
+| `relecov-iskylims` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `relecov-iskylims_production_settings.txt` | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
 | Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
+| Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
 ## Preparar checkout y backup
 
@@ -135,10 +136,11 @@ copia en las capas de las imagenes.
 
 ```bash
 install -d -m 0700 deployment/settings
-install -m 0600 conf/docker_production_settings.txt deployment/settings/app_production_settings.txt
-install -m 0600 ../relecov-iskylims/conf/docker_production_settings.txt deployment/settings/iskylims_app_production_settings.txt
+install -m 0600 conf/docker_production_settings.txt deployment/settings/relecov-platform_production_settings.txt
+install -m 0600 ../relecov-iskylims/conf/docker_production_settings.txt deployment/settings/relecov-iskylims_production_settings.txt
 install -m 0600 conf/apache/apache_production_settings.txt deployment/settings/apache_production_settings.txt
 install -m 0600 conf/nextstrain/nextstrain_production_settings.txt deployment/settings/nextstrain_production_settings.txt
+install -m 0600 conf/samba/samba_production_settings.txt deployment/settings/samba_production_settings.txt
 ```
 
 Valores que requieren decision del responsable de la aplicacion:
@@ -163,14 +165,14 @@ solo `install -d` usa privilegios:
 ```bash
 PODMAN_USER='<usuario-podman>'
 (
-  source deployment/settings/app_production_settings.txt
+  source deployment/settings/relecov-platform_production_settings.txt
   : "${HOST_LOG_PATH:?HOST_LOG_PATH is required for relecov-platform}"
   : "${DJANGO_SETTINGS_PATH:?DJANGO_SETTINGS_PATH is required for relecov-platform}"
   sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" \
     "$HOST_LOG_PATH" "$(dirname "$DJANGO_SETTINGS_PATH")"
 )
 (
-  source deployment/settings/iskylims_app_production_settings.txt
+  source deployment/settings/relecov-iskylims_production_settings.txt
   : "${HOST_LOG_PATH:?HOST_LOG_PATH is required for relecov-iskylims}"
   : "${DJANGO_SETTINGS_PATH:?DJANGO_SETTINGS_PATH is required for relecov-iskylims}"
   sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" \
@@ -190,7 +192,7 @@ instalador. No modificar `/srv/containers/storage/` manualmente.
 
 ```bash
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 ## Migrar datos en la primera instalacion de produccion
@@ -314,8 +316,8 @@ git rev-parse HEAD > "$BACKUP_DIR/git-revision.txt"
 podman compose --env-file .env.production.file -f docker-compose.prod.yml \
   images > "$BACKUP_DIR/images.txt"
 cp .env.production.file "$BACKUP_DIR/"
-cp deployment/settings/app_production_settings.txt "$BACKUP_DIR/"
-cp deployment/settings/iskylims_app_production_settings.txt "$BACKUP_DIR/"
+cp deployment/settings/relecov-platform_production_settings.txt "$BACKUP_DIR/"
+cp deployment/settings/relecov-iskylims_production_settings.txt "$BACKUP_DIR/"
 cp deployment/settings/apache_production_settings.txt "$BACKUP_DIR/"
 cp deployment/settings/nextstrain_production_settings.txt "$BACKUP_DIR/"
 cp deployment/settings/samba_production_settings.txt "$BACKUP_DIR/"
@@ -369,7 +371,7 @@ Actualizacion:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <nueva-revision-aprobada> \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt 2>&1 | tee "$(date +%Y%m%d_%H%M%S)_prod_install.log"
 ```
 
 Durante `--action upgrade`, `container_install.sh`:
@@ -398,11 +400,11 @@ bash scripts/smoke_test.sh --engine podman
 
 Completar las comprobaciones que corresponden a la topologia seleccionada:
 
-- `relecov-platform` e `relecov-iskylims`: confirmar `/health/` y un flujo real de cada servicio.
-- Apache: confirmar la URL publica, DNS/TLS, proxy y cabeceras reenviadas.
-- Nextstrain: confirmar la ruta publica y todos los datasets o narrativas.
-- Samba: en los modos habilitados, confirmar acceso autenticado y un flujo de
-  lectura/escritura desde un cliente aprobado.
+- `relecov-platform`: confirmar su endpoint `/health/` y un flujo representativo de lectura.
+- `relecov-iskylims`: confirmar su endpoint `/health/` y un flujo representativo de lectura.
+- Apache: confirmar la URL publica registrada, DNS/TLS, proxy, cabeceras reenviadas y el endpoint restringido de server-status.
+- Nextstrain: confirmar la ruta publica y cada dataset o narrativa esperados tras cargar los datos Auspice revisados.
+- Samba: en cada modo habilitado, confirmar acceso autenticado y un flujo representativo de lectura/escritura desde un cliente aprobado.
 
 Verificar tambien correo y tareas programadas. Registrar URL y resultados junto
 con estado, imagenes y revision desplegada.
@@ -415,7 +417,7 @@ la revision anterior registrada y repetir las pruebas:
 ```bash
 bash container_install.sh --action upgrade --engine podman \
   --git_revision <revision-anterior> \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 Si no son compatibles, detener escrituras y restaurar el punto completo:
@@ -428,13 +430,14 @@ podman volume import <volumen-documents> "$BACKUP_DIR/documents.tar"
 podman volume import <volumen-static> "$BACKUP_DIR/static.tar"
 tar -C /srv/containers/bind -xzf "$BACKUP_DIR/bind-mounts.tar.gz"
 install -d -m 0700 deployment/settings
-install -m 0600 "$BACKUP_DIR/app_production_settings.txt" deployment/settings/app_production_settings.txt
-install -m 0600 "$BACKUP_DIR/iskylims_app_production_settings.txt" deployment/settings/iskylims_app_production_settings.txt
+install -m 0600 "$BACKUP_DIR/relecov-platform_production_settings.txt" deployment/settings/relecov-platform_production_settings.txt
+install -m 0600 "$BACKUP_DIR/relecov-iskylims_production_settings.txt" deployment/settings/relecov-iskylims_production_settings.txt
 install -m 0600 "$BACKUP_DIR/apache_production_settings.txt" deployment/settings/apache_production_settings.txt
 install -m 0600 "$BACKUP_DIR/nextstrain_production_settings.txt" deployment/settings/nextstrain_production_settings.txt
 install -m 0600 "$BACKUP_DIR/samba_production_settings.txt" deployment/settings/samba_production_settings.txt
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
+
 ```
 
 Restaurar todos los ficheros de ajustes protegidos y desplegar la revision
@@ -459,7 +462,7 @@ Primera fase, incluso con los contenedores detenidos:
 
 ```bash
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 Esta accion no construye imagenes, no migra la base de datos y no borra datos.
@@ -469,7 +472,7 @@ Arrancar y repetirla para reparar tambien los volumenes montados:
 ```bash
 podman compose --env-file .env.production.file -f docker-compose.prod.yml up -d
 bash container_install.sh --action fix-permissions --engine podman \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
+  --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
 ## Operaciones utiles
