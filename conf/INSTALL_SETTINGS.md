@@ -86,13 +86,18 @@ Developer review checklist:
 - add acceptance checks for email, identity, storage, workers, and scheduled
   jobs used by real workflows.
 
+<!-- BEGIN BU-ISCIII APPLICATION: installation-settings -->
+RELECOV currently declares no additional deployment variables outside the
+profile and add-on settings documented below.
+<!-- END BU-ISCIII APPLICATION: installation-settings -->
+
 ## Selected infrastructure add-ons
 
 Add-ons use independent settings below `conf/<addon>/`. For production, copy
 the required add-on templates to protected files and pass them through the same
 repeatable `--install_conf_map <component>,<path>` option used by application
-services. Do not add add-on credentials or deployment values to the Relecov
-Django settings file.
+services. Do not add add-on credentials or deployment values to the Django
+application settings file.
 
 ### Apache
 
@@ -101,12 +106,7 @@ Django settings file.
 `APACHE_LIMIT_REQUEST_BODY` configure the rendered proxy. They are
 operational values, not Django or React application settings.
 
-`APACHE_SERVER_NAME` is the public Relecov Platform hostname.
-
-RELECOV uses three hostname-based virtual hosts. Configure
-`APACHE_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, and
-`RELECOV_NEXTSTRAIN_SERVER_NAME` with the public DNS names for the platform,
-iSkyLIMS, and Nextstrain services respectively.
+`APACHE_SERVER_NAME` is the host name handled by the baseline VirtualHost.
 `APACHE_UPSTREAM_SERVICE` defaults to `ADDONS.apache.CONFIG_SERVICE`, while
 `APACHE_UPSTREAM_PORT` defaults to that service's `APP_PORT`.
 `APACHE_PROXY_TIMEOUT` defaults to its `GUNICORN_TIMEOUT` (or 120 seconds), and
@@ -132,3 +132,18 @@ and `NEXTSTRAIN_DOCKERFILE` select its scaffolded build inputs. The public
 in the custom Auspice bundle at build time. `NEXTSTRAIN_PORT` is the internal
 HTTP port, while `NEXTSTRAIN_HOST_PORT` publishes it on host loopback.
 `NEXTSTRAIN_DATA_DIR` is backed by the persistent `nextstrain_data` volume.
+
+
+### Samba test data
+
+`SAMBA_USER` and `SAMBA_PASSWORD` configure the disposable Samba service used
+only by the test Compose profile. The add-on creates no production service.
+
+<!-- BEGIN BU-ISCIII APPLICATION: addon-settings-notes -->
+`APACHE_SERVER_NAME` is the public Relecov Platform hostname.
+
+RELECOV uses three hostname-based virtual hosts. Configure
+`APACHE_SERVER_NAME`, `RELECOV_ISKYLIMS_SERVER_NAME`, and
+`RELECOV_NEXTSTRAIN_SERVER_NAME` with the public DNS names for the platform,
+iSkyLIMS, and Nextstrain services respectively.
+<!-- END BU-ISCIII APPLICATION: addon-settings-notes -->
