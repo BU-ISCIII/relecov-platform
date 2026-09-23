@@ -189,6 +189,7 @@ PY
     done
 }
 
+# BEGIN BU-ISCIII APPLICATION: install-hooks
 # ============================================================================
 # APPLICATION CUSTOMIZATION POINTS
 #
@@ -386,6 +387,7 @@ restart_application_server() {
 }
 
 # ========================= END APPLICATION CUSTOMIZATION =====================
+# END BU-ISCIII APPLICATION: install-hooks
 
 stage_dependencies() {
     checkout_git_revision

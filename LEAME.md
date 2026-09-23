@@ -13,7 +13,6 @@ abajo con valores o referencias institucionales verificadas.
 - [Actualizar codigo](#actualizar-codigo)
 - [Configurar los ajustes de produccion](#configurar-los-ajustes-de-produccion)
 - [Preparar directorios persistentes del host](#preparar-directorios-persistentes-del-host)
-- [Migrar datos en la primera instalacion de produccion](#migrar-datos-en-la-primera-instalacion-de-produccion)
 - [Backup antes de actualizar](#backup-antes-de-actualizar)
 - [Ejecutar la actualizacion](#ejecutar-la-actualizacion)
 - [Comprobaciones posteriores](#comprobaciones-posteriores)
@@ -26,6 +25,7 @@ abajo con valores o referencias institucionales verificadas.
 
 - Podman rootless y un proveedor de Compose funcionales.
 - El mismo usuario sin privilegios para el instalador y Podman.
+
 Entradas de despliegue que deben quedar registradas antes de ejecutar:
 
 | Entrada | Evidencia requerida |
@@ -49,9 +49,9 @@ completo. La libreria compartida detecta ambos proveedores automaticamente.
 ## Estructura de directorios en los servidores
 
 Todos los despliegues usan esta estructura institucional. El despliegue separa
-sus fuentes, binds, logs y backups; servicios externos como iSkyLIMS pueden
-conservar un namespace distinto definido por sus rutas protegidas. Podman
-administra su propio storage y no debe modificarse manualmente.
+sus fuentes, binds, logs y backups; un servicio externo puede conservar un
+namespace distinto, definido por sus rutas protegidas. Podman administra su
+propio storage y no debe modificarse manualmente.
 
 ```text
 /opt/containers_apps/
@@ -63,14 +63,14 @@ administra su propio storage y no debe modificarse manualmente.
 ├── backup/
 │   └── relecov-platform/               # Backup central recomendado
 ├── bind/
-│   └── relecov-platform/
+│   └── <namespace-configurado>/
 │       └── settings/                   # settings.py renderizado por servicio
 ├── shared/                             # Datos compartidos entre aplicaciones
 └── storage/
     └── <usuario-podman>/               # Storage rootless gestionado por Podman
 
 /var/log/local/
-└── relecov-platform/
+└── <namespace-configurado>/
     ├── apache/
     └── apps/
 ```
@@ -99,7 +99,7 @@ Persistencia declarada por el despliegue:
 Crear solo las ubicaciones necesarias para obtener el codigo y guardar backups.
 Sustituir `<usuario-podman>` por la cuenta que ejecutara siempre Podman y el
 instalador; normalmente es la cuenta de la sesion actual. Los binds y logs se
-crean despues de completar los ajustes protegidos.
+crean mas adelante, despues de completar los ajustes protegidos.
 
 ```bash
 sudo mkdir -p /opt/containers_apps/relecov-platform
@@ -126,7 +126,7 @@ Registrar el commit exacto con `git rev-parse HEAD`.
 
 ## Configurar los ajustes de produccion
 
-Crear un fichero ignorado y con modo `0600` por servicio a partir de su
+Este codigo va a crear un fichero ignorado y con modo `0600` por servicio a partir de su
 `conf/docker_production_settings.txt`. Resolver todos los `CHANGE_ME` y revisar
 la matriz [`conf/INSTALL_SETTINGS.md`](conf/INSTALL_SETTINGS.md). El instalador
 genera `.env.production.file` con valores runtime, incluidos secretos copiados
@@ -158,9 +158,9 @@ instalacion y actualizacion usan estas rutas protegidas.
 ## Preparar directorios persistentes del host
 
 Solo despues de completar y revisar todos los ajustes, crear los binds
-exactamente donde indica cada servicio. Esto incluye el namespace independiente
-de iSkyLIMS. Los ficheros se cargan como el usuario actual dentro de subshells;
-solo `install -d` usa privilegios:
+exactamente donde indica cada servicio. Los ficheros se cargan como el usuario
+actual dentro de subshells; solo `install -d` usa privilegios. Esto incluye
+servicios con un namespace de host distinto al despliegue principal.
 
 ```bash
 PODMAN_USER='<usuario-podman>'
@@ -181,7 +181,8 @@ PODMAN_USER='<usuario-podman>'
 (
   source deployment/settings/apache_production_settings.txt
   : "${APACHE_LOG_PATH:?APACHE_LOG_PATH is required for apache}"
-  sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" "$APACHE_LOG_PATH"
+  sudo install -d -o "$PODMAN_USER" -g "$PODMAN_USER" \
+    "$APACHE_LOG_PATH"
 )
 ```
 
@@ -195,6 +196,7 @@ bash container_install.sh --action fix-permissions --engine podman \
   --install_conf_map relecov-platform,deployment/settings/relecov-platform_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/relecov-iskylims_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt --install_conf_map samba,deployment/settings/samba_production_settings.txt
 ```
 
+<!-- BEGIN BU-ISCIII APPLICATION: production-runbook -->
 ## Migrar datos en la primera instalacion de produccion
 
 Esta seccion solo se aplica cuando la primera instalacion debe conservar las
@@ -304,6 +306,7 @@ misma sesion, conservando `COMPOSE_PROJECT_NAME`. El instalador debe reutilizar
 estos volumenes, aplicar permisos, ejecutar las migraciones pendientes y
 conservar los datos importados. Verificar al terminar que ambas aplicaciones
 muestran sus documentos y que Nextstrain publica todos los datasets esperados.
+<!-- END BU-ISCIII APPLICATION: production-runbook -->
 
 ## Backup antes de actualizar
 
@@ -338,6 +341,7 @@ Localizar y exportar cada volumen no reconstruible declarado en la tabla:
 podman volume ls | grep 'relecov-platform'
 podman volume export <volumen-documents> > "$BACKUP_DIR/documents.tar"
 podman volume export <volumen-static> > "$BACKUP_DIR/static.tar"
+
 ```
 
 Exportar `documents` y `static` por cada servicio Django que los declare;
@@ -358,15 +362,7 @@ de restauracion.
 
 ## Ejecutar la actualizacion
 
-Primera instalacion:
-
-```bash
-bash container_install.sh --action install --engine podman \
-  --git_revision <revision-aprobada> \
-  --install_conf_map relecov-platform,deployment/settings/app_production_settings.txt --install_conf_map relecov-iskylims,deployment/settings/iskylims_app_production_settings.txt --install_conf_map apache,deployment/settings/apache_production_settings.txt --install_conf_map nextstrain,deployment/settings/nextstrain_production_settings.txt
-```
-
-Actualizacion:
+Ejecutar el comando de instalación/upgrade:
 
 ```bash
 bash container_install.sh --action upgrade --engine podman \
@@ -406,8 +402,9 @@ Completar las comprobaciones que corresponden a la topologia seleccionada:
 - Nextstrain: confirmar la ruta publica y cada dataset o narrativa esperados tras cargar los datos Auspice revisados.
 - Samba: en cada modo habilitado, confirmar acceso autenticado y un flujo representativo de lectura/escritura desde un cliente aprobado.
 
-Verificar tambien correo y tareas programadas. Registrar URL y resultados junto
-con estado, imagenes y revision desplegada.
+Verificar tambien correo, tareas programadas y los flujos propios documentados
+por la aplicacion. Registrar URL y resultados junto con estado, imagenes y
+revision desplegada.
 
 ## Rollback
 

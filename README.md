@@ -1,5 +1,6 @@
 # RELECOV Platform
 
+<!-- BEGIN BU-ISCIII APPLICATION: overview -->
 Integrated RELECOV metadata, validation, submission, LIMS, and visualization platform.
 
 RELECOV is the Spanish network for genomic surveillance of SARS-CoV-2,
@@ -45,8 +46,8 @@ flowchart LR
 
     apache --> apache_logs[(Apache logs)]
 ```
+<!-- END BU-ISCIII APPLICATION: overview -->
 
-- [Infrastructure overview](#infrastructure-overview)
 - [Get the code (required)](#get-the-code-required)
 - [Choose your path](#choose-your-path)
 - [Minimum requirements](#minimum-requirements)
@@ -58,9 +59,6 @@ flowchart LR
 - [Bare-metal deployment (Ubuntu/CentOS)](#bare-metal-deployment-ubuntucentos)
 - [Common operations (Docker + bare-metal)](#common-operations-docker--bare-metal)
 - [Final configuration steps](#final-configuration-steps)
-  - [Configure iSkyLIMS integration](#configure-iskylims-integration)
-  - [Configure Nextstrain link](#configure-nextstrain-link)
-  - [Verify integrations](#verify-integrations)
 - [Developer notes](#developer-notes)
 - [Application documentation](#application-documentation)
 
@@ -435,6 +433,7 @@ mysqldump --single-transaction --routines --triggers \
 
 podman volume ls | grep 'relecov-platform'
 podman volume export "$DOCUMENTS_VOLUME" > "$BACKUP_DIR/documents.tar"
+
 tar -C /srv/containers/bind -czf "$BACKUP_DIR/bind-mounts.tar.gz" relecov-platform
 sha256sum "$BACKUP_DIR"/* > "$BACKUP_DIR/SHA256SUMS"
 ```
@@ -635,6 +634,7 @@ narrative before approving the deployment.
 
 ## Final configuration steps
 
+<!-- BEGIN BU-ISCIII APPLICATION: final-configuration -->
 Sign in to the Relecov Django administration site after deployment. The
 installer creates the initial administrator only when
 `CREATE_INITIAL_SUPERUSER=true` and the protected `DJANGO_SUPERUSER_*` values
@@ -733,15 +733,11 @@ their deployment settings and operational workflow.
 4. Exercise an authorized update operation and confirm the dedicated API
    credentials work.
 5. Review application logs for authentication, DNS, TLS, or API errors.
+<!-- END BU-ISCIII APPLICATION: final-configuration -->
 
 ## Developer notes
 
-### Shared container installer library
-
-`container_install.sh` sources the vendored files under
-`deployment/lib/container/`. Do not edit those copies. Check or update them
-from the standards repository with `scaffold.py check-lib` or `sync-lib`.
-
+<!-- BEGIN BU-ISCIII APPLICATION: developer-notes -->
 ### Run the developer tests
 
 Use Python 3.11, matching the application container. From the repository root,
@@ -779,6 +775,13 @@ coverage html
 Open `htmlcov/index.html` to inspect the HTML report. Coverage configuration
 excludes framework wiring such as migrations, admin and Dash registration,
 cron entry points, and the tests themselves; branch coverage remains enabled.
+<!-- END BU-ISCIII APPLICATION: developer-notes -->
+
+### Shared container installer library
+
+`container_install.sh` sources the vendored files under
+`deployment/lib/container/`. Do not edit those copies. Check or update them
+from the standards repository with `scaffold.py check-lib` or `sync-lib`.
 
 ### Schema migration workflow
 
@@ -817,5 +820,7 @@ and domain-specific read workflows without removing the generated checks.
 
 ## Application documentation
 
+<!-- BEGIN BU-ISCIII APPLICATION: documentation-links -->
 Application developers: replace this paragraph with links to user,
 administrator, API, upgrade, and support documentation.
+<!-- END BU-ISCIII APPLICATION: documentation-links -->

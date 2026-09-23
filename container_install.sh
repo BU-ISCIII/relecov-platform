@@ -10,10 +10,120 @@ source "$script_dir/deployment/lib/container/django.sh"
 APP_VERSION="0.1.0"
 APPLICATION_NAME="RELECOV Platform"
 
+# Applications with disposable fixtures or demo files customize this callback
+# and set application_supports_test_data=true. Keep application-specific
+# fixture names, users/groups, downloads, and data-service layout here.
+# BEGIN BU-ISCIII APPLICATION: deployment-hooks
+application_supports_test_data=true
+load_test_deployment_data() {
+    local relecov_iskylims_container samba_container fixture_path
+    local demo_archive="$demo_data" downloaded_demo=false
+
+    relecov_iskylims_container="$(current_service_container relecov-iskylims)"
+    if [ "$skip_test_data" = false ]; then
+        fixture_path="$(service_repo_path relecov-iskylims)/test/test_data.json"
+        if engine_exec exec "$relecov_iskylims_container" test -f "$fixture_path"; then
+            engine_exec exec "$relecov_iskylims_container" \
+                "$(service_install_path relecov-iskylims)/virtualenv/bin/python" \
+                "$(service_install_path relecov-iskylims)/manage.py" loaddata "$fixture_path"
+        else
+            echo "No iSkyLIMS test fixture found at $fixture_path; skipping."
+        fi
+    fi
+
+    [ "$skip_demo_data" = false ] || return 0
+    samba_container="$(current_service_container samba 2>/dev/null || true)"
+    [ -n "$samba_container" ] || {
+        echo "Samba service is not running; skipping demo sequencing data."
+        return 0
+    }
+    if [ -z "$demo_archive" ]; then
+        demo_archive="$script_dir/iskylims_demo_data.tar.gz"
+        wget -O "$demo_archive" \
+            https://zenodo.org/record/8091169/files/iskylims_demo_data.tar.gz
+        downloaded_demo=true
+    fi
+    [ -f "$demo_archive" ] || die "Demo-data archive not found: $demo_archive"
+    engine_exec cp "$demo_archive" "$samba_container:/mnt/iskylims_demo_data.tar.gz"
+    engine_exec exec "$samba_container" \
+        tar -xf /mnt/iskylims_demo_data.tar.gz -C /mnt
+    engine_exec exec "$samba_container" sh -lc '
+        for root in /mnt/test_ngs_data /mnt/Runs; do
+            [ ! -d "$root" ] || find "$root" -type d -exec chmod o+rx {} +
+            [ ! -d "$root" ] || find "$root" -type f -exec chmod o+r {} +
+        done
+        rm -f /mnt/iskylims_demo_data.tar.gz
+    '
+    [ "$downloaded_demo" = false ] || rm -f "$demo_archive"
+}
+
+# Add application-only host bind paths that profiles/add-ons cannot describe.
+set_application_host_bind_permissions() {
+    :
+}
+
+# Arguments: service name and running container ID. Add application-only
+# writable paths; profile/add-on permissions have already been applied.
+set_application_running_mount_permissions() {
+    local service_name="$1" container_id="$2"
+    local install_path uid gid
+
+    case "$service_name" in
+        relecov-platform|relecov-iskylims)
+            install_path="$(service_install_path "$service_name")"
+            uid="$(service_uid "$service_name")"
+            gid="$(service_gid "$service_name")"
+            local -a application_running_mount_permission_spec=(
+                "$install_path/cron|$uid:$gid|0700"
+                "$install_path/tmp|$uid:$gid|0700"
+            )
+            apply_container_directory_permission_spec \
+                "$container_id" "${application_running_mount_permission_spec[@]}"
+            ;;
+        *) : ;;
+    esac
+}
+# END BU-ISCIII APPLICATION: deployment-hooks
+
+action="install"; mode="production"; engine="docker"; git_revision="current"
+install_conf=""; compose_file=""; compose_env_file=""
+install_conf_map_entries=(); migration_script_before=(); migration_script_after=()
+demo_data=""; demo_data_service=""; demo_data_map_entries=()
+skip_demo_data=""; skip_test_data=""; skip_test_data_services=()
+load_tables=false; skip_tables=false
+
+usage() {
+    cat <<'EOF'
+Install, upgrade, or repair the application deployment.
+
+Options:
+  --action install|upgrade|fix-permissions
+  --test
+  --engine docker|podman
+  --git_revision <branch|tag|commit|current>
+  --install_conf <path>              First application service only.
+  --install_conf_map <component,path>  Repeat for application and add-on overrides.
+  --compose_file <path>
+  --script_before <name[,args]>
+  --script_after <name[,args]>
+  --script <name[,args]>
+  --tables                          Load initial tables; opt-in on upgrades.
+  --skip_tables                     Skip initial tables on a fresh install.
+  --demo_data <path>                 Single-service compatibility option.
+  --demo_data_map <service,path>     Repeat for service-specific data imports.
+  --skip_demo_data
+  --skip_test_data
+  --skip_test_data_service <service>  Repeat to skip one service's test fixtures.
+  --help
+  --version
+EOF
+}
+die() { echo "ERROR: $*" >&2; exit 1; }
+
 # ============================================================================
-# GENERATED SERVICE/ADD-ON CUSTOMIZATION
-# Regenerate these callbacks from the descriptor; keep application-neutral
-# lifecycle mechanics below unchanged.
+# GENERATED SERVICE/ADD-ON IMPLEMENTATION
+# Everything below usage() is managed by the descriptor, profiles, add-ons, or
+# common lifecycle. Put application behavior only in the block above.
 # ============================================================================
 install_services=(relecov-platform relecov-iskylims)
 addon_build_services=(relecov-platform-nextstrain)
@@ -70,8 +180,8 @@ service_readiness_path() {
 }
 service_image_name() {
     case "$1" in
-        relecov-platform) echo "${RELECOV_PLATFORM_IMAGE:-relecov-platform:local}" ;;
-        relecov-iskylims) echo "${RELECOV_ISKYLIMS_IMAGE:-relecov-iskylims:local}" ;;
+        relecov-platform) echo relecov-platform:local ;;
+        relecov-iskylims) echo relecov-iskylims:local ;;
         *) return 1 ;;
     esac
 }
@@ -114,10 +224,7 @@ prepare_compose_environment() {
     local -a deployment_values=(
         "GIT_REVISION|$git_revision"
         "RELECOV_PLATFORM_IMAGE|relecov-platform:local"
-        "PLATFORM_APP_IMAGE|relecov-platform:local"
         "RELECOV_ISKYLIMS_IMAGE|relecov-iskylims:local"
-        "PLATFORM_LOG_PATH|$(config_value_or_default HOST_LOG_PATH "${install_conf_host_by_service[relecov-platform]}" '')"
-        "ISKYLIMS_LOG_PATH|$(config_value_or_default HOST_LOG_PATH "${install_conf_host_by_service[relecov-iskylims]}" '')"
     )
     compose_env_file="$script_dir/.env.${mode}.file"
     write_compose_environment_file "$compose_env_file" settings_sources deployment_values
@@ -194,11 +301,10 @@ prepare_application_host_sources() {
     fi
 }
 
-# Keep one independently reviewable host permission specification per
-# application and per selected add-on. Empty add-on specs are intentional until
-# that add-on declares writable bind sources.
+# Apply the same permission workflow in test and production. Keep one
+# independently reviewable specification per application and selected add-on;
+# the shared helper skips paths that are not used by the active mode.
 prepare_host_bind_source_permissions() {
-    [ "$mode" = production ] || return 0
     local log_path settings_path uid gid
     log_path="$(service_environment_value relecov-platform HOST_LOG_PATH)"
     settings_path="$(service_environment_value relecov-platform DJANGO_SETTINGS_PATH)"
@@ -223,7 +329,7 @@ prepare_host_bind_source_permissions() {
     )
     apply_host_permission_spec "${relecov_iskylims_host_bind_permission_spec[@]}"
     # Generated proxy configuration is read-only in Apache. Its host files need
-    # traversal/read permissions, while the production log bind must be writable.
+    # traversal/read permissions, while the configured log source must be writable.
     apache_log_path="${APACHE_LOG_PATH:?APACHE_LOG_PATH is required}"
     local -a apache_host_bind_permission_spec=(
         "$script_dir/deployment/apache|-|0755"
@@ -236,6 +342,7 @@ prepare_host_bind_source_permissions() {
         "$apache_log_path|1001:0|0775"
     )
     apply_host_permission_spec "${apache_host_bind_permission_spec[@]}"
+    set_application_host_bind_permissions
 }
 
 # Keep a separate running-mount specification in every service/add-on case.
@@ -250,8 +357,6 @@ prepare_running_container_mount_permissions() {
                 "$install_path/logs|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/documents|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/static|$uid:$gid|u+rwX,g+rwX,o+rX"
-                "$install_path/cron|$uid:$gid|0700"
-                "$install_path/tmp|$uid:$gid|0700"
             )
             apply_container_directory_permission_spec "$container_id" "${relecov_platform_running_mount_permission_spec[@]}"
             prepare_django_container_settings_permissions "$container_id" "$install_path/relecov_platform/settings.py" "$uid" "$gid"
@@ -263,8 +368,6 @@ prepare_running_container_mount_permissions() {
                 "$install_path/logs|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/documents|$uid:$gid|u+rwX,g+rwX"
                 "$install_path/static|$uid:$gid|u+rwX,g+rwX,o+rX"
-                "$install_path/cron|$uid:$gid|0700"
-                "$install_path/tmp|$uid:$gid|0700"
             )
             apply_container_directory_permission_spec "$container_id" "${relecov_iskylims_running_mount_permission_spec[@]}"
             prepare_django_container_settings_permissions "$container_id" "$install_path/iskylims/settings.py" "$uid" "$gid"
@@ -275,8 +378,9 @@ prepare_running_container_mount_permissions() {
             local -a apache_running_mount_permission_spec=()
             apply_container_directory_permission_spec "$container_id" "${apache_running_mount_permission_spec[@]}"
             ;;
-        *) return 0 ;;
+        *) : ;;
     esac
+    set_application_running_mount_permissions "$service_name" "$container_id"
 }
 
 bootstrap_service() {
@@ -355,88 +459,6 @@ build_production_service() {
     esac
 }
 
-# Applications with disposable fixtures or demo files customize this callback
-# in their generated wrapper and set application_supports_test_data=true. Keep
-# application-specific fixture names, users/groups, downloads, and data-service
-# layout here so the complete test installation remains readable in one file.
-application_supports_test_data=true
-load_test_deployment_data() {
-    local relecov_iskylims_container samba_container fixture_path
-    local demo_archive="$demo_data" downloaded_demo=false
-
-    relecov_iskylims_container="$(current_service_container relecov-iskylims)"
-    if [ "$skip_test_data" = false ]; then
-        fixture_path="$(service_repo_path relecov-iskylims)/test/test_data.json"
-        if engine_exec exec "$relecov_iskylims_container" test -f "$fixture_path"; then
-            engine_exec exec "$relecov_iskylims_container" \
-                "$(service_install_path relecov-iskylims)/virtualenv/bin/python" \
-                "$(service_install_path relecov-iskylims)/manage.py" loaddata "$fixture_path"
-        else
-            echo "No iSkyLIMS test fixture found at $fixture_path; skipping."
-        fi
-    fi
-
-    [ "$skip_demo_data" = false ] || return 0
-    samba_container="$(current_service_container samba 2>/dev/null || true)"
-    [ -n "$samba_container" ] || {
-        echo "Samba service is not running; skipping demo sequencing data."
-        return 0
-    }
-    if [ -z "$demo_archive" ]; then
-        demo_archive="$script_dir/iskylims_demo_data.tar.gz"
-        wget -O "$demo_archive" \
-            https://zenodo.org/record/8091169/files/iskylims_demo_data.tar.gz
-        downloaded_demo=true
-    fi
-    [ -f "$demo_archive" ] || die "Demo-data archive not found: $demo_archive"
-    engine_exec cp "$demo_archive" "$samba_container:/mnt/iskylims_demo_data.tar.gz"
-    engine_exec exec "$samba_container" \
-        tar -xf /mnt/iskylims_demo_data.tar.gz -C /mnt
-    engine_exec exec "$samba_container" sh -lc '
-        for root in /mnt/test_ngs_data /mnt/Runs; do
-            [ ! -d "$root" ] || find "$root" -type d -exec chmod o+rx {} +
-            [ ! -d "$root" ] || find "$root" -type f -exec chmod o+r {} +
-        done
-        rm -f /mnt/iskylims_demo_data.tar.gz
-    '
-    [ "$downloaded_demo" = false ] || rm -f "$demo_archive"
-}
-
-action="install"; mode="production"; engine="docker"; git_revision="current"
-install_conf=""; compose_file=""; compose_env_file=""
-install_conf_map_entries=(); migration_script_before=(); migration_script_after=()
-demo_data=""; demo_data_service=""; demo_data_map_entries=()
-skip_demo_data=""; skip_test_data=""; skip_test_data_services=()
-load_tables=false; skip_tables=false
-
-usage() {
-    cat <<'EOF'
-Install, upgrade, or repair the application deployment.
-
-Options:
-  --action install|upgrade|fix-permissions
-  --test
-  --engine docker|podman
-  --git_revision <branch|tag|commit|current>
-  --install_conf <path>              First application service only.
-  --install_conf_map <component,path>  Repeat for application and add-on overrides.
-  --compose_file <path>
-  --script_before <name[,args]>
-  --script_after <name[,args]>
-  --script <name[,args]>
-  --tables                          Load initial tables; opt-in on upgrades.
-  --skip_tables                     Skip initial tables on a fresh install.
-  --demo_data <path>                 Single-service compatibility option.
-  --demo_data_map <service,path>     Repeat for service-specific data imports.
-  --skip_demo_data
-  --skip_test_data
-  --skip_test_data_service <service>  Repeat to skip one service's test fixtures.
-  --help
-  --version
-EOF
-}
-die() { echo "ERROR: $*" >&2; exit 1; }
-
 # 1. Parse the canonical outer-installer interface.
 while (($#)); do
     case "$1" in
@@ -467,22 +489,27 @@ done
 [[ "$engine" =~ ^(docker|podman)$ ]] || die "Invalid engine: $engine"
 declare -A demo_data_by_service=()
 if [ -n "$demo_data" ]; then
-    [ "${#install_services[@]}" -eq 1 ] || die "--demo_data is valid only for a single-service deployment; use --demo_data_map service,path"
+    [ "${#install_services[@]}" -eq 1 ] \
+        || die "--demo_data is valid only for a single-service deployment; use --demo_data_map service,path"
     demo_data_map_entries+=("${install_services[0]},$demo_data")
 fi
 for mapping in "${demo_data_map_entries[@]}"; do
     [[ "$mapping" == *,* ]] || die "Invalid --demo_data_map: $mapping"
     service_name="${mapping%%,*}"; path="${mapping#*,}"
-    array_contains "$service_name" "${install_services[@]}" || die "Unknown demo-data service: $service_name"
-    [ -z "${demo_data_by_service[$service_name]+present}" ] || die "Duplicate --demo_data_map service: $service_name"
+    array_contains "$service_name" "${install_services[@]}" \
+        || die "Unknown demo-data service: $service_name"
+    [ -z "${demo_data_by_service[$service_name]+present}" ] \
+        || die "Duplicate --demo_data_map service: $service_name"
     [ -n "$path" ] || die "Empty demo-data path for $service_name"
     [ -f "$path" ] || die "Demo-data file not found for $service_name: $path"
     demo_data_by_service["$service_name"]="$(cd "$(dirname "$path")" && pwd)/$(basename "$path")"
 done
 for service_name in "${skip_test_data_services[@]}"; do
-    array_contains "$service_name" "${install_services[@]}" || die "Unknown --skip_test_data_service: $service_name"
+    array_contains "$service_name" "${install_services[@]}" \
+        || die "Unknown --skip_test_data_service: $service_name"
 done
-if [ "${#demo_data_by_service[@]}" -gt 0 ] && [ "$application_supports_test_data" != true ]; then
+if [ "${#demo_data_by_service[@]}" -gt 0 ] \
+    && [ "$application_supports_test_data" != true ]; then
     die "--demo_data_map is not implemented for $APPLICATION_NAME"
 fi
 if [ "${#demo_data_by_service[@]}" -gt 0 ] && [ "$action" != install ]; then
@@ -491,6 +518,9 @@ fi
 if [ "${#demo_data_by_service[@]}" -gt 0 ] && [ "${skip_demo_data:-false}" = true ]; then
     die "--demo_data_map cannot be combined with --skip_demo_data"
 fi
+# Test installs may use application defaults. Production remains strictly
+# opt-in, loads only an explicitly supplied demo file, and never enables test
+# fixtures alongside it.
 if [ "$mode" = test ] && [ "$action" = install ] \
     && [ "$application_supports_test_data" = true ]; then
     skip_demo_data="${skip_demo_data:-false}"
@@ -549,10 +579,10 @@ if [ "$action" = fix-permissions ]; then
     exit 0
 fi
 
-# 6. Build application services in declared order. Production builds use the
-# engine directly: Django receives its settings as
-# an ephemeral build secret, while React receives only its public VITE value.
-# This avoids requiring Compose implementations to support build.secrets.
+# 6. Build application services in declared order. Production builds use
+# profile-owned callbacks so each framework receives only its supported build
+# inputs. This avoids requiring Compose implementations to support
+# build.secrets.
 for service_name in "${install_services[@]}"; do
     if [ "$mode" = test ]; then
         deployment_compose -f "$compose_file" build --no-cache "$service_name"
@@ -560,27 +590,7 @@ for service_name in "${install_services[@]}"; do
     fi
     context="$(service_build_context_dir "$service_name")"
     dockerfile="$(service_dockerfile "$service_name")"
-    profile="$(service_profile "$service_name")"
-    if [ "$profile" = django ]; then
-        engine_build --no-cache --file "$context/$dockerfile" \
-            --secret "id=install_conf,src=${install_conf_host_by_service[$service_name]}" \
-            --build-arg GIT_REVISION="$git_revision" \
-            --build-arg INSTALL_CONF="$(service_container_install_conf "$service_name")" \
-            --build-arg USE_INSTALL_CONF_SECRET=true \
-            --build-arg RENDER_DJANGO_SETTINGS=false \
-            --build-arg APP_REPO_PATH="$(service_repo_path "$service_name")" \
-            --build-arg APP_INSTALL_PATH="$(service_install_path "$service_name")" \
-            --build-arg APP_PORT="$(service_environment_value "$service_name" APP_PORT)" \
-            --build-arg APP_UID="$(service_uid "$service_name")" \
-            --build-arg APP_GID="$(service_gid "$service_name")" \
-            --tag "$(service_image_name "$service_name")" "$context"
-    else
-        vite_api_url="$(service_environment_value "$service_name" VITE_API_BASE_URL)"
-        engine_build --no-cache --file "$context/$dockerfile" \
-            --build-arg GIT_REVISION="$git_revision" \
-            --build-arg VITE_API_BASE_URL="$vite_api_url" \
-            --tag "$(service_image_name "$service_name")" "$context"
-    fi
+    build_production_service "$service_name" "$context" "$dockerfile"
 done
 # Build add-on images through Compose so their declared build arguments and
 # add-on-owned Dockerfiles remain the single source of truth.
@@ -625,12 +635,20 @@ if [ "$action" = install ] \
     if [ "${#demo_data_by_service[@]}" -gt 0 ]; then
         for service_name in "${install_services[@]}"; do
             [ -n "${demo_data_by_service[$service_name]+present}" ] || continue
-            demo_data_service="$service_name"; demo_data="${demo_data_by_service[$service_name]}"; skip_test_data=true
+            demo_data_service="$service_name"
+            demo_data="${demo_data_by_service[$service_name]}"
+            skip_test_data=true
             load_test_deployment_data "$demo_data_service" "$demo_data"
         done
     else
-        demo_data_service="${install_services[0]}"; demo_data=""
-        array_contains "$demo_data_service" "${skip_test_data_services[@]}" && skip_test_data=true
+        # Preserve existing test-loader behavior. Multi-service applications
+        # should dispatch internally using demo_data_service when they need
+        # service-specific default fixtures.
+        demo_data_service="${install_services[0]}"
+        demo_data=""
+        if array_contains "$demo_data_service" "${skip_test_data_services[@]}"; then
+            skip_test_data=true
+        fi
         load_test_deployment_data "$demo_data_service" "$demo_data"
     fi
 fi
