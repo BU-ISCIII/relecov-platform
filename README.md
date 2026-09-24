@@ -368,10 +368,12 @@ and review of the version-specific guide.
 
 ### Database creation, users and grants
 
-Production databases are externally managed unless the application documents a
-different supported topology. Create a dedicated schema and least-privilege
-account, verify connectivity from the application container, and keep DBA
-commands and credentials outside this repository.
+Each Django service declares `DATABASE` as `external` or `compose`. A Compose-managed
+database is initialized from that service's protected `DB_NAME`, `DB_USER`, and
+`DB_PASSWORD` values and persists in its `<service>_db_data` volume. For an
+external database, create a dedicated schema and least-privilege account, verify
+connectivity from the application container, and keep DBA credentials outside
+this repository.
 
 Connect as an authorized database administrator without putting the password
 on the command line:
@@ -427,6 +429,12 @@ cp deployment/settings/nextstrain_production_settings.txt "$BACKUP_DIR/"
 cp deployment/settings/samba_production_settings.txt "$BACKUP_DIR/"
 chmod -R go-rwx "$BACKUP_DIR"
 
+# For each Compose-managed application database:
+podman compose --env-file .env.production.file -f docker-compose.prod.yml \
+  exec -T <service>-db sh -c 'exec mysqldump --single-transaction --routines --triggers -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' \
+  > "$BACKUP_DIR/<service>-database.sql"
+
+# For each external application database:
 mysqldump --single-transaction --routines --triggers \
   --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password \
   "$DB_NAME" > "$BACKUP_DIR/database.sql"
@@ -476,6 +484,8 @@ DB_PORT='3306'
 DB_NAME='CHANGE_ME'
 DB_USER='CHANGE_ME'
 podman compose --env-file .env.production.file -f docker-compose.prod.yml down
+# Restore external databases directly. For Compose-managed databases, start
+# <service>-db, wait for its healthcheck, and import through that service.
 mysql --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password \
   "$DB_NAME" < "$BACKUP_DIR/database.sql"
 podman volume import "$DOCUMENTS_VOLUME" "$BACKUP_DIR/documents.tar"

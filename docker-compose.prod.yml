@@ -17,6 +17,7 @@ services:
         APP_REPO_PATH: ${RELECOV_PLATFORM_REPO_PATH:?RELECOV_PLATFORM_REPO_PATH is required}
         APP_INSTALL_PATH: ${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}
     restart: unless-stopped
+
     user: "${RELECOV_PLATFORM_APP_UID:?RELECOV_PLATFORM_APP_UID is required}:${RELECOV_PLATFORM_APP_GID:?RELECOV_PLATFORM_APP_GID is required}"
     environment:
       APP_MODE: prod
@@ -68,6 +69,7 @@ services:
         APP_REPO_PATH: ${RELECOV_ISKYLIMS_REPO_PATH:?RELECOV_ISKYLIMS_REPO_PATH is required}
         APP_INSTALL_PATH: ${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}
     restart: unless-stopped
+
     user: "${RELECOV_ISKYLIMS_APP_UID:?RELECOV_ISKYLIMS_APP_UID is required}:${RELECOV_ISKYLIMS_APP_GID:?RELECOV_ISKYLIMS_APP_GID is required}"
     environment:
       APP_MODE: prod
