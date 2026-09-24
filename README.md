@@ -796,21 +796,17 @@ from the standards repository with `scaffold.py check-lib` or `sync-lib`.
 ### Schema migration workflow
 
 Django migrations MUST be generated, reviewed, tested, and committed with the
-release. Installation and production upgrade run `migrate --noinput`; they
-MUST NOT run `makemigrations` or silently manufacture schema history.
+release. Installation and upgrade use `container_install.sh`; deployment MUST
+NOT run `makemigrations` or silently manufacture schema history.
 
-For a legacy application entering the standard:
+`--test` selects the test topology but does not guarantee an empty database:
+its named database volume survives container recreation. Use `--action install`
+only with an empty database and `--action upgrade` only with a recognized,
+committed migration history.
 
-1. Generate and commit baseline migrations from the last supported stable tag.
-2. Generate and commit new migrations for later model changes.
-3. Verify the committed migration history matches the supported production
-   database before deploying it.
-4. Put ordered data transformations in version-specific upgrade guides and run
-   them through `--script_before`, `--script_after`, or `--script`.
-5. Verify `showmigrations --plan` has no unapplied entries after bootstrap.
-
-Never use `--fake` to conceal a failed or partially applied migration. New
-installations and upgrades use the committed migration graph.
+See the [Django schema migration workflow](.github/DJANGO_MIGRATIONS.md) for
+legacy adoption, development-only migrations, release consolidation, container
+commands, production-like testing, and migration squashing.
 
 ### Persistent host paths
 

@@ -44,10 +44,11 @@
   },
   "files": {
     ".dockerignore": "bd9c115511d6b9dae318e4b6a85ddb282e60a46fd89c6cdecccdc20c668eb0e9",
+    ".github/DJANGO_MIGRATIONS.md": "812f598c85b7f6766773819b42ba1dda4015388d34ce6f021e37d98f1238ada5",
     ".gitignore": "a6a3f41492fc34a308da1ab69e504a6c727d6d4b4634faa6aecfa4090e363937",
     "Dockerfile": "e3ce0f9db930aac0e8d4defc9d04d1509c676df16e033bb8cf9b02dfa3f006a1",
     "LEAME.md": "7445ca0d5923138446ec588067e79c1bc4761d7e43608774bd30d4949357ca7e",
-    "README.md": "e73f6d66a0a99b42dd51632958c366d5f35c7fb90ca2a9a74d910bdf7330943d",
+    "README.md": "89a8e3dbab9a858197c9dd71c932176009749b0d75cd64668dfee6b692d6714a",
     "conf/INSTALL_SETTINGS.md": "205b2219811cd677ff09d93fc05fe18109017b65db3913750557b6f1a395efdd",
     "conf/apache/00-logs.conf": "3c2ab4e693e528d2cad37c0c5bb0bc4511803a7f206b339182de192d4e398092",
     "conf/apache/01-reverse-proxy.conf": "9208814ef86aaffab5fe6d5e0d9580663398feec2a711fbf138916a492897874",
