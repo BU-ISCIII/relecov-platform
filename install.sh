@@ -219,6 +219,21 @@ PY
 # idempotent so a failed deployment can be retried safely.
 # ============================================================================
 
+install_system_packages() {
+    # Run the application hook in a subshell outside any `||`/`if` test:
+    # Bash disables errexit inside functions called from a tested context,
+    # which would let a failed package install continue silently.
+    local status
+    set +e
+    ( set -e; install_application_system_packages )
+    status=$?
+    set -e
+    (( status == 0 )) || die "System dependency installation failed during the container build.
+Check the package-manager output above for details. Possible causes
+include repository availability, incompatible package versions,
+network access, or subscription configuration."
+}
+
 install_application_system_packages() {
     # Keep the Dockerfile limited to tools needed to launch this installer.
     # Framework build headers and post-install user-management tools belong to
