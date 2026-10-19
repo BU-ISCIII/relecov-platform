@@ -46,7 +46,6 @@ generates a private `<service>-db` MySQL service and persistent
 | Variable | Required | Secret | Meaning |
 |---|---:|---:|---|
 | `DJANGO_DEBUG` | yes | no | MUST be `false` in production |
-| `DJANGO_SECRET_KEY` | yes | yes | Stable Django signing key; preserve on upgrade |
 | `DJANGO_ALLOWED_HOSTS` | yes | no | Exact production hostnames |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | production | no | Exact HTTPS origins |
 | `DB_CONN_MAX_AGE` | yes | no | Django persistent database connection lifetime |
@@ -120,7 +119,7 @@ Keep its allow-list limited to trusted diagnostic hosts.
 
 Edit the source files under `conf/apache/` to define the application's virtual
 hosts, routes, and aliases. During installation they are rendered with the
-protected deployment environment into `deployment/apache/`; only those final
+protected deployment environment into `APACHE_CONF_PATH` (or `deployment/apache/` when empty); only those final
 files are bind-mounted. `APACHE_LOG_PATH` is the writable persistent host log
 source.
 

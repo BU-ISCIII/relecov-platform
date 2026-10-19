@@ -30,7 +30,6 @@ services:
       DB_NAME: ${RELECOV_PLATFORM_DB_NAME:?RELECOV_PLATFORM_DB_NAME is required}
       DB_USER: ${RELECOV_PLATFORM_DB_USER:?RELECOV_PLATFORM_DB_USER is required}
       DB_PASSWORD: ${RELECOV_PLATFORM_DB_PASSWORD:?RELECOV_PLATFORM_DB_PASSWORD is required}
-      DJANGO_SECRET_KEY: ${RELECOV_PLATFORM_DJANGO_SECRET_KEY:?RELECOV_PLATFORM_DJANGO_SECRET_KEY is required}
       DJANGO_ALLOWED_HOSTS: ${RELECOV_PLATFORM_DJANGO_ALLOWED_HOSTS:?RELECOV_PLATFORM_DJANGO_ALLOWED_HOSTS is required}
     volumes:
       - relecov-platform_documents:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/documents:z
@@ -82,7 +81,6 @@ services:
       DB_NAME: ${RELECOV_ISKYLIMS_DB_NAME:?RELECOV_ISKYLIMS_DB_NAME is required}
       DB_USER: ${RELECOV_ISKYLIMS_DB_USER:?RELECOV_ISKYLIMS_DB_USER is required}
       DB_PASSWORD: ${RELECOV_ISKYLIMS_DB_PASSWORD:?RELECOV_ISKYLIMS_DB_PASSWORD is required}
-      DJANGO_SECRET_KEY: ${RELECOV_ISKYLIMS_DJANGO_SECRET_KEY:?RELECOV_ISKYLIMS_DJANGO_SECRET_KEY is required}
       DJANGO_ALLOWED_HOSTS: ${RELECOV_ISKYLIMS_DJANGO_ALLOWED_HOSTS:?RELECOV_ISKYLIMS_DJANGO_ALLOWED_HOSTS is required}
     volumes:
       - relecov-iskylims_documents:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/documents:z
@@ -128,9 +126,9 @@ services:
       start_period: 30s
     volumes:
       # REQUIRED runtime-rendered read-only configuration bind sources.
-      - ./deployment/apache/00-logs.conf:/etc/httpd/conf.d/00-logs.conf:ro,z
-      - ./deployment/apache/01-reverse-proxy.conf:/etc/httpd/conf.d/01-reverse-proxy.conf:ro,z
-      - ./deployment/apache/02-server-status.conf:/etc/httpd/conf.d/02-server-status.conf:ro,z
+      - ${APACHE_CONF_PATH:-./deployment/apache}/00-logs.conf:/etc/httpd/conf.d/00-logs.conf:ro,z
+      - ${APACHE_CONF_PATH:-./deployment/apache}/01-reverse-proxy.conf:/etc/httpd/conf.d/01-reverse-proxy.conf:ro,z
+      - ${APACHE_CONF_PATH:-./deployment/apache}/02-server-status.conf:/etc/httpd/conf.d/02-server-status.conf:ro,z
       # REQUIRED persistent host log bind. Back it up/rotate per host policy.
       - ${APACHE_LOG_PATH:?APACHE_LOG_PATH is required}:/var/log/httpd:z
       # REQUIRED when container and host timezone must agree in log records.
