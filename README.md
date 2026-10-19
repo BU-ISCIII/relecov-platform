@@ -96,7 +96,7 @@ Services:
 
 Selected add-ons:
 
-- Apache source configuration lives under `conf/apache/`; customize its virtual hosts and routes there. The installer renders final bind sources under `deployment/apache/`.
+- Apache source configuration lives under `conf/apache/`; customize its virtual hosts and routes there. The installer renders final bind sources under `APACHE_CONF_PATH` (or `deployment/apache/` when empty).
 - The Nextstrain add-on serves datasets from persistent `nextstrain_data` storage. Production access should normally pass through the configured reverse proxy.
 - The Samba add-on provides disposable NGS demo storage only in `--test` mode.
 
@@ -238,7 +238,7 @@ nor this generated environment file is copied into image layers.
 | `relecov-iskylims` logs | Host bind configured by `HOST_LOG_PATH` in `relecov-iskylims_production_settings.txt` | Retain/rotate per institutional log policy |
 | `relecov-iskylims` rendered settings | Host bind configured by `DJANGO_SETTINGS_PATH` in `relecov-iskylims_production_settings.txt` | Protected configuration backup |
 | Apache logs | `/var/log/local/relecov-platform/apache` host bind | Retain/rotate per institutional log policy |
-| Rendered Apache configuration | `deployment/apache/` in the deployment checkout | Rebuildable; preserve reviewed source configuration |
+| Rendered Apache configuration | `APACHE_CONF_PATH` (or `deployment/apache/` when empty) | Rebuildable; preserve reviewed source configuration |
 | Nextstrain datasets | `nextstrain_data` named volume | Auspice/Nextstrain datasets served by `nextstrain view` |
 | Samba test data | `samba_test_data` named volume | Disposable test/demo files |
 
@@ -277,6 +277,12 @@ podman compose --env-file .env.production.file -f docker-compose.prod.yml restar
 ```
 
 ### Upgrade docker deployment
+
+Django upgrades automatically preserve `SECRET_KEY` from the existing host
+settings file at `DJANGO_SETTINGS_PATH`. No manual key configuration is needed.
+If that file does not exist, the installer generates a new key. When restoring
+or moving the deployment to a different settings path, restore the old settings
+file there before installation if the original signing key must be preserved.
 
 After taking a consistent backup and reading the version-specific upgrade
 notes:
