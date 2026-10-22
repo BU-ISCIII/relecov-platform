@@ -1,0 +1,57 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+{% include "dashboard/sideMenuFuncionality.html" %}
+
+<section class="hero-animated d-flex font-primary">
+    <div class="container position-relative">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+
+            <!-- Sidebar -->
+            {% include "dashboard/variantSideBar.html" %}
+            <!-- End of Sidebar -->
+
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+                        <!-- Page Heading -->
+                        <div class="row pt-4"  style="text-align: center">
+                            <h1>Variant Dashboard</h1>
+                        </div> <!-- end row -->
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center;">
+                            <div class="col-sm-6">
+                                <div class="card shadow h-100 py-2">
+                                    <div class="card-title"><h4>Mutations in Lineages</h4></div>
+                                    <div class="card-body">
+                                        <a href="/dashboard/variants/mutationsInLineage">
+                                        <img src="{% static 'dashboard/custom/img/mutation_heatmap.png' %}" alt="Mutations in Lineages dashboard" style="width: 80%">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card shadow h-100 py-2">
+                                    <div class="card-title"><h4>Lineages VOC</h4></div>
+                                    <div class="card-body">
+                                        <a href="/dashboard/variants/lineagesVoc">
+                                        <img src="{% static 'dashboard/custom/img/lineageBarStack.png' %}" alt="lineages VOC dashboard" style="width: 70%">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div> <!-- end col-sm-6 -->
+                        </div>
+                    </div> <!-- End container -->
+                </div><!-- End Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+{% endblock %}

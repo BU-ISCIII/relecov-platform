@@ -1,23 +1,25 @@
-from pathlib import Path
-import os
+"""Django settings rendered by the BU-ISCIII deployment library.
 
-# Build paths inside the project like this: BASE_DIR / "subdir".
+This is an application-owned template. Keep the exact Django applications and
+project behavior here; deployment-specific values are replaced from the
+selected production or test installation settings file.
+"""
+
+import os
+from pathlib import Path
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# The renderer replaces this complete line and preserves the existing generated
+# value during upgrades. Never commit a real production secret here.
 SECRET_KEY = "PLACEHOLDER"
-
-
-# SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "localserverip"]
-
-# Application definition
+DEBUG = djangodebug
+ALLOWED_HOSTS = [
+    host.strip() for host in "djangoallowedhosts".split(",") if host.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in "djangocsrftrustedorigins".split(",") if origin.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -27,15 +29,15 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
-    "channels",
-    "channels_redis",
-    "relecov_core",
-    "relecov_dashboard",
-    "relecov_documentation",
+    "django_crontab",
+    "core",
+    "dashboard",
+    "docs",
     "django_extensions",
     "rest_framework",
-    "drf_yasg",
-    "django_cleanup",  # should go after your apps
+    "drf_spectacular",
+    # django-cleanup must follow the applications whose files it manages.
+    "django_cleanup",
 ]
 
 MIDDLEWARE = [
@@ -47,9 +49,11 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
+    "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
 ]
 
 ROOT_URLCONF = "relecov_platform.urls"
+WSGI_APPLICATION = "relecov_platform.wsgi.application"
 
 TEMPLATES = [
     {
@@ -62,26 +66,23 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "docs.utils.context_processors.docs_current_path",
             ],
         },
-    },
+    }
 ]
-
-WSGI_APPLICATION = "relecov_platform.wsgi.application"
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
+        "NAME": "djangodbname",
         "USER": "djangouser",
         "PASSWORD": "djangopass",
+        "HOST": os.getenv("DB_HOST", "djangohost"),
         "PORT": "djangoport",
-        "NAME": "relecov",
-        "HOST": "djangohost",
-    },
+        "CONN_MAX_AGE": dbconnmaxage,
+    }
 }
-
-# Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -98,68 +99,86 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-#  enable the use of frames within HTML documents
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Relecov Platform API",
+    "DESCRIPTION": "REST API to access Relecov Platform",
+    "VERSION": "1.0",
+    "SERVE_INCLUDE_SCHEMA": True,
+    "GENERIC_ADDITIONAL_PROPERTIES": "dict",
+}
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {"basic": {"type": "basic"}},
+}
+
+# Dash views are embedded in application pages.
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
-USE_L10N = True
-
 USE_TZ = False
-
-ASGI_APPLICATION = "relecov_platform.routing.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [
-                ("127.0.0.1", 6379),
-            ],
-        },
-    }
-}
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     "django_plotly_dash.finders.DashAssetFinder",
-    "django_plotly_dash.finders.DashComponentFinder",
+    "django_plotly_dash.finders.DashAppDirectoryFinder",
+    "core.finders.DashComponentFinderNoDuplicates",
 ]
 
 PLOTLY_COMPONENTS = [
-    "dash_core_components",
-    "dash_html_components",
-    "dash_renderer",
     "dpd_components",
-    # Other components, as needed
-    # "dash_bootstrap_components",
+    "dash_bootstrap_components",
+    "dash_daq",
+    "dash_bio",
 ]
 
-SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"basic": {"type": "basic"}}}
-
-#  Media settings
-MEDIA_URL = "/documents/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "documents/")
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+PLOTLY_DASH = {
+    "view_decorator": "core.dash_access.selective_login_required",
+    # LocMemCache is process-local and breaks iframe initial state when the
+    # deployment runs multiple Gunicorn workers.
+    "cache_arguments": False,
+    "serve_locally": True,
+}
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_ROOT = BASE_DIR / "static"
+MEDIA_URL = "/documents/"
+MEDIA_ROOT = BASE_DIR / "documents"
 
-# Redirect to home URL after login (Default redirects to /accounts/profile/)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "emailhostserver"
+EMAIL_PORT = emailport
+EMAIL_HOST_USER = "emailhostuser"
+EMAIL_HOST_PASSWORD = "emailhostpassword"
+EMAIL_USE_TLS = emailhosttls
+
 LOGIN_REDIRECT_URL = "/intranet/"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+LOG_CRONTAB_FILE = BASE_DIR / "logs" / "crontab.log"
+CRONJOBS = [
+    (
+        "0 0 * * *",
+        "dashboard.cron.update_search_samples_summary",
+        f">>{LOG_CRONTAB_FILE}",
+    ),
+    (
+        "10 0 1 * *",
+        "dashboard.cron.update_graphic_json_data",
+        f">>{LOG_CRONTAB_FILE}",
+    ),
+]
+CRONTAB_COMMAND_SUFFIX = "2>&1"
+
+# Optional upload limit in bytes. Django's default is 2.5 MiB.
+# DATA_UPLOAD_MAX_MEMORY_SIZE = 10_000_000
+
+# Apache overwrites this header before forwarding requests to Django.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

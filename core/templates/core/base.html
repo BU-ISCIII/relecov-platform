@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="Relecov">
+        <meta content="" name="COVID">
+        <title>Relecov Platform</title>
+        <!-- Favicons -->
+        <link href="{% static 'core/custom/img/favicon.png' %}" rel="icon">
+
+        <!-- Local fonts -->
+        <link href="{% static 'core/custom/css/fonts.css' %}" rel="stylesheet">
+
+        <!-- Font-Awesome -->
+        <link href="{% static 'core/vendor/font_awesome/css/fontawesome.min.css' %}" rel="stylesheet">
+        <!-- Bootstrap -->
+        <link href="{% static 'core/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'core/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+        <link href="{% static 'core/vendor/aos/aos.css' %}" rel="stylesheet">
+        <link href="{% static 'core/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+
+        <!-- Variables CSS Files. Uncomment your preferred color scheme -->
+        <link href="{% static 'core/main_style/css/variables-green2.css' %}" rel="stylesheet">
+
+        <!-- Template Main CSS File -->
+        <link href="{% static 'core/main_style/css/main.css' %}" rel="stylesheet">
+        <link href="{% static 'core/custom/css/cookie_consent.css' %}" rel="stylesheet">
+        <style>
+          table.dataTable thead tr:first-child th {
+            position: relative;
+            padding-right: 2.3rem;
+            user-select: text;
+          }
+
+          table.dataTable thead .sorting:before,
+          table.dataTable thead .sorting:after,
+          table.dataTable thead .sorting_asc:before,
+          table.dataTable thead .sorting_asc:after,
+          table.dataTable thead .sorting_desc:before,
+          table.dataTable thead .sorting_desc:after,
+          table.dataTable thead .sorting_asc_disabled:before,
+          table.dataTable thead .sorting_asc_disabled:after,
+          table.dataTable thead .sorting_desc_disabled:before,
+          table.dataTable thead .sorting_desc_disabled:after {
+            display: none !important;
+          }
+
+          .dt-explicit-sort {
+            position: absolute;
+            top: 50%;
+            right: 0.35rem;
+            transform: translateY(-50%);
+            display: inline-flex;
+            gap: 0.15rem;
+            z-index: 2;
+          }
+
+          .dt-explicit-sort button {
+            border: 0;
+            background: transparent;
+            color: #6c757d;
+            font-size: 0.75rem;
+            line-height: 1;
+            padding: 0.1rem 0.15rem;
+            cursor: pointer;
+          }
+
+          .dt-explicit-sort button:hover,
+          .dt-explicit-sort button:focus {
+            color: #0d6efd;
+            outline: none;
+          }
+
+          .dt-explicit-sort button.active {
+            color: #0d6efd;
+            font-weight: 700;
+          }
+        </style>
+        {% block extra_css %}{% endblock %}
+        <!--   Jquery scripts   -->
+        <script src="{% static 'core/vendor/jquery/js/jquery.min.js' %}"></script>
+        <script src="{% static 'dash/component/plotly/package_data/plotly.min.js' %}"></script>
+        <link href="{% static 'docs/css/docs.css' %}" rel="stylesheet">
+    </head>
+    <!-- <body style="background-color: white!important;"> -->
+    <body>
+        <!-- ======= Header ======= -->
+
+        <header id="header2" class="header fixed-top" data-scrollto-offset="0" >
+
+            <div class="container d-flex align-items-center justify-content-between">
+            <!-- <div class="container-fluid d-flex align-items-center justify-content-between"> -->
+
+                <a href="/" class="d-flex align-items-center scrollto me-auto me-lg-0">
+                    <img src="{% static 'core/custom/img/relecov_logo.png' %}" width="100" alt="Relecov Logo">
+                </a>
+                <nav id="navbar" class="navbar">
+                    <ul>
+                        <!-- # FIXME any superuser should be able to access -->
+                        {% if user.username == "admin" %}
+                            <li class="dropdown"><a href="#"><span>Configuration</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                            <ul>
+                                <li><a href="/schemaHandling"><span>Schema Handling</span></a>
+                                <li><a href="/metadataVisualization"><span>Metadata Visualization</span></a>
+                                <li><a href="/organismAnnotation"><span>Annotation</span></a>
+                                <li><a href="/assignSamplesToUser"><span>Assign Laboratory to User</span></a>
+                            </ul>
+                        {% endif %}
+                        <li><a class="nav-link scrollto" href="https://relecov.isciii.es/news-reports/">Relecov Project</a></li>
+                        <li class="dropdown"><a href="#"><span>Dashboard</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                            <ul>
+                                <li><a href="/dashboard/variants">Variants Dashboard</a></li>
+                                <li><a href="/dashboard/methodology">Methodology Dashboard</a></li>
+                            </ul>
+                        </li>
+                        <li><a class="nav-link scrollto" href="/documentation">Documentation</a></li>
+                        <li><a class="nav-link scrollto" href="/Contact">Contact</a></li>
+                        <li><a class="btn-getstarted scrollto" href="/intranet">Intranet</a></li>
+
+                    </ul>
+                    <i class="bi bi-list mobile-nav-toggle d-none"></i>
+                </nav><!-- .navbar -->
+                {% if user.is_authenticated %}
+                    {% include "registration/login_inline.html" %}
+                {% endif %}
+            </div>
+
+        </header><!-- End Header -->
+
+                {% block content %}
+
+                {% endblock %}
+
+{% if show_cookie_banner %}
+<div id="cookieConsentBanner" class="cookie-consent" role="dialog" aria-live="polite" aria-labelledby="cookieConsentTitle">
+    <div class="cookie-consent-content">
+        <div>
+            <h2 id="cookieConsentTitle">Your privacy is important to us</h2>
+            <p>
+                We use strictly necessary first-party cookies for security, session management and the correct operation of this website. These cookies are associated only with the browser you are using.
+            </p>
+            <p>
+                If you select "Accept all", you accept strictly necessary cookies and any optional third-party or analytics cookies where they are used. If you select "Reject", only strictly necessary first-party cookies will be used. You can also manage your preferences. See the
+                <a href="{% url 'cookie_policy' %}">Cookie Policy</a>
+                and the
+                <a href="https://relecov.isciii.es/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            </p>
+        </div>
+        <div class="cookie-consent-actions">
+            <form method="post" action="{% url 'cookie_consent' %}">
+                {% csrf_token %}
+                <input type="hidden" name="value" value="all">
+                <input type="hidden" name="next" value="{{ cookie_consent_next }}">
+                <button type="submit" class="cookie-btn cookie-btn-primary">Accept all</button>
+            </form>
+            <form method="post" action="{% url 'cookie_consent' %}">
+                {% csrf_token %}
+                <input type="hidden" name="value" value="necessary_only">
+                <input type="hidden" name="next" value="{{ cookie_consent_next }}">
+                <button type="submit" class="cookie-btn cookie-btn-secondary">Reject</button>
+            </form>
+            <button type="button" class="cookie-btn cookie-btn-outline" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">More information</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade cookie-modal" id="cookieSettingsModal" tabindex="-1" aria-labelledby="cookieSettingsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content cookie-modal-panel">
+            <button type="button" class="cookie-modal-close" data-bs-dismiss="modal" aria-label="Close cookie settings">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <aside class="cookie-modal-sidebar" role="tablist" aria-label="Cookie settings sections">
+                <img src="{% static 'core/custom/img/GDPR.jpg' %}" alt="eu_gdpr_compliant" class="cookie-modal-logo">
+                <button type="button" class="cookie-tab active" id="cookiePrivacyTab" data-bs-toggle="tab" data-bs-target="#cookiePrivacyPanel" role="tab" aria-controls="cookiePrivacyPanel" aria-selected="true">Privacy overview</button>
+                <button type="button" class="cookie-tab" id="cookieNecessaryTab" data-bs-toggle="tab" data-bs-target="#cookieNecessaryPanel" role="tab" aria-controls="cookieNecessaryPanel" aria-selected="false">Strictly necessary cookies</button>
+            </aside>
+            <section class="cookie-modal-body tab-content">
+                <div class="cookie-tab-panel tab-pane fade show active" id="cookiePrivacyPanel" role="tabpanel" aria-labelledby="cookiePrivacyTab" tabindex="0">
+                    <h2 id="cookieSettingsTitle">Privacy overview</h2>
+                    <p>
+                        This website has a public area and an authenticated area. In both areas, strictly necessary first-party cookies may be used for security. In the authenticated area, a session cookie is also used to keep the user signed in. Optional third-party or analytics cookies are only allowed when the selected preference is "Accept all".
+                        <a href="{% url 'cookie_policy' %}">See the Cookie Policy</a>.
+                    </p>
+                </div>
+                <div class="cookie-tab-panel tab-pane fade" id="cookieNecessaryPanel" role="tabpanel" aria-labelledby="cookieNecessaryTab" tabindex="0">
+                    <h2>Strictly necessary cookies</h2>
+                    <p>
+                        These cookies are necessary for the website to function correctly and cannot be disabled in our systems. They are set in response to actions made by the user, such as saving cookie preferences, protecting forms, signing in, or keeping an authenticated session active.
+                    </p>
+                    <div class="cookie-table-wrapper">
+                        <table class="cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Purpose</th>
+                                    <th>Area</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>csrftoken</td>
+                                    <td>Protects forms and POST requests against cross-site request forgery.</td>
+                                    <td>Public and authenticated</td>
+                                </tr>
+                                <tr>
+                                    <td>relecovCookieConsent</td>
+                                    <td>Stores the user's cookie preference.</td>
+                                    <td>Public and authenticated</td>
+                                </tr>
+                                <tr>
+                                    <td>sessionid</td>
+                                    <td>Keeps the user signed in after login.</td>
+                                    <td>Authenticated only</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="cookie-toggle-row">
+                        <span class="cookie-toggle" aria-hidden="true"></span>
+                        <strong>Enabled</strong>
+                    </div>
+                </div>
+                <div class="cookie-modal-actions">
+                    <form method="post" action="{% url 'cookie_consent' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="value" value="all">
+                        <input type="hidden" name="next" value="{{ cookie_consent_next }}">
+                        <button type="submit" class="cookie-btn cookie-btn-primary">Accept all</button>
+                    </form>
+                    <form method="post" action="{% url 'cookie_consent' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="value" value="necessary_only">
+                        <input type="hidden" name="next" value="{{ cookie_consent_next }}">
+                        <button type="submit" class="cookie-btn cookie-btn-secondary">Reject all</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+        {% include "core/footer.html" %}
+        <!--end Footer-->
+
+        <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+        <!-- Vendor JS Files -->
+        <script src="{% static 'core/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'core/vendor/aos/aos.js' %}"></script>
+        <script src="{% static 'core/vendor/glightbox/js/glightbox.min.js' %}"></script>
+        <script src="{% static 'core/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+        <script type="module" src="{% static 'core/vendor/swiper/swiper-bundle.mjs' %}"></script>
+        <!-- Java script for side bar menu -->
+        <script src="{% static 'core/custom/js/sideBar_menu.js' %}"></script>
+
+        <!-- Template Main JS File -->
+        <script src="{% static 'core/main_style/js/main.js' %}"></script>
+
+        <script>
+            const cookieSettingsModal = document.getElementById("cookieSettingsModal");
+            const cookieConsentBanner = document.getElementById("cookieConsentBanner");
+            if (cookieSettingsModal && cookieConsentBanner) {
+                cookieSettingsModal.addEventListener("show.bs.modal", function () {
+                    cookieConsentBanner.classList.add("cookie-consent-hidden");
+                });
+                cookieSettingsModal.addEventListener("hidden.bs.modal", function () {
+                    cookieConsentBanner.classList.remove("cookie-consent-hidden");
+                });
+            }
+        </script>
+
+    </body>
+</html>

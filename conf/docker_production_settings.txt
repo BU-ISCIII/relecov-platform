@@ -1,0 +1,93 @@
+# Production configuration for this application service.
+# Copy to a protected ignored file, chmod 0600, and replace every CHANGE_ME.
+# The same file drives the ephemeral image build secret, host settings render,
+# Compose environment and temporary bootstrap copy.
+
+### Application layout and Django project
+# Source repository staged in the image and final application installation.
+REPO_PATH='/srv/relecov-platform'
+INSTALL_PATH='/opt/relecov-platform'
+# Python package containing settings.py, urls.py and wsgi.py. This is generated
+# from project.json and normally should not be changed in this file.
+PROJECT_MODULE='relecov_platform'
+# Python executable used to create the application virtual environment.
+PYTHON_BIN_PATH='python3.11'
+
+### Application-specific installation modules
+# Optional space-separated Django applications consumed by installers that
+# support dependency and migration module lists. Leave empty when
+# the application install.sh does not implement the corresponding behavior.
+# iSkyLIMS example: REQUIRED_MODULES='core drylab wetlab clinic django_utils'
+REQUIRED_MODULES='core dashboard docs'
+MIGRATION_MODULES='core dashboard django_plotly_dash'
+
+### Container runtime identity
+# UID/GID must own every writable bind mount and named volume.
+APP_UID='1212'
+APP_GID='1212'
+# Production services should normally use a non-login shell.
+APP_SHELL='/sbin/nologin'
+# Internal application port used by Gunicorn and the reverse proxy.
+APP_PORT='8000'
+
+### Persistent host sources
+# Documents use the Compose-managed app_documents named volume.
+# Application logs remain on the host and must be creatable by the installer.
+HOST_LOG_PATH='/var/log/local/relecov-platform/apps'
+# Host bind source rendered before Compose starts. It must be a file path, not
+# a directory; the parent directory is created and protected by the installer.
+DJANGO_SETTINGS_PATH='/srv/containers/bind/relecov-platform/settings/relecov_platform/settings.py'
+
+### External production database
+# Use a host name or IP reachable from inside the application container.
+# For a database running on the container host with either Docker or Podman,
+# use host.docker.internal; the production Compose profile maps that alias.
+DB_HOST='CHANGE_ME'
+DB_PORT='3306'
+DB_NAME='CHANGE_ME'
+DB_USER='CHANGE_ME'
+DB_PASSWORD='CHANGE_ME'
+
+### Django security and public URLs
+# Production debug must remain disabled.
+DJANGO_DEBUG='false'
+# Preserve this value across upgrades; changing it invalidates signed data.
+DJANGO_SECRET_KEY='CHANGE_ME'
+# Comma-separated host names accepted by Django, without URL schemes.
+DJANGO_ALLOWED_HOSTS='CHANGE_ME'
+# Comma-separated complete HTTPS origins, including their schemes.
+DJANGO_CSRF_TRUSTED_ORIGINS='https://CHANGE_ME'
+# Persistent database connection lifetime in seconds.
+DB_CONN_MAX_AGE='60'
+
+### Email
+# SMTP endpoint reachable from the application container.
+EMAIL_HOST='CHANGE_ME'
+EMAIL_PORT='25'
+EMAIL_HOST_USER='CHANGE_ME'
+EMAIL_HOST_PASSWORD='CHANGE_ME'
+# Python boolean spelling is used because settings rendering writes this value
+# directly into settings.py.
+EMAIL_USE_TLS='False'
+
+### Initial administrator (bootstrap install only)
+# Opt in only when a fresh installation should create its first Django
+# administrator. Keep the protected production settings file mode at 0600.
+CREATE_INITIAL_SUPERUSER='false'
+DJANGO_SUPERUSER_USERNAME='admin'
+DJANGO_SUPERUSER_EMAIL=''
+DJANGO_SUPERUSER_PASSWORD=''
+
+### Gunicorn and startup tuning
+WEB_CONCURRENCY='2'
+GUNICORN_THREADS='2'
+GUNICORN_TIMEOUT='300'
+GUNICORN_KEEPALIVE='5'
+# Maximum time container_start.sh waits for staged application files.
+APP_START_WAIT_TIMEOUT_SECONDS='100'
+
+### Application log policy compatibility
+# regular_folder stores logs below INSTALL_PATH. symbolic_link links that
+# directory to LOG_PATH, which must already exist and be writable.
+LOG_TYPE='regular_folder'
+LOG_PATH=''
