@@ -4,6 +4,7 @@ from collections import defaultdict
 
 # Local imports
 import core.models
+import core.utils.samples
 import dashboard.models
 import dashboard.utils.generic_process_data
 
@@ -23,19 +24,24 @@ def remove_older_graphic_jsons(graphic_name, date):
 
 def update_daily_graphic_json_data():
     """Update graphic json caches that must be refreshed weekly."""
-    graphic_name = "search_samples_summary_table"
-    dates = list(
-        dashboard.models.GraphicJsonFile.objects.filter(
-            graphic_name__exact=graphic_name
-        ).values_list("creation_date", flat=True)
-    )
-    if dates:
-        remove_older_graphic_jsons(graphic_name, max(dates))
+    for graphic_name in (
+        "search_samples_summary_table",
+        core.utils.samples.SURVEILLANCE_ISKYLIMS_CACHE_NAME,
+    ):
+        dates = list(
+            dashboard.models.GraphicJsonFile.objects.filter(
+                graphic_name__exact=graphic_name
+            ).values_list("creation_date", flat=True)
+        )
+        if dates:
+            remove_older_graphic_jsons(graphic_name, max(dates))
 
     print("Starting weekly graphic jsons update...")
     print("Start timestamp: ", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
     print("Running pre_proc_search_samples_summary()")
     dashboard.utils.generic_process_data.pre_proc_search_samples_summary()
+    print("Running pre_proc_surveillance_iskylims_values()")
+    dashboard.utils.generic_process_data.pre_proc_surveillance_iskylims_values()
     print("Running pre_proc_variant_graphic()")
     dashboard.utils.generic_process_data.pre_proc_variant_graphic()
     print("Running pre_proc_samples_per_date_all_lab(detailed=True)")

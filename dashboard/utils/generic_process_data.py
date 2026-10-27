@@ -28,6 +28,7 @@ import core.utils.generic_functions
 import core.utils.public_db
 import core.utils.bioinfo_analysis
 import core.utils.lab_catalog
+import core.utils.samples
 import dashboard.models
 import dashboard.dashboard_config
 import core.config
@@ -1253,5 +1254,41 @@ def pre_proc_search_samples_summary():
             "graphic_name": "search_samples_summary_table",
             "graphic_data": serializable_data,
         }
+    )
+    return {"SUCCESS": "Success"}
+
+
+def pre_proc_surveillance_iskylims_values():
+    """Cache the iSkyLIMS project values used by the surveillance data export,
+    keyed by iSkyLIMS sample name. One request per field returns every sample in
+    the project, which is far cheaper than per-sample or chunked requests.
+    """
+    iskylims_parameters = core.utils.samples.SURVEILLANCE_ISKYLIMS_PARAMETERS
+    project_name = core.utils.samples.SURVEILLANCE_ISKYLIMS_PROJECT
+    values_by_sample = defaultdict(dict)
+    for label, parameter in iskylims_parameters.items():
+        parameter_data = core.utils.rest_api.get_sample_parameter_data(
+            {"sample_project_name": project_name, "parameter": parameter}
+        )
+        # Keep the previous cache rather than storing a partial one.
+        if not isinstance(parameter_data, list) or not parameter_data:
+            logger.error(
+                f"Unable to fetch {parameter} from iSkyLIMS: {parameter_data}. "
+                "Surveillance iSkyLIMS cache not updated"
+            )
+            return {"ERROR": f"Unable to fetch {parameter} from iSkyLIMS"}
+        for item in parameter_data:
+            sample_name = item.get("Sample name")
+            if sample_name:
+                values_by_sample[sample_name][label] = item.get(parameter) or ""
+
+    dashboard.models.GraphicJsonFile.objects.create_new_graphic_json(
+        {
+            "graphic_name": core.utils.samples.SURVEILLANCE_ISKYLIMS_CACHE_NAME,
+            "graphic_data": dict(values_by_sample),
+        }
+    )
+    logger.info(
+        f"Cached surveillance iSkyLIMS values for {len(values_by_sample)} samples"
     )
     return {"SUCCESS": "Success"}

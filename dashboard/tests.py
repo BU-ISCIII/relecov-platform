@@ -1014,6 +1014,70 @@ class GenericProcessDataTests(SimpleTestCase):
         )
 
     @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data"
+    )
+    def test_surveillance_iskylims_values_cache_merges_fields_per_sample(
+        self, get_parameter_data, create_cache
+    ):
+        get_parameter_data.side_effect = lambda param_data: {
+            "submitting_institution_id": [
+                {"Sample name": "S1", "submitting_institution_id": "COD-1"},
+                {"Sample name": "S2", "submitting_institution_id": "COD-2"},
+            ],
+            "geo_loc_state": [{"Sample name": "S1", "geo_loc_state": "País Vasco"}],
+            "geo_loc_region": [
+                {"Sample name": "S1", "geo_loc_region": "Guipúzcoa"},
+                {"Sample name": "", "geo_loc_region": "Ignored"},
+            ],
+        }[param_data["parameter"]]
+
+        result = (
+            dashboard.utils.generic_process_data.pre_proc_surveillance_iskylims_values()
+        )
+
+        self.assertEqual(result, {"SUCCESS": "Success"})
+        get_parameter_data.assert_any_call(
+            {"sample_project_name": "Relecov", "parameter": "geo_loc_state"}
+        )
+        create_cache.assert_called_once_with(
+            {
+                "graphic_name": "surveillance_iskylims_values",
+                "graphic_data": {
+                    "S1": {
+                        "Submitting Institution Identifier": "COD-1",
+                        "Autonomic Community": "País Vasco",
+                        "Province": "Guipúzcoa",
+                    },
+                    "S2": {"Submitting Institution Identifier": "COD-2"},
+                },
+            }
+        )
+
+    @patch(
+        "dashboard.utils.generic_process_data.dashboard.models.GraphicJsonFile.objects.create_new_graphic_json"
+    )
+    @patch(
+        "dashboard.utils.generic_process_data.core.utils.rest_api.get_sample_parameter_data"
+    )
+    def test_surveillance_iskylims_values_cache_keeps_previous_cache_on_error(
+        self, get_parameter_data, create_cache
+    ):
+        get_parameter_data.side_effect = [
+            [{"Sample name": "S1", "submitting_institution_id": "COD-1"}],
+            {"ERROR": "Server not available"},
+        ]
+
+        result = (
+            dashboard.utils.generic_process_data.pre_proc_surveillance_iskylims_values()
+        )
+
+        self.assertIn("ERROR", result)
+        create_cache.assert_not_called()
+
+    @patch(
         "dashboard.utils.generic_process_data.core.utils.rest_api.get_summarize_data",
         return_value={"ERROR": "iSkyLIMS unavailable"},
     )
