@@ -163,56 +163,79 @@ def get_variant_annotation_map(variant_ids):
     return annotation_map
 
 
+VARIANTS_LONG_TABLE_SAMPLE_BATCH_SIZE = 500
+
+
+def _get_sequencing_id_sort_key(sequencing_id):
+    """Sort like MySQL does on sequencing_sample_id: NULLs first, ignoring case."""
+    return (sequencing_id is not None, (sequencing_id or "").lower())
+
+
+def iter_variants_long_table_rows(filtered_rows):
+    """Yield one row per sample variant annotation for filtered sample rows.
+
+    Samples are processed in small batches and sorted in Python, so the
+    database never has to join and sort the variants of every filtered sample
+    in one query (which can exhaust MySQL's temporary disk space).
+    """
+    sample_pks = list(dict.fromkeys(row["id"] for row in filtered_rows))
+    sequencing_ids = dict(
+        core.models.Sample.objects.filter(pk__in=sample_pks).values_list(
+            "pk", "sequencing_sample_id"
+        )
+    )
+    sample_pks = sorted(
+        sequencing_ids,
+        key=lambda sample_pk: _get_sequencing_id_sort_key(sequencing_ids[sample_pk]),
+    )
+    for start in range(0, len(sample_pks), VARIANTS_LONG_TABLE_SAMPLE_BATCH_SIZE):
+        batch_pks = sample_pks[start : start + VARIANTS_LONG_TABLE_SAMPLE_BATCH_SIZE]
+        variants_by_sample = defaultdict(dict)
+        for variant_in_sample in core.models.VariantInSample.objects.filter(
+            sampleID_id__in=batch_pks, variantID_id__isnull=False
+        ).select_related("variantID_id", "variantID_id__chromosomeID_id"):
+            # Keep the first row seen for each sample and variant pair.
+            variants_by_sample[variant_in_sample.sampleID_id_id].setdefault(
+                variant_in_sample.variantID_id_id, variant_in_sample
+            )
+        annotation_map = get_variant_annotation_map(
+            {
+                variant_id
+                for sample_variants in variants_by_sample.values()
+                for variant_id in sample_variants
+            }
+        )
+        for sample_pk in batch_pks:
+            sample_variants = sorted(
+                variants_by_sample.get(sample_pk, {}).values(),
+                key=lambda variant_in_sample: (
+                    variant_in_sample.variantID_id.pos is not None,
+                    variant_in_sample.variantID_id.pos or "",
+                ),
+            )
+            for variant_in_sample in sample_variants:
+                variant_obj = variant_in_sample.variantID_id
+                chromosome_obj = variant_obj.chromosomeID_id
+                variant_prefix = [
+                    "%s" % (sequencing_ids[sample_pk]),
+                    chromosome_obj.get_chromosome_name() if chromosome_obj else "",
+                    variant_obj.get_pos(),
+                    variant_obj.get_ref(),
+                    variant_obj.get_alt(),
+                    variant_in_sample.get_dp(),
+                    variant_in_sample.get_ref_dp(),
+                    variant_in_sample.get_alt_dp(),
+                    variant_in_sample.get_af(),
+                ]
+                annotation_row = get_variant_annotation_row(
+                    variant_obj, annotation_map=annotation_map
+                )
+                yield variant_prefix + annotation_row
+
+
 def get_variants_long_table_rows(filtered_rows):
     """Return one row per sample variant annotation for filtered sample rows."""
-    sequencing_ids = [row["sequencing_id"] for row in filtered_rows]
-    variant_in_samples = list(
-        core.models.VariantInSample.objects.filter(
-            sampleID_id__sequencing_sample_id__in=sequencing_ids
-        )
-        .select_related(
-            "sampleID_id",
-            "variantID_id",
-            "variantID_id__chromosomeID_id",
-        )
-        .order_by("sampleID_id__sequencing_sample_id", "variantID_id__pos")
-    )
-    variant_ids = [
-        variant_in_sample.variantID_id_id
-        for variant_in_sample in variant_in_samples
-        if variant_in_sample.variantID_id_id
-    ]
-    annotation_map = get_variant_annotation_map(variant_ids)
-    rows = []
-    seen_sample_variants = set()
-    for variant_in_sample in variant_in_samples:
-        variant_obj = variant_in_sample.get_variantID_obj()
-        if variant_obj is None:
-            continue
-        sample_variant_key = (
-            variant_in_sample.sampleID_id_id,
-            variant_in_sample.variantID_id_id,
-        )
-        if sample_variant_key in seen_sample_variants:
-            continue
-        seen_sample_variants.add(sample_variant_key)
-        chromosome_obj = variant_obj.chromosomeID_id
-        variant_prefix = [
-            variant_in_sample.sampleID_id.get_sequencing_sample_id(),
-            chromosome_obj.get_chromosome_name() if chromosome_obj else "",
-            variant_obj.get_pos(),
-            variant_obj.get_ref(),
-            variant_obj.get_alt(),
-            variant_in_sample.get_dp(),
-            variant_in_sample.get_ref_dp(),
-            variant_in_sample.get_alt_dp(),
-            variant_in_sample.get_af(),
-        ]
-        annotation_row = get_variant_annotation_row(
-            variant_obj, annotation_map=annotation_map
-        )
-        rows.append(variant_prefix + annotation_row)
-    return rows
+    return list(iter_variants_long_table_rows(filtered_rows))
 
 
 def build_variants_long_table_workbook(filtered_rows):
