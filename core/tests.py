@@ -2,11 +2,13 @@ import json
 import os
 import tempfile
 from datetime import datetime
+from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import MagicMock, mock_open, patch
 
 import pandas as pd
 import plotly.graph_objects as go
+from openpyxl import load_workbook
 from django.contrib.auth.models import Group, User
 from django.db import DataError, IntegrityError
 from django.test import RequestFactory, SimpleTestCase, TestCase
@@ -1973,6 +1975,112 @@ class SampleUtilityBranchTests(SimpleTestCase):
             os.path.join("/samba", "Metadata_lab_alice.xlsx"),
             "METADATA_LAB",
             {},
+        )
+
+
+class SurveillanceExportTests(SimpleTestCase):
+    def make_sample(self, pk, unique_id, seq_id, lineage=""):
+        return SimpleNamespace(
+            pk=pk,
+            sample_unique_id=unique_id,
+            sequencing_sample_id=seq_id,
+            collecting_lab_sample_id=f"COL-{pk}",
+            microbiology_lab_sample_id="",
+            collecting_institution="Collector",
+            submitting_institution="Submitter",
+            get_unique_id=lambda: unique_id,
+            get_sequencing_sample_id=lambda: seq_id,
+            surveillance_lineages=[
+                SimpleNamespace(
+                    lineage_fieldID=SimpleNamespace(property_name="lineage_assignment"),
+                    value=lineage,
+                )
+            ],
+            surveillance_bioinfo_values=[],
+            surveillance_public_database_values=[],
+        )
+
+    @patch("core.utils.samples.SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE", 2)
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_values_bulk")
+    def test_iskylims_bulk_dedupes_ids_and_keys_by_sample_pk(self, get_bulk):
+        get_bulk.side_effect = lambda ids, _fields: {
+            lookup_id: {"Project values": {"Province": f"P-{lookup_id}"}}
+            for lookup_id in ids
+            if lookup_id != "SEQ-SHARED"
+        }
+        samples = [
+            self.make_sample(1, "RLCV-1", "SEQ-SHARED"),
+            self.make_sample(2, "RLCV-2", "SEQ-SHARED"),
+            self.make_sample(3, "", "SEQ-3"),
+        ]
+
+        result = core.utils.samples.get_iskylims_project_values_bulk(samples)
+
+        requested_ids = sorted(
+            lookup_id for call in get_bulk.call_args_list for lookup_id in call.args[0]
+        )
+        self.assertEqual(requested_ids, ["RLCV-1", "RLCV-2", "SEQ-3", "SEQ-SHARED"])
+        self.assertEqual(get_bulk.call_count, 2)
+        self.assertEqual(
+            result,
+            {
+                1: {"Province": "P-RLCV-1"},
+                2: {"Province": "P-RLCV-2"},
+                3: {"Province": "P-SEQ-3"},
+            },
+        )
+
+    @patch("core.utils.samples.SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE", 1)
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_values_bulk")
+    def test_iskylims_bulk_returns_none_when_any_chunk_fails(self, get_bulk):
+        get_bulk.side_effect = lambda ids, _fields: (
+            {"ERROR": "boom"} if ids == ["RLCV-2"] else {ids[0]: {}}
+        )
+        samples = [
+            self.make_sample(1, "RLCV-1", ""),
+            self.make_sample(2, "RLCV-2", ""),
+            self.make_sample(3, "RLCV-3", ""),
+        ]
+
+        self.assertIsNone(core.utils.samples.get_iskylims_project_values_bulk(samples))
+
+    @patch("core.utils.samples.get_iskylims_project_values_bulk")
+    @patch("core.utils.samples.get_surveillance_sample_lookup")
+    def test_build_surveillance_workbook_matches_rows_by_sample_pk(
+        self, get_lookup, get_iskylims
+    ):
+        get_lookup.return_value = {
+            10: self.make_sample(10, "RLCV-10", None, lineage="XFG"),
+            11: self.make_sample(11, "RLCV-11", "SEQ-11", lineage="XFG"),
+        }
+        get_iskylims.return_value = {10: {"Province": "Madrid"}}
+        filtered_rows = [
+            {"id": 11, "sequencing_id": "SEQ-11", "collection_date": "2025-10-01"},
+            {"id": 10, "sequencing_id": None, "collection_date": "2025-01-01"},
+        ]
+
+        workbook = core.utils.samples.build_surveillance_workbook(filtered_rows)
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
+        saved = load_workbook(output)
+
+        get_lookup.assert_called_once_with([11, 10])
+        self.assertEqual(saved.sheetnames, ["per_sample_data", "aggregated_data"])
+        per_sample = list(saved["per_sample_data"].iter_rows(values_only=True))
+        columns = core.utils.samples.SURVEILLANCE_COLUMNS
+        self.assertEqual(list(per_sample[0]), columns)
+        self.assertEqual(
+            [row[columns.index("UNIQUE_SAMPLE_ID")] for row in per_sample[1:]],
+            ["RLCV-11", "RLCV-10"],
+        )
+        self.assertEqual(
+            [row[columns.index("PROVINCE")] for row in per_sample[1:]],
+            [None, "Madrid"],
+        )
+        self.assertEqual(
+            list(saved["aggregated_data"].iter_rows(values_only=True)),
+            [("LINEAGE", "NUMBER_SAMPLES"), ("XFG", 2)],
         )
 
 

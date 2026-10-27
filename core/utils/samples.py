@@ -5,11 +5,13 @@ import shutil
 import hashlib
 from datetime import datetime
 from collections import Counter, OrderedDict, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 from openpyxl import Workbook
 from django.contrib.auth.models import Group, User
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.db import connections
 from django.db.models import Q
 from django.db.models import Count
 from django.db.models import Prefetch
@@ -534,43 +536,78 @@ def get_iskylims_project_value(sample_obj, label_name):
     return get_iskylims_project_values(sample_obj).get(label_name, "")
 
 
+def _fetch_iskylims_project_values_chunk(request_ids):
+    """Fetch one chunk of iSkyLIMS project values from a worker thread."""
+    try:
+        return core.utils.rest_api.get_sample_project_values_bulk(
+            request_ids, SURVEILLANCE_ISKYLIMS_FIELDS
+        )
+    finally:
+        # The REST helper reads its configuration from the database, which
+        # opens a connection bound to this worker thread.
+        connections.close_all()
+
+
 def get_iskylims_project_values_bulk(sample_objs):
-    """Return iSkyLIMS project values keyed by sequencing sample ID."""
+    """Return iSkyLIMS project values keyed by sample primary key."""
     sample_lookup_ids = OrderedDict()
-    request_ids = []
     for sample_obj in sample_objs:
         if sample_obj is None:
             continue
         lookup_ids = get_iskylims_lookup_ids(sample_obj)
         if not lookup_ids:
             continue
-        sample_lookup_ids[sample_obj.sequencing_sample_id] = lookup_ids
-        for lookup_id in lookup_ids:
-            if lookup_id not in request_ids:
-                request_ids.append(lookup_id)
+        sample_lookup_ids[sample_obj.pk] = lookup_ids
+    request_ids = list(
+        dict.fromkeys(
+            lookup_id
+            for lookup_ids in sample_lookup_ids.values()
+            for lookup_id in lookup_ids
+        )
+    )
 
     if not request_ids:
         return None
 
+    chunks = [
+        request_ids[start : start + SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE]
+        for start in range(0, len(request_ids), SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE)
+    ]
     bulk_data = {}
-    for start in range(0, len(request_ids), SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE):
-        chunk_data = core.utils.rest_api.get_sample_project_values_bulk(
-            request_ids[start : start + SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE],
-            SURVEILLANCE_ISKYLIMS_FIELDS,
-        )
+    if len(chunks) == 1:
+        chunk_results = [
+            core.utils.rest_api.get_sample_project_values_bulk(
+                chunks[0], SURVEILLANCE_ISKYLIMS_FIELDS
+            )
+        ]
+    else:
+        with ThreadPoolExecutor(
+            max_workers=min(SURVEILLANCE_ISKYLIMS_MAX_WORKERS, len(chunks))
+        ) as executor:
+            futures = [
+                executor.submit(_fetch_iskylims_project_values_chunk, chunk)
+                for chunk in chunks
+            ]
+            chunk_results = []
+            for future in futures:
+                chunk_data = future.result()
+                if not chunk_data or "ERROR" in chunk_data:
+                    for pending in futures:
+                        pending.cancel()
+                    return None
+                chunk_results.append(chunk_data)
+    for chunk_data in chunk_results:
         if not chunk_data or "ERROR" in chunk_data:
             return None
         bulk_data.update(chunk_data)
 
     project_values_by_sample = {}
-    for sequencing_id, lookup_ids in sample_lookup_ids.items():
+    for sample_pk, lookup_ids in sample_lookup_ids.items():
         for lookup_id in lookup_ids:
             sample_data = bulk_data.get(lookup_id)
             if not sample_data:
                 continue
-            project_values_by_sample[sequencing_id] = sample_data.get(
-                "Project values", {}
-            )
+            project_values_by_sample[sample_pk] = sample_data.get("Project values", {})
             break
     return project_values_by_sample
 
@@ -593,6 +630,8 @@ SURVEILLANCE_ISKYLIMS_FIELDS = [
     "Province",
 ]
 SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE = 200
+# Keep at or below the iSkyLIMS gunicorn capacity to avoid saturating it.
+SURVEILLANCE_ISKYLIMS_MAX_WORKERS = 4
 SURVEILLANCE_COLUMNS = [
     "COLLECTING_LAB_SAMPLE_ID",
     "SEQUENCING_SAMPLE_ID",
@@ -704,8 +743,8 @@ def get_sample_public_database_value(sample_obj, property_name):
     return public_database_value.value if public_database_value else ""
 
 
-def get_surveillance_sample_lookup(sequencing_ids):
-    """Return samples keyed by sequencing sample ID with export values prefetched."""
+def get_surveillance_sample_lookup(sample_pks):
+    """Return samples keyed by primary key with export values prefetched."""
     lineage_prefetch = Prefetch(
         "lineage_values",
         queryset=core.models.LineageValues.objects.filter(
@@ -730,9 +769,9 @@ def get_surveillance_sample_lookup(sequencing_ids):
         to_attr="surveillance_public_database_values",
     )
     return {
-        sample.sequencing_sample_id: sample
+        sample.pk: sample
         for sample in core.models.Sample.objects.filter(
-            sequencing_sample_id__in=sequencing_ids
+            pk__in=sample_pks
         ).prefetch_related(lineage_prefetch, bioinfo_prefetch, public_database_prefetch)
     }
 
@@ -768,21 +807,19 @@ def get_surveillance_sample_row(row, sample_obj, iskylims_project_values=None):
 
 def build_surveillance_workbook(filtered_rows):
     """Build the surveillance data workbook for filtered sample browser rows."""
-    sequencing_ids = [row["sequencing_id"] for row in filtered_rows]
-    sample_lookup = get_surveillance_sample_lookup(sequencing_ids)
+    sample_pks = [row["id"] for row in filtered_rows]
+    sample_lookup = get_surveillance_sample_lookup(sample_pks)
     iskylims_values_lookup = get_iskylims_project_values_bulk(sample_lookup.values())
-    workbook = Workbook()
-    worksheet = workbook.active
-    worksheet.title = "per_sample_data"
+    # Write-only mode streams rows to disk instead of keeping cell objects in memory.
+    workbook = Workbook(write_only=True)
+    worksheet = workbook.create_sheet("per_sample_data")
     worksheet.append(SURVEILLANCE_COLUMNS)
     lineage_counts = Counter()
     for row in filtered_rows:
-        sample_obj = sample_lookup.get(row["sequencing_id"])
+        sample_obj = sample_lookup.get(row["id"])
         iskylims_project_values = None
         if iskylims_values_lookup is not None:
-            iskylims_project_values = iskylims_values_lookup.get(
-                row["sequencing_id"], {}
-            )
+            iskylims_project_values = iskylims_values_lookup.get(row["id"], {})
         sample_row = get_surveillance_sample_row(
             row, sample_obj, iskylims_project_values
         )
