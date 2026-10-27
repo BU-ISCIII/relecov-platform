@@ -1,5 +1,6 @@
 # Generic imports
 import json
+import logging
 import os
 import shutil
 import hashlib
@@ -28,6 +29,8 @@ import core.utils.rest_api
 import core.utils.generic_functions
 import core.models
 import dashboard.utils.generic_graphic_data
+
+logger = logging.getLogger(__name__)
 
 
 def analyze_input_samples(request):
@@ -567,7 +570,7 @@ def get_iskylims_project_values_bulk(sample_objs):
     )
 
     if not request_ids:
-        return None
+        return {}
 
     chunks = [
         request_ids[start : start + SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE]
@@ -591,13 +594,14 @@ def get_iskylims_project_values_bulk(sample_objs):
             chunk_results = []
             for future in futures:
                 chunk_data = future.result()
-                if not chunk_data or "ERROR" in chunk_data:
+                if chunk_data is None or "ERROR" in chunk_data:
                     for pending in futures:
                         pending.cancel()
                     return None
                 chunk_results.append(chunk_data)
     for chunk_data in chunk_results:
-        if not chunk_data or "ERROR" in chunk_data:
+        # An empty dict means none of the chunk's samples exist in iSkyLIMS.
+        if chunk_data is None or "ERROR" in chunk_data:
             return None
         bulk_data.update(chunk_data)
 
@@ -612,6 +616,42 @@ def get_iskylims_project_values_bulk(sample_objs):
     return project_values_by_sample
 
 
+def get_surveillance_iskylims_values(sample_objs):
+    """Return surveillance iSkyLIMS values keyed by sample primary key.
+
+    Values come from the nightly cache built by
+    pre_proc_surveillance_iskylims_values. Only samples missing from it are
+    requested live; if that request fails their iSkyLIMS columns stay empty.
+    """
+    cached_values = (
+        dashboard.utils.generic_graphic_data.get_graphic_json_data(
+            SURVEILLANCE_ISKYLIMS_CACHE_NAME
+        )
+        or {}
+    )
+    values_by_sample = {}
+    missing_samples = []
+    for sample_obj in sample_objs:
+        for lookup_id in get_iskylims_lookup_ids(sample_obj):
+            if lookup_id in cached_values:
+                values_by_sample[sample_obj.pk] = cached_values[lookup_id]
+                break
+        else:
+            missing_samples.append(sample_obj)
+
+    if missing_samples:
+        bulk_values = get_iskylims_project_values_bulk(missing_samples)
+        if bulk_values is None:
+            logger.warning(
+                "Unable to fetch iSkyLIMS values for %s samples missing from the "
+                "surveillance cache; their iSkyLIMS columns will be empty",
+                len(missing_samples),
+            )
+        else:
+            values_by_sample.update(bulk_values)
+    return values_by_sample
+
+
 SURVEILLANCE_LINEAGE_FIELDS = [
     "lineage_assignment",
     "lineage_assignment_software_version",
@@ -624,11 +664,15 @@ SURVEILLANCE_BIOINFO_FIELDS = [
     "qc_test",
 ]
 SURVEILLANCE_PUBLIC_DATABASE_FIELDS = ["gisaid_accession_id"]
-SURVEILLANCE_ISKYLIMS_FIELDS = [
-    "Submitting Institution Identifier",
-    "Autonomic Community",
-    "Province",
-]
+# Display label used in the export -> iSkyLIMS sample project field name.
+SURVEILLANCE_ISKYLIMS_PARAMETERS = {
+    "Submitting Institution Identifier": "submitting_institution_id",
+    "Autonomic Community": "geo_loc_state",
+    "Province": "geo_loc_region",
+}
+SURVEILLANCE_ISKYLIMS_FIELDS = list(SURVEILLANCE_ISKYLIMS_PARAMETERS)
+SURVEILLANCE_ISKYLIMS_PROJECT = "Relecov"
+SURVEILLANCE_ISKYLIMS_CACHE_NAME = "surveillance_iskylims_values"
 SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE = 200
 # Keep at or below the iSkyLIMS gunicorn capacity to avoid saturating it.
 SURVEILLANCE_ISKYLIMS_MAX_WORKERS = 4
@@ -809,7 +853,7 @@ def build_surveillance_workbook(filtered_rows):
     """Build the surveillance data workbook for filtered sample browser rows."""
     sample_pks = [row["id"] for row in filtered_rows]
     sample_lookup = get_surveillance_sample_lookup(sample_pks)
-    iskylims_values_lookup = get_iskylims_project_values_bulk(sample_lookup.values())
+    iskylims_values_lookup = get_surveillance_iskylims_values(sample_lookup.values())
     # Write-only mode streams rows to disk instead of keeping cell objects in memory.
     workbook = Workbook(write_only=True)
     worksheet = workbook.create_sheet("per_sample_data")
@@ -817,11 +861,10 @@ def build_surveillance_workbook(filtered_rows):
     lineage_counts = Counter()
     for row in filtered_rows:
         sample_obj = sample_lookup.get(row["id"])
-        iskylims_project_values = None
-        if iskylims_values_lookup is not None:
-            iskylims_project_values = iskylims_values_lookup.get(row["id"], {})
+        # Never fall back to per-sample iSkyLIMS requests here: on large exports
+        # that means tens of thousands of sequential calls.
         sample_row = get_surveillance_sample_row(
-            row, sample_obj, iskylims_project_values
+            row, sample_obj, iskylims_values_lookup.get(row["id"], {})
         )
         worksheet.append(sample_row)
         lineage = sample_row[SURVEILLANCE_COLUMNS.index("LINEAGE")]

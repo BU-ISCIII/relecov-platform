@@ -2044,10 +2044,78 @@ class SurveillanceExportTests(SimpleTestCase):
 
         self.assertIsNone(core.utils.samples.get_iskylims_project_values_bulk(samples))
 
+    @patch("core.utils.samples.SURVEILLANCE_ISKYLIMS_BULK_CHUNK_SIZE", 1)
+    @patch("core.utils.samples.core.utils.rest_api.get_sample_project_values_bulk")
+    def test_iskylims_bulk_treats_empty_chunk_as_no_matches(self, get_bulk):
+        get_bulk.side_effect = lambda ids, _fields: (
+            {} if ids == ["RLCV-2"] else {ids[0]: {"Project values": {"Province": "X"}}}
+        )
+        samples = [
+            self.make_sample(1, "RLCV-1", ""),
+            self.make_sample(2, "RLCV-2", ""),
+        ]
+
+        self.assertEqual(
+            core.utils.samples.get_iskylims_project_values_bulk(samples),
+            {1: {"Province": "X"}},
+        )
+
     @patch("core.utils.samples.get_iskylims_project_values_bulk")
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data"
+    )
+    def test_surveillance_iskylims_values_use_cache_and_fetch_only_missing(
+        self, get_cache, get_bulk
+    ):
+        get_cache.return_value = {
+            "RLCV-1": {"Province": "Cached by unique id"},
+            "SEQ-2": {"Province": "Cached by sequencing id"},
+        }
+        get_bulk.return_value = {3: {"Province": "Live"}}
+        missing_sample = self.make_sample(3, "RLCV-3", "SEQ-3")
+
+        result = core.utils.samples.get_surveillance_iskylims_values(
+            [
+                self.make_sample(1, "RLCV-1", "SEQ-1"),
+                self.make_sample(2, "", "SEQ-2"),
+                missing_sample,
+            ]
+        )
+
+        get_cache.assert_called_once_with("surveillance_iskylims_values")
+        get_bulk.assert_called_once_with([missing_sample])
+        self.assertEqual(
+            result,
+            {
+                1: {"Province": "Cached by unique id"},
+                2: {"Province": "Cached by sequencing id"},
+                3: {"Province": "Live"},
+            },
+        )
+
+    @patch("core.utils.samples.get_iskylims_project_values_bulk", return_value=None)
+    @patch(
+        "core.utils.samples.dashboard.utils.generic_graphic_data.get_graphic_json_data",
+        return_value={"RLCV-1": {"Province": "Cached"}},
+    )
+    def test_surveillance_iskylims_values_leave_missing_empty_when_lims_fails(
+        self, _get_cache, _get_bulk
+    ):
+        with self.assertLogs("core.utils.samples", level="WARNING"):
+            result = core.utils.samples.get_surveillance_iskylims_values(
+                [
+                    self.make_sample(1, "RLCV-1", ""),
+                    self.make_sample(2, "RLCV-2", ""),
+                ]
+            )
+
+        self.assertEqual(result, {1: {"Province": "Cached"}})
+
+    @patch("core.utils.samples.get_iskylims_project_values")
+    @patch("core.utils.samples.get_surveillance_iskylims_values")
     @patch("core.utils.samples.get_surveillance_sample_lookup")
     def test_build_surveillance_workbook_matches_rows_by_sample_pk(
-        self, get_lookup, get_iskylims
+        self, get_lookup, get_iskylims, get_single_iskylims
     ):
         get_lookup.return_value = {
             10: self.make_sample(10, "RLCV-10", None, lineage="XFG"),
@@ -2066,6 +2134,7 @@ class SurveillanceExportTests(SimpleTestCase):
         saved = load_workbook(output)
 
         get_lookup.assert_called_once_with([11, 10])
+        get_single_iskylims.assert_not_called()
         self.assertEqual(saved.sheetnames, ["per_sample_data", "aggregated_data"])
         per_sample = list(saved["per_sample_data"].iter_rows(values_only=True))
         columns = core.utils.samples.SURVEILLANCE_COLUMNS
