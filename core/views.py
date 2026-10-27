@@ -6,7 +6,7 @@ import json
 from collections import defaultdict, OrderedDict
 import re
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.utils import timezone
@@ -489,6 +489,13 @@ def search_sample_surveillance_data(request):
     return response
 
 
+class _EchoBuffer:
+    """File-like object whose write returns the value, for streaming csv rows."""
+
+    def write(self, value):
+        return value
+
+
 @login_required
 def search_sample_variants_long_table(request):
     """Download variants long table data for current sample browser filters."""
@@ -499,12 +506,17 @@ def search_sample_variants_long_table(request):
             _get_filtered_search_sample_data(request, sample_rows)
         )
 
-    response = HttpResponse(content_type="text/csv")
+    # Stream the CSV so rows are sent as they are built instead of holding the
+    # whole table in memory; the proxy also keeps receiving data meanwhile.
+    writer = csv.writer(_EchoBuffer())
+
+    def csv_lines():
+        yield writer.writerow(core.utils.variants.VARIANTS_LONG_TABLE_COLUMNS)
+        for row in core.utils.variants.iter_variants_long_table_rows(filtered_rows):
+            yield writer.writerow(row)
+
+    response = StreamingHttpResponse(csv_lines(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="variants_long_table.csv"'
-    writer = csv.writer(response)
-    writer.writerow(core.utils.variants.VARIANTS_LONG_TABLE_COLUMNS)
-    for row in core.utils.variants.get_variants_long_table_rows(filtered_rows):
-        writer.writerow(row)
     return response
 
 

@@ -5066,6 +5066,75 @@ class VariantQueryUtilityIntegrationTests(TestCase):
             [],
         )
 
+    def create_long_table_samples(self):
+        """Add a sample that sorts first and one outside the filtered rows."""
+        first_sample = core.models.Sample.objects.create(
+            state=self.state,
+            sample_unique_id="RL-VQUERY-0",
+            sequencing_sample_id="vquery-0",
+        )
+        unfiltered_sample = core.models.Sample.objects.create(
+            state=self.state,
+            sample_unique_id="RL-VQUERY-9",
+            sequencing_sample_id="VQUERY-9",
+        )
+        unannotated_variant = core.models.Variant.objects.create(
+            chromosomeID_id=self.chromosome,
+            filterID_id=self.filter,
+            ref="C",
+            pos="241",
+            alt="T",
+        )
+        for sample_obj, variant_obj in (
+            (first_sample, unannotated_variant),
+            (first_sample, self.variant),
+            (unfiltered_sample, self.variant),
+            # Duplicate of the fixture row: must only be exported once.
+            (self.sample, self.variant),
+        ):
+            core.models.VariantInSample.objects.create(
+                sampleID_id=sample_obj, variantID_id=variant_obj, dp="10"
+            )
+        return [
+            {
+                "id": sample_obj.pk,
+                "sequencing_id": sample_obj.sequencing_sample_id,
+                "collection_date": "2026-01-01",
+                "lineage": "XFG",
+                "collecting_institution": "Hospital A",
+            }
+            for sample_obj in (self.sample, first_sample)
+        ]
+
+    @patch("core.utils.variants.VARIANTS_LONG_TABLE_SAMPLE_BATCH_SIZE", 1)
+    def test_variants_long_table_rows_are_batched_sorted_and_deduplicated(self):
+        filtered_rows = self.create_long_table_samples()
+
+        rows = core.utils.variants.get_variants_long_table_rows(filtered_rows)
+
+        self.assertEqual(
+            [(row[0], row[2]) for row in rows],
+            [("vquery-0", "23063"), ("vquery-0", "241"), ("VQUERY-1", "23063")],
+        )
+        self.assertEqual(rows[0][-3:], ["c.23063A>T", "p.N501Y", "N501Y"])
+        self.assertEqual(rows[1][-4:], ["-", "-", "-", "-"])
+        self.assertEqual(rows[2][5:9], ["120", "20", "100", "0.83"])
+
+    @patch("core.views._get_search_sample_rows_for_user")
+    def test_variants_long_table_view_streams_csv(self, get_rows):
+        get_rows.return_value = self.create_long_table_samples()
+        request = RequestFactory().get("/searchSample/variants-long-table")
+        request.user = self.user
+
+        response = core.views.search_sample_variants_long_table(request)
+        lines = b"".join(response.streaming_content).decode().splitlines()
+
+        self.assertEqual(response["Content-Type"], "text/csv")
+        self.assertEqual(
+            lines[0], ",".join(core.utils.variants.VARIANTS_LONG_TABLE_COLUMNS)
+        )
+        self.assertEqual(len(lines), 4)
+
 
 class SampleGraphicsBranchTests(SimpleTestCase):
     @patch(
