@@ -374,12 +374,12 @@
                                                 var variantsLongTableUrl = "{% url 'search_sample_variants_long_table' %}";
                                                 var downloadWarningThresholdSeconds = 10;
                                                 var surveillanceDownloadEstimate = {
-                                                    baseSeconds: 0,
-                                                    secondsPerSample: 0.008
+                                                    baseSeconds: 3,
+                                                    secondsPerSample: 0.0015
                                                 };
                                                 var variantsDownloadEstimate = {
-                                                    baseSeconds: 7,
-                                                    secondsPerSample: 0.0125
+                                                    baseSeconds: 0,
+                                                    secondsPerSample: 0.008
                                                 };
                                                 function getFilteredSampleCount() {
                                                     return table.page.info().recordsDisplay || 0;
@@ -415,9 +415,10 @@
                                                     return window.confirm(
                                                         'You are about to generate a file for ' +
                                                         formatSampleCount(count) +
-                                                        ' filtered samples. Estimated generation time: ' +
+                                                        ' filtered samples. It may take longer than ' +
                                                         formatEstimatedDuration(estimatedSeconds) +
-                                                        '. Consider applying more filters before continuing. Continue?'
+                                                        ', so please be patient. ' + 
+                                                        'Consider applying more filters before continuing. Continue?'
                                                     );
                                                 }
                                                 function getDownloadFilename(response, fallbackFilename) {
