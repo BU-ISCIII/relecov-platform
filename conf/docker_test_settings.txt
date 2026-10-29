@@ -1,0 +1,63 @@
+# Safe local/test values. Never use these credentials in production.
+
+### Application layout and Django project
+REPO_PATH='/srv/relecov-platform'
+INSTALL_PATH='/opt/relecov-platform'
+PROJECT_MODULE='relecov_platform'
+PYTHON_BIN_PATH='python3.11'
+
+### Application-specific installation modules
+# Optional lists used only when install.sh implements these operations.
+REQUIRED_MODULES='core dashboard docs'
+MIGRATION_MODULES='core dashboard django_plotly_dash'
+
+### Container runtime identity
+APP_UID='1212'
+APP_GID='1212'
+APP_SHELL='/bin/bash'
+APP_PORT='8200'
+
+### Disposable persistence paths
+HOST_LOG_PATH='/tmp/relecov-platform/logs'
+# Test images render settings during build and do not mount this host path.
+DJANGO_SETTINGS_PATH='/tmp/relecov-platform/data/settings/relecov_platform/settings.py'
+
+### Compose test database
+DB_HOST='relecov-platform-db'
+DB_PORT='3306'
+DB_NAME='relecov_platform'
+DB_USER='django'
+DB_PASSWORD='djangopass'
+DB_ROOT_PASSWORD='root'
+
+### Django and local email defaults
+DJANGO_DEBUG='true'
+DJANGO_SECRET_KEY='test-only-change-me'
+DJANGO_ALLOWED_HOSTS='*'
+DJANGO_CSRF_TRUSTED_ORIGINS='http://localhost:8200,http://127.0.0.1:8200,http://platform.localhost:8081'
+DB_CONN_MAX_AGE='60'
+
+### Local email defaults
+EMAIL_HOST='host.docker.internal'
+EMAIL_PORT='25'
+EMAIL_HOST_USER='bioinformatica@isciii.es'
+EMAIL_HOST_PASSWORD=''
+EMAIL_USE_TLS='False'
+
+### Initial administrator (bootstrap install only)
+CREATE_INITIAL_SUPERUSER='false'
+DJANGO_SUPERUSER_USERNAME='admin'
+DJANGO_SUPERUSER_EMAIL=''
+DJANGO_SUPERUSER_PASSWORD=''
+
+### Gunicorn and startup tuning
+WEB_CONCURRENCY='2'
+GUNICORN_THREADS='2'
+GUNICORN_TIMEOUT='300'
+GUNICORN_KEEPALIVE='5'
+APP_START_WAIT_TIMEOUT_SECONDS='100'
+
+### Application log policy compatibility
+# Set LOG_PATH when LOG_TYPE='symbolic_link'.
+LOG_TYPE='regular_folder'
+LOG_PATH=''

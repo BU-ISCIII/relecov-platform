@@ -1,0 +1,51 @@
+<style>
+  .progress-container {
+    width: 100%;
+    background: #e0e0e0;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+    height: 26px;
+    margin-bottom: 20px;
+    font-family: 'Oxanium', sans-serif;
+    transition: all 0.4s ease;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    box-sizing: border-box;
+    font-weight: bold;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 15px;
+    transition: width 2s ease-in-out, background 0.4s ease, transform 0.4s ease;
+    background: linear-gradient(90deg, #809dd4 0%, #92cbf1 100%);
+  }
+
+  .progress-label {
+    font-family: 'Oxanium', sans-serif;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #2e3a59;
+    font-size: 15px;
+  }
+
+  /* Hover effect */
+  .progress-container:hover .progress-fill {
+    background: linear-gradient(90deg, #5e87b8 0%, #7ab7e9 100%);
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  }
+</style>
+  
+  <div class="progress-label">{{ label }}</div>
+  <div class="progress-container">
+    <div class="progress-fill" style="width: 0%;" data-target="{{ value }}%">
+      {{ value }}%
+    </div>
+  </div>
