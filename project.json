@@ -1,0 +1,44 @@
+{
+  "APP_NAME": "RELECOV Platform",
+  "APP_VERSION": "1.0.0",
+  "APP_SLUG": "relecov-platform",
+  "DESCRIPTION": "Integrated RELECOV metadata, validation, submission, LIMS, and visualization platform.",
+  "REPOSITORY_URL": "https://github.com/BU-ISCIII/relecov-platform.git",
+  "DEFAULT_BRANCH": "develop",
+  "PYTHON_VERSION": "3.11",
+  "TIMEZONE": "Europe/Madrid",
+  "SERVICES": {
+    "relecov-platform": {
+      "PROFILE": "django",
+      "BUILD_CONTEXT": ".",
+      "DOCKERFILE": "Dockerfile",
+      "IMAGE": "relecov-platform:local",
+      "INSTALL_CONF": "conf/docker_production_settings.txt",
+      "TEST_INSTALL_CONF": "conf/docker_test_settings.txt",
+      "PROJECT_MODULE": "relecov_platform"
+    },
+    "relecov-iskylims": {
+      "PROFILE": "django",
+      "BUILD_CONTEXT": "../relecov-iskylims",
+      "DOCKERFILE": "Dockerfile",
+      "IMAGE": "relecov-iskylims:local",
+      "INSTALL_CONF": "../relecov-iskylims/conf/docker_production_settings.txt",
+      "TEST_INSTALL_CONF": "../relecov-iskylims/conf/docker_test_settings.txt",
+      "PROJECT_MODULE": "iskylims"
+    }
+  },
+  "ADDONS": {
+    "apache": {
+      "CONFIG_SERVICE": "relecov-platform"
+    },
+    "nextstrain": {
+      "CONFIG_SERVICE": "relecov-platform"
+    },
+    "samba": {
+      "CONFIG_SERVICE": "relecov-iskylims",
+      "MODES": [
+        "test"
+      ]
+    }
+  }
+}

@@ -1,0 +1,187 @@
+services:
+  # BEGIN BU-ISCIII SERVICE: relecov-platform (django)
+  relecov-platform:
+    image: "${RELECOV_PLATFORM_IMAGE:-relecov-platform:local}"
+    build:
+      context: "."
+      dockerfile: "Dockerfile"
+      args:
+        GIT_REVISION: ${GIT_REVISION:-current}
+        # Fixed internal path used only while install.sh reads the build secret.
+        INSTALL_CONF: "conf/.runtime_install_settings.txt"
+        USE_INSTALL_CONF_SECRET: "true"
+        RENDER_DJANGO_SETTINGS: "false"
+        APP_UID: ${RELECOV_PLATFORM_APP_UID:?RELECOV_PLATFORM_APP_UID is required}
+        APP_GID: ${RELECOV_PLATFORM_APP_GID:?RELECOV_PLATFORM_APP_GID is required}
+        APP_PORT: ${RELECOV_PLATFORM_APP_PORT:?RELECOV_PLATFORM_APP_PORT is required}
+        APP_REPO_PATH: ${RELECOV_PLATFORM_REPO_PATH:?RELECOV_PLATFORM_REPO_PATH is required}
+        APP_INSTALL_PATH: ${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}
+    restart: unless-stopped
+
+    user: "${RELECOV_PLATFORM_APP_UID:?RELECOV_PLATFORM_APP_UID is required}:${RELECOV_PLATFORM_APP_GID:?RELECOV_PLATFORM_APP_GID is required}"
+    environment:
+      APP_MODE: prod
+      INSTALL_PATH: ${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}
+      APP_INSTALL_PATH: ${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}
+      APP_PORT: ${RELECOV_PLATFORM_APP_PORT:?RELECOV_PLATFORM_APP_PORT is required}
+      PROJECT_MODULE: "relecov_platform"
+      DB_HOST: ${RELECOV_PLATFORM_DB_HOST:?RELECOV_PLATFORM_DB_HOST is required}
+      DB_PORT: ${RELECOV_PLATFORM_DB_PORT:?RELECOV_PLATFORM_DB_PORT is required}
+      DB_NAME: ${RELECOV_PLATFORM_DB_NAME:?RELECOV_PLATFORM_DB_NAME is required}
+      DB_USER: ${RELECOV_PLATFORM_DB_USER:?RELECOV_PLATFORM_DB_USER is required}
+      DB_PASSWORD: ${RELECOV_PLATFORM_DB_PASSWORD:?RELECOV_PLATFORM_DB_PASSWORD is required}
+      DJANGO_ALLOWED_HOSTS: ${RELECOV_PLATFORM_DJANGO_ALLOWED_HOSTS:?RELECOV_PLATFORM_DJANGO_ALLOWED_HOSTS is required}
+    volumes:
+      - relecov-platform_documents:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/documents:z
+      - ${RELECOV_PLATFORM_HOST_LOG_PATH:?RELECOV_PLATFORM_HOST_LOG_PATH is required}:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/logs:Z
+      - ${RELECOV_PLATFORM_DJANGO_SETTINGS_PATH:?RELECOV_PLATFORM_DJANGO_SETTINGS_PATH is required}:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/relecov_platform/settings.py:Z
+      - relecov-platform_static:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/static:z
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ['APP_PORT'] + '/health/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    ports:
+      - "127.0.0.1:${RELECOV_PLATFORM_APP_PORT:?RELECOV_PLATFORM_APP_PORT is required}:${RELECOV_PLATFORM_APP_PORT:?RELECOV_PLATFORM_APP_PORT is required}"
+    # Docker Engine on Linux needs this explicit mapping. Podman also supports
+    # host-gateway and conventionally exposes host.docker.internal itself, so
+    # host-based dependencies can use one hostname with either engine.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [deployment_net]
+  # END BU-ISCIII SERVICE: relecov-platform
+  # BEGIN BU-ISCIII SERVICE: relecov-iskylims (django)
+  relecov-iskylims:
+    image: "${RELECOV_ISKYLIMS_IMAGE:-relecov-iskylims:local}"
+    build:
+      context: "../relecov-iskylims"
+      dockerfile: "Dockerfile"
+      args:
+        GIT_REVISION: ${GIT_REVISION:-current}
+        # Fixed internal path used only while install.sh reads the build secret.
+        INSTALL_CONF: "conf/.runtime_install_settings.txt"
+        USE_INSTALL_CONF_SECRET: "true"
+        RENDER_DJANGO_SETTINGS: "false"
+        APP_UID: ${RELECOV_ISKYLIMS_APP_UID:?RELECOV_ISKYLIMS_APP_UID is required}
+        APP_GID: ${RELECOV_ISKYLIMS_APP_GID:?RELECOV_ISKYLIMS_APP_GID is required}
+        APP_PORT: ${RELECOV_ISKYLIMS_APP_PORT:?RELECOV_ISKYLIMS_APP_PORT is required}
+        APP_REPO_PATH: ${RELECOV_ISKYLIMS_REPO_PATH:?RELECOV_ISKYLIMS_REPO_PATH is required}
+        APP_INSTALL_PATH: ${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}
+    restart: unless-stopped
+
+    user: "${RELECOV_ISKYLIMS_APP_UID:?RELECOV_ISKYLIMS_APP_UID is required}:${RELECOV_ISKYLIMS_APP_GID:?RELECOV_ISKYLIMS_APP_GID is required}"
+    environment:
+      APP_MODE: prod
+      INSTALL_PATH: ${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}
+      APP_INSTALL_PATH: ${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}
+      APP_PORT: ${RELECOV_ISKYLIMS_APP_PORT:?RELECOV_ISKYLIMS_APP_PORT is required}
+      PROJECT_MODULE: "iskylims"
+      DB_HOST: ${RELECOV_ISKYLIMS_DB_HOST:?RELECOV_ISKYLIMS_DB_HOST is required}
+      DB_PORT: ${RELECOV_ISKYLIMS_DB_PORT:?RELECOV_ISKYLIMS_DB_PORT is required}
+      DB_NAME: ${RELECOV_ISKYLIMS_DB_NAME:?RELECOV_ISKYLIMS_DB_NAME is required}
+      DB_USER: ${RELECOV_ISKYLIMS_DB_USER:?RELECOV_ISKYLIMS_DB_USER is required}
+      DB_PASSWORD: ${RELECOV_ISKYLIMS_DB_PASSWORD:?RELECOV_ISKYLIMS_DB_PASSWORD is required}
+      DJANGO_ALLOWED_HOSTS: ${RELECOV_ISKYLIMS_DJANGO_ALLOWED_HOSTS:?RELECOV_ISKYLIMS_DJANGO_ALLOWED_HOSTS is required}
+    volumes:
+      - relecov-iskylims_documents:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/documents:z
+      - ${RELECOV_ISKYLIMS_HOST_LOG_PATH:?RELECOV_ISKYLIMS_HOST_LOG_PATH is required}:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/logs:Z
+      - ${RELECOV_ISKYLIMS_DJANGO_SETTINGS_PATH:?RELECOV_ISKYLIMS_DJANGO_SETTINGS_PATH is required}:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/iskylims/settings.py:Z
+      - relecov-iskylims_static:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/static:z
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ['APP_PORT'] + '/health/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    ports:
+      - "127.0.0.1:${RELECOV_ISKYLIMS_APP_PORT:?RELECOV_ISKYLIMS_APP_PORT is required}:${RELECOV_ISKYLIMS_APP_PORT:?RELECOV_ISKYLIMS_APP_PORT is required}"
+    # Docker Engine on Linux needs this explicit mapping. Podman also supports
+    # host-gateway and conventionally exposes host.docker.internal itself, so
+    # host-based dependencies can use one hostname with either engine.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [deployment_net]
+  # END BU-ISCIII SERVICE: relecov-iskylims
+  # BEGIN BU-ISCIII ADDON: apache
+  relecov-platform-apache:
+    image: registry.access.redhat.com/ubi9/httpd-24:latest
+    restart: unless-stopped
+    depends_on:
+      relecov-platform:
+        condition: service_healthy
+      relecov-iskylims:
+        condition: service_healthy
+      relecov-platform-nextstrain:
+        condition: service_healthy
+    ports:
+      # Public binding can be restricted to loopback when another host proxy
+      # terminates TLS before forwarding traffic to this container.
+      - "${APACHE_BIND_HOST:?APACHE_BIND_HOST is required}:${APACHE_PORT:?APACHE_PORT is required}:8080"
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -ec '</dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      # REQUIRED runtime-rendered read-only configuration bind sources.
+      - ${APACHE_CONF_PATH:-./deployment/apache}/00-logs.conf:/etc/httpd/conf.d/00-logs.conf:ro,z
+      - ${APACHE_CONF_PATH:-./deployment/apache}/01-reverse-proxy.conf:/etc/httpd/conf.d/01-reverse-proxy.conf:ro,z
+      - ${APACHE_CONF_PATH:-./deployment/apache}/02-server-status.conf:/etc/httpd/conf.d/02-server-status.conf:ro,z
+      # REQUIRED persistent host log bind. Back it up/rotate per host policy.
+      - ${APACHE_LOG_PATH:?APACHE_LOG_PATH is required}:/var/log/httpd:z
+      # REQUIRED when container and host timezone must agree in log records.
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+      # GENERATED MULTI-APP MOUNTS: one read-only static/documents pair for
+      # every Django service. React assets remain inside the React image.
+      - relecov-platform_static:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/static:ro,z
+      - relecov-platform_documents:${RELECOV_PLATFORM_INSTALL_PATH:?RELECOV_PLATFORM_INSTALL_PATH is required}/documents:ro,z
+      - relecov-iskylims_static:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/static:ro,z
+      - relecov-iskylims_documents:${RELECOV_ISKYLIMS_INSTALL_PATH:?RELECOV_ISKYLIMS_INSTALL_PATH is required}/documents:ro,z
+      # OPTIONAL APP MOUNTS belong in ADDONS.apache.MOUNTS. Examples:
+      # - reports_data:/var/www/reports:ro,z
+      # - /srv/public-downloads:/var/www/downloads:ro,Z
+    networks: [deployment_net]
+  # END BU-ISCIII ADDON: apache
+  # BEGIN BU-ISCIII ADDON: nextstrain
+  relecov-platform-nextstrain:
+    image: ${NEXTSTRAIN_IMAGE:-nextstrain:local}
+    build:
+      context: ${NEXTSTRAIN_BUILD_CONTEXT:-./nextstrain}
+      dockerfile: ${NEXTSTRAIN_DOCKERFILE:-Dockerfile}
+      args:
+        MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:?MAPBOX_ACCESS_TOKEN is required}
+        MAPBOX_STYLE_OWNER: ${MAPBOX_STYLE_OWNER:-mapbox}
+        MAPBOX_STYLE_ID: ${MAPBOX_STYLE_ID:-light-v11}
+    restart: unless-stopped
+    environment:
+      HOST: "0.0.0.0"
+      PORT: ${NEXTSTRAIN_PORT:-8100}
+    expose:
+      - "${NEXTSTRAIN_PORT:-8100}"
+    ports:
+      - "127.0.0.1:${NEXTSTRAIN_HOST_PORT:-8100}:${NEXTSTRAIN_PORT:-8100}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ['PORT'] + '/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - nextstrain_data:${NEXTSTRAIN_DATA_DIR:-/data}
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks: [deployment_net]
+  # END BU-ISCIII ADDON: nextstrain
+
+networks:
+  deployment_net:
+
+volumes:
+  relecov-platform_documents:
+  relecov-platform_static:
+  relecov-iskylims_documents:
+  relecov-iskylims_static:
+  nextstrain_data:

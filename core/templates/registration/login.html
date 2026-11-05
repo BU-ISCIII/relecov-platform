@@ -1,0 +1,80 @@
+{% extends "core/base.html" %}
+
+{% load static %}
+
+{% block content %}
+{% if form.errors %}
+    <section id="relecov-platform" class="hero-animated d-flex align-items-center">
+        <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative p-5" data-aos="zoom-out">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card border-danger mb-3">
+                            <h4 class="card-title text-danger" >Your userid and/or password are incorrect</h4>
+                            <div class="card-body">
+                                <p> Please enter your credentials again to login</p>
+                            </div>  <!-- end card-body -->
+                        </div>  <!-- end card -->
+                    </div> <!-- end col-md-6 -->
+                </div> <!-- end row -->
+            </div>
+        </div>
+    </section>
+{% else %}
+<section id="relecov-platform" class="hero-animated d-flex align-items-center">
+    <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative p-5" data-aos="zoom-out">
+
+{% endif %}
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="card border-danger">
+                    <h3 class="card-header">Relecov platform announcement</h3>
+                    <div class="card-body">
+                        <h4>Relecov Platform website is ready for beta testing.</h4>
+                        <p>Before making it public, we have opened it to the members of the RELECOV network. If you have received access to the platform, thanks for trying everything! We are willing to receive your feedback . 
+                        <p>This beta version is focused on showing you the platform design and how the data is stored and displayed. Our proposal is that everything inside the intranet will have limited access, and all the information in the dashboards will be public. We have set some visualization and data exploitment examples in the dashboard. We are willing to improve and grow all the data analysis with your feedback and comments so the platform would became useful for an effective surveillance based on genomics.</p>
+                        <p>Once you have received your credentials by email, please use the username and password for login.</p>
+                        <p>Please take a look to the documentation, and ask if you have any doubt!</p>       
+                        <p class="text-info">If you do not get the email, please contact us (bioinformatica@isciii.es.<br>As soon as we confirm your project membership, we will proceed to send you your credentials.
+                        </p>
+                        <p>We are sorry for any inconvenience that this limited access may cause you.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">LOGIN</h3>
+                        <p class="card-title"> Write your credentials to access to relecov Platform Intranet</p>
+                        <form class="row g-3"  method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="floatingInput" name="username" placeholder="userid">
+                                <label for="floatingInput">Type your userid</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
+                                <label for="floatingPassword">Password</label>
+                            </div>
+                            <div class="col-end">
+                                <button type="submit" class="btn btn-submit mb-3 float-end">Submit credentials</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        {% if not form.errors %}
+    </div>
+</section>
+        {% endif %}
+
+{% endblock %}

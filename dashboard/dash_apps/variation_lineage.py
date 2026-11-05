@@ -1,0 +1,96 @@
+import dash_bootstrap_components as dbc
+from dash import dcc, html
+from dash.dependencies import Input, Output
+from django_plotly_dash import DjangoDash
+
+import dashboard.utils.var_lineage_variation_over_time_graph
+
+APP_NAME = "variationLineageOverTime"
+
+
+def register():
+    # AppConfig.ready() calls this function for every Django management
+    # command. Keep registration free of database and external API work so a
+    # fresh installation can migrate and load its initial configuration.
+    first_date = None
+    last_date = None
+    initial_figure = {}
+
+    app = DjangoDash(
+        APP_NAME,
+        external_stylesheets=[
+            "/static/core/custom/css/dash_style.css",
+            dbc.themes.BOOTSTRAP,
+        ],
+    )
+
+    controls = dbc.Card(
+        [
+            html.Div(
+                [
+                    dbc.Label("Select period of time (MM/DD/YYYY)"),
+                    dcc.DatePickerRange(
+                        id="datePickerRange",
+                        start_date_placeholder_text="Start Date",
+                        end_date_placeholder_text="End Date",
+                        min_date_allowed=first_date,
+                        max_date_allowed=last_date,
+                        initial_visible_month=last_date,
+                        calendar_orientation="horizontal",
+                        number_of_months_shown=4,
+                        display_format="MM/DD/YYYY",
+                        clearable=True,
+                        minimum_nights=0,
+                        day_size=32,
+                    ),
+                ],
+            ),
+        ],
+        body=True,
+    )
+    period_text = dbc.Card(
+        [
+            html.Div(
+                "When no Selection period is set, data from the first registered date until today is shown"
+            )
+        ]
+    )
+    app.layout = dbc.Container(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(controls, md=5),
+                    dbc.Col(period_text, md=6),
+                    dbc.Col(
+                        dcc.Graph(
+                            id="lineageGraph",
+                            figure=initial_figure,
+                            config={"displaylogo": False},
+                            style={"padding-top": "15px"},
+                        ),
+                        md=12,
+                    ),
+                ],
+                align="center",
+            ),
+        ],
+        fluid=True,
+        style={"fontFamily": "Oxanium, sans-serif"},
+    )
+
+    @app.callback(
+        Output("lineageGraph", "figure"),
+        [Input("datePickerRange", "start_date"), Input("datePickerRange", "end_date")],
+    )
+    def update_graph(start_date, end_date):
+        data_df = (
+            dashboard.utils.var_lineage_variation_over_time_graph.load_variant_graphic_dataframe()
+        )
+        if isinstance(data_df, dict) or data_df.empty:
+            return initial_figure
+        df_full = dashboard.utils.var_lineage_variation_over_time_graph.prepare_variant_graphic_dataframe(
+            data_df
+        )
+        return dashboard.utils.var_lineage_variation_over_time_graph.build_lineage_variation_figure(
+            df_full, start_date=start_date, end_date=end_date
+        )

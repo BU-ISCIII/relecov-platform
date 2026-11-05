@@ -1,0 +1,26 @@
+[run]
+source =
+    core
+    dashboard
+branch = True
+omit =
+    */migrations/*
+    */tests.py
+    core/admin.py
+    dashboard/admin.py
+    */apps.py
+    core/dash_access.py
+    core/finders.py
+    core/dash_apps/*
+    dashboard/dash_apps/*
+    dashboard/cron.py
+
+[report]
+show_missing = True
+skip_covered = False
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+
+[html]
+directory = htmlcov

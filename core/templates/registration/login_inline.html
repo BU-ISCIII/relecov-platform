@@ -1,0 +1,7 @@
+<div class="col-md-2">
+    <form id="signout" class="navbar-form navbar-right" role="form" method="post" action="{% url 'logout' %}?next={{request.path}}">
+       {% csrf_token %}
+        <label class="float-end"> <i class="bi bi-person-check color-green pull-right "></i><strong>{{user.get_username}} &nbsp</strong> </label>
+        <button type="submit" class="btn btn-outline-success float-end ">Close session <i class="bi bi-box-arrow-right"></i></button>
+    </form>
+</div>

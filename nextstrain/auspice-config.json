@@ -1,0 +1,8 @@
+{
+  "browserTitle": "RELECOV Nextstrain",
+  "mapTiles": {
+    "api": "https://api.mapbox.com/styles/v1/__MAPBOX_STYLE_OWNER__/__MAPBOX_STYLE_ID__/tiles/256/{z}/{x}/{y}?access_token=__MAPBOX_ACCESS_TOKEN__",
+    "attribution": "© <a href=\"https://www.mapbox.com/about/maps/\">Mapbox</a> © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+    "mapboxWordmark": true
+  }
+}

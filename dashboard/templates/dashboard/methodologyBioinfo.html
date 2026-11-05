@@ -1,0 +1,59 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+{%load plotly_dash%}
+
+{% block content %}
+{% include "dashboard/sideMenuFuncionality.html" %}
+
+<section class="hero-animated d-flex font-primary">
+    <div class="container position-relative">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+            <!-- Sidebar -->
+            {% include "dashboard/methodologySideBar.html" %}
+            <!-- End of Sidebar -->
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+                        {% if bioinfo.ERROR %}
+                            <div class="row justify-content-center p-4" style="text-align: center;">
+                                <div class="col-sm-10" >
+                                    <div class="card  border-danger mb-3">
+                                        <div class="card-header text-center text-danger"><h3 style="text-align:center">Error</h3> </div>
+                                        <div class="card-body  text-center">
+                                            <br>
+                                            <p><strong>{{bioinfo.ERROR}}</strong></p>
+                                        </div> <!-- end card body  -->
+                                    </div> <!-- end card  -->
+                                </div> <!--// end col-sm-9 -->
+                            </div> <!--// end row -->
+                        {% else %}
+                            <!-- Page Heading -->
+                            <div class="row pt-4"  style="text-align: center">
+                                <h1>Sequencing Quality and Depth Analysis</h1>
+                            </div>
+                            <hr>
+                            <!-- Content Row -->
+                            <div class="row p-4" style="text-align: center;">
+                                <div class="col-sm-12 justify-content-center">
+                                    {{ bioinfo.boxplot_comparation | safe }}
+                                </div> <!--// end col-sm-4 -->
+                                <div class="col-sm-12 justify-content-center">
+                                    {{ bioinfo.depth_variants | safe }}
+                                </div> <!--// end col-sm-6 -->
+                                <div class="col-sm-12 justify-content-center">
+                                    {{ bioinfo.depth_sample_run | safe }}
+                                </div> <!--// end col-sm-6 -->
+                            </div>  <!-- end row-->
+                        {% endif %}
+                    </div> <!-- /.container-fluid -->
+                </div> <!-- End of Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+{% endblock %}

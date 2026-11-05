@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load plotly_dash %}
+
+{% block content %}
+
+{% include "core/sideMenuFuncionality.html" %}
+
+<section class="hero-animated d-flex font-primary">
+    <div class="container position-relative">
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+            <!-- Sidebar -->
+            {% include "core/intranetSideBar.html" %}
+            <!-- End of Sidebar -->
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+                <!-- Main Content -->
+                <div id="content">
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+                        <!-- Page Heading -->
+                        <div class="row"  style="text-align: center">
+                            <h1>Received Sample</h1>
+                        </div> <!-- end row -->
+                        <hr>
+                        <!-- Content Row -->
+                        <div class="row" style="text-align: center">
+                            <div class="col-md-12">
+                                <h5>Map of received samples</h5>
+                                {% if sample_data.map.ERROR %}
+                                    <div class="card text-center border-danger">
+                                        <div class="card-header text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                                        <div class="card-body text-center">
+                                            <h5 "text-center">Unable to connect to LIMS to fetch data</h5>
+                                        </div> <!-- end card body  -->
+                                    </div>
+                                {% else %}
+                                    {% plotly_app name="samplesReceivedOverTimeMap" ratio=1 %}
+                                {% endif %}
+                            </div>  <!-- end col-md-12 -->
+                        </div>  <!-- end row-->
+                        <div class="row" style="text-align: center">
+                            <div class="col-md-6">
+                                <h5>Received Samples per Date</h5>
+                                {{ sample_data.received_samples_graph | safe }}
+                            </div>  <!-- end col-md-6 -->
+                            <div class="col-md-6">
+                                <h5>Received Samples per CCAA</h5>
+                                {% if sample_data.samples_per_lab.ERROR %}
+                                    <div class="card text-center border-danger">
+                                        <div class="card-header text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                                        <div class="card-body text-center">
+                                            <h5 "text-center">Unable to connect to LIMS to fetch data</h5>
+                                        </div> <!-- end card body  -->
+                                    </div>
+                                {% else %}
+                                    {{ sample_data.samples_per_ccaa | safe }}
+                                {% endif %}
+                            </div>  <!-- end col-md-6 -->
+                        </div>  <!-- end row-->
+                        <div class="row justify-content-center p-4">
+                            <div class="col-md-12">
+                                <h5>Received Samples per Laboratory Center</h5>
+                                {% if sample_data.samples_per_lab.ERROR %}
+                                    <div class="card text-center border-danger">
+                                        <div class="card-header text-danger"><h3 style="text-align:center">ERROR</h3> </div>
+                                        <div class="card-body text-center">
+                                            <h5 "text-center">Unable to connect to LIMS to fetch data</h5>
+                                        </div> <!-- end card body  -->
+                                    </div>
+                                {% else %}
+                                    {{ sample_data.samples_per_lab | safe }}
+                                {% endif %}
+                            </div>  <!-- end col-md-12 -->
+                        </div>  <!-- end row-->
+                    </div> <!-- End container -->
+                </div><!-- End Main Content -->
+            </div> <!-- End Content wrapper-->
+        </div> <!-- wrapper -->
+    </div>  <!-- End container -->
+</section>
+
+{% endblock %}
