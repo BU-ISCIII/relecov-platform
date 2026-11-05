@@ -594,7 +594,10 @@
 
                                                     function renderLineageOptions() {
                                                         var selectedLineage = select.val() || column.search();
-                                                        select.empty().append('<option value="">Clear ' + columnName + ' filter </option>');
+                                                        select.empty()
+                                                            .append($('<option></option>')
+                                                            .val('')
+                                                            .text('Clear ' + columnName + ' filter '));
                                                         lineageOptions.forEach(function (d) {
                                                             select.append($('<option></option>').val(d).text(d));
                                                         });
@@ -629,7 +632,8 @@
                                                             renderInstitutionOptions('');
                                                             searchInput.trigger('focus');
                                                         });
-                                                    $('<button type="button" class="btn btn-outline-secondary btn-sm mb-1">Remove filter of ' + columnName + '</button>')
+                                                    $('<button type="button" class="btn btn-outline-secondary btn-sm mb-1"></button>')
+                                                        .text('Remove filter of ' + columnName)
                                                         .appendTo(headerCell)
                                                         .on('click mousedown keydown touchstart', function (event) {
                                                             event.stopPropagation();
