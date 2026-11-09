@@ -16,7 +16,7 @@ First stable release of the RELECOV Platform. It covers everything built since t
 - [Alejandro Bernabeu](https://github.com/aberdur)
 - [Enrique Sapena](https://github.com/ESapenaVentura)
 - [Víctor López](https://github.com/victor5lm))
-- [Daniel Villares](https://github.com/Daniel-VM)
+- [Daniel Valle](https://github.com/Daniel-VM)
 - [Luis Chapado](https://github.com/luissian)
 - [Pablo Mata](https://github.com/Shettland)
 - [Alejandra gonzalez](https://github.com/alejandra-gonzalezs)
