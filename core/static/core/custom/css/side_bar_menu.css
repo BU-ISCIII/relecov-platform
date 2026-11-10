@@ -1,0 +1,216 @@
+/* Wrapper */
+#wrapper {
+  display: flex;
+  position: relative;
+}
+
+#wrapper #content-wrapper {
+  background-color: #f8f9fc;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#wrapper #content-wrapper #content {
+  flex: 1 0 auto;
+}
+
+#wrapper #content-wrapper #content > .container-fluid > .row:first-child {
+  padding-top: 1.5rem;
+}
+
+/* Clases auxiliares */
+.rounded-circle {
+  border-radius: 50% !important;
+}
+
+@media (min-width: 768px) {
+  .d-md-inline {
+      display: inline !important;
+  }
+}
+/* ===================== */
+/* Sidebar base */
+/* ===================== */
+.sidebar {
+  min-height: 100vh;
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+/* Sidebar background */
+.bg-gradient-primary {
+  background-color: #448873;
+  background-image: linear-gradient(180deg, #448873 95%, var(--color-secondary) 100%);
+  background-size: cover;
+  border-radius: 10px;
+}
+
+/* ===================== */
+/* Sidebar brand ("Documentation") */
+/* ===================== */
+.sidebar .sidebar-brand {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 2rem 1rem 1.5rem;
+}
+
+.sidebar .sidebar-brand i {
+  font-size: 1.6rem;
+}
+
+/* ===================== */
+/* Sidebar headings ("Overview", "Installation") */
+/* ===================== */
+.sidebar-heading {
+  font-size: 1rem;
+  text-transform: uppercase;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  opacity: 0.9;
+  letter-spacing: 0.05rem;
+}
+
+/* Divider */
+.sidebar-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  margin: 0.5rem 1rem;
+}
+
+/* ===================== */
+/* Sidebar tabs (Description, Configuration...) */
+/* ===================== */
+.sidebar .nav-item {
+  margin-bottom: 0.2rem;
+}
+
+.sidebar .nav-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link i {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link:focus {
+  background: rgba(255, 255, 255, 0.08); /* más sutil */
+  color: var(--color-links);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Active tab */
+.sidebar .nav-item.active .nav-link {
+  font-weight: bold;
+  color: #ffffff;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ===================== */
+/* Sidebar toggle button */
+/* ===================== */
+#sidebarToggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+#sidebarToggle:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+#sidebarToggle .toggle-icon {
+  transition: transform 0.3s ease;
+  font-size: 1.2rem;
+  color: white;
+  line-height: 1;
+}
+
+/* ===================== */
+/* Responsive expandido */
+/* ===================== */
+@media (min-width: 768px) {
+  .sidebar {
+      width: 17rem;
+  }
+
+  .sidebar .sidebar-brand {
+      justify-content: flex-start;
+  }
+
+  .sidebar .nav-link {
+      justify-content: flex-start;
+  }
+
+  .sidebar .nav-link span {
+      display: inline;
+  }
+}
+
+/* ===================== */
+/* Responsive colapsed */
+/* ===================== */
+.sidebar.toggled {
+  width: 6.5rem;
+}
+/* Sidebar Brand */
+.sidebar.toggled .sidebar-brand {
+  flex-direction: column;
+}
+.sidebar.toggled .sidebar-brand-text {
+  display: none;
+}
+/* Sidebar Headings */
+.sidebar.toggled .sidebar-heading {
+  font-size: 0;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.sidebar.toggled .sidebar-heading i {
+  font-size: 1.4rem;
+  display: none;
+  margin: 0 auto;
+}
+
+/* Nav Links */
+.sidebar.toggled .nav-link {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding: 0.75rem 0;
+}
+
+.sidebar.toggled .nav-link i {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.sidebar.toggled .nav-link span {
+  display: block;
+  font-size: 0.6rem;
+  margin-top: 0.25rem;
+}

@@ -1,268 +1,551 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-RELECOVPLATFORM_VERSION="0.2.0"
-. ./initial_settings.txt
+install_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$install_script_dir"
+# shellcheck disable=SC1091
+source "$install_script_dir/deployment/lib/container/common.sh"
+# shellcheck disable=SC1091
+source "$install_script_dir/deployment/lib/container/django.sh"
 
-db_check(){
-	mysqladmin -h $DB_SERVER_IP -u$DB_USER -p$DB_PASS -P$DB_PORT processlist >/tmp/null ###user should have mysql permission on remote server.
+APP_VERSION="0.2.0"
+ACTION="install"
+OPERATION_SCOPE="full"
+WORKFLOW="standard"
+GIT_REVISION="current"
+INSTALL_CONF="./install_settings.txt"
+LOAD_TABLES="false"
+SKIP_TABLES="false"
+SKIP_APACHE_RESTART="false"
+SCRIPT_BEFORE=()
+SCRIPT_AFTER=()
+RENDER_SETTINGS="auto"
+SETTINGS_OUTPUT=""
+INITIAL_GIT_REF=""
 
-    if ! [ $? -eq 0 ]; then
-        echo -e "${RED}ERROR : Unable to connect to database. Check if your database is running and accessible${NC}"
-        exit 1
-    fi
-    RESULT=`mysqlshow --user=$DB_USER --password=$DB_PASS --host=$DB_SERVER_IP --port=$DB_PORT | grep -o relecov`
+usage() {
+    cat <<'EOF'
+Install, stage, or bootstrap RELECOV Platform.
 
-    if  ! [ "$RESULT" == "relecov" ] ; then
-        echo -e "${RED}ERROR : Relecov database is not defined yet ${NC}"
-        echo -e "${RED}ERROR : Create Relecov database on your mysql server and run again the installation script ${NC}"
-        exit 1
-    fi
+Usage: ./install.sh [options]
+
+  --install full|dep|app       Install dependencies, application, or both.
+  --upgrade full|dep|app       Upgrade dependencies, application, or both.
+  --stage install|upgrade      Stage an immutable image; never touch the DB.
+  --bootstrap install|upgrade  Bootstrap an already staged application.
+  --git_revision <revision>    Branch, tag, commit, or current (default).
+  --conf <path>                Normalized installation settings file.
+  --render-settings            Render Django settings during staging.
+  --settings-output <path>     Override the rendered settings destination.
+  --tables                     Load conf/first_install_tables.json.
+  --skip_tables                Never load the initial fixture.
+  --script_before <name[,args]>  Repeatable pre-migrate django-extensions hook.
+  --script_after <name[,args]>   Repeatable post-migrate hook.
+  --script <name[,args]>       Alias for --script_after.
+  --docker                     Deprecated alias for --skip_apache_restart.
+  --skip_apache_restart        Do not restart a host Apache service.
+  --help
+  --version
+
+Examples:
+  ./install.sh --install full --conf conf/docker_test_settings.txt --tables
+  ./install.sh --upgrade app --git_revision v2.0.0 --script_before prepare_v2
+  ./install.sh --stage install --conf conf/docker_test_settings.txt --render-settings
+  ./install.sh --bootstrap upgrade --conf /tmp/runtime_install_settings.txt
+EOF
 }
 
-apache_check(){
-    if [[ $linux_distribution == "Ubuntu" ]]; then
-        if ! pidof apache2 > /dev/null ; then
-            # web server down, restart the server
-            echo "Apache Server is down... Trying to restart Apache"
-            systemctl restart apache2.service
-            sleep 10
-            if pidof apache2 > /dev/null ; then
-                echo "Apache Server is up"
-            else
-                echo -e "${RED}ERROR : Unable to start Apache ${NC}"
-                echo -e "${RED}ERROR : Solve the issue with Apache server and run again the installation script ${NC}"
-                exit 1
-            fi
+die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+info() { printf 'INFO: %s\n' "$*"; }
+command_required() { command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
+
+while (($#)); do
+    case "$1" in
+        --git_revision) GIT_REVISION="${2:-}"; shift 2 ;;
+        --conf) INSTALL_CONF="${2:-}"; shift 2 ;;
+        --render-settings) RENDER_SETTINGS="true"; shift ;;
+        --settings-output) SETTINGS_OUTPUT="${2:-}"; shift 2 ;;
+        --stage|--bootstrap)
+            WORKFLOW="${1#--}"
+            [[ "${2:-}" =~ ^(install|upgrade)$ ]] || die "$1 requires install or upgrade"
+            ACTION="$2"; OPERATION_SCOPE="app"; shift 2
+            ;;
+        --install|--upgrade)
+            ACTION="${1#--}"; WORKFLOW="standard"
+            [[ "${2:-}" =~ ^(full|dep|app)$ ]] || die "$1 requires full, dep, or app"
+            OPERATION_SCOPE="$2"; shift 2
+            ;;
+        --script_before) [[ -n "${2:-}" ]] || die "$1 requires a value"; SCRIPT_BEFORE+=("$2"); shift 2 ;;
+        --script_after|--script) [[ -n "${2:-}" ]] || die "$1 requires a value"; SCRIPT_AFTER+=("$2"); shift 2 ;;
+        --tables) LOAD_TABLES="true"; shift ;;
+        --skip_tables) SKIP_TABLES="true"; LOAD_TABLES="false"; shift ;;
+        --docker|--skip_apache_restart) SKIP_APACHE_RESTART="true"; shift ;;
+        --help) usage; exit 0 ;;
+        --version) echo "$APP_VERSION"; exit 0 ;;
+        *) die "Unknown option: $1" ;;
+    esac
+done
+
+# A fresh installation loads an application-owned initial fixture by default.
+# Upgrades remain opt-in through --tables; --skip_tables is an explicit escape
+# hatch for recovery or externally restored databases.
+if [[ "$ACTION" == "install" && "$SKIP_TABLES" == "false" \
+    && -f "$install_script_dir/conf/first_install_tables.json" ]]; then
+    LOAD_TABLES="true"
+fi
+
+[[ "$WORKFLOW" != "stage" || ${#SCRIPT_BEFORE[@]} -eq 0 && ${#SCRIPT_AFTER[@]} -eq 0 ]] \
+    || die "Migration scripts cannot run during the stage workflow"
+[[ -f "$INSTALL_CONF" ]] || die "Configuration not found: $INSTALL_CONF"
+if [[ "$INSTALL_CONF" != /* ]]; then
+    INSTALL_CONF="$(cd "$(dirname "$INSTALL_CONF")" && pwd)/$(basename "$INSTALL_CONF")"
+fi
+if [[ "$WORKFLOW" != "stage" ]] && grep -Eq "^[A-Z0-9_]+=.*CHANGE_ME" "$INSTALL_CONF"; then
+    die "Configuration still contains CHANGE_ME values"
+fi
+
+# A staged service's installation file supplies standalone defaults. During
+# container bootstrap, Compose owns the runtime database endpoint and may
+# rename a dependency as part of a larger orchestration topology. Preserve
+# explicitly exported database values so sourcing the defaults cannot replace
+# the orchestrator's service-specific connection details.
+bootstrap_database_variables=()
+bootstrap_database_values=()
+if [[ "$WORKFLOW" == "bootstrap" ]]; then
+    for variable in DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD; do
+        if [[ -v "$variable" ]]; then
+            bootstrap_database_variables+=("$variable")
+            bootstrap_database_values+=("${!variable}")
         fi
-    elif [[ $linux_distribution == "CentOs" ]]; then
-        if ! pidof httpd > /dev/null ; then
-            # web server down, restart the server
-            echo "Apache Server is down... Trying to restart Apache"
-            systemctl restart httpd
-            sleep 10
-            if pidof httpd > /dev/null ; then
-                echo "Apache Server is up"
-            else
-                echo -e "${RED}ERROR : Unable to start Apache ${NC}"
-                echo -e "${RED}ERROR : Solve the issue with Apache server and run again the installation script ${NC}"
-                exit 1
-            fi
+    done
+fi
+# shellcheck disable=SC1090
+source "$INSTALL_CONF"
+for index in "${!bootstrap_database_variables[@]}"; do
+    variable="${bootstrap_database_variables[$index]}"
+    printf -v "$variable" '%s' "${bootstrap_database_values[$index]}"
+    export "$variable"
+done
+: "${INSTALL_PATH:?INSTALL_PATH is required}"
+: "${PROJECT_MODULE:?PROJECT_MODULE is required}"
+[[ "$PROJECT_MODULE" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] \
+    || die "PROJECT_MODULE must be a valid Python package name"
+: "${PYTHON_BIN_PATH:?PYTHON_BIN_PATH is required}"
+: "${DB_HOST:?DB_HOST is required}"
+: "${DB_PORT:?DB_PORT is required}"
+: "${DB_NAME:?DB_NAME is required}"
+: "${DB_USER:?DB_USER is required}"
+: "${DB_PASSWORD:?DB_PASSWORD is required}"
+REQUIRED_MODULES="${REQUIRED_MODULES:-}"
+MIGRATION_MODULES="${MIGRATION_MODULES:-}"
+
+if [[ "$RENDER_SETTINGS" == "auto" ]]; then
+    [[ "$WORKFLOW" == "standard" ]] && RENDER_SETTINGS="true" || RENDER_SETTINGS="false"
+fi
+
+remember_git_ref() {
+    git -C "$install_script_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    INITIAL_GIT_REF="$(git -C "$install_script_dir" symbolic-ref --quiet --short HEAD \
+        || git -C "$install_script_dir" rev-parse HEAD)"
+}
+
+restore_git_ref() {
+    [[ -n "$INITIAL_GIT_REF" ]] || return 0
+    git -C "$install_script_dir" checkout --quiet "$INITIAL_GIT_REF" || \
+        printf 'WARNING: could not restore git revision %s\n' "$INITIAL_GIT_REF" >&2
+}
+
+checkout_git_revision() {
+    [[ "$GIT_REVISION" != "current" ]] || return 0
+    [[ -n "$INITIAL_GIT_REF" ]] || die "Cannot select $GIT_REVISION: source has no Git metadata"
+    git -C "$install_script_dir" rev-parse --verify "${GIT_REVISION}^{commit}" >/dev/null 2>&1 \
+        || die "Git revision is not available locally: $GIT_REVISION"
+    [[ -z "$(git -C "$install_script_dir" status --porcelain)" ]] \
+        || die "Commit or stash local changes before selecting $GIT_REVISION"
+    git -C "$install_script_dir" checkout --quiet "$GIT_REVISION"
+}
+
+check_python() {
+    command_required "$PYTHON_BIN_PATH"
+    "$PYTHON_BIN_PATH" -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' \
+        || die "Python 3.10 or newer is required"
+}
+
+check_required_modules() {
+    local module
+    [[ -f "$install_script_dir/conf/urls.py" ]] \
+        || die "Django URL configuration is missing: conf/urls.py"
+    grep -Fq 'deployment_health.urls' \
+        "$install_script_dir/conf/urls.py" \
+        || die "conf/urls.py must include deployment_health.urls for the /health/ endpoint"
+    for module in $REQUIRED_MODULES; do
+        [[ -e "$install_script_dir/$module" ]] || die "Required application module is missing: $module"
+    done
+}
+
+check_database() {
+    # Prefer the MySQL CLI when available; container images use mysqlclient's
+    # MySQLdb module from the application virtual environment. Podman network
+    # aliases can become resolvable shortly after the container process starts,
+    # so retry this existing readiness check for up to 60 seconds.
+    local deadline=$((SECONDS + 60))
+    while true; do
+        if command -v mysql >/dev/null 2>&1; then
+            MYSQL_PWD="$DB_PASSWORD" mysql --host="$DB_HOST" --port="$DB_PORT" \
+                --user="$DB_USER" --database="$DB_NAME" --execute='SELECT 1' \
+                >/dev/null 2>&1 && return 0
+        elif "$INSTALL_PATH/virtualenv/bin/python" - "$DB_HOST" "$DB_PORT" "$DB_USER" "$DB_PASSWORD" "$DB_NAME" >/dev/null 2>&1 <<'PY'
+import sys
+import MySQLdb
+connection = MySQLdb.connect(host=sys.argv[1], port=int(sys.argv[2]),
+    user=sys.argv[3], passwd=sys.argv[4], db=sys.argv[5])
+connection.close()
+PY
+        then
+            return 0
         fi
+        ((SECONDS < deadline)) \
+            || die "Unable to connect to database $DB_NAME at $DB_HOST:$DB_PORT after 60 seconds"
+        sleep 2
+    done
+}
+
+install_system_packages() {
+    # Run the application hook in a subshell outside any `||`/`if` test:
+    # Bash disables errexit inside functions called from a tested context,
+    # which would let a failed package install continue silently.
+    local status
+    set +e
+    ( set -e; install_application_system_packages )
+    status=$?
+    set -e
+    (( status == 0 )) || die "System dependency installation failed during the container build.
+Check the package-manager output above for details. Possible causes
+include repository availability, incompatible package versions,
+network access, or subscription configuration."
+}
+
+# BEGIN BU-ISCIII APPLICATION: install-hooks
+# ============================================================================
+# APPLICATION CUSTOMIZATION POINTS
+#
+# Keep generic lifecycle code outside this section. Each hook has a safe no-op
+# default. Add project behavior here, document why it is required, and make it
+# idempotent so a failed deployment can be retried safely.
+# ============================================================================
+
+install_application_system_packages() {
+    # Keep the Dockerfile limited to tools needed to launch this installer.
+    # Framework build headers and post-install user-management tools belong to
+    # this lifecycle and are installed before virtualenv creation.
+    [[ "${SKIP_SYSTEM_PACKAGES:-0}" != "1" ]] || return 0
+    [[ $(id -u) -eq 0 ]] || return 0
+    if [[ -f /etc/debian_version ]]; then
+        apt-get update
+        apt-get install -y --no-install-recommends \
+            python3-dev \
+            default-libmysqlclient-dev \
+            apache2-dev \
+            build-essential \
+            passwd \
+            tzdata
+    elif command -v microdnf >/dev/null 2>&1; then
+        microdnf install -y \
+            python3.11-devel \
+            mariadb-connector-c-devel \
+            httpd-devel \
+            gcc \
+            gcc-c++ \
+            make \
+            shadow-utils
+        # UBI minimal can record tzdata as installed without its zoneinfo
+        # payload. Reinstall it so Python can resolve Django TIME_ZONE values.
+        microdnf reinstall -y tzdata
+        microdnf clean all
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y \
+            python3.11-devel \
+            mariadb-connector-c-devel \
+            httpd-devel \
+            gcc \
+            gcc-c++ \
+            make \
+            shadow-utils \
+            tzdata
+    else
+        die "Unsupported package manager for system dependency installation"
     fi
 }
 
-python_check(){
-
-    python_version=$(su -c python3 --version $user)
-    if [[ $python_version == "" ]]; then
-        echo -e "${RED}ERROR : Python3 is not found in your system ${NC}"
-        echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
-        exit 1
-    fi
-    p_version=$(echo $python_version | cut -d"." -f2)
-    if (( $p_version < 7 )); then
-        echo -e "${RED}ERROR : Application requieres at least the version 3.7.x of Python3  ${NC}"
-        echo -e "${RED}ERROR : Solve the issue with Python and run again the installation script ${NC}"
-        exit 1
-    fi
+prepare_application_directories() {
+    # Argument: final INSTALL_PATH. Create application-specific persistent
+    # directories here. Generic logs/documents/static/cron/tmp already exist.
+    # mkdir -p is intentionally idempotent and preserves existing schemas and
+    # all other persistent directory contents during install and upgrade.
+    mkdir -p "$1/documents/schemas"
 }
-#================================================================
-#SET TEMINAL COLORS
-#================================================================
-YELLOW='\033[0;33m'
-WHITE='\033[0;37m'
-CYAN='\033[0;36m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
 
-#================================================================
-# MAIN_BODY
-#================================================================
+stage_application_custom_files() {
+    # Arguments: source directory, final INSTALL_PATH, action (install|upgrade).
+    # Copy application-owned files that intentionally need extra processing;
+    # the standard already installs the Django URL and optional routing files.
+    # RELECOV currently has no additional files outside the normal source sync.
+    return 0
+}
 
-printf "\n\n%s"
-printf "${YELLOW}------------------${NC}\n"
-printf "%s"
-printf "${YELLOW}Starting Relecov Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
-printf "%s"
-printf "${YELLOW}------------------${NC}\n\n"
+write_application_runtime_env() {
+    # Argument: final INSTALL_PATH. Use this only when the application reads a
+    # runtime .env in addition to Django settings. Never hard-code credentials.
+    # Patho Core-style example:
+    #   umask 077
+    #   printf 'OIDC_ISSUER=%s\n' "${OIDC_ISSUER:?required}" > "$1/.env"
+    #   for key in $(compgen -A variable KEYCLOAK_ | sort); do
+    #       printf '%s=%s\n' "$key" "${!key}" >> "$1/.env"
+    #   done
+    :
+}
 
-#================================================================
-#CHECK REQUIREMENTS BEFORE STARTING INSTALLATION
-#================================================================
-# Check that script is run as root
-if [[ $EUID -ne 0 ]]; then
-    printf "\n\n%s"
-    printf "${RED}------------------${NC}\n"
-    printf "%s"
-    printf "${RED}Exiting installation. This script must be run as root ${NC}\n"
-    printf "\n\n%s"
-    printf "${RED}------------------${NC}\n"
-    printf "%s"
-    exit 1
-fi
+validate_application_runtime() {
+    # Called after DB connectivity and before migrations. Validate optional
+    # identity-provider or feature configuration here.
+    # Example: require KEYCLOAK_ISSUER only when legacy auth is disabled:
+    #   [[ "${ENABLE_LEGACY_AUTH:-true}" == true || -n "${KEYCLOAK_ISSUER:-}" ]] ||
+    #       die "KEYCLOAK_ISSUER is required when legacy auth is disabled"
+    :
+}
 
-user=$SUDO_USER
-group=groups | cut -d" " -f1
+before_django_migrate() {
+    # Arguments: action and space-separated MIGRATION_MODULES. This is for
+    # application migration preparation, not the user-selected runscript hooks.
+    local action="$1" migration_modules="$2" module
 
-#Linux distribution
-linux_distribution=$(lsb_release -i | cut -f 2-)
+    echo "Validating Django migration plan for $action"
+    for module in $migration_modules; do
+        python manage.py showmigrations "$module" --plan >/dev/null \
+            || die "Unable to inspect migrations for Django app: $module"
+    done
+    python manage.py migrate --plan --noinput >/dev/null \
+        || die "Unable to calculate the Django migration plan"
+}
 
-echo "Checking main requirements"
-python_check
-printf "${BLUE}Valid version of Python${NC}\n"
-db_check
-printf "${BLUE}Successful check for database${NC}\n"
-apache_check
-printf "${BLUE}Successful check for apache${NC}\n"
+after_django_migrate() {
+    # Create the initial administrator only for an explicitly enabled fresh
+    # runtime bootstrap. Retries leave an existing account unchanged.
+    [[ "$WORKFLOW" == "bootstrap" && "$ACTION" == "install" ]] || return 0
+    [[ "${CREATE_INITIAL_SUPERUSER:-false}" == "true" ]] || return 0
+    : "${DJANGO_SUPERUSER_USERNAME:?DJANGO_SUPERUSER_USERNAME is required}"
+    : "${DJANGO_SUPERUSER_PASSWORD:?DJANGO_SUPERUSER_PASSWORD is required}"
 
-#================================================================
+    DJANGO_SUPERUSER_USERNAME="$DJANGO_SUPERUSER_USERNAME" \
+    DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-}" \
+    DJANGO_SUPERUSER_PASSWORD="$DJANGO_SUPERUSER_PASSWORD" \
+        python manage.py shell <<'PY'
+import os
 
-read -p "Are you sure you want to install Relecov-platform in this server? (Y/N) " -n 1 -r
-echo    # (optional) move to a new line
-if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-    echo "Exiting without running relecov_platform installation"
-    exit 1
-fi
+from django.contrib.auth import get_user_model
 
-#================================================================
-if [[ $linux_distribution == "Ubuntu" ]]; then
-    echo "Software installation for Ubuntu"
-    apt-get update && apt-get upgrade -y
-    apt-get install -y \
-        apt-utils libcairo2 libcairo2-dev  wget gnuplot python3-pip \
-        libmysqlclient-dev apache2-dev vim libapache2-mod-wsgi-py3 \
-        python3-venv
-fi
+user_model = get_user_model()
+username = os.environ["DJANGO_SUPERUSER_USERNAME"]
+email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
+password = os.environ["DJANGO_SUPERUSER_PASSWORD"]
+lookup = {user_model.USERNAME_FIELD: username}
+user, created = user_model._default_manager.get_or_create(**lookup)
+if created:
+    if hasattr(user, "email"):
+        user.email = email
+    user.is_staff = True
+    user.is_superuser = True
+    user.set_password(password)
+    user.save()
+    print(f"Created initial superuser: {username}")
+else:
+    print(f"Initial superuser already exists: {username}")
+PY
+}
 
-if [[ $linux_distribution == "CentOS" ]]; then
-    echo "Software installation for Centos"
-    yum groupinstall “Development tools”
-    yum install zlib-devel bzip2-devel sqlite sqlite-devel openssl-devel
-    yum install libcairo2 libcairo2-dev libpango1.0 libpango1.0-dev wget gnuplot
-fi
+set_application_permissions() {
+    # Argument: final INSTALL_PATH. Container image staging and runtime mount
+    # permissions are owned by the Dockerfile and container_install.sh.
+    [[ "$WORKFLOW" == "standard" ]] || return 0
 
-echo "Starting relecov-platform installation"
-if [ -d $INSTALL_PATH/relecov-platform ]; then
-    echo "There already is an installation of relecov-platform in $INSTALL_PATH."
-    read -p "Do you want to remove current installation and reinstall? (Y/N) " -n 1 -r
-    echo    # (optional) move to a new line
-    if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-        echo "Exiting without running relecov_platform installation"
-        exit 1
+    local install_path="$1"
+    local install_user="${SUDO_USER:-$(id -un)}"
+    local apache_group="apache"
+    local logs_path="$install_path/logs"
+
+    [[ -f /etc/debian_version ]] && apache_group="www-data"
+    getent group "$apache_group" >/dev/null 2>&1 \
+        || die "Required Apache group does not exist: $apache_group"
+
+    case "${LOG_TYPE:-regular_folder}" in
+        regular_folder)
+            [[ ! -L "$logs_path" ]] \
+                || die "$logs_path is a symbolic link but LOG_TYPE=regular_folder"
+            mkdir -p "$logs_path"
+            ;;
+        symbolic_link)
+            [[ -n "${LOG_PATH:-}" ]] \
+                || die "LOG_PATH is required when LOG_TYPE=symbolic_link"
+            [[ -d "$LOG_PATH" ]] \
+                || die "Configured log directory does not exist: $LOG_PATH"
+            if [[ -L "$logs_path" ]]; then
+                [[ "$(readlink -f "$logs_path")" == "$(readlink -f "$LOG_PATH")" ]] \
+                    || die "$logs_path points to a different location than LOG_PATH"
+            else
+                if [[ -d "$logs_path" ]]; then
+                    rmdir "$logs_path" 2>/dev/null \
+                        || die "Refusing to replace non-empty log directory: $logs_path"
+                elif [[ -e "$logs_path" ]]; then
+                    die "Refusing to replace non-directory log path: $logs_path"
+                fi
+                ln -s "$LOG_PATH" "$logs_path"
+            fi
+            logs_path="$LOG_PATH"
+            ;;
+        *) die "Unsupported LOG_TYPE: $LOG_TYPE" ;;
+    esac
+
+    mkdir -p "$install_path/documents/schemas"
+    if [[ $(id -u) -eq 0 ]]; then
+        chown -R "$install_user:$apache_group" \
+            "$install_path/documents" "$logs_path"
     else
-        rm -rf $INSTALL_PATH/relecov-platform
+        printf 'WARNING: ownership update requires root; leaving owner/group unchanged.\n' >&2
     fi
-fi
+    chmod -R u+rwX,g+rwX,o-rwx "$install_path/documents" "$logs_path"
+    chmod 0775 "$install_path/documents" "$install_path/documents/schemas" "$logs_path"
+}
 
-## Clone relecov-platform repository
-cd $INSTALL_PATH
-git clone https://github.com/BU-ISCIII/relecov-platform.git relecov-platform
+restart_application_server() {
+    # Called only for a direct standard workflow unless restart was skipped.
+    # Example: systemctl reload apache2  (or httpd on RHEL-family systems).
+    :
+}
 
-cd relecov-platform
-## move to develop branch if --dev param
-##git checkout develop
+# ========================= END APPLICATION CUSTOMIZATION =====================
+# END BU-ISCIII APPLICATION: install-hooks
 
-# git checkout main
-## Create apache group if it does not exist.
-if ! grep -q apache /etc/group
-then
-    groupadd apache
-fi
+stage_dependencies() {
+    checkout_git_revision
+    check_python
+    check_required_modules
+    install_system_packages
+    mkdir -p "$INSTALL_PATH"
+    [[ -d "$INSTALL_PATH/virtualenv" ]] \
+        || "$PYTHON_BIN_PATH" -m venv "$INSTALL_PATH/virtualenv"
+    # shellcheck disable=SC1091
+    source "$INSTALL_PATH/virtualenv/bin/activate"
+    python -m pip install --upgrade pip wheel
+    [[ -f conf/requirements.txt ]] || die "Missing conf/requirements.txt"
+    python -m pip install -r conf/requirements.txt
+}
 
-## Fix permissions and owners
-mkdir -p /opt/relecov-platform/logs
-chown $user:apache /opt/relecov-platform/logs
-chmod 775 /opt/relecov-platform/logs
-mkdir -p /opt/relecov-platform/documents
-chown $user:apache /opt/relecov-platform/documents
-chmod 775 /opt/relecov-platform/documents
-mkdir -p /opt/relecov-platform/documents/schemas
-chown $user:apache /opt/relecov-platform/documents/schemas
-chmod 775 /opt/relecov-platform/documents/schemas
-echo "Created folders for logs and documents "
-
-# install virtual environment
-echo "Creating virtual environment"
-if [ -d $INSTALL_PATH/relecov-platform/virtualenv ]; then
-    echo "There already is a virtualenv for relecov-platform in $INSTALL_PATH."
-    read -p "Do you want to remove current virtualenv and reinstall? (Y/N) " -n 1 -r
-    echo    # (optional) move to a new line
-    if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
-        rm -rf $INSTALL_PATH/relecov-platform/virtualenv
-        bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-    else
-        echo "virtualenv alredy defined. Skipping."
+stage_application_files() {
+    checkout_git_revision
+    [[ -d "$INSTALL_PATH/virtualenv" ]] \
+        || die "virtualenv not found at $INSTALL_PATH; install dependencies first"
+    # The Django wrapper is deployment-generated and must never be inherited
+    # from an ignored local source tree or a previous staged installation.
+    rm -rf "$INSTALL_PATH/$PROJECT_MODULE"
+    rm -f "$INSTALL_PATH/manage.py"
+    rsync -rl --delete \
+        --exclude .git --exclude .env --exclude /logs --exclude /documents \
+        --exclude /static --exclude /cron --exclude /tmp --exclude /virtualenv \
+        --exclude /manage.py --exclude "/$PROJECT_MODULE" \
+        ./ "$INSTALL_PATH/"
+    mkdir -p "$INSTALL_PATH/logs" "$INSTALL_PATH/documents" \
+        "$INSTALL_PATH/static" "$INSTALL_PATH/cron" "$INSTALL_PATH/tmp"
+    prepare_application_directories "$INSTALL_PATH"
+    # Run from the clean staged tree so a source directory such as conf/ cannot
+    # be mistaken for an importable module that conflicts with PROJECT_MODULE.
+    (
+        cd "$INSTALL_PATH"
+        PYTHONPATH= "$INSTALL_PATH/virtualenv/bin/python" -m django startproject \
+            "$PROJECT_MODULE" .
+    )
+    install -m 0644 "$install_script_dir/conf/urls.py" \
+        "$INSTALL_PATH/$PROJECT_MODULE/urls.py"
+    if [[ -f "$install_script_dir/conf/routing.py" ]]; then
+        install -m 0644 "$install_script_dir/conf/routing.py" \
+            "$INSTALL_PATH/$PROJECT_MODULE/routing.py"
     fi
-else
-    bash -c "$PYTHON_BIN_PATH -m venv virtualenv"
-fi
+    stage_application_custom_files "$install_script_dir" "$INSTALL_PATH" "$ACTION"
+    printf '%s\n' "$GIT_REVISION" > "$INSTALL_PATH/.deployed_revision"
+    if [[ "$RENDER_SETTINGS" == "true" ]]; then
+        local template="$install_script_dir/conf/template_settings.py"
+        local output="${SETTINGS_OUTPUT:-$INSTALL_PATH/$PROJECT_MODULE/settings.py}"
+        [[ -f "$template" ]] || die "Django settings template not found: $template"
+        render_django_settings_file "$template" "$output" "$INSTALL_CONF"
+    fi
+    write_application_runtime_env "$INSTALL_PATH"
+    set_application_permissions "$INSTALL_PATH"
+}
 
-echo "activate the virtualenv"
-source virtualenv/bin/activate
+run_hook() {
+    local specification="$1" script_name="${1%%,*}"
+    local -a args=(manage.py runscript "$script_name")
+    [[ -n "$script_name" ]] || die "Empty migration script name"
+    [[ "$specification" != *,* ]] || args+=(--script-args "${specification#*,}")
+    python "${args[@]}"
+}
 
-# Starting Relecov Platform
-echo "Loading python necessary packages"
-python3 -m pip install -r conf/requirements.txt
-echo ""
-echo "Creating relecov_platform project"
-django-admin startproject relecov_platform .
-grep ^SECRET relecov_platform/settings.py > ~/.secret
+check_for_missing_migrations() {
+    # Deployment must never invent schema history. Fail when model changes need
+    # migration files that have not been generated and committed by developers.
+    python manage.py makemigrations --check --dry-run --noinput \
+        || die "Model changes detected without committed Django migrations"
+}
 
+bootstrap_application() {
+    [[ -f "$INSTALL_PATH/manage.py" ]] || die "manage.py not found; run --stage first"
+    [[ -x "$INSTALL_PATH/virtualenv/bin/python" ]] || die "virtualenv not found; run --stage first"
+    cd "$INSTALL_PATH"
+    # shellcheck disable=SC1091
+    source virtualenv/bin/activate
+    check_database
+    validate_application_runtime
+    python manage.py check --deploy
+    local hook
+    for hook in "${SCRIPT_BEFORE[@]}"; do run_hook "$hook"; done
+    check_for_missing_migrations
+    before_django_migrate "$ACTION" "$MIGRATION_MODULES"
+    python manage.py migrate --noinput
+    if [[ "$LOAD_TABLES" == "true" && "$SKIP_TABLES" == "false" ]]; then
+        [[ -f conf/first_install_tables.json ]] \
+            || die "Initial table fixture not found: conf/first_install_tables.json"
+        python manage.py loaddata conf/first_install_tables.json
+    fi
+    for hook in "${SCRIPT_AFTER[@]}"; do run_hook "$hook"; done
+    after_django_migrate "$ACTION"
+    python manage.py collectstatic --noinput
+    local migration_log
+    migration_log="$(mktemp "${TMPDIR:-/tmp}/relecov-platform-migrations.XXXXXX.log")"
+    if ! python manage.py showmigrations --plan > "$migration_log" 2>&1 \
+        || grep -Fq '[ ]' "$migration_log"; then
+        cat "$migration_log" >&2
+        rm -f "$migration_log"
+        die "Django migration verification failed"
+    fi
+    rm -f "$migration_log"
+}
 
-# Copying config files and script
-cp conf/template_settings.py /opt/relecov-platform/relecov_platform/settings.py
-cp conf/urls.py /opt/relecov-platform/relecov_platform/
-cp conf/asgi.py /opt/relecov-platform/relecov_platform/
-cp conf/routing.py /opt/relecov-platform/relecov_platform/
-cp conf/wsgi.py /opt/relecov-platform/relecov_platform/
+remember_git_ref
+trap restore_git_ref EXIT
 
-sed -i "/^SECRET/c\\$(cat ~/.secret)" relecov_platform/settings.py
-sed -i "s/djangouser/${DB_USER}/g" relecov_platform/settings.py
-sed -i "s/djangopass/${DB_PASS}/g" relecov_platform/settings.py
-sed -i "s/djangohost/${DB_SERVER_IP}/g" relecov_platform/settings.py
-sed -i "s/djangoport/${DB_PORT}/g" relecov_platform/settings.py
+case "$WORKFLOW" in
+    stage) stage_dependencies; stage_application_files ;;
+    bootstrap) bootstrap_application ;;
+    standard)
+        if [[ "$OPERATION_SCOPE" == "full" || "$OPERATION_SCOPE" == "dep" ]]; then
+            stage_dependencies
+        fi
+        if [[ "$OPERATION_SCOPE" == "full" || "$OPERATION_SCOPE" == "app" ]]; then
+            stage_application_files
+            bootstrap_application
+        fi
+        if [[ "$SKIP_APACHE_RESTART" == "false" ]]; then restart_application_server; fi
+        ;;
+    *) die "Invalid workflow: $WORKFLOW" ;;
+esac
 
-sed -i "s/localserverip/${LOCAL_SERVER_IP}/g" relecov_platform/settings.py
-
-echo "Creating the database structure for relecov-platform"
-python3 manage.py migrate
-python3 manage.py makemigrations relecov_core django_plotly_dash
-python3 manage.py migrate
-
-## Adding permissions
-chown $user:$group -R relecov_platform
-#echo "Change owner of files to Apache user"
-#chown -R www-data:www-data /opt/relecov-platform
-
-echo "Loading in database initial data"
-python3 manage.py loaddata conf/upload_tables.json
-
-
-echo "Updating Apache configuration"
-if [[ $linux_distribution == "Ubuntu" ]]; then
-    cp conf/apache2.conf /etc/apache2/sites-available/000-default.conf
-    echo  'LoadModule wsgi_module "/opt/relecov-platform/virtualenv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so"' >/etc/apache2/mods-available/iskylims.load
-    cp conf/relecov_platform.conf /etc/apache2/mods-available/relecov_platform.conf
-
-    # Create needed symbolic links to enable the configurations:
-
-    ln -s /etc/apache2/mods-available/iskylims.load /etc/apache2/mods-enabled/
-    ln -s /etc/apache2/mods-available/iskylims.conf /etc/apache2/mods-enabled/
-fi
-
-if [[ $linux_distribution == "CentOS" ]]; then
-    cp conf/relecov_platform.conf /etc/httpd/conf.d/relecov_platform.conf
-fi
-echo "Creating super user "
-python3 manage.py createsuperuser
-
-printf "\n\n%s"
-printf "${BLUE}------------------${NC}\n"
-printf "%s"
-printf "${BLUE}Successfuly Relecov Platform Installation version: ${RELECOVPLATFORM_VERSION}${NC}\n"
-printf "%s"
-printf "${BLUE}------------------${NC}\n\n"
-
-echo "Installation completed"
+info "$WORKFLOW $ACTION completed for RELECOV Platform at $INSTALL_PATH"
